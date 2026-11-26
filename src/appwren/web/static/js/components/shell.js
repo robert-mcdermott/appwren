@@ -17,6 +17,8 @@ export const NAV = [
     heading: "Portfolio",
     items: [
       { href: "/applications", label: "Applications", iconName: "application" },
+      { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
+      { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/components", label: "Components", iconName: "component" },
     ],
   },

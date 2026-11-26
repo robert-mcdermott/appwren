@@ -19,6 +19,7 @@ class Needs(StrEnum):
     MEMBER = "member"  # anyone signed in
     ARCHITECT = "architect"  # architects and managers, each within their scope
     KEEP = "keep"  # stewards, architects, and managers: those who add applications
+    DECIDE = "decide"  # leaders and managers, each within their scope
     STEWARD = "steward"  # stewards and managers, each within their scope
     LEAD = "lead"  # leaders, within their scope
     MANAGE = "manage"  # managers for the whole organization: running the program
@@ -113,6 +114,14 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/applications/{ref}/score-preview"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/assessments"): Needs.MEMBER,
     ("POST", "/api/v1/applications/{ref}/assessments"): Needs.MEMBER,
+    # Decisions and the portfolio
+    ("POST", "/api/v1/applications/{ref}/decisions"): Needs.DECIDE,
+    ("GET", "/api/v1/applications/{ref}/decisions"): Needs.MEMBER,
+    ("GET", "/api/v1/portfolio"): Needs.MEMBER,
+    ("GET", "/api/v1/score-snapshots/{snapshot_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/portfolio-snapshots"): Needs.MEMBER,
+    ("POST", "/api/v1/portfolio-snapshots"): Needs.MANAGE,
+    ("GET", "/api/v1/portfolio-snapshots/{ref}"): Needs.MEMBER,
     # Imports
     ("POST", "/api/v1/imports/units"): Needs.ADMIN,
     ("POST", "/api/v1/imports/people"): Needs.ADMIN,
@@ -128,6 +137,7 @@ def allowed(principal: Principal | None, needs: Needs) -> bool:
         Needs.MEMBER: True,
         Needs.ARCHITECT: principal.architects or principal.manages_somewhere,
         Needs.KEEP: principal.stewards or principal.architects or principal.manages_somewhere,
+        Needs.DECIDE: principal.leads or principal.manages_somewhere,
         Needs.STEWARD: principal.stewards or principal.manages_somewhere,
         Needs.LEAD: principal.leads,
         Needs.MANAGE: principal.manages,

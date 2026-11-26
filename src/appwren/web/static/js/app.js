@@ -62,6 +62,10 @@ async function boot() {
     route(`/${path}/:ref`, page("record", "recordPage", type));
   }
   route("/capability-map", page("capability-map", "capabilityMap"));
+  route("/portfolio", page("portfolio", "portfolioChart"));
+  route("/decisions", page("decisions", "decisionList"));
+  route("/snapshots", page("decisions", "snapshotList"));
+  route("/snapshots/:ref", page("decisions", "snapshotPage"));
   if (can("admin")) {
     route("/admin/people", page("admin-people", "adminPeople"));
     route("/admin/units", page("admin-units", "adminUnits"));

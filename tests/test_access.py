@@ -318,6 +318,13 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/applications/{ref}/score-preview"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/assessments"): EVERYONE,
     ("POST", "/api/v1/applications/{ref}/assessments"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/decisions"): {"leader", "manager"},
+    ("GET", "/api/v1/applications/{ref}/decisions"): EVERYONE,
+    ("GET", "/api/v1/portfolio"): EVERYONE,
+    ("GET", "/api/v1/score-snapshots/{snapshot_id}"): EVERYONE,
+    ("GET", "/api/v1/portfolio-snapshots"): EVERYONE,
+    ("POST", "/api/v1/portfolio-snapshots"): {"manager"},
+    ("GET", "/api/v1/portfolio-snapshots/{ref}"): EVERYONE,
 }
 
 
@@ -362,6 +369,9 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             )
             path = path.replace("{kind}", "favicon")
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
+            path = path.replace("{snapshot_id}", "9999")
+            if template == "/api/v1/portfolio-snapshots" and method == "POST":
+                body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:
                 path = template.replace(
                     "{account_id}",

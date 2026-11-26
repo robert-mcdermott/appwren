@@ -32,7 +32,8 @@ PARTS: list[tuple[str, Callable[..., list[str]], Callable[..., Any], Callable[..
 
 def _parts() -> None:
     """Make sure every module that adds a part of the program has added it."""
-    import appwren.assessment  # noqa: F401
+    import appwren.assessment
+    import appwren.decisions  # noqa: F401
 
 
 def install(session: Session) -> dict[str, int]:

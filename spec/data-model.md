@@ -175,7 +175,7 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 ### Decision
 
-`decision(ref, application_id, disposition, rationale, target_on, review_on, successor_id?, snapshot_id, recommendation, decided_by, decided_by_name, decided_on, superseded_by)`. `disposition` is a vocabulary (see [engine.md](engine.md#dispositions)). `snapshot_id` is the score snapshot taken at the moment of the decision, and `recommendation` its recommendation, so a mismatch at the time is on the record. Never edited; a new decision supersedes the last. The application keeps a copy of its current disposition and review date for lists and filters.
+`decision(ref, application_id, disposition, rationale, target_on, review_on, successor_id?, snapshot_id, snapshot_digest, recommendation, decided_by, decided_by_name, decided_on, created_at, superseded_by)`. `disposition` is a vocabulary (see [engine.md](engine.md#dispositions)). `snapshot_id` is the score snapshot taken at the moment of the decision, `snapshot_digest` its digest (so the decision's event fixes what it saw), and `recommendation` its recommendation, so a mismatch at the time is on the record. Without a review date, a decision is reviewed a year on; consolidating needs a successor. Never edited; a new decision supersedes the last. The application keeps a copy of its current disposition and review date for lists and filters.
 
 ## Later waves (sketch)
 

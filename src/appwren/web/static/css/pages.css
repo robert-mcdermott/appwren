@@ -125,3 +125,24 @@
 .assess-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
 .assess-live { position: sticky; top: var(--space-4); }
 @media (max-width: 1000px) { .assess-layout { grid-template-columns: minmax(0, 1fr); } .assess-live { position: static; order: -1; } }
+
+/* ---- The portfolio chart ---- */
+.portfolio-chart { width: 100%; height: auto; max-height: 72vh; display: block; }
+.chart-grid { stroke: var(--border); stroke-width: 1; }
+.chart-tick, .chart-axis { fill: var(--text-muted); font-size: 12px; }
+.chart-axis { font-weight: 600; }
+.chart-threshold { stroke: var(--border-strong); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.chart-zone { fill: var(--accent-soft); opacity: 0.55; }
+.chart-quadrant { fill: var(--text-subtle); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.bubble { stroke-width: 1.5; fill-opacity: 0.82; }
+.bubble[data-level="0"] { fill: var(--surface-3); stroke: var(--text-subtle); }
+.bubble[data-level="1"], .legend-swatch[data-level="1"] { fill: var(--score-1-fill); stroke: var(--score-1); background: var(--score-1-fill); }
+.bubble[data-level="2"], .legend-swatch[data-level="2"] { fill: var(--score-2-fill); stroke: var(--score-2); background: var(--score-2-fill); }
+.bubble[data-level="3"], .legend-swatch[data-level="3"] { fill: var(--score-3-fill); stroke: var(--score-3); background: var(--score-3-fill); }
+.bubble[data-level="4"], .legend-swatch[data-level="4"] { fill: var(--score-4-fill); stroke: var(--score-4); background: var(--score-4-fill); }
+.bubble[data-level="5"], .legend-swatch[data-level="5"] { fill: var(--score-5-fill); stroke: var(--score-5); background: var(--score-5-fill); }
+.bubble[data-mismatch="true"] { stroke: var(--text); stroke-dasharray: 3 2; stroke-width: 2; }
+a:hover > .bubble, a:focus-visible > .bubble { stroke: var(--focus); stroke-width: 3; fill-opacity: 1; }
+.chart-legend { margin-top: var(--space-3); font-size: var(--text-s); }
+.legend-key { display: inline-flex; align-items: center; gap: 4px; }
+.legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border-strong); }

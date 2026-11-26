@@ -12,6 +12,7 @@ import { peoplePicker } from "../components/people-picker.js";
 import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
 import { editRecord, SECTIONS } from "../components/record-forms.js";
 import { openWorking, scorecard, scoresTab, verdict } from "../components/scorecard.js";
+import { decisionsTab, recordDecision } from "../components/decision.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
@@ -509,7 +510,7 @@ function assessmentTab(record, ctx) {
 }
 
 export function applicationPage(main, params, extraTabs = []) {
-  const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["components", "Components"],
+  const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["decisions", "Decisions"], ["components", "Components"],
     ["capabilities", "Capabilities"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
   const wanted = query().get("tab");
   const tab = tabs.some(([key]) => key === wanted) ? wanted : "overview";
@@ -517,29 +518,33 @@ export function applicationPage(main, params, extraTabs = []) {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
-        tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null]);
-      return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [] };
+        tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
+        tab === "decisions" ? get(`${base}/decisions`, null, { fresh: true }) : null]);
+      return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [] };
     },
     view: (data, reload) => {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
       const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments };
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord("application", { record, onDone: reload }) }) : null;
-      const assessButton = record.can?.edit ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
+      const assessButton = record.can?.assess ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
+      const decide = () => recordDecision(record, data.scores, data.vocab, reload);
+      const decideButton = record.can?.decide ? button("Record a decision", { onclick: decide }) : null;
       const extra = extraTabs.find(([key]) => key === tab);
       const body = tab === "history" ? card({ flush: true }, timeline(data.history))
         : tab === "scores" ? scoresTab(data.scores, { ref: record.ref, vocab: data.vocab })
           : tab === "assessment" ? assessmentTab(record, ctx)
+            : tab === "decisions" ? decisionsTab(record, data.decisions, data.vocab, { mayDecide: record.can?.decide, onDecide: decide })
             : tab === "components" ? componentsTab(record, ctx)
               : tab === "capabilities" ? capabilitiesTab(record, ctx)
                 : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
       const open = (key) => openWorking(data.scores, key, { ref: record.ref, vocab: data.vocab });
       return h("div", { class: "stack" },
         recordHeader(record, { badges: [lifecyclePill(data.vocab, record.lifecycle), tierMeter(data.vocab, record.tier)],
-          actions: h("div", { class: "row-sm" }, assessButton, edit) }),
+          actions: h("div", { class: "row-sm" }, assessButton, decideButton, edit) }),
         h("div", { class: "app-summary" }, scorecard(data.scores, { onOpen: open }),
           verdict(data.scores, data.vocab, record.decision ?? null)),
         tabBar(tabs.map(([key, text]) => [key, text]), tab),

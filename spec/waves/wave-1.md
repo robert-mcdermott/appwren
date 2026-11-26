@@ -125,18 +125,18 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance (met):** the worked example produces exactly the figures in [engine.md](../engine.md#a-worked-example); every rule, guardrail, and flag has a test that makes it fire and one that keeps it quiet; an expired answer counts as unknown; a not-applicable factor changes neither score nor confidence; a profile in use cannot be changed; the preview and the recorded scores agree. 278 tests pass on SQLite and 274 on PostgreSQL. Checked in the browser: the scorecard on an application, the working behind each score, assessing with the live preview, and the Scores tab.
 
-## Slice 6: Decisions and the portfolio chart ☐
+## Slice 6: Decisions and the portfolio chart ☑
 
 **Goal:** a named person behind every disposition, and the whole portfolio on one picture.
 
-- [ ] Decisions with disposition, rationale, review date, target date, and successor; the authority check and the refusal for the accountable owner; superseding
-- [ ] The snapshot taken with each decision; the current disposition and review date copied to the application for lists
-- [ ] Mismatches, on the application and as a list
-- [ ] Portfolio snapshots, taken by a manager, with a page for each
-- [ ] The portfolio chart: value against health, bubbles sized by cost where the viewer may see it and colored by risk exposure, thresholds and quadrants, filters, the table of the same points, the second view of value against cost and burden, and the applications that cannot be placed
-- [ ] The Decisions list
+- [x] Decisions with disposition, rationale, review date, target date, and successor; the authority check and the refusal for the accountable owner; superseding
+- [x] The snapshot taken with each decision; the current disposition and review date copied to the application for lists
+- [x] Mismatches, on the application and as a list
+- [x] Portfolio snapshots, taken by a manager, with a page for each
+- [x] The portfolio chart: value against health, bubbles sized by cost where the viewer may see it and colored by risk exposure, thresholds and quadrants, filters, the table of the same points, the second view of value against cost and burden, and the applications that cannot be placed
+- [x] The Decisions list
 
-**Acceptance:** a decision by the accountable owner, or by a leader outside their unit, is refused in the API and the app; a decision differing from the recommendation shows a mismatch until a new decision or a change in the recommendation removes it; the chart's points equal the list for the same filters, for every role, and no bubble's size reveals a withheld cost.
+**Acceptance (met):** a decision by the accountable owner, or by a leader outside their unit, is refused in the API and the app; a decision differing from the recommendation shows a mismatch until a new decision or a change in the recommendation removes it; the chart's points equal the list for the same filters, for every role, and no bubble's size reveals a withheld cost. 286 tests pass on SQLite and 282 on PostgreSQL. Checked in the browser: the portfolio chart in both views, recording a decision against the recommendation, the mismatch, and the Decisions tab.
 
 ## Slice 7: Home, dashboard, and data quality ☐
 
@@ -186,4 +186,7 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **A floor can do a guardrail's work.** A system of record for regulated information has a value floor of 4.0, so it is judged valuable and never reaches *Retire*; the guardrail remains for organizations that remove the floor.
 - **What a sensitive field reveals is withheld from the working too.** A member sees every score, but not the levels that would give away how people sign in or what the application costs.
 - **Snapshots carry a digest instead of an event each.** A portfolio snapshot of thousands of applications would otherwise add thousands of events holding their whole working.
+- **The decision is a fact the engine reads.** A decision this year quiets the grant-ending flag; a review date that has passed raises its own flag; a decision that differs from today's recommendation raises the mismatch. None of these changes the decision.
+- **The chart is drawn from the same list as everything else.** `/api/v1/portfolio` is the one list of applications with their scores, recommendation, and decision; the chart, the decisions page, and (in slice 7) the dashboard read it, and a test holds it equal to the applications list for every role.
+- **Steady jitter.** Applications with the same scores would hide one another on the chart, so each is nudged by a small amount worked out from its reference: the same every time, and too small to move it across a threshold line by more than a hair. The table beneath gives the exact figures.
 

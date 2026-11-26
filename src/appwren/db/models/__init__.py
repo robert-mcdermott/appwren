@@ -9,6 +9,7 @@ from appwren.db.models.assessment import (
     ScoreSnapshot,
     ScoringModel,
 )
+from appwren.db.models.decision import Decision
 from appwren.db.models.inventory import (
     Application,
     ApplicationCapability,
@@ -50,6 +51,7 @@ __all__ = [
     "ComponentTechnology",
     "Counter",
     "Credential",
+    "Decision",
     "Event",
     "ExternalRef",
     "FailedSignIn",

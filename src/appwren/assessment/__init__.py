@@ -407,6 +407,8 @@ def score_all(
 ) -> dict[int, dict[str, Any]]:
     """Each application's scores, recommendation, flags, and working. The primary providers
     an application overlaps with are scored too, since consolidation compares with them."""
+    import appwren.decisions  # noqa: F401  (the decision on record is a fact too)
+
     on = on or today_()
     model_row = current_model(session)
     model = model_row.definition
@@ -448,6 +450,8 @@ def preview(session: Session, principal: Principal, app: Application, given: Any
         raise PermissionDenied("You cannot assess this application.")
     bank = current_questionnaire(session).definition
     answers = clean_answers(bank, given)
+    import appwren.decisions  # noqa: F401  (the decision on record is a fact too)
+
     model_row = current_model(session)
     on = today_()
     facts = gather(session, [app], model_row.definition, on)[app.id]

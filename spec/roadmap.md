@@ -34,7 +34,7 @@ Status key: ☐ planned · ◐ in progress · ☑ done
 | 3 | Web app and design system | Vanilla JS shell, tokens, three palettes in light and dark, the wren mark, branding settings with live preview, command palette, core components | ☑ |
 | 4 | Inventory | Applications, components, vendors, technologies with releases, and capabilities; people in roles; units that use an application; links; the default program's vocabularies and fields; required fields by stage; sensitive fields; program packs | ☑ |
 | 5 | Assessment and the engine | The question bank, assessments, facts, the engine with profiles, bands, rules, guardrails, and flags; the working; the preview; score snapshots | ☑ |
-| 6 | Decisions and the portfolio chart | Decisions with their authority, mismatches, portfolio snapshots, the portfolio chart and its table | ☐ |
+| 6 | Decisions and the portfolio chart | Decisions with their authority, mismatches, portfolio snapshots, the portfolio chart and its table | ☑ |
 | 7 | Home, dashboard, and data quality | What each person owes; the dashboard and data quality pages with every figure linked to its records; spreadsheet import and export of applications | ☐ |
 | 8 | Demo organization | The fictional institute, built through the services under a simulated clock, with storylines for every wave 1 screen | ☐ |
 | 9 | Release prep | Guides, quickstart, changelog, accessibility check, version, release | ☐ |

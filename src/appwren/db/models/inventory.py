@@ -101,6 +101,9 @@ class Application(RecordMixin, Base):
     docs_url: Mapped[str | None] = mapped_column(String(300))
     # The organization's own fields, defined in the program, by key.
     fields: Mapped[dict[str, Any]] = mapped_column(JsonType, default=dict)
+    # Copies of the decision on record, so lists can filter and sort by them.
+    disposition: Mapped[str | None] = mapped_column(String(24))
+    review_on: Mapped[date | None] = mapped_column(Date)
 
     __table_args__ = (
         CheckConstraint(one_of("status", RECORD_STATUSES), name="status"),

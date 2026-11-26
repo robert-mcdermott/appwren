@@ -52,4 +52,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   as restricted data on unsupported technology, a grant ending, or one person keeping it.
   Profiles for shared platforms and research software. The scoring model and question bank
   are versioned, and a snapshot keeps a score as it was.
+- **Decisions.** A manager, or a leader of the application's unit, records a disposition with
+  a rationale, a review date, a target date, and a successor; never the application's own
+  accountable owner. Each decision keeps the scores it was made against, and is never
+  edited. Where today's recommendation differs, both are shown as a mismatch.
+- **The portfolio chart.** Business value against technical health, or against cost and
+  burden; bubbles sized by cost where the reader may see it and colored by risk exposure;
+  thresholds and quadrants; a table of the same points; and the applications too little is
+  known about to place.
+- **Portfolio snapshots.** A manager keeps every application's scores together for a review;
+  each snapshot reopens unchanged.
 

@@ -920,6 +920,64 @@
         "title": "ComponentBody",
         "type": "object"
       },
+      "DecisionBody": {
+        "properties": {
+          "disposition": {
+            "description": "From the dispositions vocabulary",
+            "title": "Disposition",
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 4000,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "review_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When to look again; a year by default",
+            "title": "Review On"
+          },
+          "successor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The application its users move to; needed to consolidate",
+            "title": "Successor"
+          },
+          "target_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When it should be done",
+            "title": "Target On"
+          }
+        },
+        "required": [
+          "disposition",
+          "rationale"
+        ],
+        "title": "DecisionBody",
+        "type": "object"
+      },
       "ExternalRefBody": {
         "description": "What a record is called in another system.",
         "properties": {
@@ -1324,6 +1382,21 @@
           "password"
         ],
         "title": "SignIn",
+        "type": "object"
+      },
+      "SnapshotBody": {
+        "properties": {
+          "name": {
+            "description": "Such as 2026 Q4 review",
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SnapshotBody",
         "type": "object"
       },
       "TechnologiesBody": {
@@ -2944,6 +3017,103 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/decisions": {
+      "get": {
+        "operationId": "list_application_decisions_api_v1_applications__ref__decisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Application Decisions Api V1 Applications  Ref  Decisions Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's decisions",
+        "tags": [
+          "decisions and the portfolio"
+        ]
+      },
+      "post": {
+        "description": "A manager, or a leader of its unit, records a disposition with a rationale; never the\napplication's own accountable owner. The scores as they are now are kept with it.",
+        "operationId": "add_decision_api_v1_applications__ref__decisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Add Decision Api V1 Applications  Ref  Decisions Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record what to do with it",
+        "tags": [
+          "decisions and the portfolio"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/history": {
       "get": {
         "operationId": "history_application_api_v1_applications__ref__history_get",
@@ -4447,6 +4617,286 @@
         ]
       }
     },
+    "/api/v1/portfolio": {
+      "get": {
+        "description": "What the portfolio chart, the decisions list, and the dashboard are drawn from. Cost\nis withheld from those who may not see it.",
+        "operationId": "portfolio_api_v1_portfolio_get",
+        "parameters": [
+          {
+            "description": "A unit, with those beneath it",
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A unit, with those beneath it",
+              "title": "Unit"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lifecycle",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lifecycle"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sourcing",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sourcing"
+            }
+          },
+          {
+            "in": "query",
+            "name": "domain",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          },
+          {
+            "description": "Only those with a mismatch",
+            "in": "query",
+            "name": "mismatch",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only those with a mismatch",
+              "title": "Mismatch"
+            }
+          },
+          {
+            "description": "Only decisions past review",
+            "in": "query",
+            "name": "review_due",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only decisions past review",
+              "title": "Review Due"
+            }
+          },
+          {
+            "description": "Only those with a decision",
+            "in": "query",
+            "name": "decided",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only those with a decision",
+              "title": "Decided"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Portfolio Api V1 Portfolio Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Every application with its scores and decision",
+        "tags": [
+          "decisions and the portfolio"
+        ]
+      }
+    },
+    "/api/v1/portfolio-snapshots": {
+      "get": {
+        "operationId": "list_snapshots_api_v1_portfolio_snapshots_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Snapshots Api V1 Portfolio Snapshots Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The portfolio snapshots taken",
+        "tags": [
+          "decisions and the portfolio"
+        ]
+      },
+      "post": {
+        "operationId": "take_snapshot_api_v1_portfolio_snapshots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnapshotBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Take Snapshot Api V1 Portfolio Snapshots Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Keep the portfolio's scores",
+        "tags": [
+          "decisions and the portfolio"
+        ]
+      }
+    },
+    "/api/v1/portfolio-snapshots/{ref}": {
+      "get": {
+        "operationId": "show_snapshot_api_v1_portfolio_snapshots__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Show Snapshot Api V1 Portfolio Snapshots  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One portfolio snapshot",
+        "tags": [
+          "decisions and the portfolio"
+        ]
+      }
+    },
     "/api/v1/questionnaire": {
       "get": {
         "operationId": "questionnaire_api_v1_questionnaire_get",
@@ -4490,6 +4940,50 @@
         "summary": "The roles and what each allows",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/api/v1/score-snapshots/{snapshot_id}": {
+      "get": {
+        "operationId": "score_snapshot_api_v1_score_snapshots__snapshot_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "title": "Snapshot Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Score Snapshot Api V1 Score Snapshots  Snapshot Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A score as it was kept",
+        "tags": [
+          "decisions and the portfolio"
         ]
       }
     },
