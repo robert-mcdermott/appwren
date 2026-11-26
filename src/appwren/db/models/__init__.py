@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+from appwren.db.models.assessment import (
+    Assessment,
+    PortfolioSnapshot,
+    Questionnaire,
+    ScoreSnapshot,
+    ScoringModel,
+)
 from appwren.db.models.inventory import (
     Application,
     ApplicationCapability,
@@ -36,6 +43,7 @@ __all__ = [
     "Application",
     "ApplicationCapability",
     "ApplicationUnit",
+    "Assessment",
     "Capability",
     "ChainHead",
     "Component",
@@ -48,10 +56,14 @@ __all__ = [
     "Identity",
     "Membership",
     "OrgUnit",
+    "PortfolioSnapshot",
     "ProviderMapping",
+    "Questionnaire",
     "RecordLink",
     "RecordOwner",
     "RoleGrant",
+    "ScoreSnapshot",
+    "ScoringModel",
     "SessionToken",
     "Setting",
     "SignInRequest",

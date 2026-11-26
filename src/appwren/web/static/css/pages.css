@@ -103,3 +103,25 @@
 .cap-count { font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: center; border-radius: var(--radius-full); padding: 0 var(--space-2); font-size: var(--text-xs); font-weight: 650; background: var(--surface-3); color: var(--text-muted); }
 .cap-count[data-state="none"] { background: transparent; border: 1px dashed var(--border-strong); }
 .cap-count[data-state="overlap"] { background: var(--warn-soft); color: var(--warn); }
+
+/* ---- Scores ---- */
+.scorecard { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.scorecard-item { display: grid; gap: 2px; padding: var(--space-2) var(--space-3); min-width: 118px; text-align: left; font: inherit; color: inherit; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-m); cursor: pointer; }
+.scorecard-item:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.scorecard-label { font-size: var(--text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); font-weight: 650; }
+.confidence { display: inline-flex; align-items: center; min-height: 22px; }
+.confidence[data-low="true"] .score-value { color: var(--warn); }
+.verdict { display: grid; gap: var(--space-3); }
+.verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.verdict-label { font-size: var(--text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); font-weight: 650; }
+.working th[scope="row"] { font-weight: 550; white-space: nowrap; }
+.working tr[data-state="unknown"] td, .working tr[data-state="not_applicable"] td { color: var(--text-muted); }
+.missing-list { display: grid; gap: var(--space-3); }
+.missing-list li { display: flex; gap: var(--space-3); align-items: center; padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); }
+.missing-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.app-summary { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-l); background: var(--surface-1); }
+
+/* ---- Assess ---- */
+.assess-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
+.assess-live { position: sticky; top: var(--space-4); }
+@media (max-width: 1000px) { .assess-layout { grid-template-columns: minmax(0, 1fr); } .assess-live { position: static; order: -1; } }

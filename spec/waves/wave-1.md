@@ -108,22 +108,22 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance (met):** each record type can be created, edited, linked, and found; every edit is in its history under a named operation; a table of what each of the seven roles sees, including sensitive fields, is tested for single records and for lists, which must agree; a stale edit is refused and an invalid one leaves the record as it was; a second accountable owner is refused. 244 tests pass on SQLite and 240 on PostgreSQL. Checked in the browser: the applications list, adding an application, its page with what its stage still needs, adding a component, a technology's releases with their support, and the capability map.
 
-## Slice 5: Assessment and the engine ☐
+## Slice 5: Assessment and the engine ☑
 
 **Goal:** scores that explain themselves, from data that says how complete it is.
 
-- [ ] `questionnaire` and `scoring_model` with immutable versions; the default question bank with a definition for every level; the default profiles, rules, guardrails, flags, and cadences
-- [ ] The condition evaluator, with its own tests
-- [ ] The engine as pure functions: facts to factor levels (answer, choice, band, computed), dimensions with floors, coverage, confidence, profile selection, rules, guardrails, flags, and the working
-- [ ] The computed factors: technology currency, capability uniqueness, dependents, data exposure, end-of-life exposure, continuity
-- [ ] A model that cannot be used says everything wrong with it in one pass: weights that do not add up, bands that do not rise, an unknown fact in a condition
-- [ ] Gathering facts for an application, and for the whole portfolio in one pass
-- [ ] Assessments: answers with notes, never edited, superseded by the next; expiry by tier from the cadence table
-- [ ] The assess screen: the level picker with definitions and *Don't know*; the preview beside it
-- [ ] The scorecard strip and the working on the application page; what would raise confidence
-- [ ] Score snapshots, with the whole working, reopening unchanged after the model changes
+- [x] `questionnaire` and `scoring_model` with immutable versions; the default question bank with a definition for every level; the default profiles, rules, guardrails, flags, and cadences
+- [x] The condition evaluator, with its own tests
+- [x] The engine as pure functions: facts to factor levels (answer, choice, band, computed), dimensions with floors, coverage, confidence, profile selection, rules, guardrails, flags, and the working
+- [x] The computed factors: technology currency, capability uniqueness, dependents, data exposure, end-of-life exposure, continuity
+- [x] A model that cannot be used says everything wrong with it in one pass: weights that do not add up, bands that do not rise, an unknown fact in a condition
+- [x] Gathering facts for an application, and for the whole portfolio in one pass
+- [x] Assessments: answers with notes, never edited, superseded by the next; expiry by tier from the cadence table
+- [x] The assess screen: the level picker with definitions and *Don't know*; the preview beside it
+- [x] The scorecard strip and the working on the application page; what would raise confidence
+- [x] Score snapshots, with the whole working, reopening unchanged after the model changes
 
-**Acceptance:** the worked example produces exactly the figures in [engine.md](../engine.md#a-worked-example); every rule, guardrail, and flag has a test that makes it fire and one that keeps it quiet; an expired answer counts as unknown; a not-applicable factor changes neither score nor confidence; a profile in use cannot be changed; the preview and the recorded scores agree.
+**Acceptance (met):** the worked example produces exactly the figures in [engine.md](../engine.md#a-worked-example); every rule, guardrail, and flag has a test that makes it fire and one that keeps it quiet; an expired answer counts as unknown; a not-applicable factor changes neither score nor confidence; a profile in use cannot be changed; the preview and the recorded scores agree. 278 tests pass on SQLite and 274 on PostgreSQL. Checked in the browser: the scorecard on an application, the working behind each score, assessing with the live preview, and the Scores tab.
 
 ## Slice 6: Decisions and the portfolio chart ☐
 
@@ -181,4 +181,9 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **Shared records belong to no unit.** Vendors, technologies, and capabilities are kept by architects and managers for the whole organization. A component belongs to its application and takes its unit and visibility from it.
 - **Sensitive fields are refused, not just hidden.** A person who may not see a sensitive field may not filter or sort a list by it, nor send a value for it; its changes appear in the history as withheld.
 - **The parse check now reads every script as a module.** A missing bracket in a page passed the old check, which read the files as plain scripts, and was found in the browser.
+- **One engine, on the server.** The assessment form asks the server for a preview as answers change, so the preview and the record cannot disagree; a test holds them equal. There is no JavaScript twin of the arithmetic to keep in step.
+- **Thresholds are facts the rules read.** Rules compare literal values only, so the engine works out "value is at least its threshold" as a fact (`high.value`) from the profile's thresholds, and the rules stay plain data while the thresholds stay configurable.
+- **A floor can do a guardrail's work.** A system of record for regulated information has a value floor of 4.0, so it is judged valuable and never reaches *Retire*; the guardrail remains for organizations that remove the floor.
+- **What a sensitive field reveals is withheld from the working too.** A member sees every score, but not the levels that would give away how people sign in or what the application costs.
+- **Snapshots carry a digest instead of an event each.** A portfolio snapshot of thousands of applications would otherwise add thousands of events holding their whole working.
 

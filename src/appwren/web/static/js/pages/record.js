@@ -11,6 +11,7 @@ import { confirmAction, openOverlay } from "../components/overlay.js";
 import { peoplePicker } from "../components/people-picker.js";
 import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
 import { editRecord, SECTIONS } from "../components/record-forms.js";
+import { openWorking, scorecard, scoresTab, verdict } from "../components/scorecard.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
@@ -483,25 +484,64 @@ function context(data, reload) {
   return { vocab: data.vocab, units: data.units, catalog: data.catalog, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
 }
 
+function assessmentTab(record, ctx) {
+  const bank = ctx.questionnaire;
+  const current = ctx.assessments.find((a) => !a.superseded);
+  const questions = bank.sections.flatMap((s) => s.questions);
+  const may = record.can?.edit;
+  const answer = (q) => {
+    const item = current?.answers?.[q.key];
+    if (!item) return h("span", { class: "subtle" }, "Not answered");
+    if (item.level == null) return h("span", { class: "subtle" }, "Don't know");
+    return h("span", {}, h("strong", {}, String(item.level)), ` · ${q.levels[item.level - 1]}`, item.note ? h("div", { class: "cell-sub" }, item.note) : null);
+  };
+  return h("div", { class: "split" },
+    h("div", { class: "stack-lg" },
+      card({ title: current ? `The current answers (${current.ref})` : "Not assessed yet",
+        actions: may ? h("a", { class: "btn btn-sm btn-primary", href: `/applications/${record.ref}/assess` }, current ? "Assess again" : "Assess") : null },
+      current ? h("div", { class: "stack" }, h("p", { class: "muted" }, `By ${current.assessed_by} on ${date(current.assessed_on)}.`,
+        current.note ? ` ${current.note}` : ""), facts(questions.map((q) => [q.text, answer(q)])))
+        : h("p", { class: "muted" }, "An assessment is a few questions only a person can answer: how well it fits, how reliable it is, how hard it is to keep. Each answer has a definition, and Don't know is always allowed."))),
+    h("div", { class: "stack-lg" },
+      card({ title: "Earlier assessments" }, ctx.assessments.filter((a) => a.superseded).length
+        ? h("ul", { class: "stack-sm" }, ctx.assessments.filter((a) => a.superseded).map((a) => h("li", {}, `${a.ref} by ${a.assessed_by}, ${date(a.assessed_on)}`)))
+        : h("p", { class: "muted" }, "None."))));
+}
+
 export function applicationPage(main, params, extraTabs = []) {
-  const tabs = [["overview", "Overview"], ["components", "Components"], ["capabilities", "Capabilities"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
+  const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["components", "Components"],
+    ["capabilities", "Capabilities"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
   const wanted = query().get("tab");
   const tab = tabs.some(([key]) => key === wanted) ? wanted : "overview";
   return show(main, {
     title: params.ref,
-    load: () => loadRecord("application", params.ref, tab),
+    load: async () => {
+      const base = `/api/v1/applications/${params.ref}`;
+      const [data, scores, bank, assessments] = await Promise.all([loadRecord("application", params.ref, tab),
+        get(`${base}/scores`, null, { fresh: true }),
+        tab === "assessment" ? get("/api/v1/questionnaire") : null,
+        tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null]);
+      return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [] };
+    },
     view: (data, reload) => {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
-      const ctx = context(data, reload);
+      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments };
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord("application", { record, onDone: reload }) }) : null;
+      const assessButton = record.can?.edit ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
       const extra = extraTabs.find(([key]) => key === tab);
       const body = tab === "history" ? card({ flush: true }, timeline(data.history))
-        : tab === "components" ? componentsTab(record, ctx)
-          : tab === "capabilities" ? capabilitiesTab(record, ctx)
-            : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
+        : tab === "scores" ? scoresTab(data.scores, { ref: record.ref, vocab: data.vocab })
+          : tab === "assessment" ? assessmentTab(record, ctx)
+            : tab === "components" ? componentsTab(record, ctx)
+              : tab === "capabilities" ? capabilitiesTab(record, ctx)
+                : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
+      const open = (key) => openWorking(data.scores, key, { ref: record.ref, vocab: data.vocab });
       return h("div", { class: "stack" },
-        recordHeader(record, { badges: [lifecyclePill(data.vocab, record.lifecycle), tierMeter(data.vocab, record.tier)], actions: edit }),
+        recordHeader(record, { badges: [lifecyclePill(data.vocab, record.lifecycle), tierMeter(data.vocab, record.tier)],
+          actions: h("div", { class: "row-sm" }, assessButton, edit) }),
+        h("div", { class: "app-summary" }, scorecard(data.scores, { onOpen: open }),
+          verdict(data.scores, data.vocab, record.decision ?? null)),
         tabBar(tabs.map(([key, text]) => [key, text]), tab),
         body);
     },

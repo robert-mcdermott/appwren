@@ -51,3 +51,15 @@ def frozen_at(moment: datetime) -> Iterator[None]:
     fixed = to_utc(moment)
     with clock_set_to(lambda: fixed):
         yield
+
+
+def add_months(start: date, months: int) -> date:
+    """The same day so many months on, or the last day of that month if it is shorter."""
+    index = start.month - 1 + months
+    year, month = start.year + index // 12, index % 12 + 1
+    for day in (start.day, 30, 29, 28):
+        try:
+            return date(year, month, day)
+        except ValueError:
+            continue
+    raise AssertionError("every month has a 28th")

@@ -347,6 +347,520 @@ CAPABILITIES = [
 ]  # fmt: skip
 
 
+# --- The question bank ------------------------------------------------------------------------
+# Each question has a definition for every level, from 1 (worst for the organization) to 5.
+
+
+def q(
+    key: str, dimension: str, text: str, help_: str, *levels: str, applies: Any = None
+) -> dict[str, Any]:
+    assert len(levels) == 5, key
+    out = {"key": key, "dimension": dimension, "text": text, "help": help_, "levels": list(levels)}
+    if applies is not None:
+        out["applies"] = applies
+    return out
+
+
+VENDOR_SOURCED = {"field": "vendor_sourced", "op": "eq", "value": True}
+
+QUESTIONNAIRE = {
+    "sections": [
+        {
+            "key": "value",
+            "title": "What it is worth",
+            "questions": [
+                q(
+                    "strategic_fit",
+                    "business_value",
+                    "How closely does it support what the organization is trying to achieve?",
+                    "Think of the organization's plans and priorities, not only the unit's.",
+                    "It works against our direction, or nobody can say what it is for",
+                    "It supports work we are moving away from",
+                    "It supports routine work, not our priorities",
+                    "It supports one of our stated priorities",
+                    "It is central to how we will reach our priorities",
+                ),
+                q(
+                    "functional_fit",
+                    "business_value",
+                    "How well does it do what its users need today?",
+                    "Ask the people who use it, if you are not one of them.",
+                    "It does not do what people need; they work around it",
+                    "It does some of what is needed, with many workarounds",
+                    "It does most of what is needed, with some workarounds",
+                    "It does what is needed, with few complaints",
+                    "It does what is needed well, and people would choose it",
+                ),
+                q(
+                    "future_need",
+                    "business_value",
+                    "Will the organization still need what it does in three years?",
+                    "The need, not this particular application.",
+                    "No: the need is ending",
+                    "Probably not",
+                    "Probably, but it may change a lot",
+                    "Yes, much as it is today",
+                    "Yes, and the need is growing",
+                ),
+            ],
+        },
+        {
+            "key": "health",
+            "title": "How healthy it is",
+            "questions": [
+                q(
+                    "reliability",
+                    "technical_health",
+                    "How well does it meet the service its users expect?",
+                    "Outages, slowness, errors, and lost work over the last year.",
+                    "It fails often, or for long periods",
+                    "It fails several times a year and people notice",
+                    "It fails now and then; people cope",
+                    "It rarely fails, and recovers quickly",
+                    "It meets every expectation; failures are very rare and short",
+                ),
+                q(
+                    "maintainability",
+                    "technical_health",
+                    "How easy is it to change, upgrade, and keep current?",
+                    "For something bought: how easy it is to upgrade and configure.",
+                    "Changes are avoided because they break things; nobody fully understands it",
+                    "Changes are slow and risky; little documentation or testing",
+                    "Changes are routine but manual; some documentation",
+                    "Changes are routine and mostly tested; documented",
+                    "Changes are safe and frequent: automated tests, deployment, and current documentation",
+                ),
+                q(
+                    "vendor_viability",
+                    "technical_health",
+                    "How confident are we in the vendor and the product's future?",
+                    "Their support, their roadmap, and whether they will be around.",
+                    "The product is ending, or the vendor is failing",
+                    "Support is poor, or the product is no longer developed",
+                    "Adequate support; an uncertain future",
+                    "Good support and an active product",
+                    "A strong vendor and a product with a clear future",
+                    applies=VENDOR_SOURCED,
+                ),
+            ],
+        },
+        {
+            "key": "cost",
+            "title": "What it takes to keep",
+            "questions": [
+                q(
+                    "support_effort",
+                    "cost_burden",
+                    "How much effort does it take to keep running?",
+                    "Fixing, administering, helping users: the people's time, not money.",
+                    "A constant drain: it needs attention most days",
+                    "Heavy: regular firefighting",
+                    "Moderate: routine care each month",
+                    "Light: occasional attention",
+                    "Very light: it looks after itself",
+                ),
+                q(
+                    "change_effort",
+                    "cost_burden",
+                    "How much effort does it take to change or upgrade?",
+                    "A typical enhancement or a version upgrade.",
+                    "Each change is a project of months",
+                    "Changes take weeks and are often late",
+                    "Changes take days to weeks",
+                    "Changes take days, and estimates hold",
+                    "Changes take hours to days",
+                ),
+            ],
+        },
+        {
+            "key": "risk",
+            "title": "What could go wrong",
+            "questions": [
+                q(
+                    "compliance",
+                    "risk_exposure",
+                    "Are there known gaps against the rules that apply to it?",
+                    "Open audit findings, a missing agreement with a vendor, an overdue review.",
+                    "Serious known gaps, with nobody working on them",
+                    "Serious known gaps being worked on",
+                    "Minor known gaps",
+                    "No known gaps, but it has not been reviewed recently",
+                    "No known gaps, and it was reviewed recently",
+                ),
+            ],
+        },
+    ],
+}
+
+# --- The scoring model ------------------------------------------------------------------------
+
+
+def f(key: str, label: str, kind: str, weight: int, **more: Any) -> dict[str, Any]:
+    return {"key": key, "label": label, "kind": kind, "weight": weight, **more}
+
+
+STANDARD = {
+    "business_value": [
+        f(
+            "criticality",
+            "Criticality",
+            "choice",
+            25,
+            fact="tier",
+            map={"1": 5, "2": 4, "3": 3, "4": 2, "5": 1},
+        ),
+        f("strategic_fit", "Strategic fit", "answer", 20, question="strategic_fit"),
+        f(
+            "reach",
+            "Reach",
+            "band",
+            15,
+            fact="users",
+            bands=[10, 50, 250, 1000],
+            direction="rising",
+            unit="people",
+        ),
+        f("uniqueness", "Capability uniqueness", "computed", 15, compute="capability_uniqueness"),
+        f("dependents", "Dependents", "computed", 10, compute="dependents"),
+        f("functional_fit", "Functional fit", "answer", 10, question="functional_fit"),
+        f("future_need", "Future need", "answer", 5, question="future_need"),
+    ],
+    "technical_health": [
+        f("currency", "Technology currency", "computed", 25, compute="technology_currency"),
+        f(
+            "security",
+            "Security",
+            "choice",
+            20,
+            fact="sign_in",
+            map={"sso_mfa": 5, "sso": 4, "local_mfa": 3, "local": 2, "shared": 1},
+        ),
+        f(
+            "operability",
+            "Operability",
+            "choice",
+            15,
+            fact="monitoring",
+            map={"on_call": 5, "alerting": 4, "metrics": 3, "uptime": 2, "none": 1},
+        ),
+        f("reliability", "Reliability", "answer", 15, question="reliability"),
+        f("maintainability", "Maintainability", "answer", 10, question="maintainability"),
+        f(
+            "sustainability",
+            "Sustainability",
+            "band",
+            10,
+            fact="maintainers",
+            bands=[1, 2, 3, 5],
+            direction="rising",
+            unit="maintainers",
+        ),
+        f(
+            "vendor_viability",
+            "Vendor viability",
+            "answer",
+            5,
+            question="vendor_viability",
+            applies=VENDOR_SOURCED,
+        ),
+    ],
+    "cost_burden": [
+        f(
+            "annual_cost",
+            "Annual cost",
+            "band",
+            40,
+            fact="annual_cost",
+            bands=[5000, 25000, 100000, 500000],
+            direction="falling",
+            unit="a year",
+        ),
+        f("support_effort", "Support effort", "answer", 30, question="support_effort"),
+        f("change_effort", "Change effort", "answer", 30, question="change_effort"),
+    ],
+    "risk_exposure": [
+        f("data_exposure", "Data exposure", "computed", 35, compute="data_exposure"),
+        f("eol_exposure", "End-of-life exposure", "computed", 25, compute="eol_exposure"),
+        f("continuity", "Continuity", "computed", 20, compute="continuity"),
+        f("compliance", "Compliance", "answer", 20, question="compliance"),
+    ],
+}
+
+FLOORS = {
+    "business_value": [
+        {
+            "when": {"field": "research_continuity", "op": "eq", "value": True},
+            "level": 4.0,
+            "reason": "Active studies depend on it",
+        },
+        {
+            "when": {"field": "regulated_record", "op": "eq", "value": True},
+            "level": 4.0,
+            "reason": "It is a system of record for regulated information",
+        },
+    ],
+}
+
+
+def high(name: str, yes: bool = True) -> dict[str, Any]:
+    return {"field": f"high.{name}", "op": "eq", "value": yes}
+
+
+SCORING = {
+    "dimensions": [
+        {
+            "key": "business_value",
+            "label": "Business value",
+            "short": "Value",
+            "help": "How much the organization would lose without it.",
+        },
+        {
+            "key": "technical_health",
+            "label": "Technical health",
+            "short": "Health",
+            "help": "How well it is built, run, and kept current.",
+        },
+        {
+            "key": "cost_burden",
+            "label": "Cost and burden",
+            "short": "Cost",
+            "help": "What it takes to keep. 5 means a light burden.",
+        },
+        {
+            "key": "risk_exposure",
+            "label": "Risk exposure",
+            "short": "Risk",
+            "help": "What could go wrong while it is kept. 5 means little exposure.",
+        },
+    ],
+    "thresholds": {"value": 3.0, "health": 3.0, "cost": 3.0, "confidence": 70, "thin": 50},
+    "cadence": {
+        "assessment_months": {"1": 12, "2": 12, "3": 18, "4": 24, "5": 24},
+        "default_months": 24,
+    },
+    "profiles": [
+        {
+            "key": "foundation",
+            "label": "Foundation",
+            "when": {"field": "purpose", "op": "eq", "value": "foundation"},
+            "extends": "standard",
+            "weights": {
+                "business_value": {
+                    "strategic_fit": 10,
+                    "reach": 20,
+                    "dependents": 20,
+                    "functional_fit": 5,
+                }
+            },
+        },
+        {
+            "key": "research_software",
+            "label": "Research software",
+            "when": {"field": "sourcing", "op": "eq", "value": "research_software"},
+            "extends": "standard",
+            "weights": {
+                "technical_health": {
+                    "currency": 15,
+                    "reliability": 10,
+                    "maintainability": 15,
+                    "sustainability": 20,
+                },
+                "business_value": {"reach": 5, "functional_fit": 15, "future_need": 10},
+            },
+        },
+        {"key": "standard", "label": "Standard", "factors": STANDARD, "floors": FLOORS},
+    ],
+    "rules": [
+        {
+            "key": "not_in_service",
+            "label": "Not in service",
+            "when": {"field": "lifecycle", "op": "in", "value": ["retired", "archived"]},
+            "recommend": None,
+        },
+        {
+            "key": "new",
+            "label": "New",
+            "when": {
+                "any": [
+                    {
+                        "field": "lifecycle",
+                        "op": "in",
+                        "value": ["proposed", "evaluating", "phase_in"],
+                    },
+                    {
+                        "all": [
+                            {"field": "pace", "op": "eq", "value": "experimental"},
+                            {"field": "age_months", "op": "lt", "value": 12},
+                        ]
+                    },
+                ]
+            },
+            "recommend": "incubate",
+        },
+        {
+            "key": "not_enough",
+            "label": "Not enough data",
+            "when": {"field": "enough", "op": "eq", "value": False},
+            "recommend": "assess",
+        },
+        {
+            "key": "overlap",
+            "label": "Overlap",
+            "when": {"field": "overlap", "op": "eq", "value": True},
+            "recommend": "consolidate",
+        },
+        {
+            "key": "strong",
+            "label": "Strong",
+            "when": {"all": [high("value"), high("health")]},
+            "then": [
+                {"when": high("cost"), "recommend": "invest"},
+                {"recommend": "maintain", "flag": "cost_review"},
+            ],
+        },
+        {
+            "key": "valuable_but_weak",
+            "label": "Valuable but weak",
+            "when": {"all": [high("value"), high("health", False)]},
+            "then": [
+                {
+                    "when": {
+                        "all": [
+                            VENDOR_SOURCED,
+                            {"field": "level.vendor_viability", "op": "lte", "value": 2},
+                        ]
+                    },
+                    "recommend": "replace",
+                },
+                {"recommend": "modernize"},
+            ],
+        },
+        {
+            "key": "sound_but_little_used",
+            "label": "Sound but little used",
+            "when": {"all": [high("value", False), high("health")]},
+            "recommend": "tolerate",
+        },
+        {
+            "key": "weak_and_little_used",
+            "label": "Weak and little used",
+            "when": {"all": [high("value", False), high("health", False)]},
+            "recommend": "retire",
+        },
+    ],
+    "guardrails": [
+        {
+            "key": "protected",
+            "label": "Protected from retirement",
+            "when": {
+                "all": [
+                    {"field": "recommendation", "op": "eq", "value": "retire"},
+                    {
+                        "any": [
+                            {"field": "tier", "op": "lte", "value": 2},
+                            {"field": "sole_provider", "op": "eq", "value": True},
+                            {"field": "regulated_record", "op": "eq", "value": True},
+                        ]
+                    },
+                ]
+            },
+            "change_to": "replace",
+            "reason": "It is mission or business critical, the only provider of a capability, or a system of record for regulated information, so it needs a successor.",
+        },
+    ],
+    "flags": [
+        {
+            "key": "restricted_unsupported",
+            "severity": "danger",
+            "text": "Restricted data on unsupported technology",
+            "when": {
+                "all": [
+                    {"field": "sensitivity", "op": "eq", "value": 3},
+                    {"field": "level.currency", "op": "eq", "value": 1},
+                ]
+            },
+        },
+        {
+            "key": "no_accountable",
+            "severity": "danger",
+            "text": "Nobody is accountable for it",
+            "when": {"field": "accountable", "op": "eq", "value": False},
+        },
+        {
+            "key": "grant_ending",
+            "severity": "warning",
+            "text": "Its grant ends within a year, with no decision this year",
+            "when": {
+                "all": [
+                    {"field": "funding", "op": "eq", "value": "grant"},
+                    {"field": "grant_ends_in_days", "op": "lte", "value": 365},
+                    {"field": "grant_ends_in_days", "op": "gte", "value": 0},
+                    {"field": "decided_within_year", "op": "eq", "value": False},
+                ]
+            },
+        },
+        {
+            "key": "single_maintainer",
+            "severity": "warning",
+            "text": "One person keeps this",
+            "when": {
+                "all": [
+                    {
+                        "field": "sourcing",
+                        "op": "in",
+                        "value": ["built_here", "low_code", "research_software"],
+                    },
+                    {"field": "tier", "op": "lte", "value": 3},
+                    {"field": "maintainers", "op": "lte", "value": 1},
+                ]
+            },
+        },
+        {
+            "key": "assessment_expired",
+            "severity": "warning",
+            "text": "Its assessment has expired",
+            "when": {"field": "assessment_expired", "op": "eq", "value": True},
+        },
+        {
+            "key": "archive_before_retiring",
+            "severity": "info",
+            "text": "Its data must be archived before it goes",
+            "when": {
+                "all": [
+                    {"field": "records_retention", "op": "eq", "value": True},
+                    {
+                        "any": [
+                            {
+                                "field": "recommendation",
+                                "op": "in",
+                                "value": ["retire", "replace", "consolidate"],
+                            },
+                            {
+                                "field": "decision",
+                                "op": "in",
+                                "value": ["retire", "replace", "consolidate"],
+                            },
+                        ]
+                    },
+                ]
+            },
+        },
+        {
+            "key": "cost_review",
+            "severity": "info",
+            "text": "Its cost should be reviewed",
+            "by_rule": True,
+        },
+        {
+            "key": "decision_review_due",
+            "severity": "warning",
+            "text": "Its decision is due for review",
+            "when": {"field": "decision_review_due", "op": "eq", "value": True},
+        },
+    ],
+}
+
+
 def main() -> None:
     pack = {
         "pack": {
@@ -384,6 +898,8 @@ def main() -> None:
         "sensitive_fields": SENSITIVE,
         "definition": DEFINITION,
         "capabilities": CAPABILITIES,
+        "questionnaire": QUESTIONNAIRE,
+        "scoring": SCORING,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(pack, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")

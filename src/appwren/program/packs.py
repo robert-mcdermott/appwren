@@ -30,8 +30,14 @@ HEADER = {"name", "summary", "org_unit_id", "tags", "restricted"}
 PARTS: list[tuple[str, Callable[..., list[str]], Callable[..., Any], Callable[..., int]]] = []
 
 
+def _parts() -> None:
+    """Make sure every module that adds a part of the program has added it."""
+    import appwren.assessment  # noqa: F401
+
+
 def install(session: Session) -> dict[str, int]:
     """Add whatever of the default program is missing. Safe to run again."""
+    _parts()
     pack = vocab.default_pack()
     done = {"capabilities": 0}
     with audit.operation(session, "program.install"):
@@ -67,6 +73,7 @@ def _capability_tree(session: Session) -> list[dict[str, Any]]:
 
 def export(session: Session) -> dict[str, Any]:
     """This installation's program, as a pack another installation can import."""
+    _parts()
     pack: dict[str, Any] = {
         "pack": {"key": "program", "kind": "program", "title": "Program", "pack_version": "1.0.0"},
         "vocabularies": vocab.all_(session),
@@ -83,6 +90,7 @@ def export(session: Session) -> dict[str, Any]:
 
 def check(pack: Any) -> list[str]:
     """Everything wrong with a pack, in one pass. A pack with anything wrong is refused whole."""
+    _parts()
     found: list[str] = []
     if not isinstance(pack, Mapping) or not isinstance(pack.get("pack"), Mapping):
         return ["This is not a program pack: it has no pack header."]

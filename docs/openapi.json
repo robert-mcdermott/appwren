@@ -68,6 +68,33 @@
         "title": "AccountChanges",
         "type": "object"
       },
+      "AnswersBody": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "description": "Each question's key: a level from 1 to 5, null for don't know, or {level, note}",
+            "title": "Answers",
+            "type": "object"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "answers"
+        ],
+        "title": "AnswersBody",
+        "type": "object"
+      },
       "ApplicationBody": {
         "description": "An application. Vocabulary fields take a key from ``/vocabularies``; ``vendor_id`` and\n``successor_id`` take a reference such as ``VEN-0003``; dates are ``YYYY-MM-DD``.\nSensitive fields are only shown to, and only taken from, those who may see them.",
         "properties": {
@@ -2767,6 +2794,102 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/assessments": {
+      "get": {
+        "operationId": "list_assessments_api_v1_applications__ref__assessments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Assessments Api V1 Applications  Ref  Assessments Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's assessments",
+        "tags": [
+          "assessment and scores"
+        ]
+      },
+      "post": {
+        "operationId": "add_assessment_api_v1_applications__ref__assessments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswersBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Add Assessment Api V1 Applications  Ref  Assessments Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer the assessment",
+        "tags": [
+          "assessment and scores"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/capabilities": {
       "put": {
         "operationId": "set_capabilities_api_v1_applications__ref__capabilities_put",
@@ -3023,6 +3146,106 @@
         "summary": "Name the people in each role",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/score-preview": {
+      "post": {
+        "description": "The scores these answers would give, from the same engine as the record. Nothing is\nsaved.",
+        "operationId": "score_preview_api_v1_applications__ref__score_preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswersBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Score Preview Api V1 Applications  Ref  Score Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What the scores would be",
+        "tags": [
+          "assessment and scores"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/scores": {
+      "get": {
+        "description": "Business value, technical health, cost and burden, and risk exposure; data confidence;\nthe recommendation with the rule that produced it; the flags; and what would raise\nconfidence. Anything a sensitive field would reveal is withheld from those who may not\nsee it.",
+        "operationId": "scores_api_v1_applications__ref__scores_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Scores Api V1 Applications  Ref  Scores Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's scores, with the working",
+        "tags": [
+          "assessment and scores"
         ]
       }
     },
@@ -4224,6 +4447,29 @@
         ]
       }
     },
+    "/api/v1/questionnaire": {
+      "get": {
+        "operationId": "questionnaire_api_v1_questionnaire_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Questionnaire Api V1 Questionnaire Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The current question bank",
+        "tags": [
+          "assessment and scores"
+        ]
+      }
+    },
     "/api/v1/roles": {
       "get": {
         "operationId": "list_roles_api_v1_roles_get",
@@ -4244,6 +4490,29 @@
         "summary": "The roles and what each allows",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/api/v1/scoring-model": {
+      "get": {
+        "operationId": "scoring_model_api_v1_scoring_model_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Scoring Model Api V1 Scoring Model Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The current scoring model",
+        "tags": [
+          "assessment and scores"
         ]
       }
     },

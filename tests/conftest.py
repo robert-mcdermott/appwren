@@ -98,6 +98,18 @@ class Instance:
     db: Database
 
 
+def install_scoring(db: Database) -> None:
+    """The question bank and the scoring model, as `appwren init` loads them. The capability
+    map is left out, to keep each test quick; tests that need it install the program."""
+    from appwren import assessment
+    from appwren.program import vocab
+
+    pack = vocab.default_pack()
+    with db.write(Actor.command("Setup")) as session:
+        assessment.publish_questionnaire(session, pack["questionnaire"], "Program pack")
+        assessment.publish_model(session, pack["scoring"], "Program pack")
+
+
 @pytest.fixture
 def instance(config_file: Path) -> Iterator[Instance]:
     """An initialized installation: configuration, data home, and a migrated database."""
@@ -134,6 +146,7 @@ def people(instance: Instance):  # type: ignore[no-untyped-def]
     """A small organization with one person in each role (see ``tests/people.py``)."""
     from tests.people import seed
 
+    install_scoring(instance.db)
     return seed(instance.db)
 
 

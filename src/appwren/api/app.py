@@ -12,7 +12,7 @@ from appwren import PRODUCT_NAME, __version__
 from appwren.access.middleware import install_access
 from appwren.access.policy import authorize
 from appwren.api.problems import install_problem_handlers
-from appwren.api.routers import branding, inventory, people, session, sso, system
+from appwren.api.routers import assessment, branding, inventory, people, session, sso, system
 from appwren.api.routers.branding import install_branding
 from appwren.api.security import install_security_headers
 from appwren.api.static import install_static
@@ -20,7 +20,7 @@ from appwren.config import ENV_CONFIG, Config, load_config
 from appwren.db.engine import Database
 from appwren.home import DataHome
 
-ROUTERS = (system, session, sso, people, branding, inventory)
+ROUTERS = (system, session, sso, people, branding, inventory, assessment)
 
 
 def create_app(config: Config) -> FastAPI:

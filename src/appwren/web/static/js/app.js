@@ -55,6 +55,7 @@ async function boot() {
   route("/account", page("account", "account"));
   route("/applications", page("records", "applicationList"));
   route("/applications/:ref", page("record", "applicationPage"));
+  route("/applications/:ref/assess", page("assess", "assess"));
   for (const type of ["component", "vendor", "technology", "capability"]) {
     const path = { component: "components", vendor: "vendors", technology: "technologies", capability: "capabilities" }[type];
     route(`/${path}`, page("records", "recordList", type));

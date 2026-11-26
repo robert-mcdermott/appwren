@@ -162,15 +162,16 @@ Free labels on any record, for whatever the vocabularies do not cover. `external
 
 ### Score snapshot
 
-`score_snapshot(id, application_id, portfolio_snapshot_id?, taken_at, reason, model_id, profile_key, bv, th, cb, re, confidence, recommendation, flags, working)`.
+`score_snapshot(id, application_id, portfolio_snapshot_id?, taken_at, reason, model_id, profile_key, bv, th, cb, re, confidence, recommendation, flags, working, digest)`.
 
 - `reason`: decision, portfolio, or manual.
 - `bv`, `th`, `cb`, `re` (one decimal, or null when no factor was known), `confidence`, `recommendation`, and `flags` are columns so they can be filtered and charted.
 - `working` is the whole explanation: every factor with its level, weight, value, source, and date; coverage; the rule that fired; and the guardrails and flags. It reopens unchanged after the program changes.
+- Snapshots are derived and many, so a snapshot row is not itself an event. Its `digest` (a hash of the working) is recorded in the event of whatever took it, a decision or a portfolio snapshot, so a snapshot altered afterwards is detectable.
 
 Scores between snapshots are computed when they are read, and are never stored except as snapshots.
 
-`portfolio_snapshot(ref, name, taken_at, taken_by, model_id, count)`: a named snapshot of every scored application at once, for a review or the end of a period.
+`portfolio_snapshot(ref, name, taken_at, taken_by, taken_by_name, model_id, count)`: a named snapshot of every scored application at once, for a review or the end of a period.
 
 ### Decision
 

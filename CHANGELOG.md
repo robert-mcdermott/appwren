@@ -39,4 +39,17 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   over an application, in records, lists, filters, sorting, and history.
 - **Program packs.** `appwren program export` and `appwren program import` move the whole
   program between installations, checked whole before anything is loaded, with a dry run.
+- **Assessment.** A short question bank, each question with a definition for every level and
+  *Don't know* always allowed. Assessments are never edited; the next supersedes the last,
+  and answers expire after 12 to 24 months depending on the tier.
+- **Scores with their working.** Business value, technical health, cost and burden, and risk
+  exposure, each a weighted average of defined factors from answers, recorded facts, and
+  what the records around the application say (technology support, capabilities,
+  dependents). Data confidence says how much is known. Every score opens to its factors,
+  levels, weights, and the sum.
+- **Recommendations and flags.** Ordered rules recommend invest, maintain, tolerate,
+  modernize, replace, consolidate, retire, incubate, or assess, with guardrails; flags such
+  as restricted data on unsupported technology, a grant ending, or one person keeping it.
+  Profiles for shared platforms and research software. The scoring model and question bank
+  are versioned, and a snapshot keeps a score as it was.
 
