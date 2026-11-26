@@ -31,7 +31,7 @@ Requirements delivered: INV-01 to INV-14; LND-01, LND-02; CST-01, CST-02; SCR-01
 None block the start. These defaults have been taken and can be changed before the slice that depends on them:
 
 - **Role names:** admin, manager, architect, leader, steward, auditor, member (slice 2).
-- **Default palette:** Wren, with a moss-green accent (slice 3).
+- **Default palette:** Wren, with a deep spruce accent (slice 3).
 - **Sensitive by default:** annual cost, sign-in method, backup and restore state (slice 4).
 - **Dispositions:** Invest, Maintain, Tolerate, Modernize, Replace, Consolidate, Retire, Incubate, Assess (slice 5).
 - **Thresholds:** 3.0 for value, health, and cost; 70% for confidence (slice 5).
@@ -40,53 +40,53 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Foundation ☐
+## Slice 1: Foundation ☑
 
 **Goal:** a skeleton in which the rules of the architecture are already enforced.
 
-- [ ] Project: `pyproject.toml` with the five runtime dependencies and the optional PostgreSQL driver, `uv.lock`, `.python-version`, `src/appwren` layout, `appwren` entry point, ruff and pytest configuration, Apache 2.0 `LICENSE` and `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`
-- [ ] Configuration: `appwren.toml` read with the standard library into frozen typed settings; unknown keys are errors; all problems reported together; environment overrides; secrets refused in the file
-- [ ] Data home: creation, marker, and checks
-- [ ] Database: engine for SQLite (write-ahead log, foreign keys on) and PostgreSQL; portable JSON and UTC date-time types; a naming convention for constraints; declarative ORM base; one session per request
-- [ ] Migrations: Alembic inside the package with no `alembic.ini`; revision `0001`; `appwren db upgrade | current`; `serve` refuses a schema that is behind
-- [ ] History: the `event` table; sessions that record every change to an audited row, with before and after values, in the same transaction; refusal of writes with no actor and of bulk statements on audited tables; the hash chain; `appwren verify`; triggers on both databases refusing update and delete
-- [ ] References: per-prefix counters that never reuse a number
-- [ ] Command line: `init`, `serve`, `db`, `verify`, `doctor`, with a reference page generated from the parser
-- [ ] API: the app factory, the envelope and problem-document conventions, security headers, health and `meta` endpoints, the static shell with a fallback route, `docs/openapi.json` kept current by a test
-- [ ] Tests on both databases: fixtures, a script to start a local PostgreSQL, `scripts/test-both.sh`
-- [ ] Continuous integration: lint, format check, tests on SQLite and PostgreSQL (the private-terms check runs locally, from git hooks, because its list is never published)
-- [ ] `scripts/check_terms.py` with pre-commit and commit-message hooks
+- [x] Project: `pyproject.toml` with the five runtime dependencies and the optional PostgreSQL driver, `uv.lock`, `.python-version`, `src/appwren` layout, `appwren` entry point, ruff and pytest configuration, Apache 2.0 `LICENSE` and `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`
+- [x] Configuration: `appwren.toml` read with the standard library into frozen typed settings; unknown keys are errors; all problems reported together; environment overrides; secrets refused in the file
+- [x] Data home: creation, marker, and checks
+- [x] Database: engine for SQLite (write-ahead log, foreign keys on) and PostgreSQL; portable JSON and UTC date-time types; a naming convention for constraints; declarative ORM base; one session per request
+- [x] Migrations: Alembic inside the package with no `alembic.ini`; revision `0001`; `appwren db upgrade | current`; `serve` refuses a schema that is behind
+- [x] History: the `event` table; sessions that record every change to an audited row, with before and after values, in the same transaction; refusal of writes with no actor and of bulk statements on audited tables; the hash chain; `appwren verify`; triggers on both databases refusing update and delete
+- [x] References: per-prefix counters that never reuse a number
+- [x] Command line: `init`, `serve`, `db`, `verify`, `doctor`, with a reference page generated from the parser
+- [x] API: the app factory, the envelope and problem-document conventions, security headers, health and `meta` endpoints, the static shell with a fallback route, `docs/openapi.json` kept current by a test
+- [x] Tests on both databases: fixtures, a script to start a local PostgreSQL, `scripts/test-both.sh`
+- [x] Continuous integration: lint, format check, tests on SQLite and PostgreSQL (the private-terms check runs locally, from git hooks, because its list is never published)
+- [x] `scripts/check_terms.py` with pre-commit and commit-message hooks
 
-**Acceptance:** a fresh clone initializes and serves an empty shell; the suite passes on both databases; altering an event row by hand is caught by `appwren verify`; a write that bypasses the service helper fails a test that compares table changes with events.
+**Acceptance (met):** a fresh clone initializes and serves an empty shell; the suite passes on both databases; altering an event row by hand is caught by `appwren verify`; a write that bypasses the service helper fails a test that compares table changes with events.
 
-## Slice 2: Accounts, roles, and units ☐
+## Slice 2: Accounts, roles, and units ☑
 
 **Goal:** people can sign in, and the system knows who may do what, where.
 
-- [ ] `account`, `credential`, `membership`, `role_grant`, `session_token`, `failed_sign_in`; scrypt hashing; password rules; throttling per account and address; `HttpOnly`, `SameSite=Strict` cookies; CSRF token and origin checks
-- [ ] `appwren init` creates the first administrator; `appwren users add | list | disable | enable | reset-password | roles`; `serve` refuses to start with no administrator
-- [ ] `role_grant` with unit scope for the seven roles; the principal, with the units each scoped role covers worked out at sign-in; the policy table as an app-wide dependency; refusal of any route without a policy
-- [ ] `org_unit` tree and `membership`; import of units and people from CSV with a dry run that lists every problem by row
-- [ ] Single sign-on: OpenID Connect with discovery, PKCE, and verified tokens, beside local accounts; accounts created at first sign-in; claims mapped to roles, unit scopes, and memberships in a table kept under Admin
-- [ ] API: session, accounts, roles, units, imports, and sign-on settings
+- [x] `account`, `credential`, `membership`, `role_grant`, `session_token`, `failed_sign_in`; scrypt hashing; password rules; throttling per account and address; `HttpOnly`, `SameSite=Strict` cookies; CSRF token and origin checks
+- [x] `appwren init` creates the first administrator; `appwren users add | list | disable | enable | reset-password | roles`; `serve` refuses to start with no administrator
+- [x] `role_grant` with unit scope for the seven roles; the principal, with the units each scoped role covers worked out at sign-in; the policy table as an app-wide dependency; refusal of any route without a policy
+- [x] `org_unit` tree and `membership`; import of units and people from CSV with a dry run that lists every problem by row
+- [x] Single sign-on: OpenID Connect with discovery, PKCE, and verified tokens, beside local accounts; accounts created at first sign-in; claims mapped to roles, unit scopes, and memberships in a table kept under Admin
+- [x] API: session, accounts, roles, units, imports, and sign-on settings
 
-**Acceptance:** the role-by-route matrix test signs in as each role and exercises every route, and a second test fails when a route has no policy or a policy has no route; a steward of a division covers its labs and no others; the last administrator can be neither demoted nor disabled, in the app, at the command line, or through the identity provider; CSRF, cross-site requests, throttling, idle and absolute expiry, sign-out, and the ending of sessions on disablement and password change are tested; a sign-in against a local test identity provider creates an account with its mapped roles.
+**Acceptance (met):** the role-by-route matrix test signs in as each role and exercises every route, and a second test fails when a route has no policy or a policy has no route; a steward of a division covers its labs and no others; the last administrator can be neither demoted nor disabled, in the app, at the command line, or through the identity provider; CSRF, cross-site requests, throttling, idle and absolute expiry, sign-out, and the ending of sessions on disablement and password change are tested; a sign-in against a local test identity provider creates an account with its mapped roles.
 
-## Slice 3: Web app and design system ☐
+## Slice 3: Web app and design system ☑
 
 **Goal:** a shell that already looks and behaves like a finished product.
 
-- [ ] The sign-in page, user menu, password change, and Admin → People and units (accounts, roles, units, and the import screens); Admin → Single sign-on
-- [ ] `tokens.css`, `palettes.css` (Wren, Slate, Garnet), `base.css`, `components.css`, `pages.css`; light, dark, and system modes; the score ramp; the disposition hues
-- [ ] The wren mark as SVG: mark, mark with wordmark, single color; the default favicon
-- [ ] Core modules: DOM helper, router with URL state, API client with CSRF and caching, session and permissions, preferences
-- [ ] Components: shell, sidebar, top bar, page header, tabs, drawer, dialog, table, record chip, score figure, disposition badge, flag, stat tile, toast, form fields with server errors on their fields, empty and error states, skeletons
-- [ ] Command palette (⌘K, Ctrl-K, or `/`) and Escape to close anything open
-- [ ] Branding: the `setting` table, `/theme.css` generated from it, logo and tab-icon upload with type sniffing and SVG sanitizing, Admin → Appearance with a live preview in both modes and contrast results before saving
-- [ ] Home: for a new installation's administrator, a setup checklist that ticks itself off
-- [ ] Tests: no inline script or style, no third-party origins, no parsing of data as HTML, every import and route resolves, every script parses, size budgets, and contrast for the token pairs in every palette and mode
+- [x] The sign-in page, user menu, password change, and Admin → People and units (accounts, roles, units, and the import screens); Admin → Single sign-on
+- [x] `tokens.css`, `palettes.css` (Wren, Slate, Garnet), `base.css`, `components.css`, `pages.css`; light, dark, and system modes; the score ramp; the disposition hues
+- [x] The wren mark as SVG: mark, mark with wordmark, single color; the default favicon
+- [x] Core modules: DOM helper, router with URL state, API client with CSRF and caching, session and permissions, preferences
+- [x] Components: shell, sidebar, top bar, page header, tabs, drawer, dialog, table, record chip, score figure, disposition badge, flag, stat tile, toast, form fields with server errors on their fields, empty and error states, skeletons
+- [x] Command palette (⌘K, Ctrl-K, or `/`) and Escape to close anything open
+- [x] Branding: the `setting` table, `/theme.css` generated from it, logo and tab-icon upload with type sniffing and SVG sanitizing, Admin → Appearance with a live preview in both modes and contrast results before saving
+- [x] Home: for a new installation's administrator, a setup checklist that ticks itself off
+- [x] Tests: no inline script or style, no third-party origins, no parsing of data as HTML, every import and route resolves, every script parses, size budgets, and contrast for the token pairs in every palette and mode
 
-**Acceptance:** an administrator changes the organization name, palette, and accent in the browser and sees them applied at once, with no file touched; every palette passes AA for text, signal, score, disposition, and control-border tokens in both modes; the shell is within its size budget.
+**Acceptance (met):** an administrator changes the organization name, palette, and accent in the browser and sees them applied at once, with no file touched; every palette passes AA for text, signal, score, disposition, and control-border tokens in both modes; the shell is within its size budget. 229 tests pass on SQLite and 225 on PostgreSQL (four are about the SQLite file). Checked in the browser: sign-in, the shell, and the setup checklist.
 
 ## Slice 4: Inventory ☐
 
@@ -172,3 +172,8 @@ None block the start. These defaults have been taken and can be changed before t
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+
+- **Single sign-on arrives with accounts.** Organizations that keep an application portfolio almost always have an identity provider, and the people who own applications should not need another password. It is optional and sits beside local accounts.
+- **No limits on roles.** A leader records decisions for every application in their units; there is no ladder of what a leader may decide, because a disposition is advice to a budget process, not an acceptance of harm.
+- **The architect role.** The shared records (capabilities, technologies, vendors) need keepers who are not portfolio managers. Architects keep them and may assess any application in scope; they do not record decisions.
+- **Three signals, three looks.** Scores are on a plum ramp with a bar, dispositions have their own hue and icon (outlined when recommended, filled when decided), and flags use the signal colors with a sentence. A test keeps every disposition hue readable on every surface in every palette.

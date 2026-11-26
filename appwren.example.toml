@@ -1,0 +1,77 @@
+# AppWren deployment settings.
+#
+# This file describes how the server runs. Everything about the portfolio program itself
+# (vocabularies, fields, questions, the scoring model) and the product's appearance (name,
+# logo, colors) is set in the app, under Admin, and is stored in the database.
+#
+# Any value here can be overridden by an environment variable named APPWREN_<SECTION>_<KEY>,
+# for example APPWREN_SERVER_PORT=8080. Secrets are never written in this file: where one is
+# needed, the file names the environment variable that holds it.
+#
+# Relative paths are resolved against this file's own directory.
+
+[server]
+# The address and port the web server listens on. Keep 127.0.0.1 when a reverse proxy on the
+# same machine terminates TLS; use 0.0.0.0 only behind one.
+host = "127.0.0.1"
+port = 8000
+
+# How many server processes to run. One is enough for SQLite and small teams.
+workers = 1
+
+# The public address people use to reach AppWren, such as "https://appwren.example.org".
+# Used in links in email. Leave empty to use the address of each request.
+base_url = ""
+
+# A sign-in ends after this long without activity, and after this long in any case.
+session_idle_hours = 12
+session_max_days = 7
+
+[database]
+# Leave empty to use SQLite, in a single file inside the data home.
+# For PostgreSQL: "postgresql+psycopg://appwren@db.example.org:5432/appwren", with the
+# password in the PGPASSWORD environment variable (or set the whole address, password and
+# all, in APPWREN_DATABASE_URL). PostgreSQL needs the optional driver: uv sync --extra postgres
+url = ""
+
+[data]
+# The data home: evidence files, uploaded logos, exports, logs, and the SQLite database.
+home = "var"
+
+[sso]
+# Single sign-on is optional. Out of the box people sign in with an email address and a
+# password held by AppWren, and nothing here needs to be set.
+#
+# To let people sign in with your organization's identity provider as well, name its issuer
+# and the client (application) ID it gave AppWren. Any OpenID Connect provider works. For
+# Microsoft Entra ID the issuer is "https://login.microsoftonline.com/<tenant id>/v2.0".
+# Give the provider this redirect address: <base_url>/api/v1/sso/callback
+issuer = ""
+client_id = ""
+
+# The client secret is never written in this file. Put it in the environment variable named
+# here.
+client_secret_env = "APPWREN_SSO_CLIENT_SECRET"
+
+# What AppWren asks the provider for.
+scopes = "openid profile email"
+
+# The claim in the ID token that lists a person's application roles or groups. Which value
+# gives which role is set in the app, under Admin, Single sign-on. Entra ID sends application
+# roles as "roles" and groups as "groups".
+roles_claim = "roles"
+
+# The words on the sign-in button.
+label = "Sign in with your organization account"
+
+# Accept the provider's address for a person without its saying the address is verified.
+# Entra ID does not say, so set this to true for a single Entra ID tenant.
+trust_email = false
+
+# Make an account the first time someone signs in. With false, only people who already have
+# an account here can sign in.
+create_accounts = true
+
+# Keep the password form for everyone who has a password. With false, only administrators
+# may sign in with a password, so that there is always a way in.
+local_sign_in = true
