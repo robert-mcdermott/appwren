@@ -1,0 +1,1023 @@
+{
+ "pack": {
+  "key": "default-program",
+  "kind": "program",
+  "title": "AppWren default program",
+  "pack_version": "1.0.0",
+  "license": "Apache-2.0"
+ },
+ "vocabularies": {
+  "lifecycle": [
+   {
+    "key": "proposed",
+    "label": "Proposed",
+    "description": "An idea or a request, captured"
+   },
+   {
+    "key": "evaluating",
+    "label": "Evaluating",
+    "description": "Being evaluated, piloted, or proven"
+   },
+   {
+    "key": "phase_in",
+    "label": "Phase-in",
+    "description": "Being implemented or rolled out"
+   },
+   {
+    "key": "active",
+    "label": "Active",
+    "description": "In use"
+   },
+   {
+    "key": "containment",
+    "label": "Containment",
+    "description": "Kept running, with no new features and no new users"
+   },
+   {
+    "key": "phase_out",
+    "label": "Phase-out",
+    "description": "Being retired; its users are moving elsewhere"
+   },
+   {
+    "key": "retired",
+    "label": "Retired",
+    "description": "Switched off"
+   },
+   {
+    "key": "archived",
+    "label": "Archived",
+    "description": "Switched off, with its data kept as policy requires"
+   }
+  ],
+  "sourcing": [
+   {
+    "key": "saas",
+    "label": "Software as a service",
+    "description": "Run by a vendor and used over the internet"
+   },
+   {
+    "key": "commercial",
+    "label": "Commercial, run here",
+    "description": "Bought from a vendor and run on our own hosting"
+   },
+   {
+    "key": "built_here",
+    "label": "Built here",
+    "description": "Written and kept by the organization's own people"
+   },
+   {
+    "key": "open_source",
+    "label": "Open source, run here",
+    "description": "Open-source software run on our own hosting"
+   },
+   {
+    "key": "low_code",
+    "label": "Low-code",
+    "description": "Built on a low-code or no-code platform"
+   },
+   {
+    "key": "research_software",
+    "label": "Research software",
+    "description": "Written and kept by a lab or research team"
+   },
+   {
+    "key": "vendor_custom",
+    "label": "Vendor-hosted custom",
+    "description": "Built for us and run by a vendor"
+   }
+  ],
+  "purpose": [
+   {
+    "key": "mission",
+    "label": "Mission",
+    "description": "Sets the organization apart, or is how its mission is done"
+   },
+   {
+    "key": "operations",
+    "label": "Operations",
+    "description": "Carries out the day-to-day work and its transactions"
+   },
+   {
+    "key": "insight",
+    "label": "Insight",
+    "description": "Reporting, analysis, and decision support"
+   },
+   {
+    "key": "foundation",
+    "label": "Foundation",
+    "description": "A shared platform other applications rest on"
+   }
+  ],
+  "pace": [
+   {
+    "key": "steady",
+    "label": "Steady",
+    "description": "Expected to change slowly and last many years"
+   },
+   {
+    "key": "evolving",
+    "label": "Evolving",
+    "description": "Expected to change often as needs change"
+   },
+   {
+    "key": "experimental",
+    "label": "Experimental",
+    "description": "New or exploratory; expected to change or end soon"
+   }
+  ],
+  "domains": [
+   {
+    "key": "research",
+    "label": "Research"
+   },
+   {
+    "key": "clinical",
+    "label": "Clinical"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative"
+   },
+   {
+    "key": "education",
+    "label": "Education"
+   },
+   {
+    "key": "it",
+    "label": "IT and infrastructure"
+   }
+  ],
+  "tiers": [
+   {
+    "key": "1",
+    "label": "1 · Mission critical",
+    "description": "Care, safety, or the organization's core work stops without it"
+   },
+   {
+    "key": "2",
+    "label": "2 · Business critical",
+    "description": "Important work stops within a day without it"
+   },
+   {
+    "key": "3",
+    "label": "3 · Business operational",
+    "description": "Its loss would be felt within days and worked around"
+   },
+   {
+    "key": "4",
+    "label": "4 · Administrative",
+    "description": "Could be done without for weeks with little effect"
+   },
+   {
+    "key": "5",
+    "label": "5 · Minimal",
+    "description": "Could be switched off with almost no effect"
+   }
+  ],
+  "hosting": [
+   {
+    "key": "on_premises",
+    "label": "Our data center"
+   },
+   {
+    "key": "our_cloud",
+    "label": "Our cloud account"
+   },
+   {
+    "key": "vendor_cloud",
+    "label": "The vendor's service"
+   },
+   {
+    "key": "research_computing",
+    "label": "Research computing cluster"
+   },
+   {
+    "key": "managed_hosting",
+    "label": "A hosting provider"
+   },
+   {
+    "key": "desktop",
+    "label": "People's own computers"
+   },
+   {
+    "key": "mixed",
+    "label": "More than one of these"
+   }
+  ],
+  "sign_in": [
+   {
+    "key": "sso_mfa",
+    "label": "Single sign-on with multi-factor",
+    "description": "Organization sign-in and a second factor"
+   },
+   {
+    "key": "sso",
+    "label": "Single sign-on",
+    "description": "The organization's sign-in"
+   },
+   {
+    "key": "local_mfa",
+    "label": "Its own accounts, with multi-factor",
+    "description": "Separate accounts, with a second factor"
+   },
+   {
+    "key": "local",
+    "label": "Its own accounts",
+    "description": "Separate accounts and passwords"
+   },
+   {
+    "key": "shared",
+    "label": "Shared accounts",
+    "description": "Accounts or passwords shared between people"
+   },
+   {
+    "key": "none",
+    "label": "No sign-in",
+    "description": "Open to anyone who can reach it"
+   }
+  ],
+  "monitoring": [
+   {
+    "key": "none",
+    "label": "None",
+    "description": "Nobody would know it was down until someone said so"
+   },
+   {
+    "key": "uptime",
+    "label": "Uptime only",
+    "description": "Something checks that it answers"
+   },
+   {
+    "key": "metrics",
+    "label": "Metrics and logs",
+    "description": "Its health is measured and its logs are kept"
+   },
+   {
+    "key": "alerting",
+    "label": "Alerting",
+    "description": "Problems raise an alert to someone"
+   },
+   {
+    "key": "on_call",
+    "label": "Alerting to on-call",
+    "description": "Problems reach a staffed on-call rota"
+   }
+  ],
+  "backup": [
+   {
+    "key": "none",
+    "label": "None",
+    "description": "Nothing is backed up"
+   },
+   {
+    "key": "unverified",
+    "label": "Unverified",
+    "description": "Backed up, but a restore has not been tested"
+   },
+   {
+    "key": "tested",
+    "label": "Tested",
+    "description": "Backed up, and a restore has been tested"
+   },
+   {
+    "key": "vendor",
+    "label": "Vendor managed",
+    "description": "The vendor backs it up under its agreement"
+   }
+  ],
+  "funding": [
+   {
+    "key": "operating",
+    "label": "Operating budget"
+   },
+   {
+    "key": "grant",
+    "label": "Grant or award"
+   },
+   {
+    "key": "chargeback",
+    "label": "Charged back to its users"
+   },
+   {
+    "key": "capital",
+    "label": "Capital"
+   },
+   {
+    "key": "mixed",
+    "label": "More than one of these"
+   }
+  ],
+  "data_classes": [
+   {
+    "key": "public",
+    "label": "Public",
+    "sensitivity": 0,
+    "description": "May be shared with anyone: published results, public web content."
+   },
+   {
+    "key": "internal",
+    "label": "Internal",
+    "sensitivity": 1,
+    "description": "Meant for the organization's own work: plans, procedures, most email."
+   },
+   {
+    "key": "personal",
+    "label": "Personal information",
+    "sensitivity": 2,
+    "description": "About identifiable staff, students, donors, or the public."
+   },
+   {
+    "key": "financial",
+    "label": "Financial",
+    "sensitivity": 2,
+    "description": "Budgets, payroll, purchasing, and accounts."
+   },
+   {
+    "key": "deidentified_research",
+    "label": "De-identified research data",
+    "sensitivity": 2,
+    "description": "Research data from which participants cannot reasonably be identified."
+   },
+   {
+    "key": "identifiable_research",
+    "label": "Identifiable research data",
+    "sensitivity": 3,
+    "description": "Research data about participants who can be identified."
+   },
+   {
+    "key": "health",
+    "label": "Protected health information",
+    "sensitivity": 3,
+    "description": "Health information about identifiable patients, held under health privacy law."
+   },
+   {
+    "key": "controlled_access",
+    "label": "Controlled-access data",
+    "sensitivity": 3,
+    "description": "Data received under an agreement that limits who may see it and how."
+   },
+   {
+    "key": "payment_card",
+    "label": "Payment card data",
+    "sensitivity": 3,
+    "description": "Card numbers and related data, held under the card industry's rules."
+   }
+  ],
+  "component_kinds": [
+   {
+    "key": "service",
+    "label": "Service"
+   },
+   {
+    "key": "web_frontend",
+    "label": "Web front end"
+   },
+   {
+    "key": "database",
+    "label": "Database"
+   },
+   {
+    "key": "batch_job",
+    "label": "Batch job"
+   },
+   {
+    "key": "integration",
+    "label": "Integration"
+   },
+   {
+    "key": "report",
+    "label": "Report"
+   },
+   {
+    "key": "module",
+    "label": "Module"
+   },
+   {
+    "key": "library",
+    "label": "Library"
+   },
+   {
+    "key": "mobile_app",
+    "label": "Mobile app"
+   },
+   {
+    "key": "pipeline",
+    "label": "Analysis pipeline"
+   },
+   {
+    "key": "infrastructure",
+    "label": "Infrastructure"
+   }
+  ],
+  "vendor_kinds": [
+   {
+    "key": "software_vendor",
+    "label": "Software vendor"
+   },
+   {
+    "key": "service_provider",
+    "label": "Service provider"
+   },
+   {
+    "key": "open_source_project",
+    "label": "Open-source project"
+   },
+   {
+    "key": "consortium",
+    "label": "Consortium"
+   },
+   {
+    "key": "partner_institution",
+    "label": "Partner institution"
+   }
+  ],
+  "technology_kinds": [
+   {
+    "key": "language",
+    "label": "Language"
+   },
+   {
+    "key": "framework",
+    "label": "Framework"
+   },
+   {
+    "key": "runtime",
+    "label": "Runtime"
+   },
+   {
+    "key": "database",
+    "label": "Database"
+   },
+   {
+    "key": "operating_system",
+    "label": "Operating system"
+   },
+   {
+    "key": "platform",
+    "label": "Platform"
+   },
+   {
+    "key": "middleware",
+    "label": "Middleware"
+   },
+   {
+    "key": "product",
+    "label": "Product"
+   }
+  ],
+  "radar": [
+   {
+    "key": "adopt",
+    "label": "Adopt",
+    "description": "Our choice for new work"
+   },
+   {
+    "key": "trial",
+    "label": "Trial",
+    "description": "Being tried on real work"
+   },
+   {
+    "key": "assess",
+    "label": "Assess",
+    "description": "Worth looking into"
+   },
+   {
+    "key": "hold",
+    "label": "Hold",
+    "description": "Not for new work; move away when you can"
+   }
+  ],
+  "application_roles": [
+   {
+    "key": "accountable",
+    "label": "Accountable owner",
+    "description": "Answers for it and its record; there is one"
+   },
+   {
+    "key": "business_owner",
+    "label": "Business owner",
+    "description": "Speaks for the people who use it"
+   },
+   {
+    "key": "technical_owner",
+    "label": "Technical owner",
+    "description": "Answers for how it is built and run"
+   },
+   {
+    "key": "product_manager",
+    "label": "Product manager",
+    "description": "Decides what it does next"
+   },
+   {
+    "key": "support_contact",
+    "label": "Support contact",
+    "description": "Whom to call when it is not working"
+   },
+   {
+    "key": "data_steward",
+    "label": "Data steward",
+    "description": "Answers for the data it holds"
+   },
+   {
+    "key": "security_contact",
+    "label": "Security contact",
+    "description": "Whom security asks about it"
+   },
+   {
+    "key": "executive_sponsor",
+    "label": "Executive sponsor",
+    "description": "Champions it at the top"
+   }
+  ],
+  "link_kinds": [
+   {
+    "key": "depends_on",
+    "label": "Depends on",
+    "reverse": "Is depended on by",
+    "between": [
+     [
+      "application",
+      "application"
+     ],
+     [
+      "component",
+      "component"
+     ]
+    ]
+   },
+   {
+    "key": "part_of",
+    "label": "Is part of",
+    "reverse": "Includes",
+    "between": [
+     [
+      "application",
+      "application"
+     ]
+    ]
+   },
+   {
+    "key": "replaces",
+    "label": "Replaces",
+    "reverse": "Is replaced by",
+    "between": [
+     [
+      "application",
+      "application"
+     ]
+    ]
+   }
+  ],
+  "external_systems": [
+   {
+    "key": "configuration_item",
+    "label": "Configuration item",
+    "description": "Its record in the infrastructure inventory"
+   },
+   {
+    "key": "ticket_queue",
+    "label": "Ticket queue",
+    "description": "Where its support requests go"
+   },
+   {
+    "key": "repository",
+    "label": "Repository",
+    "description": "Where its code is kept"
+   },
+   {
+    "key": "identity_app",
+    "label": "Sign-in registration",
+    "description": "Its registration with the identity provider"
+   },
+   {
+    "key": "contract",
+    "label": "Contract number",
+    "description": "As the purchasing system knows it"
+   },
+   {
+    "key": "governance_record",
+    "label": "Governance record",
+    "description": "Its record in another governance system"
+   }
+  ],
+  "unit_kinds": [
+   {
+    "key": "organization",
+    "label": "Organization"
+   },
+   {
+    "key": "division",
+    "label": "Division"
+   },
+   {
+    "key": "department",
+    "label": "Department"
+   },
+   {
+    "key": "center",
+    "label": "Center"
+   },
+   {
+    "key": "core_facility",
+    "label": "Core facility"
+   },
+   {
+    "key": "lab",
+    "label": "Lab"
+   },
+   {
+    "key": "clinic",
+    "label": "Clinic"
+   },
+   {
+    "key": "office",
+    "label": "Office"
+   },
+   {
+    "key": "team",
+    "label": "Team"
+   }
+  ],
+  "dispositions": [
+   {
+    "key": "invest",
+    "label": "Invest",
+    "description": "Grow its capability and use"
+   },
+   {
+    "key": "maintain",
+    "label": "Maintain",
+    "description": "Keep it as it is, run efficiently"
+   },
+   {
+    "key": "tolerate",
+    "label": "Tolerate",
+    "description": "Keep it at the least cost, and look again"
+   },
+   {
+    "key": "modernize",
+    "label": "Modernize",
+    "description": "Valuable, but technically weak: upgrade, re-platform, or refactor"
+   },
+   {
+    "key": "replace",
+    "label": "Replace",
+    "description": "The function is needed; this asset should go"
+   },
+   {
+    "key": "consolidate",
+    "label": "Consolidate",
+    "description": "Does what another application does; move its users there"
+   },
+   {
+    "key": "retire",
+    "label": "Retire",
+    "description": "Little value; retire without a successor"
+   },
+   {
+    "key": "incubate",
+    "label": "Incubate",
+    "description": "New or experimental; not yet judged on use"
+   },
+   {
+    "key": "assess",
+    "label": "Assess",
+    "description": "Not enough is known to recommend"
+   }
+  ]
+ },
+ "fields": [
+  {
+   "key": "ethics_protocols",
+   "label": "Ethics protocols",
+   "type": "text",
+   "section": "research",
+   "help": "The ethics review protocol numbers of the studies that depend on it.",
+   "applies_to": [
+    "research_software",
+    "built_here",
+    "saas",
+    "commercial"
+   ]
+  },
+  {
+   "key": "data_management_plan",
+   "label": "Data management plan",
+   "type": "url",
+   "section": "research",
+   "help": "Where the plan for the data it holds is kept."
+  },
+  {
+   "key": "accessibility",
+   "label": "Accessibility",
+   "type": "choice",
+   "section": "use",
+   "help": "How well people with disabilities can use it, as last checked.",
+   "options": [
+    [
+     "unknown",
+     "Not checked"
+    ],
+    [
+     "partial",
+     "Partly conforms"
+    ],
+    [
+     "conforms",
+     "Conforms to the organization's standard"
+    ]
+   ]
+  }
+ ],
+ "stage_requirements": {
+  "proposed": [
+   "summary",
+   "sourcing",
+   "capabilities"
+  ],
+  "evaluating": [
+   "accountable",
+   "purpose",
+   "data_classes"
+  ],
+  "phase_in": [
+   "tier",
+   "hosting",
+   "support_unit_id",
+   "annual_cost",
+   "funding"
+  ],
+  "active": [
+   "sign_in",
+   "monitoring",
+   "backup",
+   "users",
+   "maintainers",
+   "domain",
+   "pace",
+   "technologies",
+   "assessment"
+  ],
+  "containment": [
+   "decision"
+  ],
+  "phase_out": [
+   "retire_planned"
+  ],
+  "retired": [],
+  "archived": []
+ },
+ "sensitive_fields": [
+  "annual_cost",
+  "sign_in",
+  "backup",
+  "last_restore_test"
+ ],
+ "definition": {
+  "text": "An application is software, or a service built from software, that people name, use for a purpose, and could decide to keep, change, or retire as one thing.",
+  "examples": [
+   "The grants management system",
+   "The learning management system",
+   "A lab's sample tracker, used by three labs",
+   "The research data warehouse"
+  ],
+  "not_examples": [
+   "A server or a database on its own: record it as a component of what it serves",
+   "A report or a module of a larger system: a component of that system",
+   "A spreadsheet one person keeps for themselves",
+   "A programming language or a platform: a technology"
+  ]
+ },
+ "capabilities": [
+  {
+   "key": "research",
+   "name": "Research",
+   "description": "Discovering new knowledge",
+   "domain": "research",
+   "children": [
+    {
+     "key": "study_management",
+     "name": "Study design and protocol management",
+     "description": "Planning studies and keeping their protocols"
+    },
+    {
+     "key": "participants",
+     "name": "Participant recruitment and consent",
+     "description": "Finding, enrolling, and consenting participants"
+    },
+    {
+     "key": "biospecimens",
+     "name": "Biospecimen management",
+     "description": "Collecting, storing, and distributing samples"
+    },
+    {
+     "key": "lab_data",
+     "name": "Laboratory data capture",
+     "description": "Notebooks, sample tracking, and lab information"
+    },
+    {
+     "key": "instrument_data",
+     "name": "Imaging and instrument data",
+     "description": "Acquiring and managing data from instruments"
+    },
+    {
+     "key": "omics",
+     "name": "Genomic and molecular analysis",
+     "description": "Sequencing and other molecular data and its analysis"
+    },
+    {
+     "key": "analysis",
+     "name": "Data analysis and statistics",
+     "description": "Analysis, modelling, and statistics"
+    },
+    {
+     "key": "research_data",
+     "name": "Research data management and sharing",
+     "description": "Keeping, cataloguing, and sharing research data"
+    },
+    {
+     "key": "research_computing",
+     "name": "Research computing",
+     "description": "Compute and storage for research"
+    },
+    {
+     "key": "surveys",
+     "name": "Participant surveys",
+     "description": "Collecting answers from participants and others"
+    },
+    {
+     "key": "awards",
+     "name": "Grant and award management",
+     "description": "Proposals, awards, and their budgets"
+    },
+    {
+     "key": "research_compliance",
+     "name": "Research compliance",
+     "description": "Ethics review, conflicts of interest, and safety"
+    }
+   ]
+  },
+  {
+   "key": "clinical",
+   "name": "Clinical care",
+   "description": "Caring for patients",
+   "domain": "clinical",
+   "children": [
+    {
+     "key": "patient_access",
+     "name": "Patient scheduling and access",
+     "description": "Appointments, registration, and referrals"
+    },
+    {
+     "key": "clinical_record",
+     "name": "Clinical documentation",
+     "description": "The patient's health record"
+    },
+    {
+     "key": "orders_results",
+     "name": "Orders and results",
+     "description": "Ordering tests and returning results"
+    },
+    {
+     "key": "pharmacy",
+     "name": "Pharmacy and medication",
+     "description": "Dispensing and managing medicines"
+    },
+    {
+     "key": "clinical_lab",
+     "name": "Clinical laboratory",
+     "description": "Testing samples for patient care"
+    },
+    {
+     "key": "clinical_trials",
+     "name": "Clinical trials management",
+     "description": "Running trials: calendars, visits, and payments"
+    },
+    {
+     "key": "patient_communication",
+     "name": "Patient communication",
+     "description": "Portals, messages, and reminders"
+    },
+    {
+     "key": "revenue_cycle",
+     "name": "Revenue cycle",
+     "description": "Charging and billing for care"
+    }
+   ]
+  },
+  {
+   "key": "education",
+   "name": "Education",
+   "description": "Teaching and training",
+   "domain": "education",
+   "children": [
+    {
+     "key": "learning",
+     "name": "Learning management",
+     "description": "Courses, training, and their completion"
+    },
+    {
+     "key": "trainee_records",
+     "name": "Student and trainee records",
+     "description": "Admissions, enrolment, and records"
+    }
+   ]
+  },
+  {
+   "key": "administration",
+   "name": "Administration",
+   "description": "Running the organization",
+   "domain": "administrative",
+   "children": [
+    {
+     "key": "finance",
+     "name": "Finance and accounting",
+     "description": "Budgets, ledgers, and payments"
+    },
+    {
+     "key": "procurement",
+     "name": "Procurement",
+     "description": "Buying goods and services"
+    },
+    {
+     "key": "people",
+     "name": "Human resources and payroll",
+     "description": "Hiring, pay, and people's records"
+    },
+    {
+     "key": "facilities",
+     "name": "Facilities and space",
+     "description": "Buildings, rooms, and maintenance"
+    },
+    {
+     "key": "communications",
+     "name": "Communications and web",
+     "description": "Websites, news, and outreach"
+    },
+    {
+     "key": "philanthropy",
+     "name": "Fundraising and donor relations",
+     "description": "Gifts and the people who give them"
+    },
+    {
+     "key": "legal",
+     "name": "Legal and contracts",
+     "description": "Agreements and legal matters"
+    },
+    {
+     "key": "records",
+     "name": "Document and records management",
+     "description": "Keeping documents and records as required"
+    }
+   ]
+  },
+  {
+   "key": "it",
+   "name": "Information technology",
+   "description": "The shared technology everyone relies on",
+   "domain": "it",
+   "children": [
+    {
+     "key": "identity",
+     "name": "Identity and access",
+     "description": "Accounts, sign-in, and who may do what"
+    },
+    {
+     "key": "collaboration",
+     "name": "Collaboration and email",
+     "description": "Email, chat, meetings, and shared files"
+    },
+    {
+     "key": "service_management",
+     "name": "Service management",
+     "description": "Requests, incidents, and changes"
+    },
+    {
+     "key": "hosting",
+     "name": "Infrastructure and hosting",
+     "description": "Where applications run"
+    },
+    {
+     "key": "security",
+     "name": "Security operations",
+     "description": "Finding and stopping threats"
+    },
+    {
+     "key": "monitoring",
+     "name": "Monitoring and observability",
+     "description": "Knowing whether things are working"
+    },
+    {
+     "key": "software_delivery",
+     "name": "Software delivery",
+     "description": "Building, testing, and deploying software"
+    },
+    {
+     "key": "integration",
+     "name": "Data platform and integration",
+     "description": "Moving and joining data between applications"
+    }
+   ]
+  }
+ ]
+}

@@ -88,25 +88,25 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance (met):** an administrator changes the organization name, palette, and accent in the browser and sees them applied at once, with no file touched; every palette passes AA for text, signal, score, disposition, and control-border tokens in both modes; the shell is within its size budget. 229 tests pass on SQLite and 225 on PostgreSQL (four are about the SQLite file). Checked in the browser: sign-in, the shell, and the setup checklist.
 
-## Slice 4: Inventory ☐
+## Slice 4: Inventory ☑
 
 **Goal:** the portfolio's records, done properly.
 
-- [ ] Models and services for applications, components, vendors, technologies with releases, and capabilities, with the shared header
-- [ ] A registry that describes each record type as data, so that adding, editing, finding, links, visibility, and history are written once
-- [ ] People in roles on an application, with exactly one accountable owner past Proposed; the support unit; the units that use it; orphaned applications shown
-- [ ] Components with their technologies, releases, and versions; each release shows the components that use it
-- [ ] Capabilities as a tree; applications mapped to them, with at most one primary provider per capability
-- [ ] Links between applications (depends on, part of, replaces) with forward and reverse labels; tags; external references
-- [ ] Vocabularies and the organization's own fields as settings, with defaults from the default program pack; a value in use can be relabelled or retired, never removed; the definition of an application
-- [ ] Required fields by lifecycle stage, and what is missing shown on the record
-- [ ] Sensitive fields withheld by one function, everywhere
-- [ ] The default program pack as a file, written by `scripts/build-default-program.py`, including the starter capability map; `appwren program export | import` with a dry run, the whole pack checked before any of it is loaded
-- [ ] List pages with search, filters, sort, and paging, all in the URL; detail pages with a shared header and tabs; the History tab as a readable timeline
-- [ ] Visibility: the catalog open to everyone signed in; restricted applications
-- [ ] Optimistic concurrency on edits
+- [x] Models and services for applications, components, vendors, technologies with releases, and capabilities, with the shared header
+- [x] A registry that describes each record type as data, so that adding, editing, finding, links, visibility, and history are written once
+- [x] People in roles on an application, with exactly one accountable owner; the support unit; the units that use it; orphaned applications shown
+- [x] Components with their technologies, releases, and versions; each release shows the components that use it
+- [x] Capabilities as a tree; applications mapped to them, with at most one primary provider per capability
+- [x] Links between applications (depends on, part of, replaces) with forward and reverse labels; tags; external references
+- [x] Vocabularies and the organization's own fields as settings, with defaults from the default program pack; a value in use can be relabelled or retired, never removed; the definition of an application
+- [x] Required fields by lifecycle stage, and what is missing shown on the record
+- [x] Sensitive fields withheld by one function, everywhere
+- [x] The default program pack as a file, written by `scripts/build-default-program.py`, including the starter capability map; `appwren program export | import` with a dry run, the whole pack checked before any of it is loaded
+- [x] List pages with search, filters, sort, and paging, all in the URL; detail pages with a shared header and tabs; the History tab as a readable timeline
+- [x] Visibility: the catalog open to everyone signed in; restricted applications
+- [x] Optimistic concurrency on edits
 
-**Acceptance:** each record type can be created, edited, linked, and found; every edit is in its history under a named operation; a table of what each of the seven roles sees, including sensitive fields, is tested for single records and for lists, which must agree; a stale edit is refused and an invalid one leaves the record as it was; a second accountable owner is refused.
+**Acceptance (met):** each record type can be created, edited, linked, and found; every edit is in its history under a named operation; a table of what each of the seven roles sees, including sensitive fields, is tested for single records and for lists, which must agree; a stale edit is refused and an invalid one leaves the record as it was; a second accountable owner is refused. 244 tests pass on SQLite and 240 on PostgreSQL. Checked in the browser: the applications list, adding an application, its page with what its stage still needs, adding a component, a technology's releases with their support, and the capability map.
 
 ## Slice 5: Assessment and the engine ☐
 
@@ -177,3 +177,8 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **No limits on roles.** A leader records decisions for every application in their units; there is no ladder of what a leader may decide, because a disposition is advice to a budget process, not an acceptance of harm.
 - **The architect role.** The shared records (capabilities, technologies, vendors) need keepers who are not portfolio managers. Architects keep them and may assess any application in scope; they do not record decisions.
 - **Three signals, three looks.** Scores are on a plum ramp with a bar, dispositions have their own hue and icon (outlined when recommended, filled when decided), and flags use the signal colors with a sentence. A test keeps every disposition hue readable on every surface in every palette.
+- **Every application has an accountable owner from the start.** Whoever adds it is accountable until they hand it on; the spec first said "past Proposed", but an application with nobody answering for it is exactly what the portfolio exists to prevent. One imported with nobody named is orphaned and flagged.
+- **Shared records belong to no unit.** Vendors, technologies, and capabilities are kept by architects and managers for the whole organization. A component belongs to its application and takes its unit and visibility from it.
+- **Sensitive fields are refused, not just hidden.** A person who may not see a sensitive field may not filter or sort a list by it, nor send a value for it; its changes appear in the history as withheld.
+- **The parse check now reads every script as a module.** A missing bracket in a page passed the old check, which read the files as plain scripts, and was found in the browser.
+

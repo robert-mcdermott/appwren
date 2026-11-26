@@ -95,9 +95,16 @@ def test_the_app_stays_within_its_size_budgets() -> None:
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="needs Node to check syntax")
 def test_every_script_parses() -> None:
+    # Read as ES modules from standard input: a file named .js outside a package that says
+    # it holds modules is not checked strictly enough on its own.
     for script in JS.rglob("*.js"):
-        result = subprocess.run(["node", "--check", str(script)], capture_output=True, text=True)
-        assert result.returncode == 0, result.stderr
+        result = subprocess.run(
+            ["node", "--input-type=module", "--check"],
+            input=script.read_text(encoding="utf-8"),
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, f"{script.name}: {result.stderr}"
 
 
 # --- Contrast -----------------------------------------------------------------------------

@@ -57,6 +57,8 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# The default program is tables of words, kept one entry to a line.
+"scripts/build-default-program.py" = ["E501"]
 "tests/**" = ["S104", "S105", "S106", "S108", "S311", "S608"]
 # The demo organization is invented with a seeded generator.
 "src/appwren/demo/**" = ["S311"]

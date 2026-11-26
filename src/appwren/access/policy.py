@@ -18,6 +18,7 @@ class Needs(StrEnum):
     PUBLIC = "public"  # no sign-in: health, product name, signing in
     MEMBER = "member"  # anyone signed in
     ARCHITECT = "architect"  # architects and managers, each within their scope
+    KEEP = "keep"  # stewards, architects, and managers: those who add applications
     STEWARD = "steward"  # stewards and managers, each within their scope
     LEAD = "lead"  # leaders, within their scope
     MANAGE = "manage"  # managers for the whole organization: running the program
@@ -61,6 +62,50 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/admin/branding/check"): Needs.ADMIN,
     ("POST", "/api/v1/admin/branding/images/{kind}"): Needs.ADMIN,
     ("DELETE", "/api/v1/admin/branding/images/{kind}"): Needs.ADMIN,
+    # The inventory
+    ("GET", "/api/v1/vocabularies"): Needs.MEMBER,
+    ("GET", "/api/v1/catalog"): Needs.MEMBER,
+    ("GET", "/api/v1/capability-map"): Needs.MEMBER,
+    ("GET", "/api/v1/applications"): Needs.MEMBER,
+    ("POST", "/api/v1/applications"): Needs.KEEP,
+    ("GET", "/api/v1/applications/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/applications/{ref}"): Needs.MEMBER,  # the service checks the record
+    ("POST", "/api/v1/applications/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/applications/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/applications/{ref}/history"): Needs.MEMBER,
+    ("GET", "/api/v1/components"): Needs.MEMBER,
+    ("POST", "/api/v1/components"): Needs.MEMBER,
+    ("GET", "/api/v1/components/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/components/{ref}"): Needs.MEMBER,  # the service checks the record
+    ("POST", "/api/v1/components/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/components/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/components/{ref}/history"): Needs.MEMBER,
+    ("GET", "/api/v1/vendors"): Needs.MEMBER,
+    ("POST", "/api/v1/vendors"): Needs.ARCHITECT,
+    ("GET", "/api/v1/vendors/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/vendors/{ref}"): Needs.MEMBER,  # the service checks the record
+    ("POST", "/api/v1/vendors/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/vendors/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/vendors/{ref}/history"): Needs.MEMBER,
+    ("GET", "/api/v1/technologies"): Needs.MEMBER,
+    ("POST", "/api/v1/technologies"): Needs.ARCHITECT,
+    ("GET", "/api/v1/technologies/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/technologies/{ref}"): Needs.MEMBER,  # the service checks the record
+    ("POST", "/api/v1/technologies/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/technologies/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/technologies/{ref}/history"): Needs.MEMBER,
+    ("GET", "/api/v1/capabilities"): Needs.MEMBER,
+    ("POST", "/api/v1/capabilities"): Needs.ARCHITECT,
+    ("GET", "/api/v1/capabilities/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/capabilities/{ref}"): Needs.MEMBER,  # the service checks the record
+    ("POST", "/api/v1/capabilities/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/capabilities/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/capabilities/{ref}/history"): Needs.MEMBER,
+    ("PUT", "/api/v1/applications/{ref}/people"): Needs.MEMBER,
+    ("PUT", "/api/v1/applications/{ref}/capabilities"): Needs.MEMBER,
+    ("PUT", "/api/v1/applications/{ref}/units"): Needs.MEMBER,
+    ("PUT", "/api/v1/components/{ref}/technologies"): Needs.MEMBER,
+    ("PUT", "/api/v1/technologies/{ref}/releases"): Needs.ARCHITECT,
     # Imports
     ("POST", "/api/v1/imports/units"): Needs.ADMIN,
     ("POST", "/api/v1/imports/people"): Needs.ADMIN,
@@ -75,6 +120,7 @@ def allowed(principal: Principal | None, needs: Needs) -> bool:
     return {
         Needs.MEMBER: True,
         Needs.ARCHITECT: principal.architects or principal.manages_somewhere,
+        Needs.KEEP: principal.stewards or principal.architects or principal.manages_somewhere,
         Needs.STEWARD: principal.stewards or principal.manages_somewhere,
         Needs.LEAD: principal.leads,
         Needs.MANAGE: principal.manages,

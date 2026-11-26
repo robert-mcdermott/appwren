@@ -13,7 +13,7 @@ What the organization runs, and who answers for it.
 |---|---|---|---|---|
 | INV-01 | M | Units are the backbone | Every application belongs to one unit in a hierarchy of any depth; every list and figure can be narrowed to a unit and everything beneath it | 1 |
 | INV-02 | M | Applications | An application has a permanent reference, a name and aliases, a description, a unit, a lifecycle stage with its date, a sourcing type, a purpose, a pace, a domain, a tier, and the facts the engine reads ([engine.md](engine.md#facts)) | 1 |
-| INV-03 | M | One accountable owner | Every application past Proposed has exactly one accountable owner, and may name people in other roles; an application whose accountable owner has left is shown as orphaned | 1 |
+| INV-03 | M | One accountable owner | Every application has exactly one accountable owner, and may name people in other roles; one imported with nobody named, or whose accountable owner has left, is shown as orphaned | 1 |
 | INV-04 | M | Sourcing types | SaaS, commercial run here, built here, open source run here, low-code, research software, and vendor-hosted custom, each showing the fields that apply to it | 1 |
 | INV-05 | M | Components | An application is decomposed into components with a kind, a repository, hosting, and the technologies and versions each uses | 1 |
 | INV-06 | M | Vendors | Vendors are records, linked from the applications and technologies they supply | 1 |

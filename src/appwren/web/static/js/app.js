@@ -53,6 +53,14 @@ async function boot() {
 
   route("/", page("home", "home", meta));
   route("/account", page("account", "account"));
+  route("/applications", page("records", "applicationList"));
+  route("/applications/:ref", page("record", "applicationPage"));
+  for (const type of ["component", "vendor", "technology", "capability"]) {
+    const path = { component: "components", vendor: "vendors", technology: "technologies", capability: "capabilities" }[type];
+    route(`/${path}`, page("records", "recordList", type));
+    route(`/${path}/:ref`, page("record", "recordPage", type));
+  }
+  route("/capability-map", page("capability-map", "capabilityMap"));
   if (can("admin")) {
     route("/admin/people", page("admin-people", "adminPeople"));
     route("/admin/units", page("admin-units", "adminUnits"));

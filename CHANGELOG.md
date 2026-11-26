@@ -24,4 +24,19 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **The web app.** Sign-in, the app shell with a command palette (⌘K), your account, and
   admin screens for people, units, single sign-on, and appearance. Light, dark, and system
   modes and three palettes, each checked for contrast. Branding with a live preview.
+- **Applications.** Each with a permanent reference (`APP-0042`), the unit that answers for
+  it, a lifecycle stage and its date, sourcing, purpose, pace, domain, criticality tier,
+  vendor and product, hosting, users, maintainers, sign-in, data handled, monitoring,
+  backup, cost and funding, research facts, and the organization's own fields. Exactly one
+  accountable owner, and people in other roles. The units that use it. What its stage still
+  requires, shown on the record.
+- **Components, technologies, vendors, and capabilities.** Components with the technologies
+  and releases they are built on; technologies with releases and their support dates, and
+  whether each is supported, ending, or past its end; vendors; a capability map, loaded
+  with a starter map, with at most one primary provider per capability. Applications
+  depend on, are part of, and replace one another.
+- **Sensitive fields.** Cost and security details are withheld from people with no role
+  over an application, in records, lists, filters, sorting, and history.
+- **Program packs.** `appwren program export` and `appwren program import` move the whole
+  program between installations, checked whole before anything is loaded, with a dry run.
 

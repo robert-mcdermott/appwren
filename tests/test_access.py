@@ -233,6 +233,8 @@ def test_changing_a_password_through_the_api(as_role: Clients) -> None:
 # What each role may reach. This is written out, not derived from the policy table, so that
 # a mistake in the table is caught here. Record-level rules are tested with the services.
 EVERYONE = set(ROLES)
+KEEPERS = {"steward", "architect", "manager"}
+ARCHITECTS = {"architect", "manager"}
 REACH: dict[tuple[str, str], set[str]] = {
     ("GET", "/api/v1/health/live"): EVERYONE | {"nobody"},
     ("GET", "/api/v1/health/ready"): EVERYONE | {"nobody"},
@@ -266,6 +268,50 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("DELETE", "/api/v1/admin/branding/images/{kind}"): {"admin"},
     ("POST", "/api/v1/imports/units"): {"admin"},
     ("POST", "/api/v1/imports/people"): {"admin"},
+    # The inventory. What a role may do with a particular record is tested with the services.
+    ("GET", "/api/v1/vocabularies"): EVERYONE,
+    ("GET", "/api/v1/catalog"): EVERYONE,
+    ("GET", "/api/v1/capability-map"): EVERYONE,
+    ("GET", "/api/v1/applications"): EVERYONE,
+    ("POST", "/api/v1/applications"): KEEPERS,
+    ("GET", "/api/v1/applications/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/applications/{ref}"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/applications/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/applications/{ref}/history"): EVERYONE,
+    ("GET", "/api/v1/components"): EVERYONE,
+    ("POST", "/api/v1/components"): EVERYONE,
+    ("GET", "/api/v1/components/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/components/{ref}"): EVERYONE,
+    ("POST", "/api/v1/components/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/components/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/components/{ref}/history"): EVERYONE,
+    ("GET", "/api/v1/vendors"): EVERYONE,
+    ("POST", "/api/v1/vendors"): ARCHITECTS,
+    ("GET", "/api/v1/vendors/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/vendors/{ref}"): EVERYONE,
+    ("POST", "/api/v1/vendors/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/vendors/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/vendors/{ref}/history"): EVERYONE,
+    ("GET", "/api/v1/technologies"): EVERYONE,
+    ("POST", "/api/v1/technologies"): ARCHITECTS,
+    ("GET", "/api/v1/technologies/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/technologies/{ref}"): EVERYONE,
+    ("POST", "/api/v1/technologies/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/technologies/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/technologies/{ref}/history"): EVERYONE,
+    ("GET", "/api/v1/capabilities"): EVERYONE,
+    ("POST", "/api/v1/capabilities"): ARCHITECTS,
+    ("GET", "/api/v1/capabilities/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/capabilities/{ref}"): EVERYONE,
+    ("POST", "/api/v1/capabilities/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/capabilities/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/capabilities/{ref}/history"): EVERYONE,
+    ("PUT", "/api/v1/applications/{ref}/people"): EVERYONE,
+    ("PUT", "/api/v1/applications/{ref}/capabilities"): EVERYONE,
+    ("PUT", "/api/v1/applications/{ref}/units"): EVERYONE,
+    ("PUT", "/api/v1/components/{ref}/technologies"): EVERYONE,
+    ("PUT", "/api/v1/technologies/{ref}/releases"): ARCHITECTS,
 }
 
 
@@ -309,6 +355,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
                 "{unit_id}", str(people.units["HALE"])
             )
             path = path.replace("{kind}", "favicon")
+            path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             if template.endswith("/password") and "{account_id}" in template:
                 path = template.replace(
                     "{account_id}",

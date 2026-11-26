@@ -18,6 +18,7 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren db`](#appwren-db) | Look after the database schema |
 | [`appwren users`](#appwren-users) | Manage accounts from the command line |
 | [`appwren verify`](#appwren-verify) | Check that the history has not been altered |
+| [`appwren program`](#appwren-program) | Move the program between installations |
 | [`appwren doctor`](#appwren-doctor) | Check that this installation is healthy |
 
 ## `appwren init`
@@ -113,6 +114,27 @@ Show an account's roles, or with --set replace the roles granted in AppWren. Rol
 ## `appwren verify`
 
 Recompute the hash chain over every event in the history and report the first one that does not hold. Exits with 1 if the history is broken.
+
+## `appwren program`
+
+The program is everything a portfolio team configures: vocabularies, the organization's own fields, what each lifecycle stage requires, sensitive fields, the capability map, the questions, and the scoring model. It lives in the database and moves as one file.
+
+### `appwren program export`
+
+Write the whole program as one JSON document, to a file or to standard output.
+
+| Option | Meaning |
+|---|---|
+| `--output`, `-o` `FILE` | write to this file |
+
+### `appwren program import`
+
+Load a program pack. The whole pack is checked first, and nothing is loaded unless all of it can be. A vocabulary value in use is retired rather than removed, and capabilities are only ever added.
+
+| Option | Meaning |
+|---|---|
+| `FILE` | the pack to load |
+| `--dry-run` | say what would change, and change nothing |
 
 ## `appwren doctor`
 

@@ -6,6 +6,11 @@ export async function vocabularies() {
   return (await get("/api/v1/vocabularies")).data;
 }
 
+/** What the program says about records: their fields, the organization's own, and more. */
+export async function catalog() {
+  return (await get("/api/v1/catalog")).data;
+}
+
 export async function units() {
   const { units: list, tree } = (await get("/api/v1/units")).data;
   return { list, tree, byId: new Map(list.map((unit) => [unit.id, unit])) };

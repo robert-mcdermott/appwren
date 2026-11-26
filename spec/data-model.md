@@ -99,7 +99,7 @@ The unit of the portfolio ([ADR-0013](decisions/0013-applications-components-dep
 
 ### People in roles
 
-`application_role(application_id, account_id, role, note)`. `role` is a vocabulary: by default *accountable owner*, *business owner*, *technical owner*, *product manager*, *support contact*, *data steward*, *security contact*, and *executive sponsor*. There is exactly one accountable owner per application once it is past Proposed, enforced in the service and by a partial unique index. A person may hold several roles on one application; a role other than accountable may be held by several people.
+`record_owner(record_type, record_id, account_id, kind)`. On an application, `kind` is a vocabulary: by default *accountable owner*, *business owner*, *technical owner*, *product manager*, *support contact*, *data steward*, *security contact*, and *executive sponsor*. There is exactly one accountable owner, held by the service and by a partial unique index on both databases: whoever adds an application is accountable until they name someone else, and only the accountable owner, or someone with a role over the unit, may hand it on. An application imported with nobody named, or whose accountable owner's account is disabled, is **orphaned**, which is shown on the record, in every list, and as a flag. A person may hold several roles on one application; a role other than accountable may be held by several people.
 
 The application's support team is a unit: `support_unit_id` on the application.
 
@@ -109,7 +109,7 @@ The application's support team is a unit: `support_unit_id` on the application.
 
 ### Component
 
-`component(…, application_id, kind, repo_url, hosting, lifecycle)`. A part of one application. `kind` is a vocabulary (service, web front end, database, batch job, integration, report, module, library, mobile app, infrastructure). `lifecycle` is active or retired.
+`component(…, application_id, kind, repo_url, hosting)`. A part of one application, with the shared header's status (active or retired). It takes its application's unit and restriction, kept in step when the application moves. `kind` is a vocabulary (service, web front end, database, batch job, integration, report, module, library, mobile app, analysis pipeline, infrastructure).
 
 `component_technology(component_id, technology_id, release_id?, version)`: the technologies a component uses, optionally pinned to a release (a version line such as `3.11`) whose support dates apply, and an exact version as text.
 
