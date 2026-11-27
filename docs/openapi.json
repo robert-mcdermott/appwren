@@ -3230,6 +3230,36 @@
         "title": "RequestBody",
         "type": "object"
       },
+      "RetirementBody": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "planned_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "To be retired by: YYYY-MM-DD",
+            "title": "Planned On"
+          }
+        },
+        "title": "RetirementBody",
+        "type": "object"
+      },
       "ReviewBody": {
         "description": "A portfolio review of a unit and everything beneath it.",
         "properties": {
@@ -3410,6 +3440,29 @@
           "name"
         ],
         "title": "SnapshotBody",
+        "type": "object"
+      },
+      "StepBody": {
+        "properties": {
+          "done": {
+            "default": true,
+            "title": "Done",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "StepBody",
         "type": "object"
       },
       "TechnologiesBody": {
@@ -6048,6 +6101,252 @@
         "summary": "Name the people in each role",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/retirement": {
+      "delete": {
+        "operationId": "cancel_retirement_api_v1_applications__ref__retirement_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Cancel Retirement Api V1 Applications  Ref  Retirement Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel its retirement plan",
+        "tags": [
+          "planning"
+        ]
+      },
+      "get": {
+        "operationId": "get_retirement_api_v1_applications__ref__retirement_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Retirement Api V1 Applications  Ref  Retirement Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's retirement plan",
+        "tags": [
+          "planning"
+        ]
+      },
+      "post": {
+        "operationId": "start_retirement_api_v1_applications__ref__retirement_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetirementBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Start Retirement Api V1 Applications  Ref  Retirement Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start its retirement plan",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/retirement/complete": {
+      "post": {
+        "description": "Retires the application and keeps its annual cost then as the savings.",
+        "operationId": "complete_retirement_api_v1_applications__ref__retirement_complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Complete Retirement Api V1 Applications  Ref  Retirement Complete Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retire it, every step done",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/retirement/steps/{step}": {
+      "put": {
+        "operationId": "mark_retirement_step_api_v1_applications__ref__retirement_steps__step__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "step",
+            "required": true,
+            "schema": {
+              "title": "Step",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StepBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Mark Retirement Step Api V1 Applications  Ref  Retirement Steps  Step  Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a step done, or not",
+        "tags": [
+          "planning"
         ]
       }
     },
@@ -13707,6 +14006,29 @@
           }
         },
         "summary": "The ways to meet a request",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/v1/retirements": {
+      "get": {
+        "operationId": "retirement_report_api_v1_retirements_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Retirement Report Api V1 Retirements Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Retirements under way and done, with the savings",
         "tags": [
           "planning"
         ]

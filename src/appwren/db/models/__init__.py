@@ -66,6 +66,7 @@ from appwren.db.models.planning import (
     InitiativeApplication,
     Request,
     RequestOption,
+    Retirement,
     Review,
     ReviewItem,
 )
@@ -120,6 +121,7 @@ __all__ = [
     "Reminder",
     "Request",
     "RequestOption",
+    "Retirement",
     "Review",
     "ReviewItem",
     "RoleGrant",

@@ -73,13 +73,13 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** a move short of the stage's requirements is refused with the list; with the gates off it is allowed and the list is still shown.
 
-## Slice 5: Retirement playbook ☐
+## Slice 5: Retirement playbook ☑
 
 **Goal:** a retirement that is planned, checked off, and counted.
 
-- [ ] `retirement`: an application's plan, its date, and its checklist, each step done by a named person on a date with a note
-- [ ] Completing it retires the application and records the savings
-- [ ] Retirements under way and done, with the savings realized by year
+- [x] `retirement`: an application's plan, its date, and its checklist, each step done by a named person on a date with a note
+- [x] Completing it retires the application and records the savings
+- [x] Retirements under way and done, with the savings realized by year
 
 **Acceptance:** a plan with every step done retires its application with its savings on record, and the report's total is the sum of the plans behind it.
 

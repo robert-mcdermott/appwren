@@ -763,14 +763,14 @@ function uniqueApps(uses) {
 
 export function applicationPage(main, params, extraTabs = []) {
   const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["decisions", "Decisions"], ["components", "Components"],
-    ["capabilities", "Capabilities"], ["connections", "Connections"], ["cost", "Cost"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
+    ["capabilities", "Capabilities"], ["connections", "Connections"], ["cost", "Cost"], ["retirement", "Retirement"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
   const wanted = query().get("tab");
   const tab = tabs.some(([key]) => key === wanted) ? wanted : "overview";
   return show(main, {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested, retiring, planning] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
@@ -779,10 +779,12 @@ export function applicationPage(main, params, extraTabs = []) {
         tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null,
         tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null,
         tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null,
-        tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null]);
+        tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null,
+        tab === "retirement" ? get(`${base}/retirement`, null, { fresh: true }) : null,
+        tab === "retirement" ? import("../components/planning.js") : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
         interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null,
-        contests: contested?.data ?? null };
+        contests: contested?.data ?? null, retirement: retiring?.data ?? null, retiring: planning };
     },
     view: (data, reload) => {
       const record = data.record;
@@ -802,6 +804,7 @@ export function applicationPage(main, params, extraTabs = []) {
               : tab === "capabilities" ? capabilitiesTab(record, ctx)
                 : tab === "connections" ? connectionsTab(record, ctx)
                 : tab === "cost" ? costTab(record, ctx)
+                : tab === "retirement" ? data.retiring.retirementPart(record, data.retirement, ctx)
                 : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
       const open = (key) => openWorking(data.scores, key, { ref: record.ref, vocab: data.vocab });
       return h("div", { class: "stack" },

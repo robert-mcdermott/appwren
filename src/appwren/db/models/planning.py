@@ -166,3 +166,23 @@ class RequestOption(Base):
         CheckConstraint(one_of("approach", APPROACHES), name="approach"),
         Index("ix_request_option_request_id", "request_id"),
     )
+
+
+class Retirement(Base):
+    """An application's retirement plan: its date, its checklist (each step done by a named
+    person on a date, with a note), and, once done, the savings it realized."""
+
+    __tablename__ = "retirement"
+    __subject__ = "retirement"
+    __audit_parent__ = ("application", "application_id")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("application.id"), unique=True)
+    planned_on: Mapped[date] = mapped_column(Date)
+    note: Mapped[str | None] = mapped_column(Text)
+    steps: Mapped[dict[str, dict[str, str]]] = mapped_column(JsonType, default=dict)
+    started_by_name: Mapped[str] = mapped_column(String(200))
+    started_on: Mapped[date] = mapped_column(Date)
+    completed_on: Mapped[date | None] = mapped_column(Date)
+    completed_by_name: Mapped[str | None] = mapped_column(String(200))
+    savings: Mapped[int | None] = mapped_column(Integer)  # a year, at retirement

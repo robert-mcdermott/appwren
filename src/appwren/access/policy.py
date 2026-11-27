@@ -139,6 +139,13 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/requests/{ref}/approve"): Needs.KEEP,
     ("POST", "/api/v1/requests/{ref}/meet"): Needs.KEEP,
     ("POST", "/api/v1/requests/{ref}/decline"): Needs.KEEP,
+    # Retirement plans: kept by whoever keeps the application; the report for anyone
+    ("GET", "/api/v1/applications/{ref}/retirement"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/retirement"): Needs.MEMBER,
+    ("DELETE", "/api/v1/applications/{ref}/retirement"): Needs.MEMBER,
+    ("PUT", "/api/v1/applications/{ref}/retirement/steps/{step}"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/retirement/complete"): Needs.MEMBER,
+    ("GET", "/api/v1/retirements"): Needs.MEMBER,
     # Engineering maturity, for anyone, of what they may see
     ("GET", "/api/v1/maturity"): Needs.MEMBER,
     ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,

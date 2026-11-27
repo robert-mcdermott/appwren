@@ -50,6 +50,7 @@ export const NAV = [
       { href: "/data-quality", label: "Data quality", iconName: "quality" },
       { href: "/data-handling", label: "Data handling", iconName: "shield" },
       { href: "/maturity", label: "Engineering maturity", iconName: "check" },
+      { href: "/retirements", label: "Retirements", iconName: "retire" },
       { href: "/history", label: "History", iconName: "history", when: "read_all" },
     ],
   },

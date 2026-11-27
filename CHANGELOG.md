@@ -40,6 +40,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   default and can be switched off on Admin → Program → Decisions, where a record still shows
   what it lacks.
 
+- **The retirement playbook.** On an application's new Retirement part, whoever keeps it
+  starts a plan with a date (its planned retirement moves with it) and works through a
+  checklist: its users told, its data archived and where, its interfaces removed, its
+  licenses and contracts ended, access removed, and its infrastructure torn down, each step
+  by a named person on a date with a note. With every step done, completing the plan
+  retires the application and keeps its annual cost as the savings. Reports → Retirements
+  lists those under way, those done, and the savings by year.
+
 ### Changed
 
 - Home gives tasks, campaigns, and reviews icons of their own.

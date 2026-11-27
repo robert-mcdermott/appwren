@@ -314,3 +314,103 @@ export function requestPanel(record, ctx) {
     h("p", { class: "muted" }, "Approving adds an application in the proposed stage, named for the request. A request ends once.")) : null;
   return record.outcome ? [outcome, there, options] : [there, options, outcome];
 }
+
+// --- Retirement -------------------------------------------------------------------------------
+
+function startRetirement(record, reload) {
+  openOverlay({
+    title: "Start a retirement plan",
+    subtitle: `${record.ref} · ${record.name}`,
+    kind: "dialog",
+    render: (body, footer, close) => {
+      const fields = { planned_on: field("To be retired by", { type: "date", value: record.retire_planned ?? "" }),
+        note: field("What replaces it, or why it goes", { type: "textarea", rows: 3, maxlength: 2000 }) };
+      const problem = banner();
+      const save = button("Start the plan", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem, fields,
+          run: () => post(`/api/v1/applications/${record.ref}/retirement`, { planned_on: fields.planned_on.input.value || null, note: fields.note.input.value }) });
+        if (done) {
+          close();
+          toast("The retirement plan is started. Its planned retirement on the record moves with it.");
+          reload();
+        }
+      });
+      body.append(h("div", { class: "stack" }, problem,
+        h("p", { class: "muted" }, "A checklist: its users told, its data archived, its interfaces removed, its licenses ended, access removed, and its infrastructure torn down. When every step is done, it is retired and its annual cost is kept as the savings."),
+        fields.planned_on.node, fields.note.node));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+function markStep(record, step, reload) {
+  openOverlay({
+    title: step.label,
+    subtitle: `${record.ref} · ${record.name}`,
+    kind: "dialog",
+    render: (body, footer, close) => {
+      const note = field("A note", { type: "textarea", rows: 3, maxlength: 1000,
+        hint: step.key === "data_archived" ? "Where the data is kept now, and for how long." : "What was done, for whoever looks later." });
+      const problem = banner();
+      const save = button("Mark it done", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem, fields: { note },
+          run: () => put(`/api/v1/applications/${record.ref}/retirement/steps/${step.key}`, { done: true, note: note.input.value }) });
+        if (done) {
+          close();
+          reload();
+        }
+      });
+      body.append(h("div", { class: "stack" }, problem, note.node));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+/** An application's retirement plan: its date, its checklist, and once done, the savings. */
+export function retirementPart(record, found, ctx) {
+  const plan = found.plan;
+  if (!plan) {
+    return card({ title: "Retirement", actions: found.may_keep ? button("Start a retirement plan", { kind: "btn-sm btn-primary", onclick: () => startRetirement(record, ctx.reload) }) : null },
+      h("p", { class: "muted" }, "No retirement is planned. A plan is a checklist with a date; when every step is done the application is retired and its savings are on record."));
+  }
+  const may = found.may_keep && !plan.completed_on;
+  const act = async (method, path, said) => {
+    try {
+      await (method === "post" ? post(path, {}) : method === "put" ? put(path, { done: false }) : del(path));
+      if (said) toast(said);
+      ctx.reload();
+    } catch (error) {
+      toast(error.detail ?? error.message);
+    }
+  };
+  const base = `/api/v1/applications/${record.ref}/retirement`;
+  const rows = found.steps.map((step) => {
+    const done = plan.done[step.key];
+    return h("li", { class: "retire-step", "data-done": String(Boolean(done)) },
+      h("span", { class: "check-state" }, done ? "Done" : "To do"),
+      h("div", { class: "grow" }, h("span", {}, step.label),
+        step.key === "interfaces_removed" && found.interfaces ? h("span", { class: "cell-sub" }, ` · ${plural(found.interfaces, "interface")} on record`) : null,
+        done ? h("div", { class: "cell-sub" }, `${done.by}, ${date(done.done_on)}${done.note ? `: ${done.note}` : ""}`) : null),
+      may ? (done ? button("Undo", { kind: "btn-sm btn-ghost", "aria-label": `Undo: ${step.label}`, onclick: () => act("put", `${base}/steps/${step.key}`) })
+        : button("Mark done", { kind: "btn-sm", "aria-label": `Mark done: ${step.label}`, onclick: () => markStep(record, step, ctx.reload) })) : null);
+  });
+  const all = plan.progress === found.steps.length;
+  const actions = may ? h("div", { class: "row-sm wrap" },
+    button("Cancel the plan", { kind: "btn-sm btn-ghost", onclick: () => confirmAction({ title: "Cancel the retirement plan?",
+      text: "It is not to be retired after all. The plan goes; the history keeps it.", confirmLabel: "Cancel the plan", danger: true,
+      run: () => act("delete", base, "The plan is cancelled.") }) }),
+    all ? button("Complete the retirement", { kind: "btn-sm btn-primary", onclick: () => confirmAction({ title: `Retire ${record.name}?`,
+      text: "Every step is done. It moves to Retired, and its annual cost is kept as the savings.", confirmLabel: "Retire it",
+      run: () => act("post", `${base}/complete`, "Retired. The savings are on record.") }) }) : null) : null;
+  const summary = plan.completed_on
+    ? `Retired ${date(plan.completed_on)} by ${plan.completed_by}.${plan.savings != null ? ` Savings: ${Number(plan.savings).toLocaleString()} a year.` : ""}`
+    : `To be retired by ${date(plan.planned_on)}. ${plan.progress} of ${found.steps.length} steps done.`;
+  return card({ title: h("span", { class: "row-sm wrap" }, "Retirement", plan.completed_on ? pill("Done", "ok") : plan.late ? pill("Past its date", "danger") : pill("Under way", "accent")), actions },
+    h("div", { class: "stack" }, h("p", {}, summary), plan.note ? h("p", { class: "muted" }, plan.note) : null,
+      h("ul", { class: "retire-steps" }, rows),
+      h("p", { class: "subtle" }, `Started by ${plan.started_by} on ${date(plan.started_on)}.`)));
+}

@@ -159,6 +159,9 @@ export const SCENES = [
   { name: "request", as: "portfolio", path: first("/api/v1/requests?state=evaluating", "(rows) => `/requests/${rows[0].ref}`") },
   { name: "request-ended", as: "portfolio", path: first("/api/v1/requests?state=approved", "(rows) => `/requests/${rows[0].ref}`") },
   { name: "request-options", as: "portfolio", path: first("/api/v1/requests?state=evaluating", "(rows) => `/requests/${rows[0].ref}`"), step: click("Edit") },
+  { name: "retirement", as: "portfolio", path: app("Old Surveys", "retirement") },
+  { name: "retirements", as: "portfolio", path: "/retirements" },
+  { name: "stage-gate", as: "res_steward", path: app("Specimen Tracker"), step: click("Edit") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

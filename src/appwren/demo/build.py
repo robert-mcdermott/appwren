@@ -1903,6 +1903,55 @@ class Builder:
             },
         )
 
+    def retirements(self) -> None:
+        """The old reports server's retirement, kept as the plan it was; the intranet's, under
+        way with the move onto the public website; and the old surveys', past its date."""
+        from appwren.db.models import Retirement
+        from appwren.planning import retirements as rt
+
+        manager = self.principal(self.cast["portfolio"])
+        steps = list(rt.STEPS)
+        notes = {"users_told": "Told at the leadership meeting, and by email",
+                 "data_archived": "Exports kept in the records archive for seven years",
+                 "interfaces_removed": "Its feed from the finance system was switched off",
+                 "licenses_ended": "The reporting licenses were not renewed",
+                 "access_removed": "Accounts removed from the directory",
+                 "infrastructure_removed": "The two servers were wiped and recycled"}  # fmt: skip
+        started = self.end - timedelta(days=398)
+        done = self.end - timedelta(days=330)
+        with clock_set_to(lambda: done), self.db.write(manager.actor) as session:
+            app = records.load(session, manager, APPLICATION, self.apps["Old Reports Server"])
+            session.add(Retirement(
+                application_id=app.id, planned_on=done.date(),
+                note="The executive dashboards replace it.",
+                steps={key: {"done_on": (started + timedelta(days=10 + 9 * i)).date().isoformat(),
+                             "by": manager.name, "note": notes[key]}
+                       for i, key in enumerate(steps)},
+                started_by_name=manager.name, started_on=started.date(),
+                completed_on=done.date(), completed_by_name=manager.name,
+                savings=app.annual_cost or 0,
+            ))  # fmt: skip
+        for app_name, days_ago, planned, finished in (
+            ("Intranet", 12, self.day(118), 2),
+            ("Old Surveys", 70, self.day(-6), 4),
+        ):
+            moment = self.end - timedelta(days=days_ago)
+            with (
+                clock_set_to(lambda moment=moment: moment),
+                self.db.write(manager.actor) as session,
+            ):
+                app = records.load(session, manager, APPLICATION, self.apps[app_name])
+                rt.start(session, manager, app, planned.isoformat(),
+                         "Its users move as the initiative for it goes.")  # fmt: skip
+            for index, key in enumerate(steps[:finished]):
+                moment = self.end - timedelta(days=days_ago - 2 - 3 * index)
+                with (
+                    clock_set_to(lambda moment=moment: moment),
+                    self.db.write(manager.actor) as session,
+                ):
+                    app = records.load(session, manager, APPLICATION, self.apps[app_name])
+                    rt.mark(session, manager, app, key, True, notes[key].split(",")[0])
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1948,6 +1997,7 @@ class Builder:
         self.reviews()
         self.initiatives()
         self.requests()
+        self.retirements()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

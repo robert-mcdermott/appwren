@@ -95,6 +95,11 @@ summary > .row-sm { display: inline-flex; vertical-align: middle; }
 .check-list [data-state="unknown"] .check-state { color: var(--warn); }
 .option-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-s); padding: var(--space-3); margin: 0; }
 @media (max-width: 900px) { .option-row { grid-template-columns: 1fr; } }
+.retire-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
+.retire-step { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
+.retire-step:last-child { border-bottom: 0; }
+.retire-step .check-state { width: 4rem; flex-shrink: 0; }
+.retire-step[data-done="true"] .check-state { color: var(--ok); }
 .kind-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: start; }
 .code-input { font-family: var(--font-mono); font-size: var(--text-s); }
 .code-block { margin: 0; padding: var(--space-3); border-radius: var(--radius-s); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-s); white-space: pre-wrap; overflow-wrap: anywhere; }

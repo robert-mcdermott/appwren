@@ -1,5 +1,5 @@
 """Planning change: portfolio reviews and their agendas (PLN-01), and initiatives and the
-roadmap (PLN-02), and requests for something new (PLN-03)."""
+roadmap (PLN-02), requests for something new (PLN-03), and retirements (DEC-07)."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field
 from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
-from appwren.inventory.registry import INITIATIVE, REQUEST, REVIEW
-from appwren.planning import initiatives, intake, reviews
+from appwren.inventory.registry import APPLICATION, INITIATIVE, REQUEST, REVIEW
+from appwren.planning import initiatives, intake, retirements, reviews
 
 router = APIRouter(prefix="/api/v1", tags=["planning"])
 
@@ -174,3 +174,70 @@ def decline_request(request: Request, ref: str, body: EndBody) -> dict[str, Any]
         record = _request(session, principal, ref)
         intake.decline(session, principal, record, body.reason)
         return envelope(records.detail(session, principal, REQUEST, record))
+
+
+class RetirementBody(BaseModel):
+    planned_on: str | None = Field(default=None, description="To be retired by: YYYY-MM-DD")
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class StepBody(BaseModel):
+    done: bool = True
+    note: str | None = Field(default=None, max_length=1000)
+
+
+def _application(session: Any, principal: Any, ref: str) -> Any:
+    return records.load(session, principal, APPLICATION, ref)
+
+
+@router.get("/applications/{ref}/retirement", summary="An application's retirement plan")
+def get_retirement(request: Request, ref: str) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        app = _application(session, principal, ref)
+        return envelope(retirements.view(session, principal, app))
+
+
+@router.post("/applications/{ref}/retirement", summary="Start its retirement plan",
+             status_code=201)  # fmt: skip
+def start_retirement(request: Request, ref: str, body: RetirementBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = _application(session, principal, ref)
+        retirements.start(session, principal, app, body.planned_on, body.note)
+        return envelope(retirements.view(session, principal, app))
+
+
+@router.put("/applications/{ref}/retirement/steps/{step}", summary="Mark a step done, or not")
+def mark_retirement_step(request: Request, ref: str, step: str, body: StepBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = _application(session, principal, ref)
+        retirements.mark(session, principal, app, step, body.done, body.note)
+        return envelope(retirements.view(session, principal, app))
+
+
+@router.post("/applications/{ref}/retirement/complete", summary="Retire it, every step done")
+def complete_retirement(request: Request, ref: str) -> dict[str, Any]:
+    """Retires the application and keeps its annual cost then as the savings."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = _application(session, principal, ref)
+        retirements.complete(session, principal, app)
+        return envelope(retirements.view(session, principal, app))
+
+
+@router.delete("/applications/{ref}/retirement", summary="Cancel its retirement plan")
+def cancel_retirement(request: Request, ref: str) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = _application(session, principal, ref)
+        retirements.cancel(session, principal, app)
+        return envelope(retirements.view(session, principal, app))
+
+
+@router.get("/retirements", summary="Retirements under way and done, with the savings")
+def retirement_report(request: Request) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(retirements.report(session, principal))

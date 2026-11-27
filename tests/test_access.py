@@ -303,6 +303,12 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/requests/{ref}/approve"): KEEPERS,
     ("POST", "/api/v1/requests/{ref}/meet"): KEEPERS,
     ("POST", "/api/v1/requests/{ref}/decline"): KEEPERS,
+    ("GET", "/api/v1/applications/{ref}/retirement"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/retirement"): EVERYONE,
+    ("DELETE", "/api/v1/applications/{ref}/retirement"): EVERYONE,
+    ("PUT", "/api/v1/applications/{ref}/retirement/steps/{step}"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/retirement/complete"): EVERYONE,
+    ("GET", "/api/v1/retirements"): EVERYONE,
     ("GET", "/api/v1/maturity"): EVERYONE,
     ("GET", "/api/v1/maturity/{ref}"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,
@@ -526,7 +532,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
             path = path.replace("{item_id}", "9999").replace("{task_id}", "9999")
-            path = path.replace("{key_id}", "9999")
+            path = path.replace("{key_id}", "9999").replace("{step}", "users_told")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
             path = path.replace("{name}", "no_such_list").replace("{field}", "users")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
