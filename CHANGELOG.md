@@ -73,6 +73,8 @@ Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is ke
   program gives that system an address pattern, such as `https://code.example.org/{id}`.
 - Lists of applications, the portfolio list, and their exports can be narrowed by capability
   and by class of data.
+- **Guides.** A new guide, *The landscape*; cost and contracts in *The portfolio*; and what an
+  upgrade does to the program in *Running the program*.
 
 ### Changed
 
@@ -85,9 +87,6 @@ Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is ke
   the default program when it chooses.
 - A record's history names the vendor, application, or person a change refers to, where it
   showed a number.
-
-- **Guides.** A new guide, *The landscape*; cost and contracts in *The portfolio*; and what an
-  upgrade does to the program in *Running the program*.
 
 ### Fixed
 
