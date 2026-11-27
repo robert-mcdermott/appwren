@@ -2,7 +2,7 @@
 
 **Goal:** an organization that has never seen AppWren installs it, makes it its own, and runs it in production. Waves 1 to 6 built a portfolio practice that works on the demo organization. This wave makes it something another organization can take up without help: it runs at the size of a large organization and is backed up and moved by command; it wears the organization's own colors and words; it starts from a program shaped like the organization; other systems reach it with tokens limited to what they need and hear from it through signed webhooks; it is deployed from recipes; and it has been reviewed against a published security standard.
 
-**Branch:** `wave-7` · **Target version:** `0.7.0` · **Status:** ◐ in progress
+**Branch:** `wave-7` · **Target version:** `0.7.0` · **Status:** ☑ done
 
 Adopters come first here ([roadmap](../roadmap.md)): someone who finds AppWren should be able to judge it, install it, and run it from the documentation alone.
 
@@ -84,9 +84,9 @@ None block the start. These defaults have been taken and can be changed before t
 - [x] One guide for a portfolio team, from first decisions to the yearly rhythm of reviews
 - [x] The adopter's guide
 
-## Slice 8: Release prep ☐
+## Slice 8: Release prep ☑
 
-- [ ] Guides, changelog, upgrade from 0.6.0 on both databases, audits, release, and the site republished
+- [x] Guides, changelog, upgrade from 0.6.0 on both databases, audits, release, and the site republished
 
 ## Notes
 

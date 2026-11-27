@@ -4,7 +4,16 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.7.0 (2026-11-27)
+
+Wave 7, *Adoption*: an organization that has never seen AppWren installs it, makes it its
+own, and runs it in production. An installation is backed up, restored, and moved between
+SQLite and PostgreSQL by command, and is measured at five thousand applications. It wears
+the organization's own colors, logo files, typefaces, and words; begins from a starter
+program shaped like the organization; lets other systems in with tokens limited to a role
+and tells them what happens with signed webhooks; and is deployed from recipes checked by
+`doctor --production`. Its code has been reviewed against a published security standard,
+and two new guides cover running a program and adopting AppWren.
 
 ### Added
 

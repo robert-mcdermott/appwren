@@ -1,6 +1,6 @@
 # AppWren documentation
 
-These guides describe AppWren 0.6.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
+These guides describe AppWren 0.7.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
 
 ## The guides
 
