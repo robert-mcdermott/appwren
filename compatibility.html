@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-palette="wren">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compatibility · AppWren</title>
+<meta name="description" content="This page says what AppWren keeps the same from one release to the next, so an organization can build on it. That covers the systems that call its API, the scripts that run its commands, its configura">
+<meta property="og:title" content="Compatibility">
+<meta property="og:description" content="This page says what AppWren keeps the same from one release to the next, so an organization can build on it. That covers the systems that call its API, the scripts that run its commands, its configura">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://robert-mcdermott.github.io/appwren/assets/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="AppWren, open-source application portfolio management, beside its portfolio chart">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/wren-mark.svg">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/theme.js"></script>
+<script src="assets/site.js" defer></script>
+</head>
+<body class="page-compatibility">
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <button class="menu-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
+  <a class="brand" href="index.html"><img src="assets/wren-mark.svg" alt="" width="26" height="26"><span>AppWren</span><span class="version">v0.9.0</span></a>
+  <div class="search" role="search">
+    <input id="search" type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" role="listbox" aria-label="Search results" hidden></div>
+  </div>
+  <div class="theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-choice="light" aria-label="Light theme" title="Light">☀</button><button type="button" data-theme-choice="system" aria-label="Follow the system theme" title="System">◐</button><button type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">☾</button>
+  </div>
+  <a class="github" href="https://github.com/robert-mcdermott/appwren" rel="noopener">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="menu" id="menu" aria-label="Documentation"><div class="menu-group"><div class="menu-title">Start</div><ul><li><a href="index.html">Overview</a></li><li><a href="adopting.html">Adopting AppWren</a></li><li><a href="getting-started.html">Getting started</a></li></ul></div><div class="menu-group"><div class="menu-title">Use</div><ul><li><a href="the-portfolio.html">The portfolio</a></li><li><a href="the-landscape.html">The landscape</a></li><li><a href="keeping-current.html">Keeping current</a></li><li><a href="planning-change.html">Planning change</a></li><li><a href="insight.html">Insight</a></li><li><a href="handbook.html">The program handbook</a></li><li><a href="signals.html">Facts from other systems</a></li><li><a href="running-the-program.html">Running the program</a></li></ul></div><div class="menu-group"><div class="menu-title">Run</div><ul><li><a href="configuration.html">Configuration</a></li></ul></div><div class="menu-group"><div class="menu-title">Reference</div><ul><li><a href="api.html">The API</a></li><li><a href="api-reference.html">API reference</a></li><li><a href="cli.html">Command reference</a></li><li><a href="compatibility.html" aria-current="page">Compatibility</a></li><li><a href="changelog.html">Changelog</a></li></ul></div></nav>
+  <main id="content" class="content">
+<h1 id="compatibility">Compatibility</h1>
+<p>This page says what AppWren keeps the same from one release to the next, so an organization can build on it. That covers the systems that call its API, the scripts that run its commands, its configuration file, and the files it reads and writes. It also says how something is retired when it has to go, and what is not promised at all.</p>
+<blockquote><p><strong>A draft until 1.0.0.</strong> This is the promise 1.0 will make, written down in 0.9 so that it can be reviewed before it binds. Until 1.0.0 is released, anything here may still change, and the <a href="changelog.html">changelog</a> says so when it does.</p></blockquote>
+<h2 id="version-numbers">Version numbers<a class="anchor" href="#version-numbers" aria-label="Link to this section">#</a></h2>
+<p>A version is three numbers, <em>major.minor.patch</em>.</p>
+<ul><li>A <strong>patch</strong> release, such as 1.0.1, fixes something and changes nothing this page covers.</li><li>A <strong>minor</strong> release, such as 1.1.0, adds things: routes, fields, settings, commands, and options. Anything written against an earlier 1.x keeps working.</li><li>A <strong>major</strong> release, such as 2.0.0, is the only one that may take away or change what this page covers. Its changelog says what changed and how to move.</li></ul>
+<p>Security fixes are the one exception. If keeping something the same would leave installations open to attack, it changes in the release that fixes it, and the changelog says so first.</p>
+<h2 id="what-1x-keeps">What 1.x keeps<a class="anchor" href="#what-1x-keeps" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table><thead><tr><th scope="col">Part</th><th scope="col">What stays the same</th></tr></thead><tbody><tr><td><strong>The API</strong>, under <code>/api/v1</code></td><td>Every route keeps its path and its methods. A request never has to send something it did not have to send before. An answer may carry more fields, and every field it already carries keeps its name and meaning, so a client should ignore fields it does not know. Errors keep their shape: <code>application/problem+json</code>, with <code>errors</code> naming each field's problem. A list's cursor is opaque and may change form. The API description, served at <code>/api/openapi.json</code> and kept in <a href="api-reference.html">openapi.json</a>, is the record. Every release is checked against the one before by a test that fails if a route goes or a request asks for more</td></tr><tr><td><strong>Webhooks</strong></td><td>Topics keep their names, payloads keep their fields, and the signature keeps its scheme: HMAC-SHA256 over the <code>X-AppWren-Timestamp</code> header, a dot, and the body, sent in <code>X-AppWren-Signature</code>. Topics and fields may be added</td></tr><tr><td><strong>Tokens and keys</strong></td><td>An API token, a token of one's own, or a push key issued by one release keeps working after an upgrade, until it is revoked or it expires</td></tr><tr><td><strong>The configuration file</strong></td><td>Every section and key that 1.0 reads is still read, with the same meaning and default, and so is its environment variable, <code>APPWREN_&lt;SECTION&gt;_&lt;KEY&gt;</code>. A key that is replaced keeps working, and <code>appwren doctor</code> says what replaced it</td></tr><tr><td><strong>The command line</strong></td><td>Every command and option keeps working, and exits 0 when it succeeded and 1 when it did not. What a command prints for a person to read may change, so nothing should parse it</td></tr><tr><td><strong>Program packs</strong></td><td>A pack exported by any 1.x imports into any later 1.x. AppWren never changes or removes the key of a value in a list it ships, only its label, and a value an organization retires stays retired</td></tr><tr><td><strong>Catalog files and pushes</strong></td><td>A catalog file, or a push from another system, that one 1.x accepts, every later 1.x accepts</td></tr><tr><td><strong>Backups</strong></td><td>A backup made by any 1.x restores into the same release or any later 1.x, on either database</td></tr><tr><td><strong>The data home</strong></td><td>No upgrade needs files in it moved or renamed by hand</td></tr><tr><td><strong>Upgrades</strong></td><td>Any 1.x upgrades to any later 1.x in one step with <code>appwren db upgrade</code>, keeping every row and file, and 0.9 upgrades to 1.0 the same way. Migrations only go forward; to go back, restore the backup taken before the upgrade. Every release is checked by upgrading a demo organization built by each release before it, on SQLite and on PostgreSQL</td></tr><tr><td><strong>The history</strong></td><td>Every event an earlier release recorded still verifies after an upgrade, and a decision's digest never changes</td></tr><tr><td><strong>Links to records</strong></td><td>A record's address, such as <code>/applications/APP-0042</code>, keeps working, so links in email, tickets, and documents stay good</td></tr><tr><td><strong>Scores</strong></td><td>An upgrade moves no application's scores unless its changelog says the default scoring model changed, and why. A program that has shaped its own model keeps it</td></tr></tbody></table></div>
+<h2 id="what-is-not-promised">What is not promised<a class="anchor" href="#what-is-not-promised" aria-label="Link to this section">#</a></h2>
+<ul><li><strong>The database's tables.</strong> The schema changes in minor releases, through migrations. Read the portfolio through the API, an export, or a backup, never by querying its tables, and let nothing but AppWren write to them.</li><li><strong>The pages.</strong> Screens, their layout, and their wording change as they improve. Only the addresses of records are kept.</li><li><strong>AppWren's Python code.</strong> AppWren is an application, not a library, so importing its modules is not supported.</li><li><strong>What the assistant says.</strong> Its answers come from a model AppWren does not control.</li><li><strong>The demo organization.</strong> Its people, records, and figures change from release to release.</li></ul>
+<h2 id="deprecation">Deprecation<a class="anchor" href="#deprecation" aria-label="Link to this section">#</a></h2>
+<p>When something this page covers has to go:</p>
+<ol><li>A minor release <strong>deprecates</strong> it. The changelog lists it under <em>Deprecated</em>, with what replaces it. A route is marked deprecated in the API description. A setting draws a warning from <code>appwren doctor</code> and when the server starts.</li><li>It <strong>keeps working</strong> for the rest of 1.x.</li><li>A major release removes it, and its changelog says how to move off it.</li></ol>
+<h2 id="supported-platforms">Supported platforms<a class="anchor" href="#supported-platforms" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table><thead><tr><th scope="col">Platform</th><th scope="col">Supported</th><th scope="col">When support ends</th></tr></thead><tbody><tr><td>Python</td><td>3.12 and later</td><td>A Python version is dropped only in a minor release after that version's own end of life, announced in the minor release before</td></tr><tr><td>PostgreSQL</td><td>16, the version every release is tested on</td><td>The same rule as Python</td></tr><tr><td>SQLite</td><td>The version that comes with a supported Python</td><td>With that Python</td></tr></tbody></table></div>
+<h2 id="fixes">Fixes<a class="anchor" href="#fixes" aria-label="Link to this section">#</a></h2>
+<p>Fixes go into the newest minor release. There are no long-lived branches for older ones, which is why any 1.x upgrades to the newest in one step.</p>
+    <nav class="pager" aria-label="Pages"><a class="prev" href="cli.html"><span>Previous</span>Command reference</a><a class="next" href="changelog.html"><span>Next</span>Changelog</a></nav>
+    <footer class="foot">Describes AppWren 0.9.0. Apache License 2.0. Screenshots show an invented organization; every person and record in them is fictional.</footer>
+  </main>
+  <aside class="toc" aria-label="On this page"><div class="menu-title">On this page</div><ul><li class="l2"><a href="#version-numbers">Version numbers</a></li><li class="l2"><a href="#what-1x-keeps">What 1.x keeps</a></li><li class="l2"><a href="#what-is-not-promised">What is not promised</a></li><li class="l2"><a href="#deprecation">Deprecation</a></li><li class="l2"><a href="#supported-platforms">Supported platforms</a></li><li class="l2"><a href="#fixes">Fixes</a></li></ul></aside>
+</div>
+</body>
+</html>
