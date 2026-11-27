@@ -90,3 +90,20 @@ def test_a_standing_address_is_checked_like_any_pack() -> None:
          "key_env": "APPWREN_SSO_CLIENT_SECRET"}]}}  # fmt: skip
     problems = " ".join(packs.check(pack))
     assert "standing address for a" in problems and "server's own" in problems
+
+
+def test_only_an_administrator_says_where_a_standing_is_read(as_role: Clients) -> None:
+    """A manager shapes the lists, but not where AppWren reaches out, or with which key."""
+    manager, admin = as_role("manager"), as_role("admin")
+    items = manager.get("/api/v1/program").json()["data"]["vocabularies"]["external_systems"]
+    changed = [{**item, "standing_url": "https://elsewhere.example.org/{id}",
+                "key_env": "SOME_TOKEN"} if item["key"] == "governance_record" else item
+               for item in items]  # fmt: skip
+    refused = manager.put("/api/v1/program/vocabularies/external_systems", json={"items": changed})
+    assert refused.status_code == 422 and "administrator" in refused.text
+    renamed = [{**item, "label": "Reviews"} if item["key"] == "governance_record" else item
+               for item in items]  # fmt: skip
+    assert manager.put("/api/v1/program/vocabularies/external_systems",
+                       json={"items": renamed}).status_code == 200  # fmt: skip
+    assert admin.put("/api/v1/program/vocabularies/external_systems",
+                     json={"items": changed}).status_code == 200  # fmt: skip

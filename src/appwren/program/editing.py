@@ -78,6 +78,10 @@ def _pack_problems(part: str, value: Any) -> list[str]:
 # --- Vocabularies ---------------------------------------------------------------------------
 
 
+# Settings of a list value that make AppWren reach out to another system.
+OUTBOUND = ("standing_url", "standing_field", "key_env")
+
+
 def save_vocabulary(
     session: Session, principal: Principal, name: str, items: list[Mapping[str, Any]]
 ) -> list[dict[str, Any]]:
@@ -105,6 +109,13 @@ def save_vocabulary(
         before = next((each for each in have if each["key"] == key), {})
         kept = {**before, **{k: v for k, v in item.items() if k not in ("key", "label")},
                 "key": key, "label": label[:120]}  # fmt: skip
+        if not principal.is_admin and any(
+            kept.get(setting) != before.get(setting) for setting in OUTBOUND
+        ):
+            # Where AppWren reads from, and with which key, is an administrator's to say, as
+            # for a connector: a manager must not be able to send a key somewhere.
+            said = "Only an administrator sets where a standing is read, and with which key."
+            raise _no("The list was not saved.", "items", said)
         if name in FIXED:
             kept.pop("retired", None)  # what the rules read stays offered
         elif not kept.get("retired"):

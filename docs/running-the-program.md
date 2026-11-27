@@ -121,7 +121,7 @@ An application's record in another system of record (an AI-use review, a risk re
  "standing_field": "review.state", "key_env": "APPWREN_REVIEWS_TOKEN"}
 ```
 
-`standing_field` says where in the answer to look, as a dotted path (`status` if left out). `key_env` names an environment variable holding a key, sent as a bearer token; it may not be one of the server's own variables. A change of standing is kept in the application's history, under *Standings*; a read that fails says why beside the link, and changes nothing else. Nothing is read until a system has a `standing_url`.
+`standing_field` says where in the answer to look, as a dotted path (`status` if left out). `key_env` names an environment variable holding a key, sent as a bearer token; it may not be one of the server's own variables. A change of standing is kept in the application's history, under *Standings*; a read that fails says why beside the link, and changes nothing else. Nothing is read until a system has a `standing_url`. Only an administrator sets `standing_url`, `standing_field`, and `key_env`, in a pack or in the app, since they make AppWren reach out to another system with a key.
 
 ### Versions
 
