@@ -3,9 +3,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select, text
 from sqlalchemy.exc import StatementError
 
+from appwren.api.app import create_app
 from appwren.core.errors import StoreError
 from appwren.db import migrate
 from appwren.db.base import Base
@@ -94,6 +96,17 @@ def test_a_database_that_is_behind_is_refused(instance: Instance) -> None:
     migrate.downgrade(engine, "base")
     with pytest.raises(StoreError, match="appwren init"):
         migrate.require_current(engine)
+
+
+def test_a_server_whose_database_is_behind_will_not_start(instance: Instance) -> None:
+    """Each worker checks for itself. One restarted by --reload, or started by a process
+    manager, never passes through the check `appwren serve` makes before it starts."""
+    migrate.downgrade(instance.db.engine, "0028")
+    with (
+        pytest.raises(StoreError, match="appwren db upgrade"),
+        TestClient(create_app(instance.config), base_url="http://localhost"),
+    ):
+        pass
 
 
 def test_the_test_models_are_not_in_any_migration() -> None:

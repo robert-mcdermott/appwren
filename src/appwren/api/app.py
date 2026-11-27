@@ -37,6 +37,7 @@ from appwren.api.routers.branding import install_branding
 from appwren.api.security import install_security_headers
 from appwren.api.static import install_static
 from appwren.config import ENV_CONFIG, Config, load_config
+from appwren.db import migrate
 from appwren.db.engine import Database
 from appwren.home import DataHome
 
@@ -61,7 +62,17 @@ def create_app(config: Config) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         home.require()
-        app.state.db = Database(config.database_url)
+        db = Database(config.database_url)
+        try:
+            # `appwren serve` checks this once, before it starts. Each worker checks again
+            # for itself: one restarted by --reload, or started by a process manager, would
+            # otherwise answer on a schema behind its code, and every page that reads a
+            # newer table would fail.
+            migrate.require_current(db.engine)
+        except Exception:
+            db.dispose()
+            raise
+        app.state.db = db
         # The scheduler runs beside the server for as long as it is up.
         stop_jobs = jobs.start_worker(app.state.db, config) if config.server.scheduler else None
         try:
