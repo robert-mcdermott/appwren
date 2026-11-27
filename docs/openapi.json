@@ -3571,6 +3571,24 @@
               "description": "A class of data, by its key",
               "title": "Data Class"
             }
+          },
+          {
+            "description": "A capability's reference: the applications that serve it",
+            "in": "query",
+            "name": "capability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A capability's reference: the applications that serve it",
+              "title": "Capability"
+            }
           }
         ],
         "responses": {
@@ -4917,6 +4935,30 @@
         "summary": "Remove a link",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/capability-heat": {
+      "get": {
+        "description": "The capability tree, each capability with how many applications in service serve it,\ntheir average scores and confidence, and the technical health of the weakest.",
+        "operationId": "capability_heat_api_v1_capability_heat_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Capability Heat Api V1 Capability Heat Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The capability map, measured",
+        "tags": [
+          "landscape"
         ]
       }
     },
@@ -8420,6 +8462,76 @@
         "summary": "The product's name, version, and branding",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/overlap": {
+      "get": {
+        "description": "Every capability with more than one application in service, its applications side by\nside with their scores, recommendation, decision, users, and cost where the reader may\nsee it. ``filters`` on each gives the same applications from ``/portfolio``.",
+        "operationId": "capability_overlap_api_v1_overlap_get",
+        "parameters": [
+          {
+            "description": "A unit, with those beneath it",
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A unit, with those beneath it",
+              "title": "Unit"
+            }
+          },
+          {
+            "in": "query",
+            "name": "domain",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Capability Overlap Api V1 Overlap Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Capabilities served more than once",
+        "tags": [
+          "landscape"
         ]
       }
     },

@@ -17,7 +17,7 @@ from appwren.demo import build
 from appwren.events import chain
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, CONTRACT, DEPLOYMENT, INTERFACE, TECHNOLOGY
-from appwren.landscape import costs, graph, hosting, interfaces
+from appwren.landscape import costs, graph, hosting, interfaces, overlap
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -163,6 +163,16 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         assert {row["label"] for row in money["by_category"]} >= {
             "License or subscription", "Our own people's time", "Not broken down",
         }  # fmt: skip
+        # Three tools for one job, side by side, with the hub as primary; and the map measured.
+        twice = overlap.overlap(session, ME, {})
+        surveys = next(c for c in twice["capabilities"] if c["name"] == "Participant surveys")
+        assert [a["name"] for a in surveys["applications"]] == [
+            "Survey Hub", "Clinic Questionnaires", "Old Surveys",
+        ]  # fmt: skip
+        assert surveys["applications"][0]["is_primary"] and surveys["consolidate"] >= 1
+        assert len(reporting.portfolio_list(session, ME, surveys["filters"])) == 3
+        heat = overlap.heat(session, ME, {})
+        assert all(root["measures"]["applications"] > 0 for root in heat)
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

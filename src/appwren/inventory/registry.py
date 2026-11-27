@@ -201,7 +201,7 @@ APPLICATION = register(
             "vendor_id",
             "sensitivity",
         ),
-        more_filters=("data_class",),
+        more_filters=("data_class", "capability"),
     )
 )
 COMPONENT = register(

@@ -27,6 +27,7 @@ export const NAV = [
     heading: "Landscape",
     items: [
       { href: "/capability-map", label: "Capabilities", iconName: "capability" },
+      { href: "/overlap", label: "Overlap", iconName: "consolidate" },
       { href: "/data-flows", label: "Data flows", iconName: "flow" },
       { href: "/technologies", label: "Technologies", iconName: "technology" },
       { href: "/hosting-platforms", label: "Hosting", iconName: "platform" },

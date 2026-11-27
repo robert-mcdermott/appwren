@@ -415,6 +415,7 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "target_id": "The id of the application data goes to",
         "application": "An application's reference: at either end",
         "data_class": "A class of data, by its key",
+        "capability": "A capability's reference: the applications that serve it",
     }
     whole = name.endswith("_id") or name in ("sensitivity", "ending_within")
     annotation: Any = int | None if whole else bool | None if name == "auto_renews" else str | None

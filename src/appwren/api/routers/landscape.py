@@ -12,7 +12,7 @@ from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, CONTRACT, find_any
-from appwren.landscape import costs, graph, interfaces
+from appwren.landscape import costs, graph, interfaces, overlap
 
 router = APIRouter(prefix="/api/v1", tags=["landscape"])
 
@@ -107,3 +107,29 @@ def set_covered(request: Request, ref: str, body: CoveredListBody) -> dict[str, 
             session, principal, record, [item.model_dump() for item in body.applications]
         )
         return envelope(records.detail(session, principal, CONTRACT, record))
+
+
+# --- Overlap and the heat map ---------------------------------------------------------------
+
+
+@router.get("/overlap", summary="Capabilities served more than once")
+def capability_overlap(
+    request: Request,
+    unit: int | None = Query(default=None, description="A unit, with those beneath it"),
+    domain: str | None = Query(default=None),
+) -> dict[str, Any]:
+    """Every capability with more than one application in service, its applications side by
+    side with their scores, recommendation, decision, users, and cost where the reader may
+    see it. ``filters`` on each gives the same applications from ``/portfolio``."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(overlap.overlap(session, principal, {"unit": unit, "domain": domain}))
+
+
+@router.get("/capability-heat", summary="The capability map, measured")
+def capability_heat(request: Request) -> dict[str, Any]:
+    """The capability tree, each capability with how many applications in service serve it,
+    their average scores and confidence, and the technical health of the weakest."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(overlap.heat(session, principal, {}))

@@ -375,6 +375,17 @@ def _conditions(session: Session, principal: Principal, filters: Mapping[str, An
     found: list[Any] = []
     if filters.get("data_class"):
         found.append(records.holds(Application.data_classes, str(filters["data_class"])))
+    if filters.get("capability"):
+        from appwren.inventory.registry import find
+
+        capability = find(session, CAPABILITY, str(filters["capability"]))
+        found.append(
+            Application.id.in_(
+                select(ApplicationCapability.application_id).where(
+                    ApplicationCapability.capability_id == capability.id
+                )
+            )
+        )
     return found
 
 

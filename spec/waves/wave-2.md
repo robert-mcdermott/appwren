@@ -100,15 +100,17 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** cost has a part of its own on the application's page, with the figure, the cost for each person who uses it, the lines, and the contracts that cover it. Contracts list what ends when and how soon the vendor must be told. The demo has 22 contracts and about 200 cost lines; its three storylines are a notice date two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used.
 
-## Slice 5: Overlap and the capability heat map ☐
+## Slice 5: Overlap and the capability heat map ☑
 
 **Goal:** where the organization pays twice, and where it is thin.
 
-- [ ] **Landscape → Overlap:** every capability with more than one active application, its applications side by side with scores, recommendation, decision, users, and cost where visible; the primary named; a total for the capability
-- [ ] The capability map colored by a chosen measure: any of the four scores (the average of its applications), data confidence, the number of applications, or the lowest technical health; with a legend and the figures in words
-- [ ] Each figure opens the list it counts
+- [x] **Landscape → Overlap:** every capability with more than one application in service, its applications side by side with scores, recommendation, decision, users, and cost where visible; the primary named; totals for the capability
+- [x] The capability map measured by a chosen measure: how many serve it, any of the four scores (the average of its applications), data confidence, or the lowest technical health; each figure in words as well as in its bar
+- [x] Each figure opens the list it counts: the portfolio list narrowed by capability
 
-**Acceptance:** the overlap page's applications for a capability equal the portfolio list filtered by it, for every role; the map says in text everything it says in color; the three survey tools appear together with the hub as primary.
+**Acceptance (met):** the overlap page's applications for a capability equal the portfolio list filtered by it, for every role; a total of cost is given whole or not at all; the map says in text everything it says with a bar; a broader capability counts each application beneath it once; the three survey tools appear together with the hub as primary.
+
+**Done:** both views are drawn from the portfolio list, with a new filter by capability that every list and export also takes. The demo has 17 capabilities served more than once.
 
 ## Slice 6: Technology lifecycle ☐
 
@@ -158,3 +160,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **License use is the contract's.** A contract's licenses in use are added up over every application it covers, and each of them is judged by that share: an application cannot be efficient with licenses its neighbor wastes.
 - **An upgrade respects a shaped model.** The new default scoring model replaces only an earlier default that nobody changed, recognized by its digest. A test holds the 0.1.0 model's digest against the list.
 - **Buttons in cards say what they edit.** "Edit" beside "Edit" on one page failed a scene and would fail a person using a screen reader's list of buttons.
+- **A heat map without heat.** The capability map shows each figure as a number with the score's own bar, as everywhere else, where a block of color would have said less and asked more of the eye. "Weakest health" is offered beside the average: a capability is as exposed as the worst thing that serves it.

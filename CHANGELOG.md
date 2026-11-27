@@ -39,6 +39,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   90 days, and for confidential or restricted data under a contract with no data agreement.
 - **Cost on the dashboard,** by category and by what pays, for those who see every
   application's cost.
+- **Overlap.** Landscape → Overlap lists every capability served by more than one application
+  in service, with those applications side by side: scores, recommendation, decision,
+  people, and cost where the reader may see it.
+- **The capability map, measured.** The map can show, for each capability, how many
+  applications serve it, the average of any score, data confidence, or the technical health
+  of the weakest application that serves it. Each figure opens the applications behind it.
+- Lists of applications, the portfolio list, and their exports can be narrowed by capability
+  and by class of data.
 
 ### Changed
 

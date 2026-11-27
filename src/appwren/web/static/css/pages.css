@@ -158,3 +158,11 @@ a:hover > .bubble, a:focus-visible > .bubble { stroke: var(--focus); stroke-widt
 /* ---- Cost lines ---- */
 .cost-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); align-items: center; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-m); background: var(--surface-1); }
 .cost-row > .btn { justify-self: end; }
+
+/* ---- The capability map, measured ---- */
+.cap-figure { display: inline-flex; align-items: center; min-height: 24px; text-decoration: none; color: inherit; border-radius: var(--radius-s); }
+.cap-figure:hover { background: var(--surface-2); }
+.cap-confidence { font-variant-numeric: tabular-nums; font-weight: 650; padding: 0 var(--space-2); }
+.cap-confidence[data-low="true"] { color: var(--warn); }
+.cap-none { font-size: var(--text-xs); }
+.segmented.wrap { flex-wrap: wrap; height: auto; }

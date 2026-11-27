@@ -148,6 +148,8 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("PUT", "/api/v1/applications/{ref}/cost-lines"): Needs.MEMBER,
     ("PUT", "/api/v1/contracts/{ref}/applications"): Needs.MEMBER,
     ("GET", "/api/v1/data-flows"): Needs.MEMBER,
+    ("GET", "/api/v1/overlap"): Needs.MEMBER,
+    ("GET", "/api/v1/capability-heat"): Needs.MEMBER,
     ("GET", "/api/v1/graph/{ref}"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/impact"): Needs.MEMBER,
     ("GET", "/api/v1/questionnaire"): Needs.MEMBER,
