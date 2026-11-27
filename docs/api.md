@@ -205,7 +205,7 @@ Each kind of record adds its own filters, such as `lifecycle`, `sourcing`, `tier
 A list's `meta` says where the page sits:
 
 ```json
-{"total": 107, "offset": 0, "next_cursor": "eyJvZmZzZXQiOjUwfQ", "prev_cursor": null}
+{"total": 109, "offset": 0, "next_cursor": "eyJvZmZzZXQiOjUwfQ", "prev_cursor": null}
 ```
 
 A list returns only what you may see, and `total` counts only that.
@@ -252,7 +252,8 @@ Every route requires a signed-in account except those marked public. What a rout
 | `POST /{records}/{ref}/links` · `DELETE /{records}/{ref}/links/{id}` | Link two records (depends on, is part of, replaces); unlink them |
 | `PUT /applications/{ref}/people` | Name the people in each role. Exactly one is accountable |
 | `PUT /applications/{ref}/capabilities` | The capabilities it serves, and whether it is the primary provider of each |
-| `PUT /applications/{ref}/units` | The other units that use it |
+| `PUT /applications/{ref}/use` | Who uses it, in one change: `org_wide`, or the `units` where everyone uses it and the `audiences` (kinds of people) who use it wherever they work; `users`, about how many; `external_users`. Naming everyone clears the units and kinds. Send the `version` you read |
+| `PUT /applications/{ref}/units` | The units that use it, alone |
 | `PUT /components/{ref}/technologies` | The technologies a component is built on, and which release of each |
 | `PUT /technologies/{ref}/releases` | A technology's releases and their support dates (an architect or manager) |
 | `GET /vocabularies` · `GET /catalog` | Every vocabulary; the fields of each kind of record, the definition, and what each stage requires |

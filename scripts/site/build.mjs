@@ -27,7 +27,7 @@ export const MENU = [
   ["Start", [["index", "Overview"], ["adopting", "Adopting AppWren"], ["getting-started", "Getting started"]]],
   ["Use", [["the-portfolio", "The portfolio"], ["the-landscape", "The landscape"], ["keeping-current", "Keeping current"], ["planning-change", "Planning change"], ["insight", "Insight"], ["handbook", "The program handbook"], ["signals", "Facts from other systems"], ["running-the-program", "Running the program"]]],
   ["Run", [["configuration", "Configuration"]]],
-  ["Reference", [["api", "The API"], ["api-reference", "API reference"], ["cli", "Command reference"], ["changelog", "Changelog"]]],
+  ["Reference", [["api", "The API"], ["api-reference", "API reference"], ["cli", "Command reference"], ["compatibility", "Compatibility"], ["changelog", "Changelog"]]],
 ];
 
 // --- Markdown (the subset the guides use) ----------------------------------------------------
@@ -206,7 +206,10 @@ function shell({ name, title, body, headings, description, ver, prev, next }) {
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(description)}">
 <meta property="og:type" content="website">
-<meta property="og:image" content="${SITE}${IMAGES}/portfolio-chart-light.webp">
+<meta property="og:image" content="${SITE}assets/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="AppWren, open-source application portfolio management, beside its portfolio chart">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/svg+xml" href="assets/wren-mark.svg">
 <link rel="stylesheet" href="assets/tokens.css">
@@ -361,6 +364,8 @@ export function build(out) {
   writeFileSync(join(out, "assets", "tokens.css"),
     readFileSync(join(STATIC, "css", "tokens.css"), "utf8") + readFileSync(join(STATIC, "css", "palettes.css"), "utf8"));
   cpSync(join(STATIC, "img", "wren-mark.svg"), join(out, "assets", "wren-mark.svg"));
+  // The picture a shared link shows, the same as the repository's (scripts/social-preview.mjs).
+  cpSync(join(REPO, ".github", "social-preview.png"), join(out, "assets", "social-preview.png"));
   if (existsSync(join(DOCS, IMAGES))) cpSync(join(DOCS, IMAGES), join(out, IMAGES), { recursive: true });
 
   const order = MENU.flatMap(([, items]) => items);

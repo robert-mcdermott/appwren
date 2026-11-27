@@ -36,8 +36,9 @@ AppWren is designed **not** to hold the data it describes. Records describe appl
 
 - Sign-in is always required; there is no anonymous mode.
 - Passwords are hashed with scrypt from the standard library, with parameters stored beside each hash so the cost can be raised later. Rules follow current guidance: a minimum length of 12, no composition rules, no forced rotation.
-- Sign-in is throttled per account and per address, with the counters in the database so the limit holds across workers. Unknown accounts take the same time as known ones.
-- Sessions are opaque random tokens in an `HttpOnly`, `SameSite=Strict`, `Secure` cookie. Only a hash is stored. Sessions expire after a period idle and after a maximum age, and are revoked on sign-out, password change, and account disablement.
+- Sign-in is throttled per account and per address, with the counters in the database so the limit holds across workers. The per-address limit applies to addresses off this machine, so behind a proxy whose forwarded address is not believed (`[server] trusted_proxies`) every sign-in looks local and only the per-account limits hold. A right password clears the account's count, and takes back only its own attempt from the address's, so someone with an account cannot clear their address between guesses at others. Unknown accounts take the same time as known ones.
+- Changing one's own password needs the current one, and wrong guesses at it are limited as at sign-in. Someone with no password here (who signs in through the identity provider) cannot give themselves one; an administrator gives one where it is wanted.
+- Sessions are opaque random tokens in an `HttpOnly`, `SameSite=Strict` cookie, marked `Secure` whenever the request arrived over https, directly or by `X-Forwarded-Proto`. Only a hash is stored. Sessions expire after a period idle and after a maximum age, and are revoked on sign-out, password change, and account disablement, which also revoke the person's own tokens.
 - The last active administrator can never be removed or demoted, locally or through the identity provider.
 
 ### Single sign-on
@@ -45,15 +46,15 @@ AppWren is designed **not** to hold the data it describes. Records describe appl
 - OpenID Connect authorization-code flow with PKCE, `state`, and `nonce`. Sign-in state is stored server-side, single-use, short-lived, and tied to the browser that began it.
 - The ID token's signature, issuer, audience, expiry, and nonce are all verified before a session is created.
 - The client secret is read from the environment and never written to the configuration file or the database.
-- Roles mapped from the provider are replaced at each sign-in, so removing someone from a group removes their access at their next sign-in.
+- Roles mapped from the provider are replaced at each single sign-on, so removing someone from a group removes their access at their next sign-in. When the provider says the roles claim was too long to send, the roles are left as they were and the server logs it. A password sign-in does not consult the provider: an account an administrator has given a password keeps its provider roles until its next single sign-on, which is one reason to set `local_sign_in = false` once single sign-on is in use.
 
 ### Authorization
 
 - **One policy table.** Every API route names the permission it requires. A route missing from the table is refused, and a test fails if any route lacks an entry.
-- **Checked again in the service.** Service functions take the acting principal and check both the permission and the record: scope, the people named on it, and visibility. The API cannot reach data by skipping a check, because the check is where the data is.
+- **Checked again in the service.** Service functions take the acting principal and check both the permission and the record: scope, the people named on it, and visibility. The API cannot reach data by skipping a check, because the check is where the data is. A record kept by whoever keeps its application (a component, a deployment, an interface) is checked against the application it is moved to as well as the one it was on, and a contract is said to cover only applications its editor keeps.
 - **A role-by-route matrix test** signs in as each role and exercises every route, asserting the expected outcome.
 - **Separation of duties.** Nobody records a decision about an application on which they are the accountable owner. The scores are worked out by the system, never typed in, so nobody can raise their own.
-- **Administration is not judgment.** The admin role manages accounts and settings. It does not, by itself, allow editing applications or recording decisions; an administrator who also does that work holds a second role, and the history shows which they acted under.
+- **Administration is not judgment.** The admin role manages accounts and settings. It does not, by itself, allow editing applications or recording decisions; an administrator who also does that work holds a second role. The history records the person who acted, not the role they acted under.
 
 ### Sensitive fields
 
@@ -62,6 +63,9 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 - A sensitive field is visible to the people named on the application, to stewards, leaders, and architects in scope, and to managers, auditors, and administrators. To everyone else it is **withheld**: it is left out of the record, its list column, its filters, its exports, and the working of any score that uses it, and the record says that something is withheld.
 - Cost lines, and the figures worked out from cost (cost per user, license use), are withheld with annual cost. A contract is sensitive as a whole: it is visible to those who see every application's sensitive fields, to anyone who may see the sensitive fields of an application it covers, and to whoever made or owns it. Totals of cost across applications are shown only to those who see every application's cost, since a part would reveal the rest.
 - Scores and recommendations are not sensitive, so a member can see that an application is recommended for *Modernize* without seeing what it costs. Where a figure would reveal a sensitive value (the bubble size on the portfolio chart is cost), it is drawn without it.
+- A list may be narrowed by a sensitive field, whether by a column or by another filter that reads it (data classes, who uses it), only among the applications whose sensitive fields the person sees. The portfolio's rows, the data-handling report, *what breaks if this goes*, the checkpoint, and the assistant withhold a sensitive field as the record does.
+- **Flags** are not sensitive in themselves, but a flag whose condition reads a sensitive field (*restricted data on unsupported technology* reads the data classes) is not named to someone who may not see that field, and neither are the two that tell a covering contract's terms (*no data agreement*, *notice date near*). They are still counted in figures for the whole portfolio.
+- The stage of an application is never sensitive: every list, gate, and figure is organized by it.
 - One function decides whether a principal may see an application's sensitive fields. Single records, lists, charts, exports, and the working all call it.
 
 ### Cross-site requests and content
@@ -75,14 +79,14 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 ### Files
 
 - Uploads have a size limit and an allowlist of types, checked by content, not by name.
-- Files are stored by hash outside any served directory and are only ever returned through a route that checks access.
-- Downloads are always sent as attachments with a policy of `default-src 'none'; sandbox` and sniffing off.
-- Uploaded logos are sanitized and served from a route with its own locked-down policy.
+- Files are stored by hash in the data home, outside any served directory, and returned only through a route. The brand's images and the theme stylesheet are public, since the sign-in page shows them; nothing else is.
+- Exports and catalog files are sent as attachments, with sniffing off and no caching, under the app's own content security policy.
+- Uploaded logos are sanitized to drawing by an allow-list and served from a route with its own policy, `default-src 'none'; sandbox`.
 
 ### The history
 
 - Events are append-only in the application, and triggers in the database refuse updates and deletes on the event table. `appwren doctor` reports a missing trigger.
-- Each event is hashed together with the previous event's hash. `appwren verify` recomputes the chain and reports the first break. The latest hash can be exported on a schedule and kept elsewhere, so that even rewriting the whole chain is detectable.
+- Each event is hashed together with the previous event's hash. `appwren verify` recomputes the chain, reports the first break, and prints the latest hash. Kept somewhere else, by a scheduled task of the organization's own, that hash makes even a rewrite of the whole chain detectable; AppWren does not keep or compare it itself.
 - Exports of lists that include sensitive fields are themselves events.
 
 ### Connectors (wave 4)
@@ -94,21 +98,27 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 
 ### Integrations (wave 7 and later)
 
-- API tokens are scoped to a role and optionally to read-only, shown once, stored as hashes, and expire.
-- Webhooks are signed, sent only to addresses an administrator registered, and carry references rather than record contents by default.
+- API tokens an administrator issues are scoped to a role, read-only unless made otherwise, shown once, stored as hashes, expire, and never administer.
+- Webhooks are signed, sent only to https addresses on the public internet that an administrator registered, and carry references rather than record contents.
+- **Tokens of one's own** (0.8.0) act as their owner and can read and propose, nothing else: the middleware lets them reach only the suggestion route to write. They never administer, and they end with a password change or a disabled account.
+- **Suggestions** change nothing until someone who keeps the application accepts one, signed in, as their own edit. A person has at most ten waiting on an application, however many tokens they use, and a value is at most 4,000 characters. Nobody proposes a field withheld from them.
+- **The checkpoint** answers about an application only to someone who may see it; a restricted one is answered as if there were none. It withholds what the record withholds.
+- **The tool server** runs beside an assistant, on the person's machine, with their own token. It follows no redirect and quotes every reference it puts in an address.
+- **The assistant** is off until configured. It is told only the applications the person asking may see, leaving out any that handle data above `max_data_class` and any field withheld from them; what it is told is sent to the configured model server. Every exchange is kept, readable only by those who read everything.
+- **Standings** are read only from an address an administrator sets, with a key from an environment variable the server does not use for itself; an identifier that would climb the address's path is not used.
 
 ### Operations
 
 - Secrets come only from the environment.
-- No request bodies, form answers, or tokens are written to logs.
-- `appwren doctor --production` (wave 7) checks the things that matter before going live: TLS in front, secure cookies in effect, a current schema, a recent backup, mail and single sign-on reachable, and no default or demo accounts present.
+- No request bodies, form answers, or tokens are written to logs; a database error is logged without its statement's parameters.
+- `appwren doctor --production` (wave 7) checks the things that matter before going live: an https `base_url` (which is what puts `Secure` on the cookie), PostgreSQL, a current schema, a recent backup, two administrators, scheduled work running, the data home's permissions, mail and single sign-on set up, and that it is not the demo. There are no default accounts to check for.
 - The demo organization is built only by an explicit command into its own data home, marks itself as a demo on every page, and its server refuses to listen on anything but the local machine unless told otherwise.
 
 ## Who can see and do what
 
 ### Visibility
 
-**The catalog is open.** Applications, capabilities, technologies, and vendors are visible to everyone signed in, apart from their sensitive fields. A portfolio is useful in proportion to how many people can find what already exists: a researcher looking for an approved tool, an engineer checking who else uses a database, a team about to buy something another department already has. An application can be marked **restricted**, which limits even its existence to the people named on it, stewards and leaders of its unit, architects and managers in scope, auditors, and administrators.
+**The catalog is open.** Applications, capabilities, technologies, and vendors are visible to everyone signed in, apart from their sensitive fields. A portfolio is useful in proportion to how many people can find what already exists: a researcher looking for an approved tool, an engineer checking who else uses a database, a team about to buy something another department already has. An application can be marked **restricted**, which limits even its existence to the people named on it, whoever added it, stewards and leaders of its unit, architects and managers in scope, auditors, and administrators. An import of applications looks only among those the importer may see.
 
 A record that joins applications, such as an interface, is visible only to those who may see every application it joins: a restricted application's interfaces are hidden with it, even from someone who keeps the other end.
 
@@ -126,11 +136,12 @@ One function per record type decides what a principal may see. Single records, l
 | Add an application in a unit | | | ✓ | | ✓ | ✓ | | |
 | Edit an application; its components and deployments; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
 | Assess an application | | ✓ | ✓ | | ✓ | ✓ | | |
-| Change who is accountable | | ✓ (the accountable owner) | ✓ | ✓ | | ✓ | | |
+| Change who is accountable | | ✓ (the accountable owner) | ✓ | | ✓ | ✓ | | |
 | Record a decision | | | | ✓ (not as its accountable owner, unless the program allows it, when it is marked) | | ✓ (the same) | | |
 | Read and set an application's cost lines | | ✓ | ✓ | read only | ✓ | ✓ | read only | read only |
 | Read a contract that covers an application | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Add a contract; edit one that covers an application they keep | | | ✓ | | ✓ | ✓ | | |
+| Add a contract | | | ✓ | | ✓ | ✓ | | |
+| Edit a contract they made or own, or that covers an application they are named on or keep; say it covers only applications they keep | | ✓ | ✓ | | ✓ | ✓ | | |
 | Add and edit funding sources | | | | | ✓ | ✓ | | |
 | Add and edit an interface between two applications | | ✓ (named on either) | ✓ (either in scope) | | ✓ (either in scope) | ✓ | | |
 | Add and edit capabilities, technologies and their releases, vendors, and hosting platforms | | | | | ✓ | ✓ | | |
@@ -151,6 +162,6 @@ One function per record type decides what a principal may see. Single records, l
 
 - **Each wave:** the role-by-route matrix, the sensitive-field tests, the web safety tests (no inline script or style, no third-party origins, no HTML parsing of data), and dependency review are part of the definition of done.
 - **Wave 7:** a full review against the OWASP Application Security Verification Standard, level 1, with findings and their resolution recorded in `spec/reviews/`.
-- **Before 1.0:** the review is repeated, and a second person who did not write the code walks the threat table above.
+- **Before 1.0:** the review is repeated, and a second reviewer who did not write the code walks the threat table above. Done for 0.9.0; recorded in `spec/reviews/`.
 
 Vulnerabilities are reported privately as described in `SECURITY.md`.

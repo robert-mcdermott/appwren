@@ -178,19 +178,25 @@ def _decision_facts(session: Session, apps: list[Application]) -> dict[int, dict
 
 
 def portfolio(
-    session: Session, principal: Principal, filters: Mapping[str, Any], *, keep: bool = False
-) -> list[dict[str, Any]]:
+    session: Session, principal: Principal, filters: Mapping[str, Any], *, keep: bool = False,
+    where: Any = None,
+) -> list[dict[str, Any]]:  # fmt: skip
     """Every application the person may see that matches the filters, with its scores,
-    recommendation, decision, and flags. Cost is given only where they may see it."""
+    recommendation, decision, and flags. Cost is given only where they may see it. ``where``
+    narrows it further, by a condition on applications."""
     from sqlalchemy import func
 
     conditions = records.conditions_for(session, principal, APPLICATION, filters)
+    if where is not None:
+        conditions.append(where)
     apps = list(
         session.scalars(
             select(Application).where(*conditions).order_by(func.lower(Application.name))
         )
     )
     scored = assessment.score_all(session, apps)
+    withheld = assessment.withheld_flags(session)
+    sensitive = set(access.sensitive_fields(session))
     decided = current(session, [app.id for app in apps])
     owners = records.owners_of(session, APPLICATION, [app.id for app in apps])
     rows = []
@@ -203,14 +209,21 @@ def portfolio(
         sees = access.sees_sensitive(session, principal, app, is_named=is_named)
         decision = decided.get(app.id)
         recommendation = result["recommendation"]
+        flags = assessment.shown_flags(result["flags"], sees, withheld)
+
+        def told(name: str, value: Any, sees: bool = sees) -> Any:
+            # A field the program marks sensitive is withheld here as on the record (review
+            # of wave 9, finding 3).
+            return value if sees or name not in sensitive else "withheld"
+
         rows.append(
             {
                 **records.chip(APPLICATION, app),
                 "org_unit_id": app.org_unit_id,
                 "lifecycle": app.lifecycle,
-                "sourcing": app.sourcing,
-                "domain": app.domain,
-                "tier": app.tier,
+                "sourcing": told("sourcing", app.sourcing),
+                "domain": told("domain", app.domain),
+                "tier": told("tier", app.tier),
                 "scores": result["scores"],
                 "thin": {k: d["thin"] for k, d in result["dimensions"].items()},
                 "confidence": result["confidence"],
@@ -221,8 +234,8 @@ def portfolio(
                 "mismatch": bool(
                     decision and recommendation and decision.disposition != recommendation
                 ),
-                "flags": [f["key"] for f in result["flags"]],
-                "flag_texts": {f["key"]: f["text"] for f in result["flags"]},
+                "flags": [f["key"] for f in flags],
+                "flag_texts": {f["key"]: f["text"] for f in flags},
                 "annual_cost": app.annual_cost if sees else "withheld",
                 "accountable": [p["name"] for p in records.accountable(people)],
                 **({"id": app.id, "_result": result, "_app": app} if keep else {}),

@@ -45,8 +45,14 @@ def stage_requirements(session: Session) -> dict[str, list[str]]:
     return dict(_get(session, STAGES, "stage_requirements"))
 
 
+# Fields that are never sensitive: every list, stage gate, and figure is organized by the
+# stage, so withholding it would leave the portfolio unreadable and still tell it by count.
+NEVER_SENSITIVE = frozenset({"lifecycle"})
+
+
 def sensitive_fields(session: Session) -> list[str]:
-    return list(_get(session, SENSITIVE, "sensitive_fields"))
+    return [name for name in _get(session, SENSITIVE, "sensitive_fields")
+            if name not in NEVER_SENSITIVE]  # fmt: skip
 
 
 def definition(session: Session) -> dict[str, Any]:

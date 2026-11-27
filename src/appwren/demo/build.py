@@ -521,7 +521,18 @@ class Builder:
                         self.primaries.add(key)
                     chosen.append({"capability": self.capabilities[key], "is_primary": primary})
                 applications.set_capabilities(session, ME, app, chosen)
-                used = [unit] + ([self.parent[unit]] if self.parent.get(unit) else [])
+                used = [unit]  # the unit that keeps it, unless the demo says otherwise
+                who = c.WHO_USES.get(name)
+                if who == "everyone":
+                    used = []
+                    records.update(session, ME, APPLICATION, app, {"org_wide": True},
+                                   version=app.version)  # fmt: skip
+                elif who is not None:
+                    places, kinds = who
+                    used = used if places is None else [self.units[code] for code in places]
+                    records.update(session, ME, APPLICATION, app,
+                                   {"org_wide": False, "audiences": kinds},
+                                   version=app.version)  # fmt: skip
                 applications.set_units(session, ME, app, used)
                 groups: dict[str, list[tuple[str, str]]] = {}
                 for tech, release in techs:
@@ -2055,6 +2066,34 @@ class Builder:
             row.last_summary = (error or _words(counts))[:300]
             row.next_run_at = at + timedelta(hours=row.every_hours)
 
+    def latest(self) -> None:
+        """Human Resources registers two applications in the last week, used by kinds of
+        people across the institute rather than by any one unit. Made last, so that every
+        other record keeps its reference."""
+        unit = self.units["HR"]
+        owner = self.owner_for(unit)
+        for days, name, kinds, users, cost, summary in c.LATEST:
+            moment = self.end - timedelta(days=days)
+            with clock_set_to(lambda moment=moment: moment), self.db.write(ME.actor) as session:
+                values = {
+                    "name": name, "summary": summary, "org_unit_id": unit,
+                    "sourcing": "saas", "tier": "3", "users": users, "maintainers": 1,
+                    "vendor_id": self.vendors.get("staffbright"), "purpose": "operations",
+                    "pace": "steady", "domain": "administrative", "lifecycle": "active",
+                    "hosting": "vendor_cloud", "data_classes": ["personal"],
+                    "annual_cost": cost, "funding": "operating", "org_wide": False,
+                    "audiences": kinds, "support_unit_id": self.units["ITAPP"],
+                    "go_live": (self.end - timedelta(days=days + 30)).date().isoformat(),
+                }  # fmt: skip
+                app = records.create(session, ME, APPLICATION, values, accountable=owner)
+                applications.set_capabilities(
+                    session, ME, app, [{"capability": self.capabilities["people"]}]
+                )
+                self.apps[name] = app.ref
+                self.accountable[app.ref] = owner
+                self.unit_of[app.ref] = unit
+                self.tally("applications")
+
     def build(self) -> Summary:
         self.found()
         self.plan()
@@ -2073,6 +2112,7 @@ class Builder:
         self.scenarios()
         self.integration()
         self.reports()
+        self.latest()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

@@ -114,6 +114,8 @@ DEPLOYMENT.extra.update(
     conditions=_conditions,
     cards=_cards,
     add_refusal="Only the people who keep an application can say where it runs.",
+    moves=("application_id",),
+    move_refusal="Only the people who keep an application can move a deployment onto it.",
     history_vocabularies={"environment": "environments"},
 )
 

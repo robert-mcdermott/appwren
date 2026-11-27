@@ -251,6 +251,7 @@ def set_applications(
         raise PermissionDenied("You cannot edit this contract.")
     errors = Errors()
     cleaned: dict[int, int | None] = {}
+    place: dict[int, str] = {}
     for index, item in enumerate(wanted):
         where = f"applications[{index}]"
         app_id = records.reference(session, "application", item.get("application"), where, errors,
@@ -265,19 +266,27 @@ def set_applications(
             errors.add(where, f"{app.ref} appears twice.")
             continue
         cleaned[app_id] = records.whole(item.get("licenses_used"), where, errors)
-    if errors:
-        raise Invalid("The applications were not saved.", errors)
+        place[app_id] = where
     have = {
         row.application_id: row
         for row in session.scalars(
             select(ContractApplication).where(ContractApplication.contract_id == contract.id)
         )
     }
-    # What the reader may not see stays as it is: they cannot remove what they cannot name.
+    # A contract's terms land on what it covers (its notice date, its data agreement), so its
+    # editor changes only what it says of applications they keep; the rest stays as it is
+    # (review of wave 9, finding 2). What they may not see they cannot even name.
+    kept = {app_id: access.keeps(session, principal, session.get(Application, app_id))
+            for app_id in {*cleaned, *have}}  # fmt: skip
+    for app_id in cleaned:
+        if app_id not in have and not kept[app_id]:
+            ref = session.get(Application, app_id).ref
+            errors.add(place[app_id], f"You do not keep {ref}, so you cannot say this contract "
+                                      "covers it.")  # fmt: skip
+    if errors:
+        raise Invalid("The applications were not saved.", errors)
     for app_id, row in have.items():
-        app = session.get(Application, app_id)
-        unseen = app is not None and not access.sees_application(session, principal, app)
-        if app_id not in cleaned and unseen:
+        if not kept[app_id]:
             cleaned[app_id] = row.licenses_used
     with audit.operation(session, "contract.applications"):
         for app_id, row in have.items():

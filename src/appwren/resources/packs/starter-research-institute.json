@@ -61,6 +61,53 @@
     "label": "Team"
    }
   ],
+  "audiences": [
+   {
+    "key": "leadership",
+    "label": "Leadership",
+    "description": "Executives and the people who lead its divisions"
+   },
+   {
+    "key": "managers",
+    "label": "Managers and supervisors",
+    "description": "Anyone who manages people"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly employees",
+    "description": "Staff paid by the hour, who record their time"
+   },
+   {
+    "key": "contractors",
+    "label": "Contractors and temporary staff",
+    "description": "People who work for it without being employees"
+   },
+   {
+    "key": "researchers",
+    "label": "Researchers",
+    "description": "Investigators and the staff of their studies and labs"
+   },
+   {
+    "key": "core_staff",
+    "label": "Core facility staff",
+    "description": "The people who run shared instruments and services"
+   },
+   {
+    "key": "trainees",
+    "label": "Postdocs, students, and trainees",
+    "description": "People here to learn and do research at the same time"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative staff",
+    "description": "The people who run its business: finance, people, purchasing, and facilities"
+   },
+   {
+    "key": "it_staff",
+    "label": "IT staff",
+    "description": "The people who build and run its technology"
+   }
+  ],
   "data_classes": [
    {
     "key": "public",

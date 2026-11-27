@@ -447,6 +447,7 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("PUT", "/api/v1/applications/{ref}/people"): EVERYONE,
     ("PUT", "/api/v1/applications/{ref}/capabilities"): EVERYONE,
     ("PUT", "/api/v1/applications/{ref}/units"): EVERYONE,
+    ("PUT", "/api/v1/applications/{ref}/use"): EVERYONE,
     ("PUT", "/api/v1/components/{ref}/technologies"): EVERYONE,
     ("GET", "/api/v1/interfaces"): EVERYONE,
     ("POST", "/api/v1/interfaces"): EVERYONE,

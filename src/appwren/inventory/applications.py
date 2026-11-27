@@ -12,7 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
-from sqlalchemy import func, inspect, select
+from sqlalchemy import func, inspect, or_, select
 from sqlalchemy.orm import Session
 
 from appwren.access.principal import Principal
@@ -244,6 +244,29 @@ def set_units(
         session.flush()
 
 
+def set_use(
+    session: Session,
+    principal: Principal,
+    application: Application,
+    values: Mapping[str, Any],
+    *,
+    version: int | None,
+) -> None:
+    """Who uses it, in one change: everyone in the organization, or the units that use it
+    together with the kinds of people who use it wherever they work; about how many people;
+    and whether people outside the organization do. Everyone includes every unit and kind,
+    so naming everyone clears the units and kinds."""
+    everyone = bool(values.get("org_wide"))
+    records.update(
+        session, principal, APPLICATION, application,
+        {"org_wide": everyone,
+         "audiences": [] if everyone else list(values.get("audiences") or []),
+         "users": values.get("users"), "external_users": values.get("external_users")},
+        version=version,
+    )  # fmt: skip
+    set_units(session, principal, application, [] if everyone else list(values.get("units") or []))
+
+
 def units_of(session: Session, application_ids: Iterable[int]) -> dict[int, list[int]]:
     ids = list(application_ids)
     found: dict[int, list[int]] = defaultdict(list)
@@ -416,6 +439,28 @@ def _conditions(session: Session, principal: Principal, filters: Mapping[str, An
     found: list[Any] = []
     if filters.get("data_class"):
         found.append(records.holds(Application.data_classes, str(filters["data_class"])))
+    if filters.get("audience") == "everyone":
+        found.append(Application.org_wide.is_(True))
+    elif filters.get("audience"):
+        found.append(records.holds(Application.audiences, str(filters["audience"])))
+    if filters.get("used_in"):
+        # Everyone in a unit uses what the whole organization uses, and what any unit it is
+        # part of uses. What kinds of people use wherever they work is not counted: who in
+        # the unit is which kind is not recorded.
+        from appwren.people import units
+
+        within = [unit.id for unit in units.ancestors(session, int(filters["used_in"]))]
+        within.append(int(filters["used_in"]))
+        found.append(
+            or_(
+                Application.org_wide.is_(True),
+                Application.id.in_(
+                    select(ApplicationUnit.application_id).where(
+                        ApplicationUnit.org_unit_id.in_(within)
+                    )
+                ),
+            )
+        )
     if filters.get("capability"):
         from appwren.inventory.registry import find
 
@@ -459,6 +504,12 @@ APPLICATION.extra.update(
     cards=_cards,
     detail=_detail,
     can_add=_can_add,
+    # The fields each filter beyond the columns reads, so a sensitive one is honoured.
+    filter_fields={
+        "data_class": ("data_classes",),
+        "audience": ("audiences", "org_wide"),
+        "used_in": ("org_wide",),
+    },
     conditions=_conditions,
     add_refusal="Only a steward of the unit, an architect, or a manager can add an application "
     "to it.",

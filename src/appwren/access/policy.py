@@ -264,6 +264,7 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("PUT", "/api/v1/applications/{ref}/people"): Needs.MEMBER,
     ("PUT", "/api/v1/applications/{ref}/capabilities"): Needs.MEMBER,
     ("PUT", "/api/v1/applications/{ref}/units"): Needs.MEMBER,
+    ("PUT", "/api/v1/applications/{ref}/use"): Needs.MEMBER,
     ("PUT", "/api/v1/components/{ref}/technologies"): Needs.MEMBER,
     ("PUT", "/api/v1/technologies/{ref}/releases"): Needs.ARCHITECT,
     # Assessment and scores. Who may assess a particular application is the service's to check.

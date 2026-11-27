@@ -4173,6 +4173,71 @@
         "title": "UnitsBody",
         "type": "object"
       },
+      "UseBody": {
+        "properties": {
+          "audiences": {
+            "description": "The kinds of people who use it wherever they work, as keys of the audiences list; left out when everyone in the organization does",
+            "items": {
+              "type": "string"
+            },
+            "title": "Audiences",
+            "type": "array"
+          },
+          "external_users": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "People outside the organization use it too",
+            "title": "External Users"
+          },
+          "org_wide": {
+            "default": false,
+            "description": "Everyone in the organization uses it",
+            "title": "Org Wide",
+            "type": "boolean"
+          },
+          "units": {
+            "description": "The ids of the units that use it, everyone in them; left out when everyone in the organization does",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Units",
+            "type": "array"
+          },
+          "users": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "About how many people use it",
+            "title": "Users"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The version of the application the change was made against",
+            "title": "Version"
+          }
+        },
+        "title": "UseBody",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -5840,6 +5905,42 @@
               ],
               "title": "Maturity"
             }
+          },
+          {
+            "description": "A kind of people who use it wherever they work, by its key; everyone for those everyone in the organization uses",
+            "in": "query",
+            "name": "audience",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A kind of people who use it wherever they work, by its key; everyone for those everyone in the organization uses",
+              "title": "Audience"
+            }
+          },
+          {
+            "description": "A unit's id: what everyone in it uses, from the whole organization's, its own, and those of the units it is part of",
+            "in": "query",
+            "name": "used_in",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A unit's id: what everyone in it uses, from the whole organization's, its own, and those of the units it is part of",
+              "title": "Used In"
+            }
           }
         ],
         "responses": {
@@ -7489,6 +7590,60 @@
           }
         },
         "summary": "Say which units use it",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/use": {
+      "put": {
+        "operationId": "set_use_api_v1_applications__ref__use_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Set Use Api V1 Applications  Ref  Use Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say who uses it",
         "tags": [
           "inventory"
         ]

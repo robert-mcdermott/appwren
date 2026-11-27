@@ -368,6 +368,41 @@ APPLICATIONS: list[tuple] = [
      [("python", "3.11"), ("snakemake", "8")], "good", {"story": "grant_ending"}),
 ]  # fmt: skip
 
+# Who uses an application, where it is not everyone in the unit that keeps it: "everyone", or
+# (the units whose everyone uses it, or None for the unit that keeps it; the kinds of people
+# who use it wherever they work).
+WHO_USES: dict[str, str | tuple[list[str] | None, list[str]]] = {
+    "Identity and Sign-in": "everyone", "Email and Calendars": "everyone",
+    "Team Chat": "everyone", "Service Desk": "everyone", "Intranet": "everyone",
+    "Learning Management": "everyone", "Human Resources and Payroll": "everyone",
+    "Facilities Work Orders": "everyone", "Expense Reports": "everyone",
+    "Applicant Tracking": (["HR"], ["managers"]),
+    "Executive Dashboards": ([], ["leadership"]),
+    "Conflict of Interest Disclosures": (["CPO"], ["researchers", "leadership"]),
+    "Research Ethics Portal": (["CPO"], ["researchers"]),
+    "Grant Management System": (["SPO"], ["researchers", "administrative"]),
+    "Purchasing": (["FIN"], ["administrative", "managers"]),
+    "Electronic Health Record": (["CLINIC"], ["clinicians"]),
+    "Clinical Trials Management": (None, ["researchers", "clinicians"]),
+    "High Performance Computing Portal": ([], ["researchers"]),
+    "Lab Inventory": ([], ["researchers"]),
+    "Survey Hub": (None, ["researchers"]),
+    "Code Repositories": ([], ["it_staff", "researchers"]),
+    "Container Platform": ([], ["it_staff"]),
+    "Virtual Machine Platform": ([], ["it_staff"]),
+    "Application Monitoring": ([], ["it_staff"]),
+}  # fmt: skip
+
+# Applications Human Resources registered in the demo's last week, each used by kinds of
+# people across the institute and by no one unit: (days ago, name, kinds, people, cost,
+# summary).
+LATEST = [
+    (6, "Time and Attendance", ["hourly", "contractors"], 640, 31000,
+     "Where hourly employees and contractors record their time, and managers approve it."),
+    (3, "Performance Reviews", ["managers", "leadership"], 260, 24000,
+     "Yearly goals and reviews, written by managers and read by the institute's leaders."),
+]  # fmt: skip
+
 # Research software that labs build and keep themselves: (kind of tool, capability, techs).
 LAB_TOOLS = [
     ("Sample Tracker", "lab_data", [("python", "3.11"), ("postgres", "13")]),

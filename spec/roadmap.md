@@ -2,7 +2,7 @@
 
 AppWren ships in **waves**. Each wave is a release (wave 1 → v0.1.0, wave 2 → v0.2.0, …) and is split into **slices**: coherent chunks of related work. The last slice of every wave prepares the release. See [process.md](process.md) for how this works day to day.
 
-The order follows how a portfolio practice grows. Wave 1 proves the core loop: know what you run and who answers for it, assess it, see an explainable recommendation, and record a decision. Wave 2 adds the landscape around each application: what it connects to, where it runs, what it costs, and what breaks if it goes. Wave 3 keeps all of it current without a central team chasing. Wave 4 lets facts arrive from the tools that already know them. Wave 5 turns decisions into planned change. Wave 6 answers leadership's questions over time. Waves 7 and 8 make it something another organization can adopt and connect. Wave 9, once adopters have seen it, makes it stable. Every wave ends with something that can be demonstrated on the demo organization.
+The order follows how a portfolio practice grows. Wave 1 proves the core loop: know what you run and who answers for it, assess it, see an explainable recommendation, and record a decision. Wave 2 adds the landscape around each application: what it connects to, where it runs, what it costs, and what breaks if it goes. Wave 3 keeps all of it current without a central team chasing. Wave 4 lets facts arrive from the tools that already know them. Wave 5 turns decisions into planned change. Wave 6 answers leadership's questions over time. Waves 7 and 8 make it something another organization can adopt and connect. Wave 9 is the release 1.0 is made from, and 1.0 follows the maintainer's review of it. Every wave ends with something that can be demonstrated on the demo organization.
 
 **Whose work comes first.** The first adopters are product, application, and software engineering teams and the IT leaders they report to (see [vision.md](vision.md)). Within every wave, what an owner of a few applications and a portfolio manager use is built first and polished most: registering an application, the home page, the scorecard and its working, and the decision in wave 1; dependencies, technology lifecycle, and cost in wave 2; attestation and triggers in wave 3; the code-hosting and end-of-life connectors in wave 4. The order of the waves is unchanged.
 
@@ -17,7 +17,8 @@ The order follows how a portfolio practice grows. Wave 1 proves the core loop: k
 | 6 | v0.6.0 | **Insight** | Trends between snapshots, a leadership report, the portfolio as of any date, and scenarios |
 | 7 | v0.7.0 | **Adoption** | Another organization installs, brands, and runs AppWren in production, with starter programs, tokens and webhooks, deployment recipes, and a security review |
 | 8 | v0.8.0 | **Connected** | Other processes check an application's standing; assistants read and draft; links to other governance records; all optional |
-| 9 | v1.0.0 | **Stable** | After adopters have seen it: their changes, then an upgrade path and a compatibility promise |
+| 9 | v0.9.0 | **Toward 1.0** | Who uses each application, upgrades from every release checked by script, the compatibility promise written down, and the server hardened |
+| — | v1.0.0 | **Stable** | After the maintainer's review of 0.9.0: its changes, and the promise in force |
 
 Status key: ☐ planned · ◐ in progress · ☑ done
 
@@ -155,17 +156,23 @@ Detail: [waves/wave-6.md](waves/wave-6.md)
 | 4 | Other governance records | Links to records in other systems of record, with their standing | ☑ |
 | 5 | Release prep | Guides, changelog, release | ☑ |
 
-## Wave 9: Stable (v1.0.0) ☐
+## Wave 9: Toward 1.0 (v0.9.0) ☑
 
-**Goal:** something an organization can build on. It waits until adopters have seen AppWren and said what they need changed.
+**Goal:** the release that 1.0 is made from: the first changes an adopter asked for, upgrades from every earlier release checked by script, the compatibility promise written down, and the threat table walked again.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Changes adopters ask for | What the first demonstrations turn up | ☐ |
-| 2 | Upgrades | Every release since the first upgrades with every row and file kept, on both databases, checked by script | ☐ |
-| 3 | The 1.0 promise | A compatibility statement for the API, configuration file, pack formats, and data home; deprecation rules | ☐ |
-| 4 | Hardened | The threat table walked by a second reviewer; load and soak tests | ☐ |
-| 5 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Who uses it | Everyone in the organization, units, or kinds of people across it, such as managers or hourly employees; a filter by kind of people; who would be affected if it went | ☑ |
+| 2 | Upgrades | Every release since the first upgrades with every row and file kept, on both databases, checked by script | ☑ |
+| 3 | The 1.0 promise | A compatibility statement for the API, configuration file, pack formats, and data home, and deprecation rules, in force from 1.0.0 | ☑ |
+| 4 | Hardened | The threat table walked by a second reviewer; load and soak tests | ☑ |
+| 5 | Release prep | Guides, changelog, release | ☑ |
+
+Detail: [waves/wave-9.md](waves/wave-9.md)
+
+## Stable (v1.0.0) ☐
+
+**Goal:** something an organization can build on. The maintainer reviews 0.9.0; 1.0.0 makes the changes that review asks for and puts the compatibility promise in force.
 
 ## Later
 

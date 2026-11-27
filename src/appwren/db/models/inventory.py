@@ -78,6 +78,10 @@ class Application(RecordMixin, Base):
     hosting: Mapped[str | None] = mapped_column(String(40))
     users: Mapped[int | None] = mapped_column(Integer)
     external_users: Mapped[bool | None] = mapped_column(Boolean)
+    # Who uses it: everyone, or the units that use it (ApplicationUnit) together with the
+    # kinds of people who use it wherever they work (the "audiences" vocabulary).
+    org_wide: Mapped[bool | None] = mapped_column(Boolean)
+    audiences: Mapped[list[str] | None] = mapped_column(JsonType)
     maintainers: Mapped[int | None] = mapped_column(Integer)
     support_unit_id: Mapped[int | None] = mapped_column(ForeignKey("org_unit.id"))
     annual_cost: Mapped[int | None] = mapped_column(Integer)

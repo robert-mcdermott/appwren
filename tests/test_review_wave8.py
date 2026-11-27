@@ -52,13 +52,15 @@ def test_the_checkpoint_keeps_sensitive_fields(
     current = admin.get("/api/v1/program").json()["data"]["sensitive_fields"]
     saved = admin.put("/api/v1/program/fields", json={
         "fields": admin.get("/api/v1/program").json()["data"]["fields"],
-        "sensitive_fields": [*current, "data_classes", "lifecycle"]})  # fmt: skip
+        "sensitive_fields": [*current, "data_classes", "tier"]})  # fmt: skip
     assert saved.status_code == 200, saved.text
     ref = add_app(db, people, name="Clinic Notes", unit="CANCER", data_classes=["health"])
     said = as_role("member").get(f"/api/v1/checkpoint/{ref}",
                                  params={"data_class": "health"}).json()["data"]  # fmt: skip
-    assert said["data_classes"] is None and said["stage"] is None and said["allowed"] is None
-    assert "Active" not in str(said["reasons"]) and "health" not in str(said["reasons"])
+    assert said["data_classes"] is None and said["allowed"] is None
+    assert "health" not in str(said["reasons"])
+    # The stage is never sensitive (review of wave 9, finding 3), so the checkpoint says it.
+    assert said["stage"] == "active"
 
 
 def test_a_proposed_value_has_a_size(as_role: Clients, db: Database, people: People) -> None:

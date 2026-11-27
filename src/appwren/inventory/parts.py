@@ -338,6 +338,8 @@ COMPONENT.extra.update(
     detail=_component_detail,
     cards=_component_cards,
     add_refusal="Only the people who keep an application can add a component to it.",
+    moves=("application_id",),
+    move_refusal="Only the people who keep an application can move a component onto it.",
     history_vocabularies={"kind": "component_kinds", "hosting": "hosting"},
 )
 

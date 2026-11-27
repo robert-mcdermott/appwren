@@ -216,14 +216,29 @@ def impact(session: Session, principal: Principal, application: Application) -> 
     direct: list[dict[str, Any]] = []
     beyond: list[dict[str, Any]] = []
     hidden = 0
-    people = int(application.users or 0)
+    # A field the program marks sensitive is told only where this person sees it (review of
+    # wave 9, finding 3); the sum of people is told only if every part of it is.
+    sensitive = set(access.sensitive_fields(session))
+
+    def told(name: str, app: Application, value: Any) -> Any:
+        if name not in sensitive or access.sees_sensitive(session, principal, app):
+            return value
+        return records.WITHHELD
+
+    own_users = told("users", application, application.users)
+    people: int | None = int(application.users or 0)
+    if own_users == records.WITHHELD:
+        people = None
     for app_id, level in sorted(depth.items(), key=lambda item: (item[1], apps[item[0]].name)):
         app = apps[app_id]
         if not access.sees_application(session, principal, app):
             hidden += 1
             continue
-        people += int(app.users or 0)
-        entry = {**records.chip(APPLICATION, app), "tier": app.tier, "users": app.users}
+        users = told("users", app, app.users)
+        if people is not None:
+            people = None if users == records.WITHHELD else people + int(app.users or 0)
+        entry = {**records.chip(APPLICATION, app), "tier": told("tier", app, app.tier),
+                 "users": users}  # fmt: skip
         (direct if level == 1 else beyond).append(entry)
     # The interfaces at either end of it.
     rows, _ = records.search(
@@ -285,7 +300,7 @@ def impact(session: Session, principal: Principal, application: Application) -> 
         ],
         "capabilities_left": left,
         "capabilities_weakened": weakened,
-        "users": application.users,
+        "users": own_users,
         "external_users": bool(application.external_users),
         "people": people,
         "units": [{"id": unit.id, "name": unit.name} for unit in units],

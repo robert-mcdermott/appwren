@@ -18,7 +18,7 @@ What the organization runs, and who answers for it.
 | INV-05 | M | Components | An application is decomposed into components with a kind, a repository, hosting, and the technologies and versions each uses | 1 |
 | INV-06 | M | Vendors | Vendors are records, linked from the applications and technologies they supply | 1 |
 | INV-07 | M | Technologies and their support | Technologies are records with a radar ring and releases, each with support dates; each release shows the components that use it | 1 |
-| INV-08 | M | Who uses it | The units that use an application, an estimate of how many people, and whether people outside the organization use it | 1 |
+| INV-08 | M | Who uses it | Everyone in the organization, or the units that use an application and the kinds of people who use it wherever they work (managers, hourly employees, contractors); an estimate of how many people; and whether people outside the organization use it | 1, 9 |
 | INV-09 | M | History on every record | Each record shows who changed what and when, with the value before and after | 1 |
 | INV-10 | M | Lists that hold their state | Every list searches, filters, sorts, and pages, with its state in the address so any view can be shared | 1 |
 | INV-11 | M | The organization's own fields | The program defines extra fields for applications, with a type, a section, help, the sourcing types they apply to, and whether they are sensitive, without code | 1 |

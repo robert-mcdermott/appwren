@@ -69,6 +69,53 @@
     "label": "Team"
    }
   ],
+  "audiences": [
+   {
+    "key": "leadership",
+    "label": "Leadership",
+    "description": "Executives and the people who lead its divisions"
+   },
+   {
+    "key": "managers",
+    "label": "Managers and supervisors",
+    "description": "Anyone who manages people"
+   },
+   {
+    "key": "faculty",
+    "label": "Faculty",
+    "description": "Professors, lecturers, and instructors"
+   },
+   {
+    "key": "researchers",
+    "label": "Researchers",
+    "description": "Investigators and the staff of their studies and labs"
+   },
+   {
+    "key": "students",
+    "label": "Students",
+    "description": "Undergraduate and graduate students"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly and student employees",
+    "description": "Staff paid by the hour, who record their time"
+   },
+   {
+    "key": "contractors",
+    "label": "Contractors and temporary staff",
+    "description": "People who work for it without being employees"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative and professional staff",
+    "description": "The people who run the university's business and student services"
+   },
+   {
+    "key": "it_staff",
+    "label": "IT staff",
+    "description": "The people who build and run its technology"
+   }
+  ],
   "tiers": [
    {
     "key": "1",

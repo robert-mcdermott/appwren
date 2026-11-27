@@ -57,6 +57,48 @@
     "label": "Team"
    }
   ],
+  "audiences": [
+   {
+    "key": "leadership",
+    "label": "Leadership",
+    "description": "Executives and the people who lead its divisions"
+   },
+   {
+    "key": "managers",
+    "label": "Managers and supervisors",
+    "description": "Anyone who manages people"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly employees",
+    "description": "Staff paid by the hour, who record their time"
+   },
+   {
+    "key": "contractors",
+    "label": "Contractors and temporary staff",
+    "description": "People who work for it without being employees"
+   },
+   {
+    "key": "customer_facing",
+    "label": "Sales and customer-facing staff",
+    "description": "The people who sell to and look after customers"
+   },
+   {
+    "key": "frontline",
+    "label": "Front-line and operations staff",
+    "description": "The people who make, move, or deliver what it sells"
+   },
+   {
+    "key": "administrative",
+    "label": "Corporate staff",
+    "description": "Finance, people, legal, and the other corporate functions"
+   },
+   {
+    "key": "it_staff",
+    "label": "Engineering and IT staff",
+    "description": "The people who build and run its products and technology"
+   }
+  ],
   "tiers": [
    {
     "key": "1",

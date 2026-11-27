@@ -57,12 +57,12 @@ COMPUTED = (
 
 
 def rows(
-    session: Session, principal: Principal, filters: Mapping[str, Any]
+    session: Session, principal: Principal, filters: Mapping[str, Any], *, where: Any = None
 ) -> list[dict[str, Any]]:
     """The portfolio the person may see, narrowed by the stored fields in ``filters``, each
     row with what it lacks and how current its technology is."""
     stored = {key: value for key, value in filters.items() if key not in COMPUTED}
-    found = decisions.portfolio(session, principal, stored, keep=True)
+    found = decisions.portfolio(session, principal, stored, keep=True, where=where)
     stages = vocab.keys(session, "lifecycle", active_only=False)
     rules = catalog.stage_requirements(session)
     own = {item["key"] for item in catalog.fields(session)}
@@ -314,10 +314,33 @@ def data_quality(session: Session, principal: Principal, base: Mapping[str, Any]
 SEVERITY = {"danger": 0, "warning": 1, "info": 2}
 
 
+def _owed_scope(principal: Principal) -> Any:
+    """The applications Home needs to look at: those the person is named on, and, for whoever
+    keeps or decides for units, those units' applications. Scoring every application for
+    every person made Home the slowest page there is (the soak test of 0.9.0). None for all."""
+    from sqlalchemy import or_
+    from sqlalchemy import select as sql_select
+
+    from appwren.db.models import Application, RecordOwner
+
+    named = Application.id.in_(
+        sql_select(RecordOwner.record_id).where(
+            RecordOwner.record_type == "application", RecordOwner.account_id == principal.account_id
+        )
+    )  # fmt: skip
+    if not (principal.stewards or principal.manages_somewhere or principal.leads):
+        return named
+    keeps = principal.units_for(roles.STEWARD, roles.MANAGER, roles.ARCHITECT)
+    decides = principal.units_for(roles.LEADER, roles.MANAGER)
+    if keeps is None or decides is None:
+        return None
+    return or_(named, Application.org_unit_id.in_(set(keeps) | set(decides)))
+
+
 def owed(session: Session, principal: Principal) -> dict[str, Any]:
     """One list of what the person owes, most urgent first, and for those who decide or keep
     a unit, what is waiting in their scope."""
-    found = rows(session, principal, {})
+    found = rows(session, principal, {}, where=_owed_scope(principal))
     found = [row for row in found if row["lifecycle"] not in NOT_IN_SERVICE]
     me = principal.account_id
     named = set()

@@ -51,9 +51,10 @@ def create(
 
 
 def load(
-    session: Session, token: str | None, *, idle_hours: int, max_days: int
+    session: Session, token: str | None, *, idle_hours: int, max_days: int, slide: bool = True
 ) -> tuple[SessionToken, Account] | None:
-    """The live session for a token and its account, sliding the expiry; None if there is none."""
+    """The live session for a token and its account, sliding the expiry; None if there is none.
+    With ``slide`` false nothing is changed, and ``due`` says whether the expiry should slide."""
     if not token or len(token) > 200:
         return None
     found = session.execute(
@@ -67,12 +68,30 @@ def load(
     now = utc_now()
     if row.revoked_at is not None or row.expires_at <= now or account.status != "active":
         return None
-    if now - row.last_seen_at >= TOUCH_EVERY:
+    if slide and due(row):
         row.last_seen_at = now
         row.expires_at = min(
             now + timedelta(hours=idle_hours), row.created_at + timedelta(days=max_days)
         )
     return row, account
+
+
+def due(row: SessionToken) -> bool:
+    """Whether a session has been used long enough since it was last marked to mark it again:
+    at most once a minute, so that most requests only read."""
+    return utc_now() - row.last_seen_at >= TOUCH_EVERY
+
+
+def slide(session: Session, row_id: int, *, idle_hours: int, max_days: int) -> None:
+    """Mark a session used now, and move its expiry on."""
+    row = session.get(SessionToken, row_id)
+    if row is None or row.revoked_at is not None:
+        return
+    now = utc_now()
+    row.last_seen_at = now
+    row.expires_at = min(
+        now + timedelta(hours=idle_hours), row.created_at + timedelta(days=max_days)
+    )
 
 
 def revoke(session: Session, token: str | None) -> None:
@@ -122,8 +141,19 @@ def note_failure(session: Session, *keys: str) -> None:
         )
 
 
-def note_success(session: Session, *keys: str) -> None:
+def note_success(session: Session, *keys: str, counted: tuple[str, ...] = ()) -> None:
+    """A right password: forget the failures of these keys, and take back the one attempt
+    counted for each of ``counted`` (an address), whose other failures stand. Someone with
+    an account of their own could otherwise clear their address's count between guesses at
+    everyone else's (review of wave 9, finding 5)."""
     if keys:
         session.execute(
             delete(FailedSignIn).where(FailedSignIn.key_hash.in_([token_hash(k) for k in keys]))
         )
+    for key in counted:
+        latest = session.scalar(
+            select(FailedSignIn.id).where(FailedSignIn.key_hash == token_hash(key))
+            .order_by(FailedSignIn.failed_at.desc(), FailedSignIn.id.desc()).limit(1)
+        )  # fmt: skip
+        if latest is not None:
+            session.execute(delete(FailedSignIn).where(FailedSignIn.id == latest))

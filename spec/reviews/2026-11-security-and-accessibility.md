@@ -1,6 +1,6 @@
 # Security and accessibility review, November 2026
 
-Done in wave 7, before version 0.7.0, against the code on the `wave-7` branch, and for the code wave 8 added, before 0.8.0.
+Done in wave 7, before version 0.7.0, against the code on the `wave-7` branch; for the code wave 8 added, before 0.8.0; and in wave 9, before 0.9.0, when a second reviewer walked the threat table in [security.md](../security.md) against the whole of the code.
 
 This is a record of what was looked at, how, what was found, and what was done about it. It also says plainly what was not done, so that nobody reads more into it than is there.
 
@@ -65,6 +65,30 @@ The same reviewer's brief, applied to everything added between 0.7.0 and 0.8.0: 
 
 Found sound: the checkpoint's hiding of restricted applications, the limit on what a token of one's own may change, who may accept a proposal, what the assistant is told and who may read its exchanges, who may say where a standing is read, and the pages that show all of it.
 
+### Wave 9: the threat table walked again
+
+A second reviewer, who had taken no part in writing the code or the first review, took every control `spec/security.md` claims and traced it to the code that implements it, then looked for concrete weaknesses the table's threats point at, with the newest code (who uses an application, and everything 0.8.0 added) first. Each finding was confirmed with a test, and each test is now in `tests/test_review_wave9.py`, where it failed before its fix.
+
+| # | Finding | Severity | Fix |
+|---|---|---|---|
+| 1 | Someone who signs in through the identity provider, and so has no password here, could give themselves one without any current password, and then sign in around the provider, past its second factor and its offboarding, keeping the roles it had given them | Medium | Nobody gives themselves a first password; an administrator gives one where it is wanted |
+| 2 | An edit was checked against the application a record belonged to before the edit, never the one it was moved to. Whoever kept one application could move a component or deployment onto another unit's application, point an interface between two applications they did not keep, or say their own contract covered another unit's application, changing its flags and scores under their own name | Medium | A component, deployment, or interface is checked against the application it is moved to as well; a contract is said to cover, or to stop covering, only applications its editor keeps |
+| 3 | A field the program marks sensitive (one it does not ship marked) was withheld on the record and its list column, but could still be narrowed by in the other filters (data class, who uses it), and was still told in the portfolio's rows, the data-handling report, *what breaks if this goes*, and by flags whose condition reads it. Finding B of the wave 8 review was incomplete | Low | Narrowing by a sensitive field matches only applications whose sensitive fields the person sees; those places withhold it; a flag that reads it is not named. The stage can no longer be marked sensitive: every list, gate, and figure is organized by it |
+| 4 | Two flags, *no data agreement* and *notice date near*, told everyone who could see an application the terms of a contract they could not see | Low | Named only to those who see the application's sensitive fields; still counted in figures for the whole portfolio |
+| 5 | A right password cleared the count of failed sign-ins for the address it came from, so someone with an account of their own could guess at everyone else's from one address without end | Low | A right password takes back only its own attempt from the address's count |
+| 6 | Whoever held a session could guess the current password at *change your password* without limit, and then change it | Low | Wrong guesses there are limited as at sign-in |
+| 7 | A dry-run import told a steward that a restricted application they may not see had a given name, and its reference | Low | An import looks only among the applications the importer may see |
+| 8 | A database error was logged with its statement's parameters: what someone had typed, or a new password's hash | Low | Errors are logged without parameters |
+| 9 | One person with several tokens of their own could take every slot for proposals on an application. Finding C of the wave 8 review was incomplete | Low | Proposals are counted by the person, whatever token they came by |
+
+Left as it is, on purpose:
+
+- **An import with an explicit reference** answers differently for a reference that is on record, hidden or not, than for one that is free. References are numbers given in order, so that one is taken says nothing about what holds it.
+- **A password sign-in leaves provider roles as they are** for an account an administrator has given a password, until its next single sign-on. Set `[sso] local_sign_in = false` once single sign-on is in use.
+- **Flags are counted** in figures for the whole portfolio (how many applications carry each) even where they are not named.
+
+The walk also found places where `security.md` no longer said what the code does: when the session cookie is `Secure`, how the identity provider's roles behave, that the history records the person and not the role, which files are public, what `doctor --production` checks, who sees a restricted application, two rows of the permissions table, and nothing at all about what 0.8.0 and 0.9.0 added. The document now says what the code does, including those additions.
+
 ## Accessibility
 
 ### How it was done
@@ -73,7 +97,7 @@ Two scripts, each run over every screen of the demo organization, as the people 
 
 | Check | What it does | Result |
 |---|---|---|
-| `scripts/a11y-audit.mjs` | Names on controls, labels on fields, headings, landmarks, duplicate ids, target sizes, and the contrast of every piece of text, in three palettes, by day and after dark: 138 screens and dialogs | No findings |
+| `scripts/a11y-audit.mjs` | Names on controls, labels on fields, headings, landmarks, duplicate ids, target sizes, and the contrast of every piece of text, in three palettes, by day and after dark: 142 screens and dialogs at 0.9.0 | No findings |
 | `scripts/keyboard-check.mjs` | Tabs through every page from the top: the skip link first, every stop visible, every control reached; in a dialog, focus starts inside, stays inside, closes with Escape, and returns. It also reads each page as a screen reader is given it: one main landmark and heading, a role and a name on every control, headers on every table | No findings |
 
 The brand kit's colors from the configuration file are checked for contrast when the server starts, by the same rules, so an organization's own palette cannot make text unreadable.

@@ -163,6 +163,8 @@ def save_fields(
         )
         problems += [f"{name} cannot be sensitive: it is not a field." for name in sensitive
                      if name not in names]  # fmt: skip
+        problems += [f"{name} cannot be sensitive: every list, gate, and figure is organized "
+                     "by it." for name in sensitive if name in catalog.NEVER_SENSITIVE]  # fmt: skip
     if problems:
         raise Invalid("The fields were not saved.", {"fields": " ".join(problems)})
     with audit.operation(session, "program.fields"):

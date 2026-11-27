@@ -133,7 +133,7 @@ def read(text: str) -> tuple[list[str], list[dict[str, str]]]:
 class _Lookups:
     """What a row's words are matched against, read once for the whole file."""
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, principal: Principal) -> None:
         self.units: dict[str, int] = {
             u.name.lower(): u.id for u in session.scalars(select(OrgUnit))
         }
@@ -155,13 +155,15 @@ class _Lookups:
                 for item in vocab.get(session, spec.vocab):
                     words[str(item["label"]).lower()] = item["key"]
                     words[str(item["key"]).lower()] = item["key"]
-        self.refs = set(session.scalars(select(Application.ref)))
-        self.taken = {
-            (name.lower(), unit): ref
-            for name, unit, ref in session.execute(
-                select(Application.name, Application.org_unit_id, Application.ref)
-            )
-        }
+        # Only what the importer may see: a dry run must not confirm a restricted
+        # application by its name or reference (review of wave 9, finding 7).
+        seen = access.visible(session, principal, APPLICATION)
+        mine = select(Application.name, Application.org_unit_id, Application.ref)
+        if seen is not None:
+            mine = mine.where(seen)
+        rows = session.execute(mine).all()
+        self.refs = {ref for _name, _unit, ref in rows}
+        self.taken = {(name.lower(), unit): ref for name, unit, ref in rows}
 
 
 def _values(row: Mapping[str, str], known: _Lookups, said: list[str]) -> tuple[dict, int | None]:
@@ -228,7 +230,7 @@ def import_applications(
         raise Invalid("The file is missing columns.", {"mapping": "Say which column holds: Name."})
     report = Report("applications", dry_run)
     report.rows = len(rows)
-    known = _Lookups(session)
+    known = _Lookups(session, principal)
     labels = {item["name"]: item["label"] for item in fields()} | {"org_unit_id": "Unit"}
     with audit.operation(session, "application.import"):
         for number, raw in enumerate(rows, start=2):

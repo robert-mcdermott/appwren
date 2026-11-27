@@ -124,6 +124,8 @@ INTERFACE.extra.update(
     cards=_cards,
     detail=_detail,
     add_refusal="Only the people who keep one of its two applications can add an interface.",
+    moves=("source_id", "target_id"),
+    move_refusal="An interface may join only applications one of which you keep.",
     history_vocabularies={"data_classes": "data_classes"},
 )
 

@@ -1,6 +1,6 @@
 # AppWren documentation
 
-These guides describe AppWren 0.8.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
+These guides describe AppWren 0.9.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
 
 ## The guides
 
@@ -21,12 +21,13 @@ These guides describe AppWren 0.8.0, and are published with pictures at <https:/
 
 ## Reference
 
-These two are written from the code, so they always match the version they ship with.
+The first two are written from the code, so they always match the version they ship with.
 
 | Reference | What it is |
 |---|---|
 | [Command reference](cli.md) | Every `appwren` command and option |
 | [openapi.json](openapi.json) | The OpenAPI document for the API. A running server also serves it at `/api/openapi.json` |
+| [Compatibility](compatibility.md) | What 1.x keeps the same from release to release, what it does not promise, and how something is deprecated. A draft until 1.0.0 |
 
 ## Find the answer to a question
 

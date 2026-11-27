@@ -126,3 +126,16 @@ def test_a_sensitive_field_is_not_told_to_it(
     as_role("member").post("/api/v1/assistant/ask", json={"question": "Which are critical?"})
     told = model.asked[-1][1]["content"]
     assert "Freezer Watch" in told and "Mission critical" not in told
+
+
+def test_it_is_told_who_uses_each_application(
+    helper: tuple[Callable[[str], TestClient], Model], db: Database, people: People
+) -> None:
+    as_role, model = helper
+    add_app(db, people, name="Email", org_wide=True)
+    add_app(db, people, name="Timesheets", audiences=["hourly", "contractors"])
+    model.answer = "Nothing to say."
+    as_role("member").post("/api/v1/assistant/ask", json={"question": "What do hourly staff use?"})
+    told = model.asked[-1][1]["content"]
+    assert "everyone in the organization" in told
+    assert "Hourly employees, wherever they work" in told

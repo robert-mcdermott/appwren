@@ -6,10 +6,10 @@ import { button, h, icon } from "../core/dom.js";
 import { date, dateTime, plural, relative } from "../core/format.js";
 import { catalog, label, units, vocabularies } from "../core/lookups.js";
 import { query } from "../core/router.js";
-import { banner, checkbox, field, select, submit } from "../components/form.js";
+import { banner, field, select, submit } from "../components/form.js";
 import { confirmAction, openOverlay } from "../components/overlay.js";
 import { peoplePicker } from "../components/people-picker.js";
-import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
+import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES, UNIT } from "../components/record.js";
 import { editRecord, SECTIONS } from "../components/record-forms.js";
 import { openWorking, scorecard, scoresTab, verdict } from "../components/scorecard.js";
 import { confirmationLine, confirmRecord } from "../components/confirmation.js";
@@ -69,32 +69,6 @@ function peopleCard(record, ctx) {
       avatar(person.name), h("div", { class: "grow" }, h("div", { class: "cell-main" }, person.name),
         h("div", { class: "cell-sub" }, label(ctx.vocab, "application_roles", person.kind))))))
       : h("p", { class: "muted" }, "Nobody is named."));
-}
-
-function editUnits(record, ctx) {
-  openOverlay({
-    title: "Units that use it",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const chosen = new Set(record.used_by);
-      const boxes = ctx.units.list.filter((unit) => unit.status === "active" || chosen.has(unit.id))
-        .map((unit) => ({ id: unit.id, box: checkbox(unit.name, { checked: chosen.has(unit.id) }) }));
-      const problem = banner();
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => put(`/api/v1/applications/${record.ref}/units`, { units: boxes.filter((b) => b.box.input.checked).map((b) => b.id) }) });
-        if (done) {
-          close();
-          toast("Saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack" }, problem, h("div", { class: "unit-checks stack-sm" }, boxes.map((b) => b.box.node))));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
 }
 
 // --- What it is called elsewhere -------------------------------------------------------------
@@ -290,6 +264,34 @@ function missingCard(record, ctx) {
     next.length ? h("p", { class: "subtle" }, `Before it can move to ${label(ctx.vocab, "lifecycle", nextStage)}: ${next.map(name).join(", ")}.`) : null);
 }
 
+// --- Who uses it -------------------------------------------------------------------------------
+
+/** Who uses an application: everyone in the organization, or the units that use it together
+ * with the kinds of people who use it wherever they work; then how many, and people outside. */
+export function whoUses(record, ctx) {
+  const spec = (name) => ctx.catalog.types.application.fields.find((f) => f.name === name);
+  const value = (name) => (spec(name) ? shown(spec(name), record, ctx) : null);
+  const everyone = record.org_wide === true;
+  const units = everyone ? [] : (record.used_by ?? []).map((id) => ctx.units.byId.get(id)?.name).filter(Boolean);
+  const kinds = everyone ? null : value("audiences");
+  const rows = [
+    [UNIT.plural, units.length ? units.join(", ") : null],
+    ["Kinds of people", kinds ? [kinds, h("div", { class: "cell-sub" }, "Wherever in the organization they work")] : null],
+    ["People who use it", value("users")],
+    ["Used by people outside the organization", value("external_users")],
+  ].filter(([, shownValue]) => shownValue != null);
+  return { everyone, said: everyone || units.length > 0 || kinds != null, rows };
+}
+
+function useCard(record, ctx) {
+  const { everyone, said, rows } = whoUses(record, ctx);
+  return card({ title: SECTIONS.use, actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editUse", record, ctx) }) : null },
+    h("div", { class: "stack" },
+      everyone ? h("p", {}, h("strong", {}, "Everyone in the organization")) : null,
+      said ? null : h("p", { class: "muted" }, "Nobody has said who uses it yet."),
+      rows.length ? facts(rows) : null));
+}
+
 function applicationOverview(record, ctx) {
   const specs = ctx.catalog.types.application.fields;
   const bySection = {};
@@ -304,18 +306,16 @@ function applicationOverview(record, ctx) {
       : spec.type === "bool" ? (value ? "Yes" : "No") : spec.type === "url" ? outside(value) : String(value);
     return [spec.label, text];
   }).filter(Boolean);
-  const usedBy = record.used_by.map((id) => ctx.units.byId.get(id)?.name).filter(Boolean);
   return h("div", { class: "split" },
     h("div", { class: "stack-lg" },
       record.summary ? card({ title: "About" }, prose(record.summary)) : null,
-      Object.entries(SECTIONS).filter(([key]) => bySection[key]?.length).map(([key, title]) => card({ title }, facts(bySection[key]))),
+      Object.entries(SECTIONS).filter(([key]) => key === "use" || bySection[key]?.length)
+        .map(([key, title]) => (key === "use" ? useCard(record, ctx) : card({ title }, facts(bySection[key])))),
       own.length ? card({ title: "The organization's own fields" }, facts(own)) : null,
       record.withheld?.length ? h("p", { class: "subtle" }, "Some details are shown only to people with a role over this application.") : null),
     h("div", { class: "stack-lg" },
       missingCard(record, ctx),
       peopleCard(record, ctx),
-      card({ title: "Used by", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editUnits(record, ctx) }) : null },
-        usedBy.length ? h("p", {}, usedBy.join(", ")) : h("p", { class: "muted" }, "No unit is recorded as using it.")),
       record.successor || record.replaces?.length ? card({ title: "Succession" }, facts([
         ["Replaced by", record.successor ? recordChip(record.successor) : null],
         ["Replaces", record.replaces?.length ? h("div", { class: "chips" }, record.replaces.map((r) => recordChip(r))) : null]])) : null,
@@ -519,6 +519,15 @@ function interfaceTable(rows, ctx, { other, heading }) {
       h("td", {}, dataClasses(ctx.vocab, r.data_classes, r.undeclared)))))));
 }
 
+/** Who would be without it: everyone, or the units and the kinds of people who use it. */
+function usedBy(record, found, ctx) {
+  if (record.org_wide === true) return "Everyone in the organization";
+  const kinds = Array.isArray(record.audiences) && record.audiences.length
+    ? `${record.audiences.map((key) => label(ctx.vocab, "audiences", key)).join(", ")}, wherever they work` : null;
+  const units = found.units.length ? `Everyone in ${found.units.map((u) => u.name).join(", ")}` : null;
+  return [units, kinds].filter(Boolean).join("; ") || null;
+}
+
 /** What would be touched if the application stopped, in words and lists. */
 function impactCard(record, ctx) {
   const found = ctx.impact;
@@ -526,7 +535,7 @@ function impactCard(record, ctx) {
   const relying = found.direct.length + found.beyond.length;
   const chips = (rows) => h("div", { class: "chips" }, rows.map((r) => recordChip(r)));
   const lead = relying || found.hidden
-    ? `${plural(found.direct.length, "application depends", "applications depend")} on it directly${found.beyond.length ? `, and ${found.beyond.length} more through ${found.direct.length === 1 ? "it" : "them"}` : ""}. Together with its own, up to ${Number(found.people).toLocaleString()} people use one of them.`
+    ? `${plural(found.direct.length, "application depends", "applications depend")} on it directly${found.beyond.length ? `, and ${found.beyond.length} more through ${found.direct.length === 1 ? "it" : "them"}` : ""}.${found.people != null ? ` Together with its own, up to ${Number(found.people).toLocaleString()} people use one of them.` : ""}`
     : "No application is recorded as depending on it.";
   const notes = [
     found.research_continuity ? "Active studies depend on it." : null,
@@ -545,7 +554,7 @@ function impactCard(record, ctx) {
         ["Capabilities that would lose their primary", found.capabilities_weakened.length
           ? h("div", { class: "stack-sm" }, found.capabilities_weakened.map((c) => h("div", { class: "row-sm wrap" }, recordChip(c),
             h("span", { class: "subtle" }, "still served by"), c.others.length ? c.others.map((o) => recordChip(o)) : h("span", { class: "subtle" }, "applications you do not have access to")))) : null],
-        ["Units that use it", found.units.length ? found.units.map((u) => u.name).join(", ") : null],
+        ["Who uses it", usedBy(record, found, ctx)],
       ]),
       notes.length ? h("ul", { class: "bullets" }, notes.map((text) => h("li", {}, text))) : null));
 }
@@ -802,7 +811,9 @@ export function recordPage(main, type, params) {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
       const ctx = context(data, reload);
-      const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord(type, { record, onDone: reload }) }) : null;
+      // Who uses an application is edited on its own card, with the units that use it.
+      const skip = type === "application" ? ["use"] : [];
+      const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord(type, { record, skip, onDone: reload }) }) : null;
       const picture = h("a", { class: "btn", href: `/graph/${record.ref}` }, "How it is connected");
       return h("div", { class: "stack" },
         recordHeader(record, { badges: [type === "review" ? data.planning.reviewState(record.state)

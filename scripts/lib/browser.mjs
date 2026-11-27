@@ -90,8 +90,9 @@ export async function openBrowser() {
       await page("Input.dispatchKeyEvent", { type: "keyDown", ...base, text });
       await page("Input.dispatchKeyEvent", { type: "keyUp", ...base });
     },
-    async size(width, height) {
-      await page("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 2, mobile: width < 600 });
+    /** The window's size, drawn at twice its pixels unless ``scale`` says otherwise. */
+    async size(width, height, scale = 2) {
+      await page("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale, mobile: width < 600 });
     },
     async scheme(value) {
       await page("Emulation.setEmulatedMedia", { features: [

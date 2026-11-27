@@ -4,6 +4,94 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.9.0 (2026-11-27)
+
+Wave 9, *Toward 1.0*: the release 1.0 is made from. An application says who uses it:
+everyone in the organization, or the units and the kinds of people who do, such as managers
+or hourly employees, wherever they work. Every earlier release is upgraded to this one by a
+script, on both databases, with nothing lost. The compatibility promise 1.0 will make is
+written down as a draft for review. A second reviewer walked the threat table against the code,
+and a soak test kept a server of five thousand applications busy with twenty people for ten
+minutes, and what each found is fixed. 1.0.0 follows the maintainer's review of this release.
+
+### Added
+
+- **Who uses it.** An application's *Who uses it* card, with one dialog, says whether
+  everyone in the organization uses it, or which units do and which kinds of people do
+  wherever they work: managers and supervisors for performance reviews, hourly employees and
+  contractors for time tracking, or everyone in Human Resources and managers across the
+  organization for applicant tracking. With it are about how many people use it and whether
+  people outside the organization do. `PUT /api/v1/applications/{ref}/use` sets all of it in
+  one change.
+- **Kinds of people** are a list the program keeps (*Audiences*), renamed and extended under
+  Admin → Program. The default program and each starter program come with their own.
+- **Filters by who uses it.** The application list filters by who uses it (everyone, or a
+  kind of people) and by what everyone in a unit uses, counting what the whole organization
+  and the units above it use. *What breaks if this goes* says who would be without it, and
+  the assistant is told who uses each application.
+- **The compatibility statement**, in [docs/compatibility.md](docs/compatibility.md): what
+  1.x will keep the same, what it does not promise, and how something is deprecated. It is a
+  draft until 1.0.0.
+- **An upgrade check** that builds a demo with every earlier release and upgrades it to this
+  one, on SQLite and PostgreSQL, checking that every row and file is kept, the history
+  verifies, and no decision's digest or application's score moves: `scripts/upgrade-check.py`.
+- **A soak test** that keeps a server with five thousand applications under concurrent use
+  and reports errors, latency, and memory: `scripts/soak.py`.
+
+### Changed
+
+- The units that use an application are no longer a card of their own beside the record;
+  they are part of *Who uses it*, and the record's own **Edit** no longer holds that section.
+- The demo says who uses each application, names only the unit that keeps an application
+  where it says nothing else, and has two more: time and attendance, and performance reviews,
+  registered by Human Resources in its last week.
+
+### Fixed
+
+- **Under load, found by the soak test.** Twenty people arriving at once on a SQLite
+  installation of five thousand applications held the server up for a minute or two, with
+  some requests failing. Home now scores only the applications a person is named on and,
+  for those who keep or decide for units, their units' applications, so it no longer costs
+  as much as the whole portfolio for everyone. Checking who is signed in only reads, and
+  takes SQLite's write lock at most once a minute, to slide the session's expiry. A server
+  process has a database connection for each request it runs at once. And a database too
+  busy to answer is answered 503 with when to try again, including while checking who is
+  signed in, where it had been a 500 that also dropped the connection.
+- A server process restarted by `--reload`, or started by a process manager, answered on a
+  database whose schema was behind its code, and every page that read a newer table failed
+  with *The database is unavailable*. Each process now checks the schema as it starts, as
+  `serve` always did, and refuses with what to run.
+- The API contract test compared with the newest release by name, so 0.10.0 would have been
+  taken for older than 0.9.0. It compares by version.
+
+### Security
+
+A second reviewer walked the threat table in `spec/security.md` against the whole of the
+code; the record is in `spec/reviews/`. What it found is fixed, each with a test that failed
+before:
+
+- Someone who signs in through the identity provider can no longer give themselves a
+  password, which would have let them sign in around the provider and keep roles it had
+  taken away.
+- An edit is checked against the application a component, deployment, or interface is moved
+  to, not only the one it was on; and a contract is said to cover only applications its
+  editor keeps.
+- A field the program marks sensitive is withheld everywhere the record withholds it: in the
+  filters beyond the list's columns, the portfolio's rows, the data-handling report, *what
+  breaks if this goes*, and flags whose condition reads it. Flags that tell a covering
+  contract's terms are named only to those who may see them.
+- A right password no longer clears the count of failed sign-ins from its address, and wrong
+  guesses at the current password, when changing it, are limited as at sign-in.
+- A dry-run import no longer confirms a restricted application's name; a database error is
+  logged without what was typed; and proposals are counted by the person, however many
+  tokens of their own they use.
+
+### Breaking
+
+- **The stage cannot be marked sensitive.** Every list, gate, and figure is organized by it.
+  An installation that had marked it finds it shown again; saving the program's fields with
+  it marked is refused.
+
 ## 0.8.0 (2026-11-27)
 
 Wave 8, *Connected*: AppWren fits into the systems around it, all of it optional. Another

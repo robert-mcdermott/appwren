@@ -155,6 +155,32 @@ def multiply(engine: Any, applications: int, components: int) -> tuple[int, int]
         return count(conn, "application"), count(conn, "component")
 
 
+def build(root: str) -> Any:
+    """Build the demo organization in ``root`` and, when APPWREN_DATABASE_URL is set, move it
+    into that database. Returns its configuration, or None if the demo could not be built."""
+    from appwren.cli import main as appwren
+    from appwren.config import load_config
+
+    if appwren(["--quiet", "demo", root]) != 0:
+        return None
+    config = load_config(Path(root) / "appwren.toml")
+    if os.environ.get("APPWREN_DATABASE_URL"):
+        # The demo is always built on SQLite. Move it, the way an installation is moved.
+        from appwren import backup
+        from appwren.db.engine import Database
+        from appwren.home import DataHome
+
+        home = DataHome(config.data.home)
+        built = Database(load_config(Path(root) / "appwren.toml", env={}).database_url)
+        target = Database(config.database_url)
+        saved = Path(root) / "move.tar.gz"
+        backup.create(built.engine, home, saved)
+        backup.restore(target.engine, home, saved)
+        built.dispose()
+        target.dispose()
+    return config
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--applications", type=int, default=5_000, help="applications to have")
@@ -168,28 +194,12 @@ def main() -> int:
     from fastapi.testclient import TestClient
 
     from appwren.api.app import create_app
-    from appwren.cli import main as appwren
-    from appwren.config import load_config
 
     with tempfile.TemporaryDirectory(prefix="appwren-perf-") as root:
         started = time.perf_counter()
-        if appwren(["--quiet", "demo", root]) != 0:
+        config = build(root)
+        if config is None:
             return 1
-        config = load_config(Path(root) / "appwren.toml")
-        if os.environ.get("APPWREN_DATABASE_URL"):
-            # The demo is always built on SQLite. Move it, the way an installation is moved.
-            from appwren import backup
-            from appwren.db.engine import Database
-            from appwren.home import DataHome
-
-            home = DataHome(config.data.home)
-            built = Database(load_config(Path(root) / "appwren.toml", env={}).database_url)
-            target = Database(config.database_url)
-            saved = Path(root) / "move.tar.gz"
-            backup.create(built.engine, home, saved)
-            backup.restore(target.engine, home, saved)
-            built.dispose()
-            target.dispose()
         app = create_app(config)
         with TestClient(app, base_url="http://127.0.0.1") as client:
             apps, parts = multiply(app.state.db.engine, args.applications, args.components)

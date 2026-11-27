@@ -424,6 +424,8 @@ Each process is a whole server. They share nothing but the database and the data
 - **Scheduled work** is claimed in the database before it runs, so a job runs once however many processes there are.
 - **The history** is appended under a lock on its last entry, so it stays a single line.
 
+Each process runs up to forty requests at once and may open as many connections to the database, keeping ten open. With PostgreSQL, allow for that in its `max_connections`: four processes may open 160.
+
 ## How large it runs
 
 AppWren is measured with the demo organization copied up to **5,029 applications and 52,029 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
@@ -439,7 +441,9 @@ AppWren is measured with the demo organization copied up to **5,029 applications
 | Engineering maturity | 1.1 s | 1.1 s |
 | Home, the portfolio list, the dashboard, data quality, overlap | 1.7–1.9 s | 1.7–2.0 s |
 
-The pages in the last row score every application in service each time they are opened, so their time grows with the portfolio: at 500 applications each takes about a fifth of a second. Everything that opens one record, or a page of a list, stays fast at any size.
+The pages in the last row score every application in service each time they are opened, so their time grows with the portfolio: at 500 applications each takes about a fifth of a second. Home does so only for a manager over the whole organization, as measured here; for anyone else it scores the applications they are named on and those of the units they keep or decide for. Everything that opens one record, or a page of a list, stays fast at any size.
+
+`scripts/soak.py` keeps a server at that size busy with twenty people at once for ten minutes and reports failures, timings, and memory, if you want to see how it holds up on your hardware. Measured so on the laptop above with SQLite and one server process, it answered all 6,874 requests in ten minutes with no failures, half of them within 33 ms and 95 in 100 within a fifth of a second, Home within 1.6 seconds for 95 in 100, with memory level at about 530 MB.
 
 You can repeat the measurement on your own hardware. It builds a throwaway installation in a temporary directory and touches nothing else:
 
@@ -459,7 +463,7 @@ uv sync
 uv run appwren db upgrade
 ```
 
-`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first, with `uv run appwren backup`: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
+`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first, with `uv run appwren backup`: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and so does each server process, however it was started; `uv run appwren db current` shows where the database is. What an upgrade keeps is set out in [Compatibility](compatibility.md).
 
 ## Run behind a reverse proxy
 

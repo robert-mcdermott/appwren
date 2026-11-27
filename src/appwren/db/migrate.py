@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 from collections.abc import Callable
 
 from alembic import command
@@ -23,14 +24,18 @@ def alembic_config(url: str) -> AlembicConfig:
     return cfg
 
 
+@functools.cache
 def head_revision(url: str = "sqlite://") -> str | None:
-    """The newest migration shipped with this version of AppWren."""
+    """The newest migration shipped with this version of AppWren. Read once: the files that
+    say it do not change while it runs, and every server process asks as it starts."""
     return ScriptDirectory.from_config(alembic_config(url)).get_current_head()
 
 
-def script_revisions(url: str = "sqlite://") -> set[str]:
+@functools.cache
+def script_revisions(url: str = "sqlite://") -> frozenset[str]:
     """Every migration this version of AppWren ships."""
-    return {s.revision for s in ScriptDirectory.from_config(alembic_config(url)).walk_revisions()}
+    found = ScriptDirectory.from_config(alembic_config(url)).walk_revisions()
+    return frozenset(s.revision for s in found)
 
 
 def current_revision(engine: Engine) -> str | None:

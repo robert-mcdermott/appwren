@@ -63,10 +63,13 @@ def propose(
     ).all()  # fmt: skip
     if len(pending) >= MAX_PENDING:
         errors["field"] = "This application has as many waiting suggestions as it may hold."
+    # One person, by any number of tokens of their own, counts once (review of wave 9,
+    # finding 9); a token an administrator issued, which is nobody's, counts by its name.
+    whose = (Suggestion.proposed_by == principal.account_id if principal.account_id is not None
+             else Suggestion.source == principal.name[:200])  # fmt: skip
     mine = session.scalars(
         select(Suggestion.id).where(Suggestion.application_id == app.id,
-                                    Suggestion.status == "pending",
-                                    Suggestion.source == principal.name[:200])
+                                    Suggestion.status == "pending", whose)
     ).all()  # fmt: skip
     if len(mine) >= MAX_MINE:
         errors["field"] = f"You have {MAX_MINE} proposals waiting on it. Wait for an answer."

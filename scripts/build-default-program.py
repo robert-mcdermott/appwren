@@ -292,6 +292,18 @@ EXTERNAL_SYSTEMS = items(
     ("governance_record", "Governance record", "Its record in another governance system"),
 )
 
+AUDIENCES = items(
+    ("leadership", "Leadership", "Executives and the people who lead its divisions"),
+    ("managers", "Managers and supervisors", "Anyone who manages people"),
+    ("hourly", "Hourly employees", "Staff paid by the hour, who record their time"),
+    ("contractors", "Contractors and temporary staff", "People who work for it without being employees"),
+    ("researchers", "Researchers", "Investigators and the staff of their studies and labs"),
+    ("clinicians", "Clinicians", "Doctors, nurses, and others who care for patients"),
+    ("trainees", "Students and trainees", "People here to learn: students, fellows, and trainees"),
+    ("administrative", "Administrative staff", "The people who run its business: finance, people, purchasing, and facilities"),
+    ("it_staff", "IT staff", "The people who build and run its technology"),
+)  # fmt: skip
+
 UNIT_KINDS = items(
     ("organization", "Organization"),
     ("division", "Division"),
@@ -1104,6 +1116,7 @@ def main() -> None:
             "interface_methods": INTERFACE_METHODS,
             "interface_frequencies": INTERFACE_FREQUENCIES,
             "unit_kinds": UNIT_KINDS,
+            "audiences": AUDIENCES,
             "dispositions": DISPOSITIONS,
         },
         "fields": FIELDS,
