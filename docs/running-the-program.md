@@ -110,6 +110,19 @@ An application can carry its identifier in another system: a configuration item,
 
 A pattern must begin `https://`. A pack with any other pattern is refused.
 
+#### How a record stands elsewhere
+
+An application's record in another system of record (an AI-use review, a risk register entry, a security assessment) has a standing there: approved, open, closed. Where that system answers in JSON, give it a `standing_url`, and AppWren reads each linked record's standing every six hours and shows it beside the link:
+
+```json
+{"key": "governance_record", "label": "AI-use review",
+ "url": "https://reviews.example.org/r/{id}",
+ "standing_url": "https://reviews.example.org/api/r/{id}",
+ "standing_field": "review.state", "key_env": "APPWREN_REVIEWS_TOKEN"}
+```
+
+`standing_field` says where in the answer to look, as a dotted path (`status` if left out). `key_env` names an environment variable holding a key, sent as a bearer token; it may not be one of the server's own variables. A change of standing is kept in the application's history, under *Standings*; a read that fails says why beside the link, and changes nothing else. Nothing is read until a system has a `standing_url`. Only an administrator sets `standing_url`, `standing_field`, and `key_env`, in a pack or in the app, since they make AppWren reach out to another system with a key.
+
 ### Versions
 
 The question bank and the scoring model are **versioned**. A version in use is never changed: publishing in the app, or loading a pack that changes either, makes a new version, and the old one stays, marked superseded. Every assessment names the version of the questions it answered, and every snapshot names the version of the model it used, so a decision made last year still shows exactly what its maker saw.
@@ -127,6 +140,7 @@ Changing the scoring model changes every application's scores at once, the next 
 - **Stage gates and new lists.** Version 0.5.0 gates the lifecycle stages: an application cannot move to a later stage without what that stage requires. The gates are on after the upgrade too; switch them off on **Admin → Program → Decisions** to keep moving records as before. Two new lists arrive with their defaults: the kinds and the stages of an initiative.
 - **Insight.** Version 0.6.0 adds leadership reports, scenarios, and the record as of a day. Nothing already recorded changes: as of a day reads the history you already have, back to the day AppWren was installed.
 - **Adoption.** Version 0.7.0 adds API tokens and webhooks, both off until an administrator issues or registers one, and the brand kit, which keeps your appearance as it is until you change it. Nothing already recorded changes. A starter program is only for a new installation, or loaded by choice with `program import`.
+- **Connected.** Version 0.8.0 adds the checkpoint, tokens of your own and suggestions, the tool server, the optional assistant, and standings elsewhere. Each is off, or does nothing, until someone uses it: the assistant until `[assistant]` is configured, and standings until a system is given a `standing_url`.
 - **Nothing is stale on the day of an upgrade.** A record that has never been confirmed is due one period after the upgrade, not one period after it was added.
 - Decisions already recorded keep the snapshot of the scores they were made against, whatever the model becomes.
 
@@ -180,6 +194,7 @@ AppWren does some work by itself, so that nobody has to remember to. **Admin →
 | **Triggers** | Every hour | Raises a task when a contract's notice date is near, a release nears its end of support, a grant nears its end, or an owner leaves; closes tasks whose cause is settled |
 | **Reminders** | Every hour | Reminds people of what is nearly due or late, and tells stewards and leaders what stays late; closes campaign items whose thing has been done |
 | **Email** | Every minute | Sends notices and daily summaries, where email is set up |
+| **Standings elsewhere** | Every six hours | Reads how each linked record stands in another system of record, where the program gives that system a [standing address](#how-a-record-stands-elsewhere) |
 | **Webhooks** | Every minute | Tells each [webhook](api.md#be-told-when-something-happens) an administrator has registered of what it asked for, signed, and tries a failed delivery again later |
 | **Connectors** | Every 15 minutes | Runs each [connector](signals.md#connectors) an administrator has switched on, when it is due |
 | **Monthly snapshot** | Every six hours | Takes the month's portfolio snapshot, once |

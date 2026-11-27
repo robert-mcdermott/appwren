@@ -1989,6 +1989,25 @@ class Builder:
                                            "expires_on": (self.end + timedelta(days=50)).date()
                                            .isoformat()})  # fmt: skip
         self.tally("API tokens")
+        # The research software engineer's assistant, with a token of their own, proposed a
+        # truer count of users for the platform they keep; it waits for them to accept it.
+        if "Cohort Analysis Platform" not in self.apps:
+            return
+        from appwren.integration import suggestions
+
+        engineer = self.principal(self.cast["rse"])
+        moment = self.end - timedelta(days=2)
+        with clock_set_to(lambda: moment), self.db.write(engineer.actor) as session:
+            row, _ = tokens.create_personal(session, engineer, {"name": "My assistant"})
+            helper = tokens.principal_for(session, row)
+            app = records.load(
+                session, engineer, APPLICATION, self.apps["Cohort Analysis Platform"]
+            )
+            suggestions.propose(session, helper, app, {
+                "field": "users", "value": (app.users or 0) + 35,
+                "note": "Thirty-five more people signed in last quarter than the record says",
+            })  # fmt: skip
+        self.tally("suggestions")
 
     def reports(self) -> None:
         """A leadership report for the last full quarter, made by the portfolio manager."""

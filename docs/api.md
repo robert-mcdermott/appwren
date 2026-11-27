@@ -58,6 +58,53 @@ curl -s -H 'Authorization: Bearer awt_…' http://127.0.0.1:8000/api/v1/applicat
 
 A token sees and may do what its role may, and nothing more. A reading token is refused any change with 403. A change made with a token is recorded in the history against the token's name. A token needs no CSRF token, since no browser is involved, and never signs in to the web app. One that is revoked or has expired is refused with 401 at once.
 
+### A token of your own
+
+Anyone may make a token of their own under **Your account → Your API tokens**. It acts as them, so it sees exactly what they see; it reads, and it proposes changes, and it changes nothing itself. A proposal is a **suggestion** on an application: a value for one field, with a note saying why. It waits on the application's page until someone who keeps the application accepts it, which is their own edit, checked by the usual rules and kept in the history under their name, or dismisses it.
+
+```bash
+curl -s -H 'Authorization: Bearer awt_…' -H 'Content-Type: application/json' \
+  -d '{"field": "users", "value": 95, "note": "The sign-in log says so"}' \
+  http://127.0.0.1:8000/api/v1/applications/APP-0024/suggestions
+```
+
+A personal token stops working when its owner's password changes or their account is disabled. Whatever its owner's roles, it never administers.
+
+## Let an AI assistant read AppWren
+
+An assistant that speaks the Model Context Protocol can read AppWren, and propose changes, through a small tool server that comes with it. The assistant's host program starts it; give it the address of your AppWren and a token of the person's own:
+
+```json
+{"mcpServers": {"appwren": {
+  "command": "uv", "args": ["run", "--directory", "/opt/appwren", "appwren", "tools", "serve"],
+  "env": {"APPWREN_URL": "https://apps.example.org", "APPWREN_TOKEN": "awt_…"}}}}
+```
+
+Its tools: `search`, `get_record`, `list_applications`, `check_application` (the checkpoint), `my_work` (what is waiting on the person), and `suggest_change`. It cannot change a record, decide, or accept its own proposal; every call goes through the API as the person, so it sees nothing they may not.
+
+## Ask whether an application is approved
+
+A purchasing form, a data access request, or a project intake can cite an application's reference and ask AppWren whether it is approved, with any token or session:
+
+```bash
+curl -s -H 'Authorization: Bearer awt_…' \
+  'http://127.0.0.1:8000/api/v1/checkpoint/APP-0024?data_class=identifiable_research'
+```
+
+```json
+{"data": {"ref": "APP-0024", "name": "Specimen Tracker", "checked_on": "2026-11-27",
+          "stage": "active", "decision": "modernize", "approved": true,
+          "asked_data_class": "identifiable_research", "allowed": true,
+          "data_classes": ["identifiable_research", "personal"], "flags": [],
+          "reasons": [
+            {"check": "stage", "ok": true, "text": "Its lifecycle stage is Active"},
+            {"check": "decision", "ok": true, "text": "The decision on record is to modernize it"},
+            {"check": "support", "ok": true, "text": "Nothing it is known to run on is past its end of support"},
+            {"check": "data_class", "ok": true, "text": "Its record says it handles identifiable research data"}]}}
+```
+
+`approved` is true when the application is in service and open to new use (phase in or active), its decision on record does not take it away (retire, replace, or consolidate), and nothing it is known to run on is past its end of support. With `data_class`, `allowed` is also true only if its record says it handles that class. Every reason is given, so the process asking can weigh them itself. A restricted application the asker may not see is answered 404, as if there were none.
+
 ## Be told when something happens
 
 An administrator registers **webhooks** under **Admin → Webhooks**: an `https://` address on the public internet, and what it is to be told of.
@@ -337,6 +384,11 @@ See [Insight](insight.md).
 | `POST /program/scoring/preview` · `PUT /program/scoring` | Every application a changed scoring model would change; publish it as a new version |
 | `GET /jobs` · `POST /jobs/{key}/run` · `PUT /jobs/{key}` | Scheduled work and its recent runs; run a job now; pause or resume one (admin) |
 | `GET /mail` · `POST /mail/test` | How email is set up and doing; send yourself a test message (admin) |
+| `GET` · `POST /tokens` · `DELETE /tokens/{id}` | Your own tokens; make one with a `name` and `expires_on`, its `token` in the answer this once; revoke one |
+| `GET` · `POST /applications/{ref}/suggestions` | The changes proposed to an application, pending and recently decided; propose a `value` for one `field`, with a `note` |
+| `POST /suggestions/{id}/accept` · `POST /suggestions/{id}/dismiss` | Accept a proposal, making the change as yours, or dismiss it. Someone who keeps the application, signed in |
+| `POST /assistant/ask` · `POST /assistant/draft` · `GET /assistant/exchanges` | Where an assistant is set up: an `answer` to a `question` with the `records` it cites; `values` drafted from a document's `text`, and what was `dropped`; every exchange (for those who see everything). 404 when there is no assistant |
+| `GET /checkpoint/{ref}` | Whether an application is approved for new use, and for a `data_class` if given, with every reason. See [Ask whether an application is approved](#ask-whether-an-application-is-approved) |
 | `GET` · `POST /admin/tokens` · `DELETE /admin/tokens/{id}` | API tokens and when each was last used; issue one with a `name`, `role`, `org_unit_id`, `read_only`, and `expires_on`, its `token` in the answer this once; revoke one (admin) |
 | `GET` · `POST /admin/webhooks` · `PATCH` · `DELETE /admin/webhooks/{id}` · `POST /admin/webhooks/{id}/test` | Webhooks and their recent deliveries; add one with a `name`, `url`, and `topics`, its `secret` in the answer this once; change, switch off, or remove one; send a test now (admin) |
 

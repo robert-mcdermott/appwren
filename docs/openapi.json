@@ -1867,6 +1867,21 @@
         "title": "DismissBody",
         "type": "object"
       },
+      "DraftBody": {
+        "properties": {
+          "text": {
+            "description": "A document describing the application",
+            "maxLength": 20000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "DraftBody",
+        "type": "object"
+      },
       "EndBody": {
         "properties": {
           "application": {
@@ -3021,6 +3036,33 @@
         "title": "OverrideBody",
         "type": "object"
       },
+      "OwnTokenBody": {
+        "properties": {
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "YYYY-MM-DD; 90 days if none",
+            "title": "Expires On"
+          },
+          "name": {
+            "description": "What it is for, such as an assistant",
+            "maxLength": 80,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "OwnTokenBody",
+        "type": "object"
+      },
       "PasswordChange": {
         "properties": {
           "current_password": {
@@ -3071,6 +3113,21 @@
           "email_notices"
         ],
         "title": "Preferences",
+        "type": "object"
+      },
+      "QuestionBody": {
+        "properties": {
+          "question": {
+            "description": "A question about the portfolio",
+            "maxLength": 2000,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "QuestionBody",
         "type": "object"
       },
       "ReadBody": {
@@ -3744,6 +3801,39 @@
           }
         },
         "title": "StepBody",
+        "type": "object"
+      },
+      "SuggestionBody": {
+        "properties": {
+          "field": {
+            "description": "The field, such as summary or users",
+            "maxLength": 60,
+            "title": "Field",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why",
+            "title": "Note"
+          },
+          "value": {
+            "description": "The value proposed for it",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "field",
+          "value"
+        ],
+        "title": "SuggestionBody",
         "type": "object"
       },
       "TechnologiesBody": {
@@ -7253,6 +7343,103 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/suggestions": {
+      "get": {
+        "operationId": "list_suggestions_api_v1_applications__ref__suggestions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Suggestions Api V1 Applications  Ref  Suggestions Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Changes proposed to an application",
+        "tags": [
+          "integration"
+        ]
+      },
+      "post": {
+        "description": "Nothing on the record changes: someone who keeps it accepts or dismisses it.",
+        "operationId": "propose_change_api_v1_applications__ref__suggestions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Propose Change Api V1 Applications  Ref  Suggestions Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Propose a change",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/units": {
       "put": {
         "operationId": "set_units_api_v1_applications__ref__units_put",
@@ -7351,6 +7538,117 @@
         "summary": "The portfolio as it stood on a day",
         "tags": [
           "insight"
+        ]
+      }
+    },
+    "/api/v1/assistant/ask": {
+      "post": {
+        "description": "An answer from the applications the person may see, with links to the records it\ncites. 404 if there is no assistant.",
+        "operationId": "ask_api_v1_assistant_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ask Api V1 Assistant Ask Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask a question about the portfolio",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/draft": {
+      "post": {
+        "description": "Values for the form to add an application, from the document's text. Nothing is\nsaved: the person reads, corrects, and adds it themselves. 404 if there is no\nassistant.",
+        "operationId": "draft_api_v1_assistant_draft_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Draft Api V1 Assistant Draft Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft an application from a document",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/exchanges": {
+      "get": {
+        "operationId": "exchanges_api_v1_assistant_exchanges_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Exchanges Api V1 Assistant Exchanges Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "What has been asked of the assistant",
+        "tags": [
+          "assistant"
         ]
       }
     },
@@ -8251,6 +8549,69 @@
         "summary": "What the program says about applications",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/checkpoint/{ref}": {
+      "get": {
+        "description": "Whether the application is approved for new use: in service and open to it, with a\ndecision that keeps it, and nothing past its end of support; with ``data_class``,\n``allowed`` says whether its record also says it handles that class. Every reason is\ngiven. A restricted application the asker may not see is answered 404.",
+        "operationId": "ask_checkpoint_api_v1_checkpoint__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "A data class's key, if asking",
+            "in": "query",
+            "name": "data_class",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A data class's key, if asking",
+              "title": "Data Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ask Checkpoint Api V1 Checkpoint  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Is this application approved, and for this data?",
+        "tags": [
+          "integration"
         ]
       }
     },
@@ -17199,6 +17560,95 @@
         ]
       }
     },
+    "/api/v1/suggestions/{suggestion_id}/accept": {
+      "post": {
+        "description": "The change is made as yours, checked by the same rules as any edit.",
+        "operationId": "accept_suggestion_api_v1_suggestions__suggestion_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "title": "Suggestion Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Accept Suggestion Api V1 Suggestions  Suggestion Id  Accept Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept a proposed change",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/suggestions/{suggestion_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_suggestion_api_v1_suggestions__suggestion_id__dismiss_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "title": "Suggestion Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Dismiss Suggestion Api V1 Suggestions  Suggestion Id  Dismiss Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss a proposed change",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
     "/api/v1/tasks": {
       "get": {
         "description": "Each person sees their own tasks; stewards, leaders, and managers those about the\napplications in their units; those who read everything, all of them.",
@@ -17891,6 +18341,115 @@
         "summary": "A technology's releases and their support",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/tokens": {
+      "get": {
+        "operationId": "my_tokens_api_v1_tokens_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response My Tokens Api V1 Tokens Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Your own API tokens",
+        "tags": [
+          "integration"
+        ]
+      },
+      "post": {
+        "description": "It acts as you: it reads what you may, and proposes changes for you to accept. The\ntoken is in the answer, and never again.",
+        "operationId": "make_my_token_api_v1_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnTokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Make My Token Api V1 Tokens Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Make a token of your own",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/tokens/{token_id}": {
+      "delete": {
+        "operationId": "revoke_my_token_api_v1_tokens__token_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "title": "Token Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Revoke My Token Api V1 Tokens  Token Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke a token of your own",
+        "tags": [
+          "integration"
         ]
       }
     },

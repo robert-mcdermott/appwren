@@ -16,6 +16,7 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren init`](#appwren-init) | Set up a new installation |
 | [`appwren serve`](#appwren-serve) | Run the web server |
 | [`appwren db`](#appwren-db) | Look after the database schema |
+| [`appwren tools`](#appwren-tools) | Let an AI assistant read AppWren and propose changes |
 | [`appwren backup`](#appwren-backup) | Write the whole installation to one file |
 | [`appwren restore`](#appwren-restore) | Load a backup into an empty installation |
 | [`appwren users`](#appwren-users) | Manage accounts from the command line |
@@ -73,6 +74,14 @@ Copy every table into another database that has not been set up, such as from SQ
 |---|---|
 | `--to` `URL` | the new database's address |
 | `--to-env` `NAME` | the name of an environment variable holding the address, to keep a password off the command line |
+
+## `appwren tools`
+
+An optional tool server for AI assistants, speaking the Model Context Protocol. It is not needed to run AppWren.
+
+### `appwren tools serve`
+
+Serve AppWren's tools to an AI assistant over standard input and output. An assistant's host program starts this command; it is not run by hand. It calls the AppWren at APPWREN_URL with the token in APPWREN_TOKEN, a token of the person's own, and so sees only what they may. It reads records and proposes changes. It cannot change, decide, or accept anything.
 
 ## `appwren backup`
 

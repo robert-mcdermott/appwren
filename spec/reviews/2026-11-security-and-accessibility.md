@@ -1,6 +1,6 @@
 # Security and accessibility review, November 2026
 
-Done in wave 7, before version 0.7.0, against the code on the `wave-7` branch.
+Done in wave 7, before version 0.7.0, against the code on the `wave-7` branch, and for the code wave 8 added, before 0.8.0.
 
 This is a record of what was looked at, how, what was found, and what was done about it. It also says plainly what was not done, so that nobody reads more into it than is there.
 
@@ -50,6 +50,20 @@ The policy table, which refuses any route it does not list. Sessions: random tok
 ### What this was not
 
 It was a review of the code by one reviewer. It was not a penetration test of a deployed installation, and no outside firm has examined AppWren. An organization with its own security team should have that team look before it relies on AppWren for anything sensitive.
+
+### Wave 8: the code added for 0.8.0
+
+The same reviewer's brief, applied to everything added between 0.7.0 and 0.8.0: the checkpoint, tokens of one's own, suggestions, the tool server, the assistant, and standings elsewhere. Each finding was confirmed with a test.
+
+| # | Finding | Severity | Fix |
+|---|---|---|---|
+| A | A token of one's own outlived a password change, so one made with a stolen session kept working after the owner changed their password | Medium | A new password, or a disabled account, revokes the account's own tokens along with its sessions |
+| B | The checkpoint and the assistant told fields the program had marked sensitive (the data an application handles, its stage, its tier) to people who may not see them | Low | Both leave out, and do not answer from, what the person may not see |
+| C | A proposed value had no size limit, and one person could take every waiting slot on an application | Low | A value is at most 4,000 characters, and one person may have ten proposals waiting on an application |
+| D | An identifier of `..` in another system could climb the standing address's path, carrying its key elsewhere on that host | Low | Such an identifier is not put into an address |
+| E | An administrator's own token could read the administration pages | Informational | A token never administers, whoever's it is |
+
+Found sound: the checkpoint's hiding of restricted applications, the limit on what a token of one's own may change, who may accept a proposal, what the assistant is told and who may read its exchanges, who may say where a standing is read, and the pages that show all of it.
 
 ## Accessibility
 

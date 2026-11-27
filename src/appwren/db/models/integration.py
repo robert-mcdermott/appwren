@@ -23,6 +23,9 @@ class ApiToken(Base):
     __audit_redact__ = frozenset({"token_hash"})
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # A person's own token acts as them, to read and to draft; an administrator's acts as a
+    # role. Only one of the two is set.
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("account.id"))
     name: Mapped[str] = mapped_column(String(80))
     role: Mapped[str] = mapped_column(String(24))
     org_unit_id: Mapped[int | None] = mapped_column(ForeignKey("org_unit.id"))
@@ -107,3 +110,50 @@ class WebhookState(Base):
     failures: Mapped[int] = mapped_column(Integer, default=0)  # in a row
     # Set when deliveries have failed too many times in a row; cleared when it is switched on.
     paused: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+SUGGESTION_STATES = ("pending", "accepted", "dismissed")
+
+
+class Suggestion(Base):
+    """A change someone or something proposes to an application, waiting for a person who
+    keeps it to accept or dismiss. Nothing on the record changes until it is accepted, and
+    accepting it is that person's own edit, in the history under their name."""
+
+    __tablename__ = "suggestion"
+    __subject__ = "suggestion"
+    __audit_parent__ = ("application", "application_id")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("application.id"))
+    field: Mapped[str] = mapped_column(String(60))
+    proposed: Mapped[Any] = mapped_column(JsonType)
+    note: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(200))  # who, or what, proposed it
+    proposed_by: Mapped[int | None] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime)
+    decided_by_name: Mapped[str | None] = mapped_column(String(200))
+    decided_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+
+    __table_args__ = (Index("ix_suggestion_application", "application_id", "status"),)
+
+
+class AssistantExchange(Base):
+    """One thing asked of the assistant and what it answered. That an exchange happened, who
+    asked, and about what, is in the history; the words themselves are kept here."""
+
+    __tablename__ = "assistant_exchange"
+    __subject__ = "assistant_exchange"
+    __audit_skip__ = frozenset({"prompt", "response"})
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    account_id: Mapped[int | None] = mapped_column(Integer)
+    asked_by_name: Mapped[str] = mapped_column(String(200))
+    purpose: Mapped[str] = mapped_column(String(24))  # draft or question
+    model: Mapped[str] = mapped_column(String(200))
+    prompt: Mapped[str] = mapped_column(Text)
+    response: Mapped[str | None] = mapped_column(Text)
+    ok: Mapped[bool] = mapped_column(Boolean, default=True)
+    error: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime)

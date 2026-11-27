@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+import re
 from collections.abc import Awaitable, Callable
 from urllib.parse import urlsplit
 
@@ -22,6 +23,7 @@ NO_TOKEN = {
     ("POST", "/api/v1/session/demo"),
     ("DELETE", "/api/v1/session"),
 }
+DRAFTING = re.compile(r"/api/v1/applications/[A-Za-z0-9-]+/suggestions")
 MAX_BODY = 32 * 1024 * 1024  # a little over the largest file anyone may send
 
 
@@ -55,6 +57,7 @@ def _authenticate(request: Request) -> Principal | None:
             if row is None:
                 raise HTTPException(401, "That token is not valid, has expired, or was revoked.")
             request.state.token_reads_only = row.read_only
+            request.state.token_personal = row.account_id is not None
             return tokens.principal_for(session, row)
     token = request.cookies.get(sessions.COOKIE)
     if not token:
@@ -75,10 +78,18 @@ def _authenticate(request: Request) -> Principal | None:
 def _prepare(request: Request) -> None:
     unsafe = request.method not in SAFE
     request.state.token_reads_only = None
+    request.state.token_personal = False
     principal = _authenticate(request)
     request.state.principal = principal
     if principal is not None and principal.token_id is not None:
         # No browser is involved, so there is no other site to guard against.
+        if unsafe and request.state.token_personal:
+            # A person's own token reads, and proposes changes for them to accept.
+            if not (request.method == "POST" and DRAFTING.fullmatch(request.url.path)):
+                raise HTTPException(
+                    403, "This token may read and propose changes, and may not change anything."
+                )
+            return
         if unsafe and request.state.token_reads_only:
             raise HTTPException(403, "This token may read, and may not change anything.")
         return

@@ -60,5 +60,7 @@ def meta(request: Request) -> dict[str, Any]:
             "sso": {"label": sso.label, "local_sign_in": sso.local_sign_in}
             if sso.enabled
             else None,
+            # The assistant is optional, and invisible unless it is set up.
+            "assistant": request.app.state.config.assistant.enabled,
         }
     )

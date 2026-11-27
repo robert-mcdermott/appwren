@@ -4,6 +4,46 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.8.0 (2026-11-27)
+
+Wave 8, *Connected*: AppWren fits into the systems around it, all of it optional. Another
+process asks whether an application is approved for new use, or for a class of data, and
+is told why. A person's own token lets an AI assistant read the portfolio as them and
+propose changes, which wait on the record until someone who keeps it accepts them; a small
+tool server lets an assistant that speaks the Model Context Protocol do so. An optional
+assistant, off until configured, answers questions with links to the records behind the
+answer and drafts an application from a document. And a record linked in another system of
+record shows how it stands there.
+
+### Added
+
+- **The checkpoint.** `GET /api/v1/checkpoint/{ref}` tells another process whether an
+  application is approved for new use, and for a class of data, with every reason: its
+  stage, its decision, its support, and the data its record says it handles.
+- **Tokens of your own, and suggestions.** Anyone may make a token under Your account that
+  acts as them, reads, and proposes changes. A proposal waits on the application until
+  someone who keeps it accepts it, as their own edit, or dismisses it.
+- **An optional assistant.** Off and invisible until the configuration's `[assistant]`
+  names a model server (any with the chat completions interface, including one on the same
+  machine). It answers questions about the applications a person may see, with links to the
+  records it cites, and drafts an application from a document for the person to correct
+  and add. It is never told of applications that handle data more sensitive than the
+  configuration allows, it changes nothing, and every exchange is kept.
+- **Standings elsewhere.** A system in the program's list of other systems may name a
+  `standing_url`; a job then reads how each linked record stands there (approved, open,
+  closed) and shows it beside the link, with any change kept in the history.
+- **A tool server for AI assistants.** `appwren tools serve` lets an assistant that speaks
+  the Model Context Protocol search and read AppWren, ask the checkpoint, see what waits on
+  the person, and propose changes, through the API as that person.
+
+### Security
+
+The code this release adds was reviewed before it shipped; the record is in
+`spec/reviews/`. What it found is fixed, each with a test: a new password now revokes the
+account's own tokens; the checkpoint and the assistant leave out fields the program marks
+sensitive; a proposed value has a size limit; an identifier cannot climb a standing
+address; and a token never administers.
+
 ## 0.7.0 (2026-11-27)
 
 Wave 7, *Adoption*: an organization that has never seen AppWren installs it, makes it its

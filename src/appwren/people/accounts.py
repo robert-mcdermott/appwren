@@ -201,9 +201,17 @@ def _is_admin(session: Session, account_id: int) -> bool:
 
 
 def _end_sessions(session: Session, account_id: int, *, keep: int | None = None) -> None:
+    """End the account's sessions and its own API tokens: a new password, or a disabled
+    account, cuts off whatever was made with the old one."""
     from appwren.auth import sessions
+    from appwren.core.clock import utc_now
+    from appwren.db.models import ApiToken
 
     sessions.revoke_all(session, account_id, keep=keep)
+    for token in session.scalars(
+        select(ApiToken).where(ApiToken.account_id == account_id, ApiToken.revoked_at.is_(None))
+    ):
+        token.revoked_at = utc_now()
 
 
 def set_password(

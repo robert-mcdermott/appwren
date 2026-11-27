@@ -1,6 +1,6 @@
 # Insight
 
-This guide is for the portfolio team and for leadership: those who ask how the portfolio is moving, where its cost and use are concentrated, and what happened over a quarter. It covers trends between snapshots, an application's scores over time, shares of the portfolio, leadership reports, the record as it stood on a past day, and scenarios.
+This guide is for the portfolio team and for leadership: those who ask how the portfolio is moving, where its cost and use are concentrated, and what happened over a quarter. It covers trends between snapshots, an application's scores over time, shares of the portfolio, leadership reports, the record as it stood on a past day, scenarios, and the optional assistant.
 
 Everything here is read from what AppWren already keeps. A portfolio snapshot keeps every scored application's scores as they were ([Portfolio snapshots](running-the-program.md#portfolio-snapshots)); a decision keeps the scores it was made on; and a leadership report, once made, keeps every figure in it. None of it is worked out again later from the records as they have since become.
 
@@ -85,6 +85,15 @@ Its page then says what that would do, worked out from the records as they are e
 ![A scenario: six labs' image analysis consolidated into the imaging core's pipeline, and what it would save and whom it would affect](img/scenario-light.webp)
 
 **A scenario changes nothing.** No application's record, decision, or stage moves while it is built or changed. When it is agreed, **Make an initiative of it** adds a proposed initiative ([Initiatives and the roadmap](planning-change.md#initiatives-and-the-roadmap)) named after it, retiring the applications it takes away and moving their work onto those that take their place. The scenario keeps a link to the initiative, and changes no more.
+
+## The assistant
+
+If your organization has set one up ([`[assistant]`](configuration.md#assistant)), **Portfolio → Assistant** offers two things. Otherwise neither the page nor the menu entry is there.
+
+- **Ask about the portfolio.** A question in your own words, such as *which applications handle participant consent, and what was decided about them?* The answer cites the applications it relies on, each a link to its record.
+- **Draft an application from a document.** Paste a description (from a vendor's page, a proposal, or a design document) and the assistant fills in what it says: the name, a summary, sourcing, who uses it, how many, the data it handles, sign-in, and the like. Read and correct each value, choose the unit that answers for it, and add it yourself. A value the form would not take is left out, and named.
+
+What the assistant is given is limited. It is told only of applications in service that you may see, and none that handle data more sensitive than the configuration allows. It changes nothing: an answer is read, and a draft is a form for you to finish. A reference it cites that it was not told of is not linked. Every exchange is kept, with what was sent and what came back, and those who may see everything can read them.
 
 ## Next
 

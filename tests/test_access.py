@@ -316,6 +316,17 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/reports"): {"manager"},
     ("GET", "/api/v1/reports/{ref}"): {"manager", "auditor", "admin"},
     ("GET", "/api/v1/as-of"): EVERYONE,
+    ("GET", "/api/v1/checkpoint/{ref}"): EVERYONE,
+    ("POST", "/api/v1/assistant/draft"): EVERYONE,
+    ("POST", "/api/v1/assistant/ask"): EVERYONE,
+    ("GET", "/api/v1/assistant/exchanges"): {"manager", "auditor", "admin"},
+    ("GET", "/api/v1/tokens"): EVERYONE,
+    ("POST", "/api/v1/tokens"): EVERYONE,
+    ("DELETE", "/api/v1/tokens/{token_id}"): EVERYONE,
+    ("GET", "/api/v1/applications/{ref}/suggestions"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/suggestions"): EVERYONE,
+    ("POST", "/api/v1/suggestions/{suggestion_id}/accept"): EVERYONE,
+    ("POST", "/api/v1/suggestions/{suggestion_id}/dismiss"): EVERYONE,
     ("GET", "/api/v1/admin/tokens"): {"admin"},
     ("POST", "/api/v1/admin/tokens"): {"admin"},
     ("DELETE", "/api/v1/admin/tokens/{token_id}"): {"admin"},
@@ -561,6 +572,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
             path = path.replace("{name}", "no_such_list").replace("{field}", "users")
             path = path.replace("{token_id}", "9999").replace("{webhook_id}", "9999")
+            path = path.replace("{suggestion_id}", "9999")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:

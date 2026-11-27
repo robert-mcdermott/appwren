@@ -87,6 +87,12 @@ def _webhooks(db: Database, config: Config) -> dict[str, int]:
     return webhooks.run_once(db, config)
 
 
+def _standings(db: Database, config: Config) -> dict[str, int]:
+    from appwren.integration import standings
+
+    return standings.run_once(db, config)
+
+
 def _tidy(db: Database, _config: Config) -> dict[str, int]:
     now = utc_now()
     with db.bookkeeping() as session:
@@ -120,6 +126,10 @@ JOBS: dict[str, JobSpec] = {
                 "Tells each webhook an administrator has registered of what it asked for, "
                 "signed, and tries again later where a delivery fails",
                 timedelta(minutes=1), _webhooks),
+        JobSpec("standings", "Standings elsewhere",
+                "Reads how each linked record stands in another system of record, where the "
+                "program gives that system an address to ask",
+                timedelta(hours=6), _standings),
         JobSpec("connectors", "Connectors",
                 "Runs each connector an administrator has switched on, when it is due",
                 timedelta(minutes=15), _connectors),

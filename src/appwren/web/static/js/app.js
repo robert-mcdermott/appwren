@@ -7,7 +7,7 @@ import { fallback, route, start } from "./core/router.js";
 import { can, setSession } from "./core/session.js";
 import { openPalette } from "./components/cmdk.js";
 import { applyTerms, TYPES } from "./components/record.js";
-import { commands, mountShell, nameMenu, quickFind } from "./components/shell.js";
+import { commands, mountShell, nameMenu, ON, quickFind } from "./components/shell.js";
 import { emptyState } from "./components/ui.js";
 import { setProduct, setTitle } from "./pages/page.js";
 
@@ -51,11 +51,14 @@ async function boot() {
   setSession(me);
   if (window.location.pathname === "/sign-in") history.replaceState({}, "", "/");
 
+  if (meta.assistant) ON.add("assistant");
   const { main, redrawBrand } = mountShell(root, meta);
   const page = (file, name, ...extra) => async (params) => (await import(`./pages/${file}.js`))[name](main, ...extra, params);
 
   route("/", page("home", "home", meta));
   route("/account", page("account", "account"));
+  route("/account/tokens", page("admin-integration", "myTokens"));
+  if (meta.assistant) route("/assistant", page("assistant", "assistantPage"));
   route("/notices", page("notices", "noticeList"));
   route("/search", page("find", "searchPage"));
   route("/applications", page("records", "applicationList"));

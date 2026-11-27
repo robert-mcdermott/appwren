@@ -19,7 +19,8 @@ const PALETTES = ["wren", "slate", "garnet"];
 const MODES = ["light", "dark"];
 
 const only = process.argv.slice(2);
-const scenes = SCENES.filter((scene) => !only.length || only.some((word) => scene.name.includes(word)));
+const scenes = SCENES.filter((scene) => (!scene.needs || process.env[scene.needs])
+  && (!only.length || only.some((word) => scene.name.includes(word))));
 const demo = await startDemo();
 const page = await openBrowser();
 let total = 0;

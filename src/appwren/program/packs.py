@@ -197,6 +197,27 @@ def check(pack: Any) -> list[str]:
                             f"The address pattern for {item.get('key')} must begin https:// "
                             "and say where the identifier goes, as {id}."
                         )
+                    standing = item.get("standing_url") if isinstance(item, Mapping) else None
+                    if standing and not (
+                        isinstance(standing, str)
+                        and standing.startswith("https://")
+                        and "{id}" in standing
+                    ):
+                        found.append(
+                            f"The standing address for {item.get('key')} must begin https:// "
+                            "and say where the identifier goes, as {id}."
+                        )
+                    key_env = item.get("key_env") if isinstance(item, Mapping) else None
+                    if key_env:
+                        from appwren import connectors
+
+                        if not isinstance(key_env, str) or not connectors.ENV.fullmatch(key_env):
+                            found.append(f"key_env for {item.get('key')} names a variable.")
+                        elif connectors.server_variable(key_env):
+                            found.append(
+                                f"key_env for {item.get('key')} is one of the server's own "
+                                "variables, and is never sent to another system."
+                            )
     builtin = {field.name for field in APPLICATION.fields} | HEADER
     if "fields" in pack:
         found += catalog.check_fields(pack["fields"], builtin)

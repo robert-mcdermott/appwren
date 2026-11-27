@@ -180,6 +180,11 @@ export const SCENES = [
   { name: "token-issue", as: "admin", path: "/admin/tokens", step: click("Issue a token") },
   { name: "webhooks", as: "admin", path: "/admin/webhooks" },
   { name: "webhook-add", as: "admin", path: "/admin/webhooks", step: click("Add a webhook") },
+  // Connected (wave 8)
+  { name: "my-tokens", as: "rse", path: "/account/tokens" },
+  { name: "suggestions", as: "rse", path: app("Cohort Analysis Platform") },
+  // Only where an assistant is configured (APPWREN_ASSISTANT_URL and _MODEL); skipped otherwise.
+  { name: "assistant", as: "rse", path: "/assistant", needs: "APPWREN_ASSISTANT_URL" },
   { name: "application-over-time", as: "portfolio", path: app("Freezer Watch", "scores") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
