@@ -20,7 +20,7 @@ The answer describes who you are, and sets a session cookie, `appwren_session`:
 {
   "data": {
     "account": {"id": 12, "name": "Your Name", "email": "you@example.org"},
-    "roles": ["manager"],
+    "roles": ["manager", "member"],
     "permissions": {"…": true},
     "units": {"manager": null},
     "member_units": [4],
@@ -31,7 +31,7 @@ The answer describes who you are, and sets a session cookie, `appwren_session`:
 }
 ```
 
-In `units`, each scoped role lists the units it covers, or `null` for the whole organization.
+Everyone holds `member`. In `units`, each scoped role lists the units it covers, or `null` for the whole organization. `permissions` says what the account may do somewhere, such as `manage` or `architect`; whether it may do it to a given record is decided by that record.
 
 `GET /api/v1/session` returns the same for the session you hold, or 401 if you hold none. `DELETE /api/v1/session` signs out.
 
