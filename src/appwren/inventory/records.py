@@ -430,12 +430,28 @@ def update(
     if not access.can_edit(session, principal, record_type, record):
         raise PermissionDenied(f"You cannot edit this {record_type.label}.")
     require_version(record_type, record, version)
+    # A record kept by whoever keeps the application it belongs to is checked against the
+    # application it is moved to, as well as the one it was on (review of wave 9, finding 2).
+    moves = record_type.extra.get("moves", ())
+    before = {name: getattr(record, name) for name in moves}
     with audit.operation(session, f"{record_type.key}.edit"):
         with session.no_autoflush:
             errors = _applied(session, principal, record_type, record, values, creating=False)
         if errors:
             session.expire(record)  # put back what was there
             raise Invalid(f"The {record_type.label} was not saved.", errors)
+        may_add = record_type.extra.get("can_add")
+        moved = any(getattr(record, name) != was for name, was in before.items())
+        if moved and may_add is not None:
+            with session.no_autoflush:
+                allowed = may_add(session, principal, record)
+            if not allowed:
+                session.expire(record)
+                raise PermissionDenied(
+                    record_type.extra.get("move_refusal")
+                    or record_type.extra.get("add_refusal")
+                    or f"You cannot move this {record_type.label} there."
+                )
         if (
             record_type.has_unit
             and "org_unit_id" in values
@@ -688,6 +704,17 @@ def conditions_for(
     more = record_type.extra.get("conditions")
     if more is not None:
         conditions += more(session, principal, filters)
+        # A filter that reads a field the program marks sensitive narrows only among the
+        # applications whose sensitive fields this person sees: elsewhere it would tell what
+        # the record withholds (review of wave 9, finding 3).
+        reads = record_type.extra.get("filter_fields", {})
+        if record_type.has_people and not access.sees_all_sensitive(principal) and any(
+            filters.get(name) not in (None, "") and set(fields) & sensitive
+            for name, fields in reads.items()
+        ):  # fmt: skip
+            where = access.sees_sensitive_where(principal)
+            if where is not None:
+                conditions.append(where)
     owner = filters.get("owner")
     if filters.get("mine"):
         owner = principal.account_id

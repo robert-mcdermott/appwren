@@ -489,7 +489,57 @@ def preview(session: Session, principal: Principal, app: Application, given: Any
     return result
 
 
-def redact(result: dict[str, Any], sensitive: Iterable[str]) -> dict[str, Any]:
+# Flags whose words tell what only those who see an application's sensitive fields may know:
+# the terms of a contract that covers it, which is sensitive as a whole (review of wave 9,
+# finding 4), and any whose condition reads a field the program marks sensitive (finding 3).
+# Counted in figures for the whole portfolio; never named to anyone else.
+WITHHELD_FLAGS = frozenset({"no_data_agreement", "contract_notice"})
+# The facts a flag's condition may read that are worked out from a field of another name.
+FACT_FIELDS = {"sensitivity": "data_classes", "grant_ends_in_days": "grant_end"}
+
+
+def _reads(when: Any) -> set[str]:
+    """The facts a flag's condition reads."""
+    if not isinstance(when, dict):
+        return set()
+    found = {str(when["field"])} if "field" in when else set()
+    for key in ("all", "any"):
+        for part in when.get(key) or []:
+            found |= _reads(part)
+    if "not" in when:
+        found |= _reads(when["not"])
+    return found
+
+
+def withheld_flags(session: Session) -> frozenset[str]:
+    """The flags not named to someone who may not see an application's sensitive fields."""
+    sensitive = set(catalog.sensitive_fields(session))
+    factors: set[str] = set()
+    for name in sensitive:
+        factors |= REVEALS.get(name, {name})
+    out = set(WITHHELD_FLAGS)
+    for flag in current_model(session).definition.get("flags", []):
+        for fact in _reads(flag.get("when")):
+            factor = fact.removeprefix("level.") if fact.startswith("level.") else None
+            if factor in factors or FACT_FIELDS.get(fact, fact) in sensitive:
+                out.add(flag["key"])
+    return frozenset(out)
+
+
+def shown_flags(
+    flags: Iterable[Any], sees: bool, withheld: frozenset[str] = WITHHELD_FLAGS
+) -> list[Any]:
+    """An application's flags as this reader may see them: all of them, if they see its
+    sensitive fields; otherwise not those ``withheld`` (from ``withheld_flags``). A flag is
+    a key, or a mapping with one."""
+    if sees:
+        return list(flags)
+    return [f for f in flags if (f["key"] if isinstance(f, dict) else f) not in withheld]
+
+
+def redact(
+    result: dict[str, Any], sensitive: Iterable[str], withheld: frozenset[str] = WITHHELD_FLAGS
+) -> dict[str, Any]:
     """The working with anything a sensitive field would reveal withheld: the value, its
     level, and the words that say it. The scores themselves are not sensitive."""
     hidden: set[str] = set()
@@ -502,6 +552,7 @@ def redact(result: dict[str, Any], sensitive: Iterable[str]) -> dict[str, Any]:
                 factor.update(level="withheld", value="withheld", why="Withheld")
         dimension.pop("sum", None)
         dimension.pop("raw", None)
+    out["flags"] = shown_flags(out.get("flags", []), False, withheld)
     out["withheld"] = True
     return out
 
@@ -511,7 +562,7 @@ def shown(
 ) -> dict[str, Any]:
     if access.sees_sensitive(session, principal, app):
         return result
-    return redact(result, catalog.sensitive_fields(session))
+    return redact(result, catalog.sensitive_fields(session), withheld_flags(session))
 
 
 # --- Snapshots -------------------------------------------------------------------------------
@@ -617,14 +668,16 @@ def _install() -> None:
         """Each row of a list of applications carries its scores and recommendation."""
         base = original(session, principal, rows) if original else [{} for _ in rows]
         found = score_all(session, rows) if rows else {}
+        withheld = withheld_flags(session) if rows else WITHHELD_FLAGS
         for item, row in zip(base, rows, strict=True):
             result = found[row.id]
+            sees = access.sees_sensitive(session, principal, row)
             item.update(
                 scores=result["scores"],
                 confidence=result["confidence"],
                 recommendation=result["recommendation"],
                 flags=[{"key": f["key"], "severity": f["severity"], "text": f["text"]}
-                       for f in result["flags"]],
+                       for f in shown_flags(result["flags"], sees, withheld)],
             )  # fmt: skip
         return base
 

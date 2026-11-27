@@ -55,13 +55,15 @@ def make_engine(url: str, *, echo: bool = False) -> Engine:
                 raise StoreError(
                     f"The database directory {parent} does not exist. Run `appwren init`."
                 )
-        engine = create_engine(url, echo=echo)
+        # Errors carry no statement parameters: they hold what people typed, and password
+        # hashes, and errors are logged (review of wave 9, finding 8).
+        engine = create_engine(url, echo=echo, hide_parameters=True)
         event.listen(engine, "connect", _sqlite_pragmas)
         event.listen(engine, "begin", _sqlite_begin)
         return engine
     if backend == "postgresql":
         try:
-            return create_engine(url, echo=echo, pool_pre_ping=True)
+            return create_engine(url, echo=echo, pool_pre_ping=True, hide_parameters=True)
         except ModuleNotFoundError as exc:
             raise StoreError(
                 "PostgreSQL needs the optional driver: run `uv sync --extra postgres`."

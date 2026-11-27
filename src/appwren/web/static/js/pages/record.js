@@ -535,7 +535,7 @@ function impactCard(record, ctx) {
   const relying = found.direct.length + found.beyond.length;
   const chips = (rows) => h("div", { class: "chips" }, rows.map((r) => recordChip(r)));
   const lead = relying || found.hidden
-    ? `${plural(found.direct.length, "application depends", "applications depend")} on it directly${found.beyond.length ? `, and ${found.beyond.length} more through ${found.direct.length === 1 ? "it" : "them"}` : ""}. Together with its own, up to ${Number(found.people).toLocaleString()} people use one of them.`
+    ? `${plural(found.direct.length, "application depends", "applications depend")} on it directly${found.beyond.length ? `, and ${found.beyond.length} more through ${found.direct.length === 1 ? "it" : "them"}` : ""}.${found.people != null ? ` Together with its own, up to ${Number(found.people).toLocaleString()} people use one of them.` : ""}`
     : "No application is recorded as depending on it.";
   const notes = [
     found.research_continuity ? "Active studies depend on it." : null,

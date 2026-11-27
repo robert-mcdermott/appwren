@@ -47,11 +47,8 @@ def check(
                       {"data_class": f"Use one of: {', '.join(classes)}."})  # fmt: skip
     # A field the program marks sensitive is not told to someone who may not see it, here
     # any more than on the record (review of wave 8, finding B).
-    hidden = (
-        set()
-        if access.sees_sensitive(session, principal, app)
-        else set(access.sensitive_fields(session))
-    )
+    sees = access.sees_sensitive(session, principal, app)
+    hidden = set() if sees else set(access.sensitive_fields(session))
     stages = vocab.labels(session, "lifecycle")
     dispositions = vocab.labels(session, "dispositions")
     labels = vocab.labels(session, "data_classes")
@@ -82,12 +79,13 @@ def check(
     reason("support", not past, "Something it runs on is past its end of support" if past
            else "Nothing it is known to run on is past its end of support")  # fmt: skip
     approved = all(item["ok"] for item in reasons)
+    flags = assessment.shown_flags(scored["flags"], sees, assessment.withheld_flags(session))
     answer: dict[str, Any] = {
         "ref": app.ref, "name": app.name if seen else None, "checked_on": today(),
         "stage": None if "lifecycle" in hidden else app.lifecycle,
         "decision": app.disposition, "approved": approved,
         "data_classes": None if "data_classes" in hidden else list(app.data_classes or []),
-        "flags": [flag["text"] for flag in scored["flags"] if flag["severity"] == "danger"],
+        "flags": [flag["text"] for flag in flags if flag["severity"] == "danger"],
     }  # fmt: skip
     if data_class is not None and "data_classes" in hidden:
         # What data it handles is not this person's to know, so it is not answered.

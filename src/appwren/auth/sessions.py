@@ -122,8 +122,19 @@ def note_failure(session: Session, *keys: str) -> None:
         )
 
 
-def note_success(session: Session, *keys: str) -> None:
+def note_success(session: Session, *keys: str, counted: tuple[str, ...] = ()) -> None:
+    """A right password: forget the failures of these keys, and take back the one attempt
+    counted for each of ``counted`` (an address), whose other failures stand. Someone with
+    an account of their own could otherwise clear their address's count between guesses at
+    everyone else's (review of wave 9, finding 5)."""
     if keys:
         session.execute(
             delete(FailedSignIn).where(FailedSignIn.key_hash.in_([token_hash(k) for k in keys]))
         )
+    for key in counted:
+        latest = session.scalar(
+            select(FailedSignIn.id).where(FailedSignIn.key_hash == token_hash(key))
+            .order_by(FailedSignIn.failed_at.desc(), FailedSignIn.id.desc()).limit(1)
+        )  # fmt: skip
+        if latest is not None:
+            session.execute(delete(FailedSignIn).where(FailedSignIn.id == latest))

@@ -504,6 +504,12 @@ APPLICATION.extra.update(
     cards=_cards,
     detail=_detail,
     can_add=_can_add,
+    # The fields each filter beyond the columns reads, so a sensitive one is honoured.
+    filter_fields={
+        "data_class": ("data_classes",),
+        "audience": ("audiences", "org_wide"),
+        "used_in": ("org_wide",),
+    },
     conditions=_conditions,
     add_refusal="Only a steward of the unit, an architect, or a manager can add an application "
     "to it.",

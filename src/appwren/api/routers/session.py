@@ -111,16 +111,18 @@ def sign_in(request: Request, body: SignIn, response: Response) -> Any:
             401, "That email address and password do not match.", instance=request.url.path
         )
 
-    return _start(request, response, account, "password", cleared=keys)
+    return _start(request, response, account, "password", cleared=[*pair, wide[0]],
+                  counted=tuple(wide[1:]))  # fmt: skip
 
 
 def _start(
-    request: Request, response: Response, account: Any, method: str, *, cleared: Any = ()
-) -> Any:
+    request: Request, response: Response, account: Any, method: str, *, cleared: Any = (),
+    counted: tuple[str, ...] = (),
+) -> Any:  # fmt: skip
     config = request.app.state.config.server
     with writing(request, Actor.account(account.id, account.display_name)) as session:
-        if cleared:
-            sessions.note_success(session, *cleared)
+        if cleared or counted:
+            sessions.note_success(session, *cleared, counted=counted)
         token, row = sessions.create(
             session,
             account.id,
@@ -165,9 +167,23 @@ def sign_out(request: Request, response: Response) -> Any:
 @router.post("/session/password", summary="Change your own password")
 def change_password(request: Request, body: PasswordChange) -> Any:
     principal = current(request)
+    # Whoever holds a session must not be able to guess the current password without end and
+    # take the account: wrong guesses are limited as at sign-in (review of wave 9, finding 6).
+    key = f"password:{principal.account_id}"
+    with reading(request) as session:
+        if sessions.throttled(session, key):
+            return problem(
+                429, "Too many wrong passwords. Wait a few minutes and try again.",
+                instance=request.url.path,
+            )  # fmt: skip
+    db = database(request)
+    with db.bookkeeping() as session:  # counted first, so that attempts sent at once all count
+        sessions.note_failure(session, key)
     with writing(request, principal.actor) as session:
         account = accounts.get(session, principal.account_id or 0)
         accounts.set_password(
             session, principal, account, body.new_password, current_password=body.current_password
         )
+    with db.bookkeeping() as session:
+        sessions.note_success(session, key)
     return envelope({"changed": True})

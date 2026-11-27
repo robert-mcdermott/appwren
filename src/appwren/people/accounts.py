@@ -223,13 +223,20 @@ def set_password(
     current_password: str | None = None,
 ) -> None:
     """Set a password. A person changing their own must give the current one; an
-    administrator resetting someone else's need not. Other sessions of the account end."""
+    administrator resetting someone else's need not. Other sessions of the account end.
+
+    Someone with no password here signs in through the identity provider, which also says
+    what roles they hold and when they leave. They cannot give themselves a password, which
+    would let them sign in around it; an administrator gives one where it is wanted."""
     own = principal.account_id == account.id
     credential = session.get(Credential, account.id)
+    if own and not principal.command and credential is None:
+        raise PermissionDenied(
+            "You sign in through your organization's sign-in service, so you have no password "
+            "here to change. An administrator can give you one."
+        )
     if own and not principal.command:
-        if credential is not None and not passwords.verify_password(
-            current_password or "", credential.password_hash
-        ):
+        if not passwords.verify_password(current_password or "", credential.password_hash):
             raise Invalid(
                 "The password was not changed.",
                 {"current_password": "That is not your current password."},

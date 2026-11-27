@@ -103,6 +103,9 @@ def compare(
 ) -> dict[str, Any]:
     """Two snapshots side by side, the later one ``after_ref`` (or today's scores, if none):
     the figures each held, and what moved between them."""
+    from appwren.assessment import shown_flags, withheld_flags
+
+    withheld = withheld_flags(session)
     before = _snapshot(session, before_ref)
     then = _held(session, principal, before)
     if after_ref:
@@ -148,8 +151,9 @@ def compare(
                 changes[dimension] = {"from": a, "to": b}
         if changes:
             moved["scores"].append({**chip, "changes": changes})
-        came = sorted(set(now["flags"]) - set(was["flags"]))
-        went = sorted(set(was["flags"]) - set(now["flags"]))
+        sees = access.sees_sensitive(session, principal, app)
+        came = sorted(set(shown_flags(now["flags"], sees, withheld)) - set(was["flags"]))
+        went = sorted(set(shown_flags(was["flags"], sees, withheld)) - set(now["flags"]))
         if came or went:
             moved["flags"].append({**chip, "raised": came, "cleared": went})
     return {
