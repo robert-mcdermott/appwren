@@ -83,7 +83,7 @@ Detail: [waves/wave-2.md](waves/wave-2.md)
 
 Detail: [waves/wave-3.md](waves/wave-3.md)
 
-## Wave 4: Signals (v0.4.0) ☐
+## Wave 4: Signals (v0.4.0) ◐
 
 **Goal:** most technical facts arrive by themselves from the tools that already know them, labelled with their source, and never override a person ([ADR-0003](decisions/0003-quiet-by-default.md)).
 
@@ -96,6 +96,8 @@ Detail: [waves/wave-3.md](waves/wave-3.md)
 | 5 | Push and catalog files | One generic push format for any fact; software catalog files from repositories | ☐ |
 | 6 | Engineering maturity | Automated checks per component rolled up to bronze, silver, or gold | ☐ |
 | 7 | Release prep | Guides, changelog, release | ☐ |
+
+Detail: [waves/wave-4.md](waves/wave-4.md)
 
 ## Wave 5: Planning change (v0.5.0) ☐
 
