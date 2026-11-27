@@ -262,6 +262,7 @@ legend { padding: 0; font-weight: 600; margin-bottom: var(--space-2); }
   background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-l); box-shadow: var(--shadow-3);
 }
 .drawer-header { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-5) var(--space-5) var(--space-4); border-bottom: 1px solid var(--border); }
+.drawer-header > .icon-button { flex-shrink: 0; }
 .drawer-body { flex: 1 1 auto; overflow-y: auto; padding: var(--space-5); }
 .drawer-footer { padding: var(--space-4) var(--space-5); border-top: 1px solid var(--border); background: var(--surface-2); }
 .dialog .drawer-footer { border-radius: 0 0 var(--radius-l) var(--radius-l); }
@@ -301,6 +302,9 @@ legend { padding: 0; font-weight: 600; margin-bottom: var(--space-2); }
 /* ---- Lists ---- */
 .dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-2) var(--space-5); }
 .dl dt { color: var(--text-muted); }
+.dl-stacked { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+.dl-stacked dd + dt { margin-top: var(--space-3); }
+.dl-stacked dd { display: grid; gap: var(--space-1); justify-items: start; }
 .list-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--border); }
 .list-row:last-child { border-bottom: 0; }
 .tree { padding: var(--space-2) 0; }

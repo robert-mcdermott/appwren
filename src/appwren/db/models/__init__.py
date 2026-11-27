@@ -9,6 +9,7 @@ from appwren.db.models.assessment import (
     ScoreSnapshot,
     ScoringModel,
 )
+from appwren.db.models.connectors import Connector, ConnectorRun, FactValue
 from appwren.db.models.decision import Decision
 from appwren.db.models.inventory import (
     Application,
@@ -70,6 +71,8 @@ __all__ = [
     "ChainHead",
     "Component",
     "ComponentTechnology",
+    "Connector",
+    "ConnectorRun",
     "Contract",
     "ContractApplication",
     "CostLine",
@@ -79,6 +82,7 @@ __all__ = [
     "Deployment",
     "Event",
     "ExternalRef",
+    "FactValue",
     "FailedSignIn",
     "FundingSource",
     "HostingPlatform",

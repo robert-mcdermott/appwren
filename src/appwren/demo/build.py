@@ -1301,11 +1301,122 @@ class Builder:
                 .values(read_at=self.end - timedelta(days=6))
             )
 
+    def sources(self) -> None:
+        """The end-of-life connector: added three weeks ago, run daily since, once failing,
+        with one date overridden by the architect. It is switched off at the end, so that the
+        demo itself never reaches out to anything."""
+        from appwren import connectors
+        from appwren.connectors import sourced
+        from appwren.connectors.kinds import endoflife
+        from appwren.db.models import ConnectorRun, TechnologyRelease
+        from appwren.events.actor import Actor
+
+        admin = self.principal(self.cast["admin"])
+        architect = self.principal(self.cast["architect"])
+        first = self.end - timedelta(days=21, hours=5)
+        with clock_set_to(lambda: first), self.db.write(architect.actor) as session:
+            for key, eol in c.EOL_KEYS.items():
+                tech = records.load(session, architect, TECHNOLOGY, self.techs[key][0])
+                records.update(session, architect, TECHNOLOGY, tech, {"eol_key": eol},
+                               version=tech.version)  # fmt: skip
+        with clock_set_to(lambda: first), self.db.write(admin.actor) as session:
+            row = connectors.add(session, admin, {"key": "end-of-life", "kind": "endoflife",
+                                                  "name": "End-of-life data"})  # fmt: skip
+            connectors.change(session, admin, row, {"enabled": True})
+            connector_id = row.id
+        name = "End-of-life data"
+        actor = Actor.system(f"Connector: {name}")
+
+        def reading(at: datetime) -> None:
+            counts = {"asked": len(c.EOL_KEYS), "read": 0, "changed": 0, "unchanged": 0,
+                      "kept": 0, "unmatched": 0}  # fmt: skip
+            called = {spec[0]: spec[1] for spec in c.TECHNOLOGIES}
+            missed = [
+                {
+                    "what": f"{called[key]} ({c.EOL_KEYS[key]})",
+                    "why": "the dataset has no product by that key",
+                }
+                for key in c.EOL_MISSING
+            ]
+            counts["unmatched"] = len(missed)
+            with clock_set_to(lambda: at), self.db.write(actor, action="connector.run") as session:
+                for key in c.EOL_KEYS.keys() - c.EOL_MISSING:
+                    tech = records.load(session, ME, TECHNOLOGY, self.techs[key][0])
+                    for release in session.scalars(
+                        select(TechnologyRelease).where(TechnologyRelease.technology_id == tech.id)
+                    ):
+                        found: list[tuple[Any, Any]] = [(endoflife.ENDS, release.support_ends)]
+                        if (key, release.cycle) in c.EOL_LATEST:
+                            found.append((endoflife.LATEST, c.EOL_LATEST[(key, release.cycle)]))
+                        for spec, value in found:
+                            if value is None:
+                                continue
+                            outcome = sourced.write(
+                                session, source="end-of-life", source_name=name, record=release,
+                                spec=spec, value=value, read_at=at,
+                            )  # fmt: skip
+                            counts["read"] += 1
+                            counts[outcome] += 1
+            self._ran(connector_id, at, "ok", counts, None, missed)
+
+        for days in (21, 20, 19, 18, 15, 14, 13, 12, 11):
+            if days == 21:
+                reading(first + timedelta(minutes=10))
+            elif days == 12:
+                at = self.end - timedelta(days=days, hours=7)
+                self._ran(connector_id, at, "failed", {}, "the source could not be reached: "
+                          "ConnectTimeout", [])  # fmt: skip
+            else:
+                reading(self.end - timedelta(days=days, hours=7))
+        moment = self.end - timedelta(days=9, hours=3)
+        with (
+            clock_set_to(lambda: moment),
+            self.db.write(
+                architect.actor, context={"reason": "Ubuntu Pro covers 24.04 for twelve years"}
+            ) as session,
+        ):
+            tech = records.load(session, architect, TECHNOLOGY, self.techs["ubuntu"][0])
+            release = session.scalars(
+                select(TechnologyRelease).where(
+                    TechnologyRelease.technology_id == tech.id, TechnologyRelease.cycle == "24.04"
+                )
+            ).one()
+            sourced.override(session, architect, release, endoflife.ENDS,
+                             self.day(1600 + 7 * 365).isoformat(),
+                             "Ubuntu Pro covers 24.04 for twelve years")  # fmt: skip
+        for days in range(8, 0, -1):
+            reading(self.end - timedelta(days=days, hours=7))
+        with clock_set_to(lambda: self.end), self.db.write(admin.actor) as session:
+            connectors.change(session, admin, connectors.load(session, "end-of-life"),
+                              {"enabled": False})  # fmt: skip
+        with self.db.read() as session:
+            self.tally("connector runs", len(session.scalars(select(ConnectorRun.id)).all()))
+
+    def _ran(
+        self, connector_id: int, at: datetime, status: str, counts: dict[str, int],
+        error: str | None, unmatched: list[dict[str, str]],
+    ) -> None:  # fmt: skip
+        from appwren.connectors import _words
+        from appwren.db.models import Connector, ConnectorRun
+        from appwren.events.actor import Actor
+
+        finished = at + timedelta(seconds=14)
+        with clock_set_to(lambda: finished), self.db.write(Actor.system("Connector")) as session:
+            session.add(ConnectorRun(connector_id=connector_id, started_at=at,
+                                     finished_at=finished, status=status, counts=counts,
+                                     unmatched=unmatched, error=error))  # fmt: skip
+            row = session.get(Connector, connector_id)
+            assert row is not None
+            row.last_run_at, row.last_status = finished, status
+            row.last_summary = (error or _words(counts))[:300]
+            row.next_run_at = at + timedelta(hours=row.every_hours)
+
     def build(self) -> Summary:
         self.found()
         self.plan()
         self.run()
         self.remind()
+        self.sources()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

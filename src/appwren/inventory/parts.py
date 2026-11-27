@@ -128,6 +128,9 @@ def set_releases(
     with audit.operation(session, "technology.releases"):
         for cycle, row in have.items():
             if cycle not in cleaned:
+                from appwren.connectors import sourced
+
+                sourced.forget(session, "technology_release", row.id)
                 session.delete(row)
         for cycle, values in cleaned.items():
             row = have.get(cycle)

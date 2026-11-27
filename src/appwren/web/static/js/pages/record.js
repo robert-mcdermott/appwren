@@ -15,6 +15,7 @@ import { openWorking, scorecard, scoresTab, verdict } from "../components/scorec
 import { confirmationLine, confirmRecord } from "../components/confirmation.js";
 import { contestsCard } from "../components/contests.js";
 import { decisionsTab, recordDecision } from "../components/decision.js";
+import { byRelease, sourcedCard, sourcedMark } from "../components/sourced.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
@@ -336,7 +337,8 @@ export function timeline(entries) {
         h("dd", {}, line.before != null ? h("del", {}, String(line.before)) : h("span", { class: "subtle" }, "empty"),
           h("span", { "aria-hidden": "true" }, " → "), h("span", { class: "sr-only" }, " became "),
           line.after != null ? h("ins", {}, String(line.after)) : h("span", { class: "subtle" }, "empty")),
-      ])) : null))));
+      ])) : null,
+      entry.reason ? h("p", { class: "muted" }, `Why: ${entry.reason}`) : null))));
 }
 
 // --- The page --------------------------------------------------------------------------------
@@ -728,16 +730,17 @@ function connectionsTab(record, ctx) {
 
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
-  const [record, vocab, unitIndex, entries, program] = await Promise.all([
+  const [record, vocab, unitIndex, entries, program, fromSources] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
-    tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog()]);
-  return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program };
+    tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
+    get(`/api/v1/sourced/${ref}`, null, { fresh: true })]);
+  return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program, sourced: fromSources.data };
 }
 
 function context(data, reload) {
   const fieldLabels = Object.fromEntries(Object.values(data.catalog.types).flatMap((t) => t.fields.map((f) => [f.name, f.label])));
   for (const f of data.catalog.fields ?? []) fieldLabels[f.key] = f.label;
-  return { vocab: data.vocab, units: data.units, catalog: data.catalog, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
+  return { vocab: data.vocab, units: data.units, catalog: data.catalog, sourced: data.sourced, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
 }
 
 function assessmentTab(record, ctx) {
@@ -948,6 +951,7 @@ function sharedOverview(type, record, ctx) {
       : h("p", { class: "muted" }, "Nothing recorded. Say what it is built on: its language, framework, database, and platform.")));
   }
   if (type === "technology") {
+    const marks = byRelease(ctx.sourced);
     main.push(card({ title: "Releases and support", actions: h("div", { class: "row-sm" },
       record.use_count ? h("a", { class: "btn btn-sm", href: `/applications?technology=${record.ref}` }, "Every application on it") : null,
       record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editReleases(record, ctx) }) : null),
@@ -955,7 +959,8 @@ function sharedOverview(type, record, ctx) {
     record.releases.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Release"), h("th", { scope: "col" }, "Support"), h("th", { scope: "col" }, "Ends"), h("th", { scope: "col" }, "Used by"))),
       h("tbody", {}, record.releases.map((r) => h("tr", {}, h("td", { class: "cell-main" }, r.cycle), h("td", {}, supportPill(r.support)),
-        h("td", { class: "nowrap" }, r.support_ends ? date(r.support_ends) : "—", r.extended_ends ? h("div", { class: "cell-sub" }, `Extended to ${date(r.extended_ends)}`) : null),
+        h("td", { class: "nowrap" }, r.support_ends ? date(r.support_ends) : "—", r.extended_ends ? h("div", { class: "cell-sub" }, `Extended to ${date(r.extended_ends)}`) : null,
+          sourcedMark(marks[r.cycle]?.support_ends)),
         h("td", {}, r.used_by.length ? h("div", { class: "stack-sm" }, h("div", { class: "chips" }, uniqueApps(r.used_by).map((u) => recordChip(u))),
           h("a", { class: "cell-sub", href: `/applications?technology=${record.ref}&release=${encodeURIComponent(r.cycle)}` }, `As a list of ${plural(uniqueApps(r.used_by).length, "application")}, to export`))
           : h("span", { class: "subtle" }, "None")))))))
@@ -1027,7 +1032,8 @@ function sharedOverview(type, record, ctx) {
   if (type === "component") glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
   main.push(linksCard(record, ctx));
   return h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
-    h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)), externalCard(record, ctx)));
+    h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)),
+      sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }), externalCard(record, ctx)));
 }
 
 export function recordPage(main, type, params) {

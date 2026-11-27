@@ -6,6 +6,26 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+### Added
+
+- **Connectors.** Admin → Connectors lists the tools AppWren can read facts from. Each
+  connector is added switched off, for one named source; it only reads; its credential
+  stays in an environment variable named on the connector and is never stored. It can be
+  checked before it is switched on, runs daily on the scheduler or when asked, and every run
+  is recorded: what it read, what it changed, what it could not match, and why it failed. A
+  run reads everything first, under a time limit and a size limit, and writes only if all of
+  that succeeded, so a failed run changes nothing.
+- **Values from other systems.** A value a connector supplies is written to the record's own
+  field, kept with its source and when it was read, marked as such on the record, and
+  recorded in the history. A person who keeps the record can override it with a reason; the
+  override wins until it is removed. Changing such a field by hand counts as an override.
+- **End-of-life data.** The first connector reads support dates for technology releases from
+  the public endoflife.date dataset, for each technology with an end-of-life key, by the same
+  rules as the import from a file: releases are added and dates updated, and nothing is
+  removed.
+- The history names the release whose dates changed, and shows the reason given for an
+  override.
+
 ## 0.3.0 (2026-11-26)
 
 Wave 3, *Keeping current*: a portfolio that stays true without a central team chasing it.

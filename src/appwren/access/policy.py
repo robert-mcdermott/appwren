@@ -94,6 +94,17 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("PUT", "/api/v1/program/questionnaire"): Needs.CONFIGURE,
     ("POST", "/api/v1/program/scoring/preview"): Needs.CONFIGURE,
     ("PUT", "/api/v1/program/scoring"): Needs.CONFIGURE,
+    # Connectors: set up and run by administrators
+    ("GET", "/api/v1/connectors"): Needs.ADMIN,
+    ("POST", "/api/v1/connectors"): Needs.ADMIN,
+    ("GET", "/api/v1/connectors/{key}"): Needs.ADMIN,
+    ("PATCH", "/api/v1/connectors/{key}"): Needs.ADMIN,
+    ("POST", "/api/v1/connectors/{key}/check"): Needs.ADMIN,
+    ("POST", "/api/v1/connectors/{key}/run"): Needs.ADMIN,
+    # What sources supply: read with the record; overridden by whoever keeps it
+    ("GET", "/api/v1/sourced/{ref}"): Needs.MEMBER,
+    ("POST", "/api/v1/sourced/{ref}/{field}/override"): Needs.MEMBER,
+    ("DELETE", "/api/v1/sourced/{ref}/{field}/override"): Needs.MEMBER,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,

@@ -428,7 +428,7 @@ def update(
 
 def touch(session: Session, record: Any) -> None:
     """Mark a record as changed, if it was."""
-    if session.is_modified(record):
+    if session.is_modified(record) and hasattr(record, "version"):
         record.version += 1
         record.updated_at = utc_now()
 

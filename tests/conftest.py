@@ -56,6 +56,20 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
+def _no_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No test reaches the network: a connector's requests go to a transport that refuses
+    them, unless the test gives a fake source of its own."""
+    import httpx
+
+    from appwren import connectors
+
+    def refuse(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError(f"a test reached for {request.url}")
+
+    monkeypatch.setattr(connectors, "TRANSPORT", httpx.MockTransport(refuse))
+
+
+@pytest.fixture(autouse=True)
 def _cheap_passwords(monkeypatch: pytest.MonkeyPatch) -> None:
     """Hashing is deliberately slow; tests hash hundreds of passwords."""
     from appwren.auth import passwords

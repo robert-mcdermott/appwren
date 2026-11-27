@@ -15,6 +15,7 @@ from appwren.api.problems import install_problem_handlers
 from appwren.api.routers import (
     assessment,
     branding,
+    connectors,
     decisions,
     inventory,
     keeping,
@@ -36,7 +37,7 @@ from appwren.home import DataHome
 
 ROUTERS = (
     system, session, sso, people, branding, inventory, assessment, decisions, reporting,
-    landscape, operations, keeping, program,
+    landscape, operations, keeping, program, connectors,
 )  # fmt: skip
 
 

@@ -39,16 +39,16 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Connector framework ☐
+## Slice 1: Connector framework ☑
 
 **Goal:** the means of every connector: switched on one at a time, run on a schedule, recorded, and their values kept with their source.
 
-- [ ] `connector` (a kind, a name, its settings, the environment variable its credential is in, whether it is on, how often it runs) and `connector_run` (when, how long, status, counts, what it could not match, the reason it failed)
-- [ ] `fact_value`: a field of a record, the value a source last read and when, and a person's override with a reason
-- [ ] The runner: one job on the scheduler runs each connector that is on and due, with a time limit, a size limit on responses, and every run recorded; a run that fails changes nothing
-- [ ] Admin → Connectors: the kinds there are, adding and switching one on, its settings, checking it reaches its source, running it now, its runs and what each did
-- [ ] On a record: a sourced value marked with its source and when it was read; override with a reason, and remove the override
-- [ ] A fake source inside the tests, so no test reaches the network
+- [x] `connector` (a kind, a name, its settings, the environment variable its credential is in, whether it is on, how often it runs) and `connector_run` (when, how long, status, counts, what it could not match, the reason it failed)
+- [x] `fact_value`: a field of a record, the value a source last read and when, and a person's override with a reason
+- [x] The runner: one job on the scheduler runs each connector that is on and due, with a time limit, a size limit on responses, and every run recorded; a run that fails changes nothing
+- [x] Admin → Connectors: the kinds there are, adding and switching one on, its settings, checking it reaches its source, running it now, its runs and what each did
+- [x] On a record: a sourced value marked with its source and when it was read; override with a reason, and remove the override
+- [x] A fake source inside the tests, so no test reaches the network
 
 **Acceptance:** with no connector switched on, no outbound connection is made; a connector reading a value writes it with its source, an override wins until removed, and a failed run leaves every value as it was.
 
@@ -63,14 +63,16 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** against a fake host inside the tests, each fact lands on the right component with its source; a repository the token cannot read is reported unmatched, and nothing else changes.
 
-## Slice 3: End-of-life data ☐
+## Slice 3: End-of-life data ☑
 
 **Goal:** support dates nobody types.
 
-- [ ] An end-of-life connector reading the public dataset for each technology with a key, by the rules of the import from a file: it adds releases, updates dates, removes nothing
-- [ ] Each date it sets is sourced; a date a person set by hand is an override
+- [x] An end-of-life connector reading the public dataset for each technology with a key, by the rules of the import from a file: it adds releases, updates dates, removes nothing
+- [x] Each date it sets is sourced; a date a person set by hand is an override
 
 **Acceptance:** a run adds the releases and dates the dataset has; a second run changes nothing; a date a person overrode stays theirs.
+
+Built with slice 1, as the framework's first connector: it needs no credential, so it shows the whole path from switching on to an override without anything to set up.
 
 ## Slice 4: Identity provider ☐
 
@@ -113,3 +115,5 @@ None block the start. These defaults have been taken and can be changed before t
 Decisions and discoveries made during the wave are logged here, newest last.
 
 - **CI tests each commit's files once.** The workflow ran every test on the push and again for the pull request, though spec/process.md said otherwise from wave 1. It now does what the process says: a pushed branch is tested, its pull request shows that result, a merge holding already-tested files and a tag start nothing, and a newer push stops the older run.
+- **A run reads first and writes after.** Reading a source takes as long as the source does, so the reading holds no lock on the database; only once all of it has succeeded is it written, in one transaction. A record removed in between is passed over.
+- **The demo's connector is switched off.** The demo has the end-of-life connector with three weeks of runs, one failed, and one date overridden, then switched off, so that a demo never reaches out to anything.
