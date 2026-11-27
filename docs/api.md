@@ -83,9 +83,11 @@ Every message is signed with the webhook's secret, shown once when it is added. 
 ```python
 import hashlib, hmac
 
+
 def genuine(secret: str, headers: dict, body: bytes) -> bool:
-    mac = hmac.new(secret.encode(), headers["X-AppWren-Timestamp"].encode() + b"." + body,
-                   hashlib.sha256).hexdigest()
+    mac = hmac.new(
+        secret.encode(), headers["X-AppWren-Timestamp"].encode() + b"." + body, hashlib.sha256
+    ).hexdigest()
     return hmac.compare_digest(f"sha256={mac}", headers["X-AppWren-Signature"])
 ```
 
