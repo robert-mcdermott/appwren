@@ -2,6 +2,8 @@
 
 **Know every application, and what to do with it.**
 
+**Documentation, with pictures: <https://robert-mcdermott.github.io/appwren/>**
+
 AppWren is an open system of record for application portfolio management: one living record of every application an organization runs, who answers for it, what it is for, what it is built on, what it costs, and how healthy it is, turned into an explainable recommendation for each one: invest, maintain, tolerate, modernize, replace, consolidate, or retire.
 
 It is built with particular care for research and health organizations that are not large corporations: research institutes, academic medical centers, universities, and the nonprofits around them, where software comes from vendors, central IT, and labs alike. Within them it is built first for the product, application, and engineering teams who own the software. Nothing in it is specific to either, and any organization that wants a lightweight, self-hosted portfolio system can adopt it.
@@ -116,6 +118,8 @@ uv run ruff check && uv run ruff format --check
 node scripts/a11y-audit.mjs       # the accessibility audit, over a fresh demo
 node scripts/keyboard-check.mjs   # the keyboard checks, over a fresh demo
 node scripts/capture.mjs          # the documentation's screenshots, from a fresh demo
+node scripts/site/build.mjs       # the documentation site, into ./site
+node scripts/site/audit.mjs       # the site's own audit: both themes, desk and phone widths
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how the work is organized, and [SECURITY.md](SECURITY.md) to report a vulnerability.
