@@ -59,7 +59,7 @@ async function boot() {
   route("/applications", page("records", "applicationList"));
   route("/applications/:ref", page("record", "applicationPage"));
   route("/applications/:ref/assess", page("assess", "assess"));
-  for (const type of ["component", "vendor", "technology", "capability", "interface", "hosting_platform", "deployment", "contract", "funding_source", "review", "initiative", "request"]) {
+  for (const type of ["component", "vendor", "technology", "capability", "interface", "hosting_platform", "deployment", "contract", "funding_source", "review", "initiative", "request", "scenario"]) {
     const path = TYPES[type].path;
     route(`/${path}`, page("records", "recordList", type));
     route(`/${path}/:ref`, page("record", "recordPage", type));
@@ -77,6 +77,14 @@ async function boot() {
   route("/data-handling", page("data-handling", "dataHandling"));
   route("/maturity", page("maturity", "maturityReport"));
   route("/retirements", page("retirements", "retirementReport"));
+  route("/trends", page("trends", "trendsPage"));
+  route("/shares", page("shares", "sharesPage"));
+  route("/as-of", page("as-of", "portfolioAsOf"));
+  route("/applications/:ref/as-of", page("as-of", "applicationAsOf"));
+  if (can("read_all")) {
+    route("/reports", page("reports", "reportList"));
+    route("/reports/:ref", page("reports", "reportPage"));
+  }
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));

@@ -24,6 +24,7 @@ export const NAV = [
       { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/reviews", label: "Reviews", iconName: "list" },
       { href: "/roadmap", label: "Roadmap", iconName: "lifecycle" },
+      { href: "/scenarios", label: "Scenarios", iconName: "chart" },
       { href: "/requests", label: "Requests", iconName: "plus" },
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },
@@ -47,6 +48,10 @@ export const NAV = [
     heading: "Reports",
     items: [
       { href: "/dashboard", label: "Dashboard", iconName: "dashboard" },
+      { href: "/reports", label: "Leadership reports", iconName: "list", when: "read_all" },
+      { href: "/trends", label: "Trends", iconName: "chart" },
+      { href: "/shares", label: "Shares of the portfolio", iconName: "chart" },
+      { href: "/as-of", label: "As of a day", iconName: "clock" },
       { href: "/data-quality", label: "Data quality", iconName: "quality" },
       { href: "/data-handling", label: "Data handling", iconName: "shield" },
       { href: "/maturity", label: "Engineering maturity", iconName: "check" },

@@ -18,6 +18,7 @@ from appwren.api.routers import (
     catalog,
     connectors,
     decisions,
+    insight,
     inventory,
     keeping,
     landscape,
@@ -39,7 +40,7 @@ from appwren.home import DataHome
 
 ROUTERS = (
     system, session, sso, people, branding, inventory, assessment, decisions, reporting,
-    landscape, operations, keeping, program, connectors, catalog, planning,
+    landscape, operations, keeping, program, connectors, catalog, planning, insight,
 )  # fmt: skip
 
 

@@ -17,6 +17,7 @@ from appwren.db.models.connectors import (
     PushKey,
 )
 from appwren.db.models.decision import Decision
+from appwren.db.models.insight import Report, Scenario, ScenarioChange
 from appwren.db.models.inventory import (
     Application,
     ApplicationCapability,
@@ -119,6 +120,7 @@ __all__ = [
     "RecordLink",
     "RecordOwner",
     "Reminder",
+    "Report",
     "Request",
     "RequestOption",
     "Retirement",
@@ -126,6 +128,8 @@ __all__ = [
     "ReviewItem",
     "RoleGrant",
     "SavedView",
+    "Scenario",
+    "ScenarioChange",
     "ScoreContest",
     "ScoreSnapshot",
     "ScoringModel",

@@ -100,6 +100,14 @@ summary > .row-sm { display: inline-flex; vertical-align: middle; }
 .retire-step:last-child { border-bottom: 0; }
 .retire-step .check-state { width: 4rem; flex-shrink: 0; }
 .retire-step[data-done="true"] .check-state { color: var(--ok); }
+.over-time { width: 100%; max-width: 640px; height: auto; display: block; }
+.over-grid { stroke: var(--border); stroke-width: 1; }
+.over-tick { font-size: 10px; fill: var(--text-muted); }
+.over-line { fill: none; stroke-width: 2.5; }
+.over-0 { stroke: var(--series-0); } .over-1 { stroke: var(--series-1); } .over-2 { stroke: var(--series-2); } .over-3 { stroke: var(--series-3); }
+.over-key { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+.over-key span::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 6px; vertical-align: middle; border-radius: 2px; }
+.over-key-0::before { background: var(--series-0); } .over-key-1::before { background: var(--series-1); } .over-key-2::before { background: var(--series-2); } .over-key-3::before { background: var(--series-3); }
 .kind-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: start; }
 .code-input { font-family: var(--font-mono); font-size: var(--text-s); }
 .code-block { margin: 0; padding: var(--space-3); border-radius: var(--radius-s); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-s); white-space: pre-wrap; overflow-wrap: anywhere; }

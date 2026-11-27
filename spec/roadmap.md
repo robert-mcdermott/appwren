@@ -114,17 +114,19 @@ Detail: [waves/wave-4.md](waves/wave-4.md)
 
 Detail: [waves/wave-5.md](waves/wave-5.md)
 
-## Wave 6: Insight (v0.6.0) ☐
+## Wave 6: Insight (v0.6.0) ☑
 
 **Goal:** answer leadership's questions from the record, with figures that explain themselves.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Measures and trends | Defined measures; movement between snapshots | ☐ |
-| 2 | Leadership report | A periodic report frozen as a snapshot that reopens unchanged | ☐ |
-| 3 | As of | Any record, and the portfolio, as it stood on a chosen date | ☐ |
-| 4 | Scenarios | A proposed set of changes and their effect on cost, users, interfaces, capabilities, and risk | ☐ |
-| 5 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Measures and trends | Defined measures; movement between snapshots | ☑ |
+| 2 | Leadership report | A periodic report frozen as a snapshot that reopens unchanged | ☑ |
+| 3 | As of | Any record, and the portfolio, as it stood on a chosen date | ☑ |
+| 4 | Scenarios | A proposed set of changes and their effect on cost, users, interfaces, capabilities, and risk | ☑ |
+| 5 | Release prep | Guides, changelog, release | ☑ |
+
+Detail: [waves/wave-6.md](waves/wave-6.md)
 
 ## Wave 7: Adoption (v0.7.0) ☐
 

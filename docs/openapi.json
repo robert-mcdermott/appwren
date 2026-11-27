@@ -3012,6 +3012,87 @@
         "title": "ReadBody",
         "type": "object"
       },
+      "RecordBody": {
+        "description": "What every record has. On a change, send only what changes, with the ``version`` you\nwere editing.",
+        "properties": {
+          "external_refs": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ExternalRefBody"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Refs"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "active or retired",
+            "title": "Status"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "title": "RecordBody",
+        "type": "object"
+      },
       "Release": {
         "properties": {
           "cycle": {
@@ -3088,6 +3169,33 @@
           "releases"
         ],
         "title": "ReleasesBody",
+        "type": "object"
+      },
+      "ReportBody": {
+        "properties": {
+          "period_from": {
+            "description": "The first day of the period, YYYY-MM-DD",
+            "title": "Period From",
+            "type": "string"
+          },
+          "period_to": {
+            "description": "Its last day, today or earlier",
+            "title": "Period To",
+            "type": "string"
+          },
+          "title": {
+            "description": "What the report is called",
+            "maxLength": 200,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "period_from",
+          "period_to"
+        ],
+        "title": "ReportBody",
         "type": "object"
       },
       "RequestBody": {
@@ -3405,6 +3513,97 @@
           "roles"
         ],
         "title": "Roles",
+        "type": "object"
+      },
+      "ScenarioChangeBody": {
+        "properties": {
+          "action": {
+            "description": "retire, consolidate, or replace",
+            "title": "Action",
+            "type": "string"
+          },
+          "application": {
+            "description": "The application's reference",
+            "title": "Application",
+            "type": "string"
+          },
+          "into": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What it moves into, or is replaced by",
+            "title": "Into"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "application",
+          "action"
+        ],
+        "title": "ScenarioChangeBody",
+        "type": "object"
+      },
+      "ScenarioChangesBody": {
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioChangeBody"
+            },
+            "title": "Changes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "changes"
+        ],
+        "title": "ScenarioChangesBody",
+        "type": "object"
+      },
+      "ScenarioInitiativeBody": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The scenario's, if none",
+            "title": "Name"
+          },
+          "org_unit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The first application's, if none",
+            "title": "Org Unit Id"
+          }
+        },
+        "title": "ScenarioInitiativeBody",
         "type": "object"
       },
       "SignIn": {
@@ -5212,6 +5411,62 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/as-of": {
+      "get": {
+        "description": "Each of its values at the end of that day beside its value now, its decision then, and\nits scores in the nearest portfolio snapshot taken on or before it.",
+        "operationId": "application_as_of_api_v1_applications__ref__as_of_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The day, YYYY-MM-DD, today or earlier",
+            "in": "query",
+            "name": "on",
+            "required": true,
+            "schema": {
+              "description": "The day, YYYY-MM-DD, today or earlier",
+              "title": "On",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Application As Of Api V1 Applications  Ref  As Of Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application as it stood on a day",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/assessments": {
       "get": {
         "operationId": "list_assessments_api_v1_applications__ref__assessments_get",
@@ -6350,6 +6605,50 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/score-history": {
+      "get": {
+        "operationId": "score_history_api_v1_applications__ref__score_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Score History Api V1 Applications  Ref  Score History Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's scores over time",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/score-preview": {
       "post": {
         "description": "The scores these answers would give, from the same engine as the record. Nothing is\nsaved.",
@@ -6501,6 +6800,53 @@
         "summary": "Say which units use it",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/as-of": {
+      "get": {
+        "description": "The applications in service at the end of that day, each with its stage, unit, tier,\nand decision then, beside its stage and decision now. Read from the history.",
+        "operationId": "portfolio_as_of_api_v1_as_of_get",
+        "parameters": [
+          {
+            "description": "The day, YYYY-MM-DD, today or earlier",
+            "in": "query",
+            "name": "on",
+            "required": true,
+            "schema": {
+              "description": "The day, YYYY-MM-DD, today or earlier",
+              "title": "On",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Portfolio As Of Api V1 As Of Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The portfolio as it stood on a day",
+        "tags": [
+          "insight"
         ]
       }
     },
@@ -13344,6 +13690,116 @@
         ]
       }
     },
+    "/api/v1/reports": {
+      "get": {
+        "operationId": "list_reports_api_v1_reports_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Reports Api V1 Reports Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Leadership reports, the latest period first",
+        "tags": [
+          "insight"
+        ]
+      },
+      "post": {
+        "description": "Works the report out from the records as they are now, and keeps it whole. Reopening it\nreads what was kept.",
+        "operationId": "make_report_api_v1_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Make Report Api V1 Reports Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Make a leadership report for a period",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
+    "/api/v1/reports/{ref}": {
+      "get": {
+        "description": "The report as stored, with its digest and whether it still matches.",
+        "operationId": "get_report_api_v1_reports__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Report Api V1 Reports  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A leadership report, as it was made",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
     "/api/v1/requests": {
       "get": {
         "operationId": "list_request_api_v1_requests_get",
@@ -14834,6 +15290,515 @@
         ]
       }
     },
+    "/api/v1/scenarios": {
+      "get": {
+        "operationId": "list_scenario_api_v1_scenarios_get",
+        "parameters": [
+          {
+            "description": "Words in the name or reference",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Words in the name or reference",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "One of updated_at, name, ref, status; - descends",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "-updated_at",
+              "description": "One of updated_at, name, ref, status; - descends",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 200,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Limit"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find scenarios",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "post": {
+        "operationId": "add_scenario_api_v1_scenarios_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Add Scenario Api V1 Scenarios Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a scenario",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{ref}": {
+      "get": {
+        "operationId": "show_scenario_api_v1_scenarios__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Show Scenario Api V1 Scenarios  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One scenario, with what it is linked to",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "patch": {
+        "operationId": "change_scenario_api_v1_scenarios__ref__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Change Scenario Api V1 Scenarios  Ref  Patch",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change a scenario",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{ref}/changes": {
+      "put": {
+        "description": "Replaces the applications it names, each retired, consolidated into another, or\nreplaced by another. Its effect is worked out again. No application changes.",
+        "operationId": "set_scenario_changes_api_v1_scenarios__ref__changes_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioChangesBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Set Scenario Changes Api V1 Scenarios  Ref  Changes Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say what a scenario would change",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{ref}/history": {
+      "get": {
+        "operationId": "history_scenario_api_v1_scenarios__ref__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response History Scenario Api V1 Scenarios  Ref  History Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What has happened to a scenario",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{ref}/initiative": {
+      "post": {
+        "description": "A proposed initiative naming the same applications. The scenario changes no more.",
+        "operationId": "scenario_to_initiative_api_v1_scenarios__ref__initiative_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioInitiativeBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Scenario To Initiative Api V1 Scenarios  Ref  Initiative Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Make an initiative of a scenario",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{ref}/links": {
+      "post": {
+        "operationId": "link_scenario_api_v1_scenarios__ref__links_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Link Scenario Api V1 Scenarios  Ref  Links Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link a scenario to a record",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/api/v1/scenarios/{ref}/links/{link_id}": {
+      "delete": {
+        "operationId": "unlink_scenario_api_v1_scenarios__ref__links__link_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "title": "Link Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Unlink Scenario Api V1 Scenarios  Ref  Links  Link Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a link",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
     "/api/v1/score-snapshots/{snapshot_id}": {
       "get": {
         "operationId": "score_snapshot_api_v1_score_snapshots__snapshot_id__get",
@@ -15204,6 +16169,30 @@
         "summary": "Say how you want to be told",
         "tags": [
           "operations"
+        ]
+      }
+    },
+    "/api/v1/shares": {
+      "get": {
+        "description": "Which applications are at one end of the portfolio. A share never feeds a score.",
+        "operationId": "portfolio_shares_api_v1_shares_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Portfolio Shares Api V1 Shares Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Shares of the portfolio: the costliest tenth, and others",
+        "tags": [
+          "insight"
         ]
       }
     },
@@ -16398,6 +17387,71 @@
         "summary": "A technology's releases and their support",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/trends": {
+      "get": {
+        "description": "The figures each held, the applications whose recommendation changed, whose scores\nmoved by half a point or more, and whose flags came or went, and the decisions recorded\nbetween them.",
+        "operationId": "compare_snapshots_api_v1_trends_get",
+        "parameters": [
+          {
+            "description": "The earlier portfolio snapshot's reference",
+            "in": "query",
+            "name": "before",
+            "required": true,
+            "schema": {
+              "description": "The earlier portfolio snapshot's reference",
+              "title": "Before",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The later one; today if none",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The later one; today if none",
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Compare Snapshots Api V1 Trends Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "How the portfolio moved between two snapshots",
+        "tags": [
+          "insight"
         ]
       }
     },

@@ -210,6 +210,7 @@ class RequestBody(RecordBody):
 
 
 BODIES: dict[str, type[RecordBody]] = {
+    "scenario": RecordBody,
     "review": ReviewBody,
     "request": RequestBody,
     "initiative": InitiativeBody,

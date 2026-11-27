@@ -4,6 +4,46 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.6.0 (2026-11-27)
+
+Wave 6, *Insight*: the record read back as a whole, for leadership. Two portfolio snapshots
+side by side say what moved between them, and an application's scores are shown over time;
+shares of the portfolio name the costliest and least used applications without feeding any
+score; a leadership report for a period is worked out once and kept whole, with a digest
+that shows it is unchanged; the portfolio, and any application, can be seen as it stood at
+the end of a chosen day, from the history; and a scenario shows what a set of changes would
+save, whom it would affect, and what would stop, before anyone commits to it.
+
+### Added
+
+- **Trends.** Reports → Trends puts two portfolio snapshots side by side, or one and today:
+  the figures each held, the applications whose recommendation changed, whose scores rose or
+  fell by half a point or more, and whose flags came or went, applications added or gone,
+  and the decisions recorded between them. An application's Scores part shows its scores
+  over time.
+- **Shares of the portfolio.** Reports → Shares of the portfolio lists the costliest tenth,
+  the dearest tenth per user, the least used fifth, and the oldest fifth of the
+  applications in service. A share never feeds a score.
+- **Leadership reports.** A manager makes a report for a period under Reports → Leadership
+  reports: where the portfolio stood, how the scores moved between the period's snapshots,
+  the decisions taken, the reviews closed, initiatives, requests, and retirements with their
+  savings. It is worked out once and kept whole, with its SHA-256 digest checked whenever it
+  is opened, and prints cleanly. A new guide, *Insight*, covers these.
+- **As of a day.** Reports → As of a day shows the applications in service at the end of a
+  chosen day, with each one's stage and decision then beside now; an application's History
+  part shows it as it stood on a day, value by value, with its decision and scores then.
+  Both are read from the history: nothing is stored for them.
+- **Scenarios.** Portfolio → Scenarios holds proposed sets of changes (retire this,
+  consolidate that into this, replace) with what each would do: the cost saved a year, the
+  people whose application would change, the interfaces that would stop, the capabilities
+  left with nothing, and the risk that would go with them. A scenario changes nothing until
+  it is made into a proposed initiative.
+
+### Changed
+
+- Three more rarely opened dialogs on a record's page (the people named on it, the
+  capabilities it serves, and what it is called elsewhere) load when they are opened.
+
 ## 0.5.0 (2026-11-27)
 
 Wave 5, *Planning change*: decisions become planned, tracked change. A portfolio review

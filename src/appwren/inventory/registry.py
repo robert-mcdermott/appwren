@@ -28,6 +28,7 @@ from appwren.db.models import (
     Interface,
     Request,
     Review,
+    Scenario,
     Technology,
     Vendor,
 )
@@ -529,6 +530,19 @@ REQUEST = register(
         has_unit=True,
         filters=("status", "state", "capability_id"),
         sorts=("updated_at", "name", "ref", "status", "needed_by"),
+    )
+)
+
+SCENARIO = register(
+    RecordType(
+        "scenario",
+        Scenario,
+        "SCN",
+        "scenarios",
+        "scenario",
+        "scenarios",
+        shared=True,  # kept by architects and managers, seen by everyone
+        sorts=("updated_at", "name", "ref", "status"),
     )
 )
 
