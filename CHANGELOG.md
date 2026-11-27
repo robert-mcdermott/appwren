@@ -45,6 +45,15 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **The capability map, measured.** The map can show, for each capability, how many
   applications serve it, the average of any score, data confidence, or the technical health
   of the weakest application that serves it. Each figure opens the applications behind it.
+- **Lifecycle.** Landscape → Lifecycle shows the technology releases applications run on,
+  soonest end of support first, as a timeline with how many components and applications are
+  on each; and the applications with a planned retirement.
+- **Radar.** The technologies in use by ring (adopt, trial, assess, hold), with how much
+  runs on each, and those in use that nobody has placed.
+- **Support dates from a file.** `appwren technologies import-eol FILE`, or **Import support
+  dates** on the Technologies page, adds releases and updates their dates from a file of
+  end-of-life data, matched by each technology's end-of-life key. It says what it would
+  change before it changes anything, and removes nothing. AppWren does not fetch the file.
 - Lists of applications, the portfolio list, and their exports can be narrowed by capability
   and by class of data.
 

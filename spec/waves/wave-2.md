@@ -112,16 +112,18 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** both views are drawn from the portfolio list, with a new filter by capability that every list and export also takes. The demo has 17 capabilities served more than once.
 
-## Slice 6: Technology lifecycle ☐
+## Slice 6: Technology lifecycle ☑
 
 **Goal:** what falls out of support, and when.
 
-- [ ] **Landscape → Lifecycle:** a timeline of technology releases to their end of support, each with how many components and applications are on it, and of applications to their planned retirement; with a table of the same
-- [ ] **Landscape → Radar:** technologies by ring and kind, each with how many components use it, and those in use with no ring
-- [ ] End-of-life data from a file: `appwren technologies import-eol FILE` and the same from the Technologies page, matched by each technology's key in the file, with a dry run that lists every date that would change; releases added, dates updated, nothing removed
-- [ ] Guide and changelog entries
+- [x] **Landscape → Lifecycle:** technology releases to their end of support, soonest first, each with how many components and applications are on it, as a bar on a timeline and in words; and applications with a planned retirement
+- [x] **Radar** (from Technologies and Lifecycle): technologies by ring, each with its kind and how many components use it, and those in use with no ring
+- [x] End-of-life data from a file: `appwren technologies import-eol FILE` and the same from the Technologies page, matched by each technology's key in the file, with a dry run that lists every date that would change; releases added, dates updated, nothing removed
+- [x] Changelog entry
 
-**Acceptance:** the timeline's counts equal the technology pages'; an import run twice changes nothing the second time; a date a person typed is replaced only when the file disagrees, and the change is in the history with the import named as its source.
+**Acceptance (met):** the timeline's counts equal the technology pages', for every role, and a release nothing visible runs on is left out; an import run twice changes nothing the second time; a date a person typed is replaced only when the file gives a different one, a date the file does not give is left alone, and the change is in the technology's history under the person who ran the import.
+
+**Done:** AppWren never fetches support dates. An architect brings a file in the shape public end-of-life datasets use, sees what it would change, and applies it, in the app or from the command line. The demo's timeline has 35 releases in use: 14 past their end of support, 6 ending within a year.
 
 ## Slice 7: Exports, external references, and the whole history ☐
 
@@ -161,3 +163,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **An upgrade respects a shaped model.** The new default scoring model replaces only an earlier default that nobody changed, recognized by its digest. A test holds the 0.1.0 model's digest against the list.
 - **Buttons in cards say what they edit.** "Edit" beside "Edit" on one page failed a scene and would fail a person using a screen reader's list of buttons.
 - **A heat map without heat.** The capability map shows each figure as a number with the score's own bar, as everywhere else, where a block of color would have said less and asked more of the eye. "Weakest health" is offered beside the average: a capability is as exposed as the worst thing that serves it.
+- **The timeline is bars with words.** Each release is a row: its name and what runs on it, a bar from its first day to the end of its support with today marked, and the state and date in words. Nothing is said by the bar alone, and there is no chart to make accessible.
+- **The file says what it would do first.** The import from a file always starts as a dry run, in the app and in the API. It never removes a release and never blanks a date: a file that says only "true" for an end of life gives no date, and none is taken.

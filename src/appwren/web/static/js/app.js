@@ -65,6 +65,8 @@ async function boot() {
   route("/capability-map", page("capability-map", "capabilityMap"));
   route("/data-flows", page("data-flows", "dataFlows"));
   route("/overlap", page("overlap", "overlapPage"));
+  route("/lifecycle", page("lifecycle", "lifecyclePage"));
+  route("/radar", page("lifecycle", "radarPage"));
   route("/graph/:ref", page("graph", "graphPage"));
   route("/portfolio", page("portfolio", "portfolioChart"));
   route("/dashboard", page("dashboard", "dashboard"));

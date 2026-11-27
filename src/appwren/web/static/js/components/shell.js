@@ -30,6 +30,7 @@ export const NAV = [
       { href: "/overlap", label: "Overlap", iconName: "consolidate" },
       { href: "/data-flows", label: "Data flows", iconName: "flow" },
       { href: "/technologies", label: "Technologies", iconName: "technology" },
+      { href: "/lifecycle", label: "Lifecycle", iconName: "history" },
       { href: "/hosting-platforms", label: "Hosting", iconName: "platform" },
       { href: "/vendors", label: "Vendors", iconName: "vendor" },
     ],

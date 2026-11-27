@@ -17,7 +17,7 @@ from appwren.demo import build
 from appwren.events import chain
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, CONTRACT, DEPLOYMENT, INTERFACE, TECHNOLOGY
-from appwren.landscape import costs, graph, hosting, interfaces, overlap
+from appwren.landscape import costs, graph, hosting, interfaces, lifecycle, overlap
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -173,6 +173,19 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         assert len(reporting.portfolio_list(session, ME, surveys["filters"])) == 3
         heat = overlap.heat(session, ME, {})
         assert all(root["measures"]["applications"] > 0 for root in heat)
+        # What falls out of support: the timeline starts with what has ended, and its counts
+        # are the technology's own; the radar places what is in use.
+        line = lifecycle.timeline(session, ME)
+        assert line["releases"][0]["support"] == "ended" and line["by_support"]["ending"] >= 3
+        ours = next(
+            r
+            for r in line["releases"]
+            if r["technology"]["name"] == "PostgreSQL" and r["cycle"] == "13"
+        )
+        assert ours["components"] == len(thirteen["used_by"]) and ours["support"] == "ending"
+        placed = lifecycle.radar(session, ME)
+        assert [ring["key"] for ring in placed["rings"]] == ["adopt", "trial", "assess", "hold"]
+        assert all(ring["technologies"] for ring in placed["rings"])
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

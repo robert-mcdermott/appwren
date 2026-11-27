@@ -7846,6 +7846,66 @@
         ]
       }
     },
+    "/api/v1/imports/end-of-life": {
+      "post": {
+        "description": "The body is one object: each product's key, with its list of release cycles (``cycle``,\n``releaseDate``, ``eol``, ``extendedSupport``, ``latest``). A product is matched to the\ntechnology whose end-of-life key it is. Releases are added and dates updated; nothing is\nremoved.",
+        "operationId": "import_end_of_life_api_v1_imports_end_of_life_post",
+        "parameters": [
+          {
+            "description": "Say what would change, and change nothing",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Say what would change, and change nothing",
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Body",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Import End Of Life Api V1 Imports End Of Life Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bring support dates in from a file",
+        "tags": [
+          "landscape"
+        ]
+      }
+    },
     "/api/v1/imports/people": {
       "post": {
         "description": "Send the CSV as the request body. With ``dry_run`` (the default) nothing is changed.",
@@ -8441,6 +8501,54 @@
         ]
       }
     },
+    "/api/v1/lifecycle": {
+      "get": {
+        "description": "The releases in use, soonest end of support first, each with how many components and\napplications are on it; and the applications with a planned retirement.",
+        "operationId": "technology_lifecycle_api_v1_lifecycle_get",
+        "parameters": [
+          {
+            "description": "Releases nothing runs on as well",
+            "in": "query",
+            "name": "every",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Releases nothing runs on as well",
+              "title": "Every",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Technology Lifecycle Api V1 Lifecycle Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Technology releases to their end of support",
+        "tags": [
+          "landscape"
+        ]
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "description": "What the web app needs before anyone signs in.",
@@ -8687,6 +8795,29 @@
         "summary": "The current question bank",
         "tags": [
           "assessment and scores"
+        ]
+      }
+    },
+    "/api/v1/radar": {
+      "get": {
+        "operationId": "technology_radar_api_v1_radar_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Technology Radar Api V1 Radar Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The technologies in use, by ring",
+        "tags": [
+          "landscape"
         ]
       }
     },

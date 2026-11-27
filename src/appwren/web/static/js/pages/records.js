@@ -9,6 +9,7 @@ import { hrefOf, lifecyclePill, recordChip, statusOptions, statusPill, supportPi
 import { editRecord, mayAdd } from "../components/record-forms.js";
 import { openImport } from "../components/importer.js";
 import { card, emptyState, pageHeader } from "../components/ui.js";
+import { importSupportDates } from "./lifecycle.js";
 import { show } from "./page.js";
 
 /** Download the list as it is filtered now. */
@@ -263,6 +264,9 @@ export function recordList(main, type) {
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
           actions: [type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
+            type === "technology" ? h("a", { class: "btn", href: "/lifecycle" }, "Lifecycle") : null,
+            type === "technology" ? h("a", { class: "btn", href: "/radar" }, "Radar") : null,
+            type === "technology" && mayAdd(type) ? button("Import support dates", { iconName: "upload", onclick: () => importSupportDates(reload) }) : null,
             type === "interface" ? h("a", { class: "btn", href: "/data-flows" }, "Data flows") : null,
             type === "contract" ? h("a", { class: "btn", href: "/funding-sources" }, "Funding sources") : null,
             type === "funding_source" ? h("a", { class: "btn", href: "/contracts" }, "Contracts") : null,

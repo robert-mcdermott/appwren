@@ -12,7 +12,7 @@ from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, CONTRACT, find_any
-from appwren.landscape import costs, graph, interfaces, overlap
+from appwren.landscape import costs, graph, interfaces, lifecycle, overlap
 
 router = APIRouter(prefix="/api/v1", tags=["landscape"])
 
@@ -133,3 +133,40 @@ def capability_heat(request: Request) -> dict[str, Any]:
     principal = current(request)
     with reading(request) as session:
         return envelope(overlap.heat(session, principal, {}))
+
+
+# --- The technology lifecycle ---------------------------------------------------------------
+
+
+@router.get("/lifecycle", summary="Technology releases to their end of support")
+def technology_lifecycle(
+    request: Request,
+    every: bool = Query(default=False, description="Releases nothing runs on as well"),
+) -> dict[str, Any]:
+    """The releases in use, soonest end of support first, each with how many components and
+    applications are on it; and the applications with a planned retirement."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(lifecycle.timeline(session, principal, every=every))
+
+
+@router.get("/radar", summary="The technologies in use, by ring")
+def technology_radar(request: Request) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(lifecycle.radar(session, principal))
+
+
+@router.post("/imports/end-of-life", summary="Bring support dates in from a file")
+def import_end_of_life(
+    request: Request,
+    body: dict[str, Any],
+    dry_run: bool = Query(default=True, description="Say what would change, and change nothing"),
+) -> dict[str, Any]:
+    """The body is one object: each product's key, with its list of release cycles (``cycle``,
+    ``releaseDate``, ``eol``, ``extendedSupport``, ``latest``). A product is matched to the
+    technology whose end-of-life key it is. Releases are added and dates updated; nothing is
+    removed."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        return envelope(lifecycle.import_end_of_life(session, principal, body, dry_run=dry_run))

@@ -52,7 +52,7 @@ Detail: [waves/wave-1.md](waves/wave-1.md)
 | 3 | Deployments and hosting | Environments, hosting platforms, deployments of applications and components | ☑ |
 | 4 | Cost, funding, and contracts | Cost lines by category and funding source, contracts with renewal and notice dates, cost per user and license use as factors | ☑ |
 | 5 | Overlap and the capability heat map | Capabilities served more than once, side by side; the tree colored by any score | ☑ |
-| 6 | Technology lifecycle | The lifecycle timeline, the technology radar, end-of-life data imported from a file | ☐ |
+| 6 | Technology lifecycle | The lifecycle timeline, the technology radar, end-of-life data imported from a file | ☑ |
 | 7 | Exports for a risk analysis | Applications by data class with owners, versions, hosting, sign-in, and support status; external references; the organization-wide history | ☐ |
 | 8 | Release prep | Guides, changelog, release | ☐ |
 
