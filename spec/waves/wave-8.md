@@ -34,11 +34,11 @@ None block the start. These defaults have been taken and can be changed before t
 - [x] `GET /api/v1/checkpoint/{ref}`, with a data class: approved or not, and why
 - [x] A restricted application is not named, or even confirmed, to someone who may not see it
 
-## Slice 2: Tool server for assistants ☐
+## Slice 2: Tool server for assistants ☑
 
-- [ ] Personal tokens: read and draft, as the person
-- [ ] Suggestions on a record, accepted or dismissed by someone who keeps it
-- [ ] An optional tool server for AI assistants, through the API
+- [x] Personal tokens: read and draft, as the person
+- [x] Suggestions on a record, accepted or dismissed by someone who keeps it
+- [x] An optional tool server for AI assistants, through the API
 
 ## Slice 3: Optional assistant ☐
 
@@ -57,3 +57,4 @@ None block the start. These defaults have been taken and can be changed before t
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+- **A personal token is the person, cut down to reading and proposing.** It is built from their account's own roles, so an assistant sees exactly what they do; the middleware lets it make one kind of change, a proposal. A proposal of a sensitive field the person may not see is refused, since it would say what they think the value is. Accepting is a person's own edit, signed in, never a token's.

@@ -639,7 +639,9 @@ export function applicationPage(main, params, extraTabs = []) {
         tab === "retirement" ? import("../components/planning.js") : null,
         tab === "scores" ? get(`${base}/score-history`, null, { fresh: true }) : null,
         tab === "scores" ? import("../components/over-time.js") : null]);
-      return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
+      const waiting = tab === "overview" && data.record.suggestions_pending
+        ? await Promise.all([get(`${base}/suggestions`, null, { fresh: true }), import("../components/suggestions.js")]) : null;
+      return { ...data, suggested: waiting && { found: waiting[0].data, part: waiting[1] }, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
         interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null,
         contests: contested?.data ?? null, retirement: retiring?.data ?? null, retiring: planning,
         overTime: overTime ? overTime.overTime(history.data) : null };
@@ -671,6 +673,7 @@ export function applicationPage(main, params, extraTabs = []) {
         h("div", { class: "app-summary" }, scorecard(data.scores, { onOpen: open }),
           verdict(data.scores, data.vocab, record.decision ?? null)),
         confirmationLine(data.scores.confirmation, data.scores.stale?.penalty, () => confirmRecord(record, reload)),
+        data.suggested?.found.pending.length ? data.suggested.part.suggestionsCard(record, data.suggested.found, reload) : null,
         tabBar(tabs.map(([key, text]) => [key, text]), tab),
         body);
     },

@@ -83,6 +83,9 @@ export function account(main) {
       emailChoice(data.preferences),
       card({ title: "Your roles" }, h("div", { class: "stack" },
         h("div", { class: "row-sm wrap" }, me.roles.map((role) => pill(titleCase(role), role === "member" ? "" : "accent"))),
-        h("p", { class: "muted" }, "Roles are given by an administrator. They decide what you can see and do.")))),
+        h("p", { class: "muted" }, "Roles are given by an administrator. They decide what you can see and do."))),
+      card({ title: "API tokens" }, h("div", { class: "stack" },
+        h("p", { class: "muted" }, "A token of your own lets an AI assistant or a script read AppWren as you, and propose changes for someone to accept."),
+        h("p", {}, h("a", { href: "/account/tokens" }, "Your API tokens"))))),
   });
 }

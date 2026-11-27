@@ -11,6 +11,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **The checkpoint.** `GET /api/v1/checkpoint/{ref}` tells another process whether an
   application is approved for new use, and for a class of data, with every reason: its
   stage, its decision, its support, and the data its record says it handles.
+- **Tokens of your own, and suggestions.** Anyone may make a token under Your account that
+  acts as them, reads, and proposes changes. A proposal waits on the application until
+  someone who keeps it accepts it, as their own edit, or dismisses it.
+- **A tool server for AI assistants.** `appwren tools serve` lets an assistant that speaks
+  the Model Context Protocol search and read AppWren, ask the checkpoint, see what waits on
+  the person, and propose changes, through the API as that person.
 
 ## 0.7.0 (2026-11-27)
 

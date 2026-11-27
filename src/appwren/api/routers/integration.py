@@ -9,7 +9,9 @@ from pydantic import BaseModel, Field
 
 from appwren.access.policy import current
 from appwren.api.common import database, envelope, reading, writing
-from appwren.integration import checkpoint, tokens, webhooks
+from appwren.integration import checkpoint, suggestions, tokens, webhooks
+from appwren.inventory import records
+from appwren.inventory.registry import APPLICATION
 
 router = APIRouter(prefix="/api/v1", tags=["integration"])
 
@@ -106,3 +108,74 @@ def test_webhook(request: Request, webhook_id: int) -> dict[str, Any]:
     principal = current(request)
     send = getattr(request.app.state, "webhook_send", webhooks._post)
     return envelope({"result": webhooks.send_test(database(request), principal, webhook_id, send)})
+
+
+class OwnTokenBody(BaseModel):
+    name: str = Field(max_length=80, description="What it is for, such as an assistant")
+    expires_on: str | None = Field(default=None, description="YYYY-MM-DD; 90 days if none")
+
+
+@router.get("/tokens", summary="Your own API tokens")
+def my_tokens(request: Request) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        return envelope({"tokens": tokens.mine(session, principal)})
+
+
+@router.post("/tokens", status_code=201, summary="Make a token of your own")
+def make_my_token(request: Request, body: OwnTokenBody) -> dict[str, Any]:
+    """It acts as you: it reads what you may, and proposes changes for you to accept. The
+    token is in the answer, and never again."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        row, token = tokens.create_personal(session, principal, body.model_dump())
+        return envelope({**tokens.view(row, None, None), "token": token})
+
+
+@router.delete("/tokens/{token_id}", summary="Revoke a token of your own")
+def revoke_my_token(request: Request, token_id: int) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        tokens.revoke_mine(session, principal, token_id)
+        return envelope({"tokens": tokens.mine(session, principal)})
+
+
+class SuggestionBody(BaseModel):
+    field: str = Field(max_length=60, description="The field, such as summary or users")
+    value: Any = Field(description="The value proposed for it")
+    note: str | None = Field(default=None, max_length=1000, description="Why")
+
+
+@router.get("/applications/{ref}/suggestions", summary="Changes proposed to an application")
+def list_suggestions(request: Request, ref: str) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        app = records.load(session, principal, APPLICATION, ref)
+        return envelope(suggestions.of_application(session, principal, app))
+
+
+@router.post("/applications/{ref}/suggestions", status_code=201, summary="Propose a change")
+def propose_change(request: Request, ref: str, body: SuggestionBody) -> dict[str, Any]:
+    """Nothing on the record changes: someone who keeps it accepts or dismisses it."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = records.load(session, principal, APPLICATION, ref)
+        row = suggestions.propose(session, principal, app, body.model_dump())
+        return envelope(suggestions.view(row, suggestions._fields()))
+
+
+@router.post("/suggestions/{suggestion_id}/accept", summary="Accept a proposed change")
+def accept_suggestion(request: Request, suggestion_id: int) -> dict[str, Any]:
+    """The change is made as yours, checked by the same rules as any edit."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = suggestions.accept(session, principal, suggestion_id)
+        return envelope(suggestions.of_application(session, principal, app))
+
+
+@router.post("/suggestions/{suggestion_id}/dismiss", summary="Dismiss a proposed change")
+def dismiss_suggestion(request: Request, suggestion_id: int) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = suggestions.dismiss(session, principal, suggestion_id)
+        return envelope(suggestions.of_application(session, principal, app))

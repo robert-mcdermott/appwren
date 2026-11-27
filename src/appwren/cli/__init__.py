@@ -498,6 +498,19 @@ def cmd_db_move(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_tools_serve(_args: argparse.Namespace) -> int:
+    from appwren import toolserver
+
+    base, token = os.environ.get("APPWREN_URL", ""), os.environ.get("APPWREN_TOKEN", "")
+    if not base or not token:
+        raise AppWrenError(
+            "Set APPWREN_URL to the address of your AppWren, and APPWREN_TOKEN to a token of "
+            "your own, made under Your account. It reads what you may, and proposes changes."
+        )
+    toolserver.serve(toolserver.http_caller(base, token), base)
+    return EXIT_OK
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     config, _ = _load(args)
     db = _database(config)
@@ -731,6 +744,25 @@ def build_parser() -> argparse.ArgumentParser:
     )  # fmt: skip
     move.set_defaults(handler=cmd_db_move)
     db.set_defaults(handler=lambda _args: db.print_help() or EXIT_OK)
+
+    tools = commands.add_parser(
+        "tools",
+        help="let an AI assistant read AppWren and propose changes",
+        description="An optional tool server for AI assistants, speaking the Model Context "
+        "Protocol. It is not needed to run AppWren.",
+    )
+    tools_commands = tools.add_subparsers(title="commands", metavar="COMMAND")
+    tools_serve = tools_commands.add_parser(
+        "serve",
+        help="serve tools to an assistant over standard input and output",
+        description="Serve AppWren's tools to an AI assistant over standard input and output. "
+        "An assistant's host program starts this command; it is not run by hand. It calls "
+        "the AppWren at APPWREN_URL with the token in APPWREN_TOKEN, a token of the person's "
+        "own, and so sees only what they may. It reads records and proposes changes. It "
+        "cannot change, decide, or accept anything.",
+    )
+    tools_serve.set_defaults(handler=cmd_tools_serve)
+    tools.set_defaults(handler=lambda _args: tools.print_help() or EXIT_OK)
 
     saving = commands.add_parser(
         "backup",

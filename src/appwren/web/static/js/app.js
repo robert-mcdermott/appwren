@@ -56,6 +56,7 @@ async function boot() {
 
   route("/", page("home", "home", meta));
   route("/account", page("account", "account"));
+  route("/account/tokens", page("admin-integration", "myTokens"));
   route("/notices", page("notices", "noticeList"));
   route("/search", page("find", "searchPage"));
   route("/applications", page("records", "applicationList"));

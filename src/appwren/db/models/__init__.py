@@ -21,6 +21,7 @@ from appwren.db.models.insight import Report, Scenario, ScenarioChange
 from appwren.db.models.integration import (
     ApiToken,
     ApiTokenUse,
+    Suggestion,
     Webhook,
     WebhookCursor,
     WebhookDelivery,
@@ -146,6 +147,7 @@ __all__ = [
     "SessionToken",
     "Setting",
     "SignInRequest",
+    "Suggestion",
     "Task",
     "Technology",
     "TechnologyRelease",

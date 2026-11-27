@@ -1,5 +1,5 @@
-// Admin → Tokens and webhooks: what other systems use. An administrator issues API tokens for
-// a role, and registers the addresses AppWren tells when something happens.
+// What other systems use. An administrator issues API tokens for a role and registers the
+// addresses AppWren tells when something happens; a person makes tokens of their own.
 
 import { del, get, patch, post } from "../core/api.js";
 import { button, h, icon } from "../core/dom.js";
@@ -167,6 +167,56 @@ export function adminWebhooks(main) {
                 item.last_error ? h("div", { class: "cell-sub" }, item.last_error) : null),
               h("td", { class: "numeric" }, String(item.attempts))))))) : null))))
           : emptyState({ iconName: "link", title: "No webhook is set up", text: "Add one when another system should hear about decisions, stage changes, or lapses as they happen." }));
+    },
+  });
+}
+
+export function myTokens(main) {
+  return show(main, {
+    title: "Your API tokens",
+    narrow: true,
+    load: async () => (await get("/api/v1/tokens", null, { fresh: true })).data,
+    view: (data, reload) => {
+      const make = () => {
+        const name = field("What it is for", { maxlength: 80, placeholder: "My assistant" });
+        const expires = field("Stops working on", { type: "date", hint: "Ninety days from today unless you choose another day, up to a year." });
+        openOverlay({
+          title: "Make a token", subtitle: "It acts as you: it reads what you may, and proposes changes for someone who keeps the application to accept. It changes nothing itself.", kind: "dialog",
+          render: (body, footer, shut) => {
+            const problem = banner();
+            const go = button("Make it", { kind: "btn-primary" });
+            go.addEventListener("click", async () => {
+              const made = await submit({ button: go, banner: problem, fields: { name, expires_on: expires },
+                run: () => post("/api/v1/tokens", { name: name.input.value, expires_on: expires.input.value || null }) });
+              if (made) {
+                shut();
+                reload();
+                once("Your new token", "The token", made.data.token, "Give it to the assistant or script, for example as APPWREN_TOKEN for appwren tools serve. It is sent as the header: Authorization: Bearer, a space, and the token.");
+              }
+            });
+            body.append(h("div", { class: "stack" }, problem, name.node, expires.node));
+            footer.replaceChildren(h("div", { class: "row" }, go, button("Cancel", { kind: "btn-ghost", onclick: shut })));
+            footer.hidden = false;
+          },
+        });
+      };
+      return h("div", { class: "stack-lg" },
+        h("a", { class: "back-link", href: "/account" }, icon("chevron-left", "icon icon-sm"), "Your account"),
+        pageHeader({ title: "Your API tokens", lede: "A token of your own lets an AI assistant or a script of yours read AppWren as you, and propose changes. Revoke it when it is no longer used.",
+          actions: button("Make a token", { kind: "btn-primary", iconName: "plus", onclick: make }) }),
+        data.tokens.length ? card({ flush: true }, h("div", { class: "table-wrap" }, h("table", { class: "table" },
+          h("thead", {}, h("tr", {}, ["Token", "Last used", "Standing", ""].map((heading) => h("th", { scope: "col" }, heading || h("span", { class: "sr-only" }, "Actions"))))),
+          h("tbody", {}, data.tokens.map((token) => h("tr", {},
+            h("td", {}, h("span", { class: "cell-main" }, token.name), h("div", { class: "cell-sub mono" }, `${token.prefix}…`)),
+            h("td", { class: "nowrap" }, token.last_used_at ? relative(token.last_used_at) : h("span", { class: "subtle" }, "Never")),
+            h("td", {}, token.revoked_at ? pill("Revoked") : token.expired ? pill("Expired", "warn")
+              : h("div", { class: "row-sm wrap" }, pill("Working", "ok"), h("span", { class: "subtle" }, `until ${date(token.expires_on)}`))),
+            h("td", {}, token.live ? button("Revoke", { kind: "btn-sm btn-ghost", "aria-label": `Revoke ${token.name}`, onclick: async () => {
+              await del(`/api/v1/tokens/${token.id}`);
+              toast("The token was revoked. It no longer works.");
+              reload();
+            } }) : null)))))))
+          : emptyState({ iconName: "key", title: "You have no tokens", text: "Make one when an assistant or a script of yours needs to read AppWren." }));
     },
   });
 }
