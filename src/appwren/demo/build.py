@@ -28,7 +28,14 @@ from appwren.access.principal import Grant, Principal
 from appwren.core.clock import clock_set_to
 from appwren.core.errors import AppWrenError, Invalid, PermissionDenied
 from appwren.db.engine import Database
-from appwren.db.models import Application, Capability, Vendor
+from appwren.db.models import (
+    Application,
+    Campaign,
+    CampaignItem,
+    Capability,
+    ScoreContest,
+    Vendor,
+)
 from appwren.demo import content as c
 from appwren.inventory import applications, links, parts, records
 from appwren.inventory.registry import (
@@ -43,6 +50,7 @@ from appwren.inventory.registry import (
     VENDOR,
 )
 from appwren.landscape import costs
+from appwren.oversight import attestation, campaigns, contests, views
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -86,6 +94,9 @@ class Builder:
         self.db = db
         self.seed = seed
         self.rng = random.Random(seed)
+        # What later releases add to the demo draws from its own sequence, so that what was
+        # already there (who owns what, above all) is the same as before.
+        self.later = random.Random(seed * 7919 + 3)
         self.end = datetime(today.year, today.month, today.day, 16, 30, tzinfo=UTC)
         self.start = self.end - timedelta(days=int(MONTHS * 30.4))
         self.now = self.start
@@ -116,6 +127,7 @@ class Builder:
         self.sample: list[dict[str, str]] = []
         self.departed: set[int] = set()
         self.primaries: set[str] = {"surveys"}  # the survey hub claims it whenever it arrives
+        self.planned: dict[str, tuple[str, float]] = {}  # name → (tier, days ago it was added)
         self._principals: dict[int, Principal] = {}
         self._emails: set[str] = set()
         self._order = 0
@@ -383,8 +395,10 @@ class Builder:
             out["last_restore_test"] = self.day(-r.randint(20, 300)).isoformat()
         return out
 
-    def answers(self, health: str, tier: str, vendor: bool) -> dict[str, int | None]:
-        r = self.rng
+    def answers(
+        self, health: str, tier: str, vendor: bool, rng: random.Random | None = None
+    ) -> dict[str, int | None]:
+        r = rng or self.rng
         high = {"1": (4, 5), "2": (4, 5), "3": (3, 4), "4": (2, 3), "5": (1, 2)}[tier]
         fit = {"good": (4, 5), "fair": (3, 4), "poor": (1, 2)}[health]
         effort = {"good": (4, 5), "fair": (2, 4), "poor": (1, 2)}[health]
@@ -417,9 +431,12 @@ class Builder:
         )
         unit = self.units[unit_code]
         story = more.get("story")
+        self.planned[name] = (str(tier), days_ago)
 
         def register() -> None:
             owner = self.cast["res_steward"] if story == "worked_example" else self.owner_for(unit)
+            if story in ("single_maintainer", "grant_ending"):
+                owner = self.cast["rse"]  # the research software engineer keeps these two
             domain = self.cap_domain.get(caps[0]) or "administrative"
             values: dict[str, Any] = {
                 "name": name,
@@ -600,6 +617,137 @@ class Builder:
             self.tally("assessments")
 
         self.at(days_ago, run)
+
+    def confirm(self, name: str, days_ago: float) -> None:
+        """Whoever answers for an application confirms that its record is right."""
+
+        def run() -> None:
+            ref = self.apps.get(name)
+            if ref is None or self.accountable.get(ref) in self.departed:
+                return
+            by = self.principal(self.accountable[ref])
+            with self.db.write(by.actor) as session:
+                app = records.load(session, ME, APPLICATION, ref)
+                if app.lifecycle in ("retired", "archived"):
+                    return
+                try:
+                    attestation.confirm(session, by, app)
+                except PermissionDenied:
+                    return
+            self.tally("confirmations")
+
+        self.at(days_ago, run)
+
+    def confirm_on_cadence(self, name: str, lapsed: bool) -> None:
+        """Confirmations as the cadence asks, from when the application was added. One that
+        has lapsed missed the last."""
+        tier, added = self.planned.get(name, ("4", 600))
+        period = 182 if tier in ("1", "2") else 365
+        r = self.later
+        last = period + r.randint(20, 150) if lapsed else r.randint(5, period - 25)
+        while last < added:
+            self.confirm(name, last)
+            last += period - r.randint(0, 20)
+
+    def campaign(
+        self,
+        days_ago: float,
+        values: dict[str, Any],
+        *,
+        due_in: int,
+        ends: float | None = None,
+        answers: tuple[tuple[float, float], ...] = (),
+    ) -> None:
+        """A campaign started by the portfolio manager; some of those asked do it as asked,
+        later; and perhaps its close."""
+        manager = self.cast["portfolio"]
+
+        def run() -> None:
+            principal = self.principal(manager)
+            unit = values.get("unit")
+            with self.db.write(principal.actor) as session:
+                campaigns.start(session, principal, {
+                    **values, "org_unit_id": self.units[unit] if unit else None,
+                    "due_on": (self.now.date() + timedelta(days=due_in)).isoformat(),
+                })  # fmt: skip
+            self.tally("campaigns")
+
+        def answer(share: float) -> None:
+            with self.db.read() as session:
+                found = session.scalars(
+                    select(Campaign).where(Campaign.name == values["name"])
+                ).one()
+                pending = [
+                    (item.application_id, item.account_id)
+                    for item in session.scalars(
+                        select(CampaignItem).where(
+                            CampaignItem.campaign_id == found.id,
+                            CampaignItem.status == "pending",
+                            CampaignItem.account_id.is_not(None),
+                        )
+                    )
+                ]
+            for app_id, account_id in sorted(pending):
+                if self.later.random() >= share or account_id in self.departed:
+                    continue
+                by = self.principal(account_id)
+                with self.db.write(by.actor) as session:
+                    app = session.get(Application, app_id)
+                    try:
+                        if values["kind"] == "assess":
+                            vendor = app.sourcing in ("saas", "commercial", "vendor_custom")
+                            given = self.answers(
+                                self.health[app.ref], self.tier[app.ref], vendor, rng=self.later
+                            )
+                            assessment.record(session, by, app, given)
+                        else:
+                            attestation.confirm(session, by, app)
+                    except PermissionDenied:
+                        continue
+                self.tally("assessments" if values["kind"] == "assess" else "confirmations")
+
+        def close() -> None:
+            principal = self.principal(manager)
+            with self.db.write(principal.actor) as session:
+                found = session.scalars(
+                    select(Campaign).where(Campaign.name == values["name"])
+                ).one()
+                campaigns.end(session, principal, found, "close")
+
+        self.at(days_ago, run)
+        for later, share in answers:
+            self.at(later, lambda share=share: answer(share))
+        if ends is not None:
+            self.at(ends, close)
+
+    def contest(
+        self, name: str, days_ago: float, values: dict[str, Any],
+        answer: tuple[float, bool, str] | None = None,
+    ) -> None:  # fmt: skip
+        """Whoever answers for an application contests a factor; the architect answers."""
+
+        def run() -> None:
+            ref = self.apps[name]
+            by = self.principal(self.accountable[ref])
+            with self.db.write(by.actor) as session:
+                app = records.load(session, by, APPLICATION, ref)
+                contests.raise_contest(session, by, app, values)
+            self.tally("contests")
+
+        def reply(accept: bool, text: str) -> None:
+            architect = self.principal(self.cast["architect"])
+            with self.db.write(architect.actor) as session:
+                app = records.load(session, architect, APPLICATION, self.apps[name])
+                row = session.scalars(
+                    select(ScoreContest).where(ScoreContest.application_id == app.id)
+                ).first()
+                if row is not None:
+                    contests.answer(session, architect, row, accept=accept, text=text)
+
+        self.at(days_ago, run)
+        if answer is not None:
+            later, accept, text = answer
+            self.at(later, lambda: reply(accept, text))
 
     def decider(self, ref: str) -> int:
         """A manager decides, or the leader of the application's area; never its owner."""
@@ -858,6 +1006,47 @@ class Builder:
         )
         self.assess("Electronic Lab Notebook Pilot", 40)
         self.assess("Old Reports Server", 480)
+        # Confirmations: most records are confirmed as their cadence asks; some have lapsed.
+        # What the leaver answered for was last confirmed by them, long ago.
+        orphaned = {"Executive Dashboards", "Applicant Tracking", "Space Planning",
+                    "Contracts Repository"}  # fmt: skip
+        for name in everything:
+            if name in orphaned:
+                self.confirm(name, self.later.randint(380, 460))
+            else:
+                self.confirm_on_cadence(
+                    name, lapsed=name not in storied and self.later.random() < 0.08
+                )
+        # Campaigns: last spring's assessments in Clinical Research, closed; and the cores
+        # asked to confirm their records, under way.
+        self.campaign(
+            262, {"name": "Clinical Research assessments, spring", "kind": "assess",
+                  "unit": "CLIN", "message": "Before the summer review of the clinic's systems."},
+            due_in=35, ends=215, answers=((252, 0.5), (240, 0.5)),
+        )  # fmt: skip
+        self.campaign(
+            21, {"name": "Shared Resources record confirmation", "kind": "confirm", "unit": "SR",
+                 "message": "Ahead of the cores' budget review: is each record still right?"},
+            due_in=40, answers=((15, 0.45), (6, 0.25)),
+        )  # fmt: skip
+        # Contests: the clinic's scheduler owner says reliability is better than the answers
+        # say, and the architect answers with the ticket queue; the flow cytometry owner's
+        # contest of support effort is waiting.
+        self.contest(
+            "Clinic Scheduler", 60,
+            {"factor": "reliability", "level_claimed": 4,
+             "note": "Since the vendor's upgrade in the spring we have had no outages the clinic "
+                     "noticed.", "evidence_url": "https://status.bramblewood.example/scheduler"},
+            answer=(52, False, "The service desk logged three outages of the scheduler this "
+                               "quarter, two in clinic hours. Reliability stays at 2 until a "
+                               "quarter passes without one."),
+        )  # fmt: skip
+        self.contest(
+            "Flow Cytometry Scheduler", 6,
+            {"factor": "support_effort", "level_claimed": 4,
+             "note": "The core's own staff run it; it takes about an hour a month, not a day a "
+                     "week."},
+        )  # fmt: skip
         # The year of reviews: a snapshot each quarter, and decisions after it.
         for days in (365, 272, 182, 91):
             self.snapshot(days)
@@ -1087,10 +1276,43 @@ class Builder:
             accounts.set_status(session, ME, account, "disabled")
         self.departed.add(self.cast["leaver"])
 
+    def remind(self) -> None:
+        """The triggers and reminders of the last two months, as the scheduler would have run
+        them. What is more than a week old has been read."""
+        from sqlalchemy import update
+
+        from appwren import reminders
+        from appwren.db.models import Notice
+        from appwren.jobs import SCHEDULER
+        from appwren.oversight import tasks
+
+        for offset in (-56, -42, -28, -21, -14, -7, -3, 0):
+            moment = self.end + timedelta(days=offset)
+            with clock_set_to(lambda moment=moment: moment):
+                with self.db.write(SCHEDULER, action="job.triggers") as session:
+                    self.tally("tasks", tasks.run(session, on=moment.date())["tasks_raised"])
+                with self.db.bookkeeping() as session:
+                    said = reminders.send(session, on=moment.date())
+                    self.tally("notices", sum(said.values()))
+        with self.db.bookkeeping() as session:
+            session.execute(
+                update(Notice)
+                .where(Notice.created_at < self.end - timedelta(days=7))
+                .values(read_at=self.end - timedelta(days=6))
+            )
+
     def build(self) -> Summary:
         self.found()
         self.plan()
         self.run()
+        self.remind()
+        with clock_set_to(lambda: self.end):
+            manager = self.principal(self.cast["portfolio"])
+            with self.db.write(manager.actor) as session:
+                views.create(session, manager, {
+                    "name": "Critical, and not confirmed", "path": "/list",
+                    "query": "in_service=true&quality=not_confirmed&tier=1", "shared": True,
+                })  # fmt: skip
         with clock_set_to(lambda: self.end), self.db.write(ME.actor) as session:
             settings.put(
                 session,

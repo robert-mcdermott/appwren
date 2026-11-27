@@ -46,6 +46,9 @@ def install(session: Session) -> dict[str, int]:
             done["capabilities"] = parts.load_map(session, INSTALLER, pack["capabilities"])
         for name, _check, _export, load in PARTS:
             done[name] = load(session, pack.get(name), only_missing=True)
+    from appwren.oversight import attestation
+
+    attestation.begin(session)  # the day this installation began asking for confirmations
     return done
 
 
@@ -82,6 +85,7 @@ def export(session: Session) -> dict[str, Any]:
         "stage_requirements": catalog.stage_requirements(session),
         "sensitive_fields": catalog.sensitive_fields(session),
         "definition": catalog.definition(session),
+        "decision_rules": catalog.decision_rules(session),
         "capabilities": _capability_tree(session),
     }
     for name, _check, export_part, _load in PARTS:
@@ -133,6 +137,8 @@ def check(pack: Any) -> list[str]:
     if "sensitive_fields" in pack:
         unknown = [name for name in pack["sensitive_fields"] or [] if name not in names]
         found += [f"{name} cannot be sensitive: it is not a field." for name in unknown]
+    if "decision_rules" in pack:
+        found += catalog.check_decision_rules(pack["decision_rules"])
     capabilities = pack.get("capabilities", [])
     seen: set[str] = set()
 
@@ -169,7 +175,13 @@ def load(
     for name, items in (pack.get("vocabularies") or {}).items():
         if items != current["vocabularies"].get(name):
             changes["vocabularies"].append(name)
-    for name in ("fields", "stage_requirements", "sensitive_fields", "definition"):
+    for name in (
+        "fields",
+        "stage_requirements",
+        "sensitive_fields",
+        "definition",
+        "decision_rules",
+    ):
         if name in pack and pack[name] != current[name]:
             changes["settings"].append(name)
     have = {row.key for row in session.scalars(select(Capability)) if row.key}
@@ -196,6 +208,7 @@ def load(
             "stage_requirements": catalog.STAGES,
             "sensitive_fields": catalog.SENSITIVE,
             "definition": catalog.DEFINITION,
+            "decision_rules": catalog.DECISION_RULES,
         }
         for name in changes["settings"]:
             if name in setting_keys:

@@ -201,11 +201,33 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 `decision(ref, application_id, disposition, rationale, target_on, review_on, successor_id?, snapshot_id, snapshot_digest, recommendation, decided_by, decided_by_name, decided_on, created_at, superseded_by)`. `disposition` is a vocabulary (see [engine.md](engine.md#dispositions)). `snapshot_id` is the score snapshot taken at the moment of the decision, `snapshot_digest` its digest (so the decision's event fixes what it saw), and `recommendation` its recommendation, so a mismatch at the time is on the record. Without a review date, a decision is reviewed a year on; consolidating needs a successor. Never edited; a new decision supersedes the last. The application keeps a copy of its current disposition and review date for lists and filters.
 
+## Keeping current (wave 3)
+
+### Jobs, reminders, notices, and email
+
+`job(key, enabled, next_run_at, claimed_until, last_started_at, last_finished_at, last_status, last_summary)` is one piece of scheduled work; a process claims the row, with a lease, before it runs it. `job_run` keeps the runs that did something or failed, for ninety days. `reminder(subject_type, subject_id, due_on, stage)` says a reminder about a date has been sent at a stage (soon, overdue, steward, leader), so it is sent once. `notice(account_id, kind, text, href, created_at, read_at, mail_state)` is a pointer for one person. `outbox_message` is an email waiting to be sent, or sent. None of these is history.
+
+### Attestation
+
+`attestation(application_id, attested_by, attested_by_name, attested_on, note)`. That a person who keeps an application confirmed its record is right on a date. A statement, never edited; the next follows it. The day the installation began asking is the program setting `attestation_began`.
+
+### Campaign
+
+`campaign(ref, name, kind, message, org_unit_id, tiers, stages, due_on, status, started_on, started_by, started_by_name, ended_on)` (`CMG-0004`). The owners of the applications in a unit and beneath it, narrowed by tier and stage, asked to confirm their records (`confirm`) or to assess (`assess`) by a date. `campaign_item(campaign_id, application_id, org_unit_id, account_id, status, done_on, done_by_name, excuse)` is one application and who was asked: pending until the thing is done after the campaign began, or excused with a reason.
+
+### Task
+
+`task(key, kind, title, reason, subject_type, subject_id, application_id, org_unit_id, account_id, due_on, status, raised_on, closed_on, closed_by_name, note)`. Something to be done about a record, for a person, by a date, raised by a trigger: a contract's notice date near (`contract_notice`), a release in use nearing its end of support (`end_of_support`), a grant near its end (`grant_end`), or an accountable owner leaving (`departure`). `key` names the cause, unique, so a cause raises one task and never two. Open until its cause is settled, when the scheduler closes it with the reason, or until a person marks it done or dismisses it with a note.
+
+### Saved view and score contest
+
+`saved_view(account_id, owner_name, path, name, query, shared)`. A list's filters under a name, private or shared; never its rows. `score_contest(application_id, dimension, factor, factor_label, level_shown, level_claimed, note, evidence_url, raised_by, raised_by_name, raised_on, status, answer, answered_by_name, answered_on)`. An owner saying one factor is wrong, and the portfolio team's answer: `open`, `accepted`, or `answered`.
+
 ## Later waves (sketch)
 
 | Wave | Entities |
 |---|---|
-| 3 | `job`, `campaign`, `campaign_item`, `attestation`, `mail_outbox`, `saved_view`, `search_doc`, `notice`, `trigger_rule` |
+| 3 | `campaign`, `campaign_item`, `task`, `saved_view`, `score_contest` (the rest of the wave is above) |
 | 4 | `connector`, `connector_run`, `fact_value` (a value with its source and time, and overrides), `maturity_check`, `maturity_result` |
 | 5 | `review_cycle`, `review_item`, `initiative`, `initiative_application`, `retirement_plan`, `retirement_step`, `request`, `request_option` |
 | 6 | `measure_snapshot`, `report`, `scenario`, `scenario_change` |

@@ -725,6 +725,17 @@ SCORING = {
     "cadence": {
         "assessment_months": {"1": 12, "2": 12, "3": 18, "4": 24, "5": 24},
         "default_months": 24,
+        # How often the people who keep an application confirm its record, and what a record
+        # past its confirmation costs in confidence.
+        "confirm_months": {"1": 6, "2": 6, "3": 12, "4": 12, "5": 12},
+        "default_confirm_months": 12,
+        "stale_penalty": 15,
+        # When reminders go: so many days before a date, and how late before the steward and
+        # then the leader are told.
+        "reminders": {"soon_days": 14, "steward_after_days": 7, "leader_after_days": 21},
+        # How far ahead a contract's notice date, a release's end of support, and a grant's
+        # end raise a task.
+        "triggers": {"contract_notice_days": 60, "end_of_support_days": 180, "grant_end_days": 180},
     },
     "profiles": [
         {

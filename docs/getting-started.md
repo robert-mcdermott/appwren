@@ -23,22 +23,24 @@ uv sync
 uv run appwren init
 ```
 
-`init` does five things:
+`init` does six things:
 
 1. Writes `appwren.toml`, the deployment settings, in the current directory.
 2. Creates the data home, `./var`, which holds everything that is not in the database.
 3. Creates the database. With no other setting, this is a SQLite file inside the data home.
-4. Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, interface methods, environments, cost categories, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.
-5. Asks for your email address, your name, and a password, and creates the first administrator.
+4. Asks for your organization's name, and a first unit within it if you wish, such as your team. Every application belongs to a unit, so this is the least you need to add one. Press Enter to skip it and add units later.
+5. Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, interface methods, environments, cost categories, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.
+6. Asks for your email address, your name, and a password, and creates the first administrator.
 
 The password needs at least 12 characters. Length matters more than symbols: a few unrelated words make a good one.
 
-`init` is safe to run again. It leaves an existing configuration file alone, adds only what is missing from the program, and creates an administrator only if there is none.
+`init` is safe to run again. It leaves an existing configuration file alone, adds only what is missing from the program, creates units only if there are none, and creates an administrator only if there is none.
 
 To set up without being asked anything, name the administrator and pipe the password in:
 
 ```bash
 printf '%s' "$ADMIN_PASSWORD" | uv run appwren init \
+  --organization "Your Organization" --first-unit "Your Team" \
   --admin-email you@example.org --admin-name "Your Name" --password-stdin
 ```
 
@@ -110,6 +112,21 @@ Both screens take a CSV file, which is the quick way to load an organization. Ea
 
 **Admin → Appearance** sets the product's name, your organization's name, a logo, an accent color, and the default palette. See [Running the program](running-the-program.md#appearance).
 
+## Start with one team
+
+AppWren does not need the whole organization to begin. A single team that keeps a few dozen applications can use it for its own, and the rest of the organization can join later without anything being redone.
+
+1. **Make the organization the top unit, and the team a unit within it.** `init` asks for both (or pass `--organization` and `--first-unit`). The organization is only a name until others join. If you began with the team at the top, **Admin → Units → Put a unit above the top** adds the organization above it later, with everything beneath the team moving with it.
+2. **Add the departments that use your applications** as units with nobody in them, so that each application can say who uses it, and the dashboard and data quality can be read by department later.
+3. **Give the team's lead two roles** under **Admin → People**: *administrator*, and *manager* for the whole organization. A manager limited to a unit cannot take portfolio snapshots or shape the program.
+4. **Name the rest of the team** on the applications they keep, or make them stewards of the team's unit to keep all of its applications.
+5. **Bring in your applications** from a spreadsheet, as below.
+6. **Retire what does not fit** of the starter capability map: open a capability, choose **Edit**, and set its status to retired. Add your own as you need them.
+
+SQLite and the one server process `init` sets up are plenty for a team. Move to [PostgreSQL](configuration.md#use-postgresql) when more of the organization joins.
+
+One rule needs a thought in a small team: **nobody records the decision about an application they are accountable for.** If the lead is both the owner of the team's applications and its only manager, either name another member accountable for the applications the lead will decide on, or turn on **Admin → Program → Decisions**, which lets an owner who is also a manager or leader decide about their own application. Each such decision is marked *Recorded by its own owner*, so anyone reading it later knows.
+
 ## Bring in your applications
 
 Most organizations start from a spreadsheet. **Applications → Import** reads a CSV file, matches its columns to AppWren's fields, and runs dry first, reporting every problem by row. A row with a reference already on record updates that application; any other row adds one. See [Import and export](the-portfolio.md#import-and-export).
@@ -125,7 +142,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 87 deployments on six hosting platforms, 22 contracts, about 125 assessments, 65 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, a database release reaching end of support next quarter, research data flowing into dashboards whose record does not list it, a contract whose notice date is two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 88 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, a database release reaching end of support next quarter, research data flowing into dashboards whose record does not list it, a contract whose notice date is two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used. And keeping it current: a score of records nobody has confirmed in time, a campaign under way in the shared resources and one closed in the clinic, tasks for a notice date, a release ending, grants ending, and the four applications left without an owner, and a score contested and answered. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
 
 ![Home for the demo's portfolio manager: what is waiting on them, most urgent first, beside their roles](img/home-manager-light.webp)
 
@@ -133,14 +150,14 @@ Its sign-in page offers eight sample people and asks for no password:
 
 | Sign in as | To see |
 |---|---|
-| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, and snapshots |
-| The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline and radar, hosting platforms, and the picture of how anything is connected |
+| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, snapshots, campaigns and tasks, and the program to shape |
+| The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline and radar, hosting platforms, the picture of how anything is connected, and a contest waiting for an answer |
 | The chief information officer | Decisions for Information Technology's applications, and the reviews coming due |
 | The clinical research leader | A decision that keeps an application the scores would replace, and why |
-| The research applications steward | Specimen Tracker: its scores and their working, what would break if it went, where it runs, and what it costs line by line |
+| The research applications steward | Specimen Tracker: its scores and their working, what would break if it went, where it runs, and what it costs line by line; and what a campaign asks of them |
 | The research software engineer | A member's view: the applications they keep, and the costs and contracts they may not see elsewhere |
 | The auditor | Everything, read-only, with every change in one place under Reports, History |
-| The administrator | People, units, sign-in, and appearance, and no part in the portfolio's judgments |
+| The administrator | People, units, sign-in, appearance, and scheduled work, and no part in the portfolio's judgments |
 
 `appwren demo --seed 2` builds a different Bramblewood with the same shape, and `--force` rebuilds one that is already there.
 
@@ -150,4 +167,5 @@ A demo listens only on the machine it runs on. See [Configuration](configuration
 
 - To record applications, assess them, read their scores, and record what they cost, read [The portfolio](the-portfolio.md).
 - To record what passes between them, where they run, and what falls out of support, read [The landscape](the-landscape.md).
+- To keep the record current, with reminders, confirmations, campaigns, and tasks, read [Keeping current](keeping-current.md).
 - To decide who sees what, and to shape the questions and the scoring model, read [Running the program](running-the-program.md).

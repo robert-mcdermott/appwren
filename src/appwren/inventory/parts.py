@@ -13,7 +13,7 @@ from collections.abc import Iterable, Mapping
 from datetime import date
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from appwren.access.principal import Principal
@@ -278,13 +278,54 @@ def _component_cards(
     ]  # fmt: skip
 
 
+def built_on(session: Session, filters: Mapping[str, Any]) -> Any | None:
+    """The components built on a technology, narrowed to one of its releases (``release``,
+    or ``none`` for those that name no release) or to an exact version as written (``version``,
+    such as 6.0.25, or its start, such as 6.0); None where the filters name no technology.
+    Whatever is used with a technology counts, as on the technology's own page."""
+    technology_ref = str(filters.get("technology") or "").strip()
+    release = str(filters.get("release") or "").strip()
+    version = str(filters.get("version") or "").strip()
+    if not technology_ref:
+        if release or version:
+            raise Invalid("The list was not narrowed.",
+                          {"technology": "Name the technology the release is of."})  # fmt: skip
+        return None
+    technology = find(session, TECHNOLOGY, technology_ref)
+    statement = select(ComponentTechnology.component_id).where(
+        ComponentTechnology.technology_id == technology.id
+    )
+    if release == "none":
+        statement = statement.where(ComponentTechnology.release_id.is_(None))
+    elif release:
+        row = session.scalars(
+            select(TechnologyRelease).where(
+                TechnologyRelease.technology_id == technology.id,
+                TechnologyRelease.cycle == release,
+            )
+        ).first()
+        if row is None:
+            raise Invalid("The list was not narrowed.",
+                          {"release": f"{technology.name} has no release {release}."})  # fmt: skip
+        statement = statement.where(ComponentTechnology.release_id == row.id)
+    if version:
+        statement = statement.where(
+            func.lower(func.coalesce(ComponentTechnology.version, "")).like(f"{version.lower()}%")
+        )
+    return statement
+
+
 def _component_conditions(
     session: Session, principal: Principal, filters: Mapping[str, Any]
 ) -> list[Any]:
-    if not filters.get("application"):
-        return []
-    application = find(session, APPLICATION, str(filters["application"]))
-    return [Component.application_id == application.id]
+    found: list[Any] = []
+    if filters.get("application"):
+        application = find(session, APPLICATION, str(filters["application"]))
+        found.append(Component.application_id == application.id)
+    using = built_on(session, filters)
+    if using is not None:
+        found.append(Component.id.in_(using))
+    return found
 
 
 COMPONENT.extra.update(

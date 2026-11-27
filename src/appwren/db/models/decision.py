@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import Date, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Boolean, Date, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from appwren.db.base import Base
@@ -35,6 +35,8 @@ class Decision(Base):
     decided_by: Mapped[int | None] = mapped_column(Integer)
     decided_by_name: Mapped[str] = mapped_column(String(200))
     decided_on: Mapped[date] = mapped_column(Date)
+    # Recorded by the application's own accountable owner, where the program allows it.
+    self_recorded: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime)
     superseded_by: Mapped[int | None] = mapped_column(Integer)
 

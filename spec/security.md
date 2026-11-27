@@ -127,7 +127,7 @@ One function per record type decides what a principal may see. Single records, l
 | Edit an application; its components and deployments; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
 | Assess an application | | ✓ | ✓ | | ✓ | ✓ | | |
 | Change who is accountable | | ✓ (the accountable owner) | ✓ | ✓ | | ✓ | | |
-| Record a decision | | | | ✓ (not as its accountable owner) | | ✓ (not as its accountable owner) | | |
+| Record a decision | | | | ✓ (not as its accountable owner, unless the program allows it, when it is marked) | | ✓ (the same) | | |
 | Read and set an application's cost lines | | ✓ | ✓ | read only | ✓ | ✓ | read only | read only |
 | Read a contract that covers an application | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Add a contract; edit one that covers an application they keep | | | ✓ | | ✓ | ✓ | | |
@@ -136,10 +136,16 @@ One function per record type decides what a principal may see. Single records, l
 | Add and edit capabilities, technologies and their releases, vendors, and hosting platforms | | | | | ✓ | ✓ | | |
 | Import applications from a spreadsheet, each row as if added by hand | | | ✓ | | ✓ | ✓ | | |
 | Export a list they can see, as CSV or JSON | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Confirm an application's record | | ✓ | ✓ | | | ✓ | | |
+| Contest a factor of an application's scores | | ✓ | ✓ | | ✓ | ✓ | | |
+| Answer a contest | | | | | ✓ | ✓ | | |
+| Run a campaign over a unit | | | ✓ | | | ✓ | | |
+| Close a task they are given, or one in their scope | ✓ (their own) | ✓ (their own) | ✓ | | | ✓ | | |
+| Pass on everything a person holds | | | | | | ✓ (whole organization) | | ✓ |
 | Take a portfolio snapshot | | | | | | ✓ | | |
 | Read the full history | | | | | | ✓ | ✓ | ✓ |
 | Edit vocabularies, fields, the questionnaire, the scoring model, and cadences | | | | | | ✓ | | ✓ |
-| Manage accounts, roles, units, branding, connectors, and system settings | | | | | | | | ✓ |
+| Manage accounts, roles, units, branding, scheduled work, email, connectors, and system settings | | | | | | | | ✓ |
 
 ## Review
 

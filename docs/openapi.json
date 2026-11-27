@@ -68,6 +68,25 @@
         "title": "AccountChanges",
         "type": "object"
       },
+      "AnswerBody": {
+        "properties": {
+          "accept": {
+            "title": "Accept",
+            "type": "boolean"
+          },
+          "answer": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Answer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accept"
+        ],
+        "title": "AnswerBody",
+        "type": "object"
+      },
       "AnswersBody": {
         "properties": {
           "answers": {
@@ -645,6 +664,70 @@
         "title": "BrandingBody",
         "type": "object"
       },
+      "CampaignBody": {
+        "properties": {
+          "due_on": {
+            "default": "",
+            "description": "The date it is due by",
+            "title": "Due On",
+            "type": "string"
+          },
+          "kind": {
+            "default": "",
+            "description": "confirm or assess",
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "org_unit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Omit for the whole organization",
+            "title": "Org Unit Id"
+          },
+          "stages": {
+            "description": "Only these stages; all if empty",
+            "items": {
+              "type": "string"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "tiers": {
+            "description": "Only these tiers; all if empty",
+            "items": {
+              "type": "string"
+            },
+            "title": "Tiers",
+            "type": "array"
+          }
+        },
+        "title": "CampaignBody",
+        "type": "object"
+      },
       "CapabilitiesBody": {
         "properties": {
           "capabilities": {
@@ -795,6 +878,24 @@
         "title": "CapabilityLink",
         "type": "object"
       },
+      "CloseBody": {
+        "properties": {
+          "how": {
+            "default": "done",
+            "description": "done, or dismissed",
+            "title": "How",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "title": "CloseBody",
+        "type": "object"
+      },
       "ComponentBody": {
         "properties": {
           "application_id": {
@@ -918,6 +1019,67 @@
           }
         },
         "title": "ComponentBody",
+        "type": "object"
+      },
+      "ConfirmBody": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "ConfirmBody",
+        "type": "object"
+      },
+      "ContestBody": {
+        "properties": {
+          "evidence_url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Url"
+          },
+          "factor": {
+            "default": "",
+            "description": "The factor's key",
+            "maxLength": 60,
+            "title": "Factor",
+            "type": "string"
+          },
+          "level_claimed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What it should be, 1 to 5",
+            "title": "Level Claimed"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "title": "ContestBody",
         "type": "object"
       },
       "ContractBody": {
@@ -1292,6 +1454,34 @@
         "title": "DecisionBody",
         "type": "object"
       },
+      "DecisionRulesBody": {
+        "properties": {
+          "owners_may_decide": {
+            "description": "Whether an application's accountable owner may record its decision, if they are also a manager or a leader over it",
+            "title": "Owners May Decide",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "owners_may_decide"
+        ],
+        "title": "DecisionRulesBody",
+        "type": "object"
+      },
+      "DefinitionBody": {
+        "properties": {
+          "definition": {
+            "additionalProperties": true,
+            "title": "Definition",
+            "type": "object"
+          }
+        },
+        "required": [
+          "definition"
+        ],
+        "title": "DefinitionBody",
+        "type": "object"
+      },
       "DemoSignIn": {
         "properties": {
           "email": {
@@ -1445,6 +1635,18 @@
         "title": "DeploymentBody",
         "type": "object"
       },
+      "ExcuseBody": {
+        "properties": {
+          "reason": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "ExcuseBody",
+        "type": "object"
+      },
       "ExternalRefBody": {
         "description": "What a record is called in another system.",
         "properties": {
@@ -1464,6 +1666,37 @@
           "value"
         ],
         "title": "ExternalRefBody",
+        "type": "object"
+      },
+      "FieldsBody": {
+        "properties": {
+          "fields": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "sensitive_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sensitive Fields"
+          }
+        },
+        "required": [
+          "fields"
+        ],
+        "title": "FieldsBody",
         "type": "object"
       },
       "FundingSourceBody": {
@@ -1616,6 +1849,20 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HandOverBody": {
+        "properties": {
+          "to": {
+            "description": "The account to pass everything to",
+            "title": "To",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "to"
+        ],
+        "title": "HandOverBody",
         "type": "object"
       },
       "HostingPlatformBody": {
@@ -1887,6 +2134,19 @@
         "title": "InterfaceBody",
         "type": "object"
       },
+      "JobSwitch": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "JobSwitch",
+        "type": "object"
+      },
       "LinkBody": {
         "properties": {
           "note": {
@@ -2042,6 +2302,12 @@
       },
       "NewUnit": {
         "properties": {
+          "above": {
+            "default": false,
+            "description": "Add it as the new top unit, with the current top unit beneath it",
+            "title": "Above",
+            "type": "boolean"
+          },
           "code": {
             "anyOf": [
               {
@@ -2119,6 +2385,41 @@
           "owners"
         ],
         "title": "PeopleBody",
+        "type": "object"
+      },
+      "Preferences": {
+        "properties": {
+          "email_notices": {
+            "maxLength": 16,
+            "title": "Email Notices",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email_notices"
+        ],
+        "title": "Preferences",
+        "type": "object"
+      },
+      "ReadBody": {
+        "properties": {
+          "ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Omit to mark every notice read",
+            "title": "Ids"
+          }
+        },
+        "title": "ReadBody",
         "type": "object"
       },
       "Release": {
@@ -2677,6 +2978,79 @@
         },
         "title": "VendorBody",
         "type": "object"
+      },
+      "ViewBody": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The list: /applications",
+            "title": "Path"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Its filters",
+            "title": "Query"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared"
+          }
+        },
+        "title": "ViewBody",
+        "type": "object"
+      },
+      "VocabularyBody": {
+        "properties": {
+          "items": {
+            "description": "Every value in order: its key, label, and any description; new values may leave the key empty; retired values say so",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "VocabularyBody",
+        "type": "object"
       }
     }
   },
@@ -2883,6 +3257,106 @@
         "summary": "Change a person's details",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/hand-over": {
+      "post": {
+        "description": "Each role on each record, each contract and interface owned, each open task, and each\npending campaign item goes to one person, in one step.",
+        "operationId": "hand_over_api_v1_accounts__account_id__hand_over_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandOverBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Hand Over Api V1 Accounts  Account Id  Hand Over Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pass everything a person holds on",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/holdings": {
+      "get": {
+        "description": "The records they are named on, the contracts and interfaces they own, their open\ntasks, and what open campaigns still ask of them.",
+        "operationId": "holdings_api_v1_accounts__account_id__holdings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Holdings Api V1 Accounts  Account Id  Holdings Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Everything a person holds",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -3589,6 +4063,60 @@
               "description": "A capability's reference: the applications that serve it",
               "title": "Capability"
             }
+          },
+          {
+            "description": "A technology's reference: what is built on it (for an application, any of its components)",
+            "in": "query",
+            "name": "technology",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A technology's reference: what is built on it (for an application, any of its components)",
+              "title": "Technology"
+            }
+          },
+          {
+            "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+            "in": "query",
+            "name": "release",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+              "title": "Release"
+            }
+          },
+          {
+            "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+              "title": "Version"
+            }
           }
         ],
         "responses": {
@@ -3901,6 +4429,199 @@
         "summary": "Say which capabilities it serves",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/confirmations": {
+      "get": {
+        "operationId": "confirmations_api_v1_applications__ref__confirmations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Confirmations Api V1 Applications  Ref  Confirmations Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Who has confirmed the record, and when",
+        "tags": [
+          "assessment and scores"
+        ]
+      },
+      "post": {
+        "description": "Anyone named on the application, its unit's stewards, and managers confirm that its\nrecord and its parts are right as of today (CUR-03).",
+        "operationId": "confirm_api_v1_applications__ref__confirmations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Confirm Api V1 Applications  Ref  Confirmations Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm that the record is right",
+        "tags": [
+          "assessment and scores"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/contests": {
+      "get": {
+        "operationId": "list_contests_api_v1_applications__ref__contests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Contests Api V1 Applications  Ref  Contests Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Contests of an application's scores",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "post": {
+        "operationId": "raise_contest_api_v1_applications__ref__contests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Raise Contest Api V1 Applications  Ref  Contests Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say one factor is wrong, and why",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -4502,6 +5223,402 @@
         "summary": "Say which units use it",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/campaigns": {
+      "get": {
+        "operationId": "list_campaigns_api_v1_campaigns_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Campaigns Api V1 Campaigns Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Campaigns, newest first, with their progress",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "post": {
+        "description": "Makes an item for each application in service in the unit and beneath it, of the tiers\nand stages named, and tells each person asked once, with a count.",
+        "operationId": "start_campaign_api_v1_campaigns_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Start Campaign Api V1 Campaigns Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start a campaign",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/preview": {
+      "post": {
+        "description": "How many applications it would cover and how many people it would ask, and which\napplications have nobody to ask. Nothing is saved.",
+        "operationId": "preview_campaign_api_v1_campaigns_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Preview Campaign Api V1 Campaigns Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What a campaign would ask, and of whom",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}": {
+      "get": {
+        "operationId": "get_campaign_api_v1_campaigns__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this unit's items",
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this unit's items",
+              "title": "Unit"
+            }
+          },
+          {
+            "description": "pending, done, or excused",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pending, done, or excused",
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Only what was asked of you",
+            "in": "query",
+            "name": "mine",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only what was asked of you",
+              "title": "Mine",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Campaign Api V1 Campaigns  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A campaign, its coverage by unit, and its items",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/cancel": {
+      "post": {
+        "operationId": "cancel_campaign_api_v1_campaigns__ref__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Cancel Campaign Api V1 Campaigns  Ref  Cancel Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel a campaign",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/close": {
+      "post": {
+        "operationId": "close_campaign_api_v1_campaigns__ref__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Close Campaign Api V1 Campaigns  Ref  Close Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close a campaign, keeping what it found",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/items/{item_id}/excuse": {
+      "post": {
+        "operationId": "excuse_item_api_v1_campaigns__ref__items__item_id__excuse_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcuseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Excuse Item Api V1 Campaigns  Ref  Items  Item Id  Excuse Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Excuse one application, with a reason",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/remind": {
+      "post": {
+        "operationId": "remind_campaign_api_v1_campaigns__ref__remind_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Remind Campaign Api V1 Campaigns  Ref  Remind Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remind whoever still owes something",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -5162,6 +6279,60 @@
               "description": "An application's reference: at either end",
               "title": "Application"
             }
+          },
+          {
+            "description": "A technology's reference: what is built on it (for an application, any of its components)",
+            "in": "query",
+            "name": "technology",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A technology's reference: what is built on it (for an application, any of its components)",
+              "title": "Technology"
+            }
+          },
+          {
+            "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+            "in": "query",
+            "name": "release",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+              "title": "Release"
+            }
+          },
+          {
+            "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+              "title": "Version"
+            }
           }
         ],
         "responses": {
@@ -5529,6 +6700,83 @@
         "summary": "Say what a component is built on",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/contests": {
+      "get": {
+        "operationId": "waiting_contests_api_v1_contests_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Waiting Contests Api V1 Contests Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Contests waiting for your answer",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/contests/{contest_id}/answer": {
+      "post": {
+        "operationId": "answer_contest_api_v1_contests__contest_id__answer_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "contest_id",
+            "required": true,
+            "schema": {
+              "title": "Contest Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Answer Contest Api V1 Contests  Contest Id  Answer Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept a contest, or answer it",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -8698,6 +9946,124 @@
         ]
       }
     },
+    "/api/v1/jobs": {
+      "get": {
+        "operationId": "jobs_status_api_v1_jobs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Jobs Status Api V1 Jobs Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scheduled work, and how its recent runs went",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/api/v1/jobs/{key}": {
+      "put": {
+        "operationId": "jobs_set_api_v1_jobs__key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobSwitch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Jobs Set Api V1 Jobs  Key  Put"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pause or resume one job",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/api/v1/jobs/{key}/run": {
+      "post": {
+        "description": "Runs the job at once, whether or not it is due, and says what it did. If another\nprocess is running it at this moment, nothing is run and the answer says so.",
+        "operationId": "jobs_run_api_v1_jobs__key__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Jobs Run Api V1 Jobs  Key  Run Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run one job now",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
     "/api/v1/lifecycle": {
       "get": {
         "description": "The releases in use, soonest end of support first, each with how many components and\napplications are on it; and the applications with a planned retirement.",
@@ -8746,6 +10112,51 @@
         ]
       }
     },
+    "/api/v1/mail": {
+      "get": {
+        "operationId": "mail_status_api_v1_mail_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Mail Status Api V1 Mail Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "How email is set up, and how it is doing",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/api/v1/mail/test": {
+      "post": {
+        "description": "Sends one message to your own address, now, and says whether the mail server took it.",
+        "operationId": "mail_test_api_v1_mail_test_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Mail Test Api V1 Mail Test Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Send yourself a test message",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "description": "What the web app needs before anyone signs in.",
@@ -8767,6 +10178,117 @@
         "summary": "The product's name, version, and branding",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/notices": {
+      "get": {
+        "operationId": "list_notices_api_v1_notices_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "unread",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Unread",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Notices Api V1 Notices Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What is nearly due for you, or has been asked of you",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/api/v1/notices/count": {
+      "get": {
+        "operationId": "count_notices_api_v1_notices_count_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Count Notices Api V1 Notices Count Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "How many of your notices are unread",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/api/v1/notices/read": {
+      "post": {
+        "operationId": "read_notices_api_v1_notices_read_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReadBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Read Notices Api V1 Notices Read Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark notices as read",
+        "tags": [
+          "operations"
         ]
       }
     },
@@ -8972,6 +10494,299 @@
         ]
       }
     },
+    "/api/v1/program": {
+      "get": {
+        "operationId": "get_program_api_v1_program_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Program Api V1 Program Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The program as it stands, and what may be changed",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/decision-rules": {
+      "put": {
+        "operationId": "put_decision_rules_api_v1_program_decision_rules_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRulesBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Decision Rules Api V1 Program Decision Rules Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Whether owners may decide about their own",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/fields": {
+      "put": {
+        "operationId": "put_fields_api_v1_program_fields_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Fields Api V1 Program Fields Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The organization's own fields, and which are sensitive",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/questionnaire": {
+      "put": {
+        "operationId": "put_questionnaire_api_v1_program_questionnaire_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Questionnaire Api V1 Program Questionnaire Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish new wording of the questions",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/scoring": {
+      "put": {
+        "operationId": "put_scoring_api_v1_program_scoring_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Scoring Api V1 Program Scoring Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a new version of the scoring model",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/scoring/preview": {
+      "post": {
+        "description": "Every application in service whose scores, confidence, recommendation, or flags would\ndiffer. Nothing is saved.",
+        "operationId": "preview_scoring_api_v1_program_scoring_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Preview Scoring Api V1 Program Scoring Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What a changed scoring model would change",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/vocabularies/{name}": {
+      "put": {
+        "operationId": "put_vocabulary_api_v1_program_vocabularies__name__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VocabularyBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Vocabulary Api V1 Program Vocabularies  Name  Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename, reorder, add to, or retire a list",
+        "tags": [
+          "program"
+        ]
+      }
+    },
     "/api/v1/questionnaire": {
       "get": {
         "operationId": "questionnaire_api_v1_questionnaire_get",
@@ -9105,6 +10920,86 @@
         "summary": "The current scoring model",
         "tags": [
           "assessment and scores"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "description": "Grouped by kind, the best answer first. It finds only what the searcher may open,\nbecause it asks each kind's own list.",
+        "operationId": "search_api_v1_search_get",
+        "parameters": [
+          {
+            "description": "A name, a reference, or a few words",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "A name, a reference, or a few words",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this kind of record",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this kind of record",
+              "title": "Type"
+            }
+          },
+          {
+            "description": "How many of each kind",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "description": "How many of each kind",
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Search Api V1 Search Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One search across every kind of record",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -9267,6 +11162,180 @@
         "summary": "Change your own password",
         "tags": [
           "session"
+        ]
+      }
+    },
+    "/api/v1/session/preferences": {
+      "get": {
+        "operationId": "preferences_api_v1_session_preferences_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Preferences Api V1 Session Preferences Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "How you want to be told",
+        "tags": [
+          "operations"
+        ]
+      },
+      "put": {
+        "operationId": "set_preferences_api_v1_session_preferences_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Preferences"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Set Preferences Api V1 Session Preferences Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say how you want to be told",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/api/v1/similar-applications": {
+      "get": {
+        "description": "Those already on record whose name or alias is close to this name or its aliases, or\nthat are the same product from the same vendor (INV-15).",
+        "operationId": "similar_applications_api_v1_similar_applications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Name",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Other names it goes by, separated by commas",
+            "in": "query",
+            "name": "aliases",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "Other names it goes by, separated by commas",
+              "title": "Aliases",
+              "type": "string"
+            }
+          },
+          {
+            "description": "A vendor's reference",
+            "in": "query",
+            "name": "vendor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A vendor's reference",
+              "title": "Vendor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "product",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product"
+            }
+          },
+          {
+            "description": "This one's reference",
+            "in": "query",
+            "name": "except",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "This one's reference",
+              "title": "Except"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Similar Applications Api V1 Similar Applications Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Applications a new one may be already",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -9481,6 +11550,198 @@
         "summary": "Begin single sign-on",
         "tags": [
           "single sign-on"
+        ]
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "description": "Each person sees their own tasks; stewards, leaders, and managers those about the\napplications in their units; those who read everything, all of them.",
+        "operationId": "list_tasks_api_v1_tasks_get",
+        "parameters": [
+          {
+            "description": "open, done, dismissed, or all",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "open, done, dismissed, or all",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "Only yours",
+            "in": "query",
+            "name": "mine",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only yours",
+              "title": "Mine",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only those with nobody to do them",
+            "in": "query",
+            "name": "unassigned",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only those with nobody to do them",
+              "title": "Unassigned",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Tasks Api V1 Tasks Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tasks: open ones by default",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}": {
+      "get": {
+        "operationId": "get_task_api_v1_tasks__task_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Task Api V1 Tasks  Task Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One task",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}/close": {
+      "post": {
+        "operationId": "close_task_api_v1_tasks__task_id__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Close Task Api V1 Tasks  Task Id  Close Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a task done, or dismiss it",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -10559,6 +12820,194 @@
         "summary": "Remove a link",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/views": {
+      "get": {
+        "operationId": "list_views_api_v1_views_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Views Api V1 Views Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Your saved views, and the shared ones",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "post": {
+        "operationId": "save_view_api_v1_views_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Save View Api V1 Views Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a list's filters under a name",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/views/{view_id}": {
+      "delete": {
+        "operationId": "delete_view_api_v1_views__view_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "view_id",
+            "required": true,
+            "schema": {
+              "title": "View Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Delete View Api V1 Views  View Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a saved view",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "patch": {
+        "operationId": "change_view_api_v1_views__view_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "view_id",
+            "required": true,
+            "schema": {
+              "title": "View Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Change View Api V1 Views  View Id  Patch",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename, change, or share a saved view",
+        "tags": [
+          "keeping current"
         ]
       }
     },

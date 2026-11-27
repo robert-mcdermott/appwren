@@ -6,6 +6,18 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+## 0.3.0 (2026-11-26)
+
+Wave 3, *Keeping current*: a portfolio that stays true without a central team chasing it.
+The app knows what falls due and says so, in the app and by email; owners confirm their
+records on a cadence, and a record nobody confirms lowers confidence where everyone can see
+it; campaigns ask the owners in a unit, by a date; departures, renewals, end of support, and
+grant ends raise tasks for whoever must act; anything on record can be found; and the
+program is shaped in the app, with a preview of what a change would do.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept, and no
+record is stale on the day of the upgrade.
+
 ### Added
 
 - **The documentation site.** The guides, with their pictures of the demo organization, are
@@ -14,6 +26,102 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   and dark themes. `node scripts/site/build.mjs` builds it from `docs/` with Node 22 and no
   packages, and fails on a broken link, anchor, or picture; `node scripts/site/audit.mjs`
   checks every page in both themes at desk and phone widths.
+- **Scheduled work.** The server runs jobs by itself: triggers, reminders, email, a monthly
+  snapshot, and housekeeping. A
+  process claims a job before running it, so several servers, or `appwren jobs run` from a
+  scheduled task, run each one once between them. Admin → Scheduled work shows each job,
+  when it last ran and what it did, and can run or pause it. `[server] scheduler = false`
+  leaves the work to `appwren jobs run`.
+- **Notices and reminders.** A bell in the top bar counts what is new for you, and opens a
+  page of it. Whoever something waits on is reminded two weeks before its date and the day
+  after: an assessment about to expire, and a decision's review date and target date. An assessment or a target that stays late goes to the unit's
+  steward after a week and its leader after three. Each is said once for a given date.
+- **Email, optional.** Name an SMTP server under `[mail]` and notices go by email as well,
+  each as it happens or in a daily summary, as each person chooses under Your account. The
+  password comes from the environment. Until email is set up nothing is attempted, and
+  nothing written before then is ever sent. `appwren mail test` sends a test message, and
+  `appwren doctor` checks the server.
+- **Confirming a record.** The people named on an application, its unit's stewards, and
+  managers confirm that its record is right, in one step from its page: every 6 months for
+  tiers 1 and 2, every 12 for the rest. A record past its confirmation is stale: its page
+  says so, it is flagged, data quality and the portfolio list count it, its owner is
+  reminded, and its data confidence is 15 points lower until someone confirms it. A record
+  never confirmed is due one period after it was added or after the upgrade, whichever is
+  later, so nothing is stale on the day of the upgrade.
+- **Campaigns.** Managers and stewards ask the owners of the applications in a unit, narrowed
+  by tier and stage if they wish, to confirm their records or to assess their applications by
+  a date (`CMG-0002`). Before starting, it says how many people it would ask and which
+  applications have nobody to ask. Each person is told once, with a count, and finds what is
+  asked of them on Home. An item closes itself when the record is confirmed or the
+  application assessed after the campaign began. The campaign's page shows its progress and
+  its coverage by unit, least covered first, and can remind, excuse an application with a
+  reason, close, or cancel.
+- **Tasks, raised by what happens.** Each hour the triggers look at the dates and the people
+  on record. A contract's notice date within 60 days, a release in use within 180 days of its
+  end of support, a grant within 180 days of its end, and an accountable owner who has left
+  each raise a task for the person who must act, with a date and the reason, and tell them.
+  A cause raises one task, never two. A task closes by itself when its cause is settled (the
+  contract renewed, nothing on the release, a decision recorded, someone named) or by a person
+  with a note. Tasks are on Home, on a page of their own, and in the reminders; the reminder
+  of a contract's notice date is now its task's.
+- **Passing on what someone holds.** Every person has a page of what they hold: the records
+  they are named on and in what role, the contracts and interfaces they own, their open
+  tasks, and what campaigns still ask of them. An administrator or a manager passes all of it
+  to someone else in one step. Assessments and decisions stay with whoever made them.
+- **One search.** The command palette finds records as well as pages, and Search lists
+  every kind of record that matches, the best answer first: by name, reference, summary, or
+  what something is called elsewhere. It finds only what the searcher may open.
+- **Saved views.** Any list's filters are kept under a name from its **Views** button,
+  privately, or shared with everyone by stewards, architects, and managers. A view keeps the
+  question, so each person who opens it sees only what they may.
+- **Applications by what they are built on.** The applications and components lists, and
+  their exports, narrow to a technology, one of its releases, or an exact version, such as
+  every application on .NET 6, or on 6.0.25. A technology's page links each release to that
+  list. An application counts when any of its components is on it.
+- **Likely duplicates.** Adding or renaming an application shows those already on record
+  whose name or alias is close, or that are the same product from the same vendor.
+- **Contesting a score.** Whoever keeps an application says a factor is wrong, what it should
+  be, and why, with a link to the evidence. A manager or an architect accepts or answers it,
+  and the owner is told. Both stay on the record and in its history. A contest does not move
+  a score; putting the record or the assessment right does.
+- **The program, shaped in the app.** Admin → Program, for managers of the whole
+  organization and administrators: rename, describe, reorder, add to, and retire the values
+  of a list (those AppWren's rules read can be renamed and reordered only); add and edit the
+  organization's own fields and say which are sensitive; reword the questions and their
+  levels; and change the thresholds, every profile's weights, and the cadence. A changed
+  scoring model is previewed first, listing every application whose scores, confidence,
+  recommendation, or flags would differ, and publishing it changes exactly those. Each change
+  publishes a new version or is kept in the history.
+- **A portfolio snapshot each month,** kept by the scheduler on the first turn of the month.
+- **Starting with one team.** `appwren init` asks for the organization's name and a first
+  unit within it, such as the team starting with AppWren (`--organization` and
+  `--first-unit` when unattended), so an application can be added at once. **Admin →
+  Units → Put a unit above the top** puts a new top unit above the existing one, for a team
+  that began at the top. *Getting started* has a section on starting with one team.
+- **Owners deciding about their own applications, if switched on.** A program setting, off
+  by default, on **Admin → Program → Decisions**: an application's accountable owner who is
+  also a manager or a leader over it may record its decision, for a team too small for
+  anyone else to. Each such decision is marked *Recorded by its own owner* on the decision,
+  in the application's history, and on the Decisions page.
+- **Guides:** a new guide, *Keeping current*; shaping the program in the app, scheduled work,
+  and email in *Running the program* and *Configuration*; what a stale record costs in *The
+  portfolio*; the new routes in the API guide; and pictures of the new screens.
+
+### Changed
+
+- **The default scoring model gains the cadence of wave 3:** how often records are
+  confirmed and what a stale one costs, when reminders go, and how far ahead tasks are
+  raised. An upgrade brings it to a model that nobody has changed since 0.1.0 or 0.2.0; one
+  the organization has shaped is left alone and uses the same values until it says otherwise.
+
+### Fixed
+
+- **A bubble on the portfolio chart opened a page that was not there.** Links inside a
+  drawing were followed by the wrong address. Clicking a bubble now opens its application,
+  and hovering one shows which application it is and where it stands. Present since 0.1.0.
+- **The demo's research software engineer** was named on no application, though the guides
+  sent people to see the applications they keep. They now keep the two pieces of research
+  software in the demo's storylines.
 
 ## 0.2.0 (2026-11-26)
 

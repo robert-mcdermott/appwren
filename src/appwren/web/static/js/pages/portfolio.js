@@ -59,11 +59,13 @@ function chart(rows, view, thresholds, vocab) {
     const level = risk == null ? 0 : Math.min(5, Math.max(1, Math.round(risk)));
     const words = `${r.name}: value ${r.scores.business_value.toFixed(1)}, ${spec.xLabel.toLowerCase()} ${r.scores[spec.x].toFixed(1)}, risk exposure ${risk == null ? "unknown" : risk.toFixed(1)}, recommended ${r.recommendation ? label(vocab, "dispositions", r.recommendation) : "nothing"}`;
     // A shortcut for the pointer; the table below is the way in for the keyboard and screen readers.
-    return svg("a", { href: hrefOf(r.ref), "aria-label": words, tabindex: "-1" },
+    const detail = `${r.ref} · value ${r.scores.business_value.toFixed(1)} · ${spec.xLabel.toLowerCase()} ${r.scores[spec.x].toFixed(1)} · `
+      + `risk exposure ${risk == null ? "unknown" : risk.toFixed(1)} · ${r.recommendation ? label(vocab, "dispositions", r.recommendation) : "no recommendation"}`;
+    return svg("a", { href: hrefOf(r.ref), "aria-label": words, tabindex: "-1", "data-name": r.name, "data-detail": detail },
       svg("title", {}, words),
       svg("circle", { class: "bubble", "data-level": level, "data-mismatch": String(r.mismatch), cx: sx(Math.min(5, Math.max(1, x))), cy: sy(Math.min(5, Math.max(1, y))), r: radius(r.annual_cost) }));
   });
-  return svg("svg", { class: "chart portfolio-chart", viewBox: `0 0 ${W} ${H}`, role: "img", "data-equivalent": "portfolio-table", "aria-label": `Business value against ${spec.xLabel.toLowerCase()}, ${rows.length} applications` },
+  const drawing = svg("svg", { class: "chart portfolio-chart", viewBox: `0 0 ${W} ${H}`, role: "img", "data-equivalent": "portfolio-table", "aria-label": `Business value against ${spec.xLabel.toLowerCase()}, ${rows.length} applications` },
     grid,
     svg("rect", { class: "chart-zone", x: sx(tx), y: sy(5), width: sx(5) - sx(tx), height: sy(ty) - sy(5) }),
     svg("line", { class: "chart-threshold", x1: sx(tx), x2: sx(tx), y1: sy(1), y2: sy(5) }),
@@ -74,6 +76,35 @@ function chart(rows, view, thresholds, vocab) {
     // The quarters' names go over the bubbles, so a crowded corner never hides its own name.
     quadrant(tl, sx(1) + 8, sy(5) + 16, "start"), quadrant(tr, sx(5) - 8, sy(5) + 16, "end"),
     quadrant(bl, sx(1) + 8, sy(1) - 10, "start"), quadrant(br, sx(5) - 8, sy(1) - 10, "end"));
+  return withTip(drawing);
+}
+
+/** A label that follows the pointer over a bubble: which application, and where it stands.
+ * For the pointer only; the table beneath the chart says the same for everyone. */
+function withTip(drawing) {
+  const name = h("strong", {});
+  const detail = h("span", { class: "cell-sub" });
+  const tip = h("div", { class: "chart-tip", "aria-hidden": "true", hidden: true }, name, detail);
+  const wrap = h("div", { class: "chart-wrap" }, drawing, tip);
+  const place = (event) => {
+    const link = event.target.closest?.("a[data-name]");
+    if (!link) {
+      tip.hidden = true;
+      return;
+    }
+    name.textContent = link.getAttribute("data-name");
+    detail.textContent = link.getAttribute("data-detail");
+    tip.hidden = false;
+    const box = wrap.getBoundingClientRect();
+    const x = event.clientX - box.left;
+    const y = event.clientY - box.top;
+    const flip = x > box.width - 280;
+    tip.style.setProperty("left", `${flip ? Math.max(0, x - 16 - tip.offsetWidth) : x + 16}px`);
+    tip.style.setProperty("top", `${Math.max(0, y - tip.offsetHeight - 12)}px`);
+  };
+  drawing.addEventListener("mousemove", place);
+  drawing.addEventListener("mouseleave", () => { tip.hidden = true; });
+  return wrap;
 }
 
 function legend(withheld) {

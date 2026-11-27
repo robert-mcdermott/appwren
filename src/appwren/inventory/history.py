@@ -120,7 +120,8 @@ def _decided(lookups: Lookups, now: Any, added: bool) -> str:
     if not added:
         return "Removed a decision"
     disposition = lookups.vocab("dispositions", now("disposition")).lower()
-    return f"Recorded a decision to {disposition} ({now('ref')})"
+    own = ", as its own accountable owner" if now("self_recorded") else ""
+    return f"Recorded a decision to {disposition} ({now('ref')}){own}"
 
 
 def _serves(lookups: Lookups, now: Any, added: bool) -> str:
@@ -144,11 +145,22 @@ def _release(lookups: Lookups, now: Any, added: bool) -> str:
     return f"{'Added' if added else 'Removed'} the release {now('cycle')}"
 
 
+def _confirmed(lookups: Lookups, now: Any, added: bool) -> str:
+    return "Confirmed the record" if added else "Removed a confirmation"
+
+
+def _contested(lookups: Lookups, now: Any, added: bool) -> str:
+    label = str(now("factor_label") or "a factor").lower()
+    return f"Contested {label}" if added else f"Removed a contest of {label}"
+
+
 # How the rows that belong to a record are told in its history: (names, the event's value for
 # a field, whether it was added) -> a sentence.
 CHILD_TITLES: dict[str, Any] = {
     "assessment": _assessed,
     "decision": _decided,
+    "attestation": _confirmed,
+    "score_contest": _contested,
     "application_capability": _serves,
     "application_unit": _used_by,
     "component_technology": _built_on,
@@ -197,6 +209,9 @@ def entry(
         other = lookups.name("application", now("application_id"))
         verb = {"created": "Now covers", "deleted": "No longer covers"}.get(event.action)
         title = f"{verb} {other}" if verb else f"Changed the licenses {other} uses"
+    elif event.subject_type == "score_contest" and event.action == "updated":
+        verdict = "Accepted" if now("status") == "accepted" else "Answered"
+        title = f"{verdict} a contest of its scores"
     elif event.subject_type in CHILD_TITLES and event.action in ("created", "deleted"):
         title = CHILD_TITLES[event.subject_type](lookups, now, event.action == "created")
     elif event.subject_type == "external_ref":

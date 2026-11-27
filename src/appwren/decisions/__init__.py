@@ -48,10 +48,12 @@ def current(session: Session, application_ids: list[int]) -> dict[int, Decision]
 def record(
     session: Session, principal: Principal, app: Application, values: Mapping[str, Any]
 ) -> Decision:
-    """Record a disposition for an application. A manager may, or a leader of its unit; never
-    its own accountable owner. The scores as they are now are kept with it."""
+    """Record a disposition for an application. A manager may, or a leader of its unit; not
+    its own accountable owner, unless the program lets owners decide, and then the decision
+    says so. The scores as they are now are kept with it."""
     if not access.can_decide(session, principal, app):
-        if "accountable" in access.roles_on(session, APPLICATION, app.id, principal.account_id):
+        owners_may = catalog.decision_rules(session)["owners_may_decide"]
+        if access.decides_own(session, principal, app) and not owners_may:
             raise PermissionDenied(
                 "You are accountable for this application, so someone else records its decision."
             )
@@ -97,6 +99,7 @@ def record(
             decided_by=principal.account_id,
             decided_by_name=principal.name,
             decided_on=on,
+            self_recorded=access.decides_own(session, principal, app),
             created_at=utc_now(),
         )
         session.add(row)
@@ -124,6 +127,7 @@ def view(session: Session, row: Decision) -> dict[str, Any]:
         "differed": row.recommendation is not None and row.recommendation != row.disposition,
         "decided_by": row.decided_by_name,
         "decided_on": row.decided_on,
+        "self_recorded": bool(row.self_recorded),
         "superseded": row.superseded_by is not None,
         "snapshot_id": row.snapshot_id,
     }
@@ -213,6 +217,7 @@ def portfolio(
                 "recommendation": recommendation,
                 "decision": decision.disposition if decision else None,
                 "review_on": decision.review_on if decision else None,
+                "self_decided": bool(decision and decision.self_recorded),
                 "mismatch": bool(
                     decision and recommendation and decision.disposition != recommendation
                 ),
@@ -258,6 +263,22 @@ def take_portfolio_snapshot(session: Session, principal: Principal, name: str) -
             session, "portfolio.snapshot.digest", row, changes={"digest": digest.hexdigest()}
         )
     return row
+
+
+def take_monthly(session: Session) -> int:
+    """The portfolio as it stood this month, kept by the scheduler once a month: on the first
+    turn after the month begins. Returns how many it took: none, or one."""
+    on = today_()
+    name = f"{on:%B %Y}, monthly"
+    if session.scalars(select(PortfolioSnapshot.id).where(PortfolioSnapshot.name == name)).first():
+        return 0
+    if (
+        session.scalars(select(Application.id).where(Application.status == "active")).first()
+        is None
+    ):
+        return 0
+    take_portfolio_snapshot(session, Principal.for_command("Scheduler"), name)
+    return 1
 
 
 def portfolio_snapshots(session: Session) -> list[dict[str, Any]]:

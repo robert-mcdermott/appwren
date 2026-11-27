@@ -20,6 +20,7 @@ FIELDS = "program.fields"
 STAGES = "program.stage_requirements"
 SENSITIVE = "program.sensitive_fields"
 DEFINITION = "program.definition"
+DECISION_RULES = "program.decision_rules"
 
 FIELD_TYPES = ("text", "long", "number", "date", "bool", "url", "choice")
 SECTIONS = ("about", "source", "use", "support", "security", "operations", "cost", "research",
@@ -49,6 +50,22 @@ def sensitive_fields(session: Session) -> list[str]:
 
 def definition(session: Session) -> dict[str, Any]:
     return dict(_get(session, DEFINITION, "definition"))
+
+
+def decision_rules(session: Session) -> dict[str, bool]:
+    """Who may record a decision, beyond managers and leaders. ``owners_may_decide``: an
+    application's own accountable owner may, if they hold that authority too. Off unless the
+    program says otherwise."""
+    found = settings.get(session, DECISION_RULES, None) or {}
+    return {"owners_may_decide": bool(found.get("owners_may_decide", False))}
+
+
+def check_decision_rules(value: Any) -> list[str]:
+    if not isinstance(value, Mapping) or set(value) - {"owners_may_decide"}:
+        return ["The decision rules say only whether owners may decide: owners_may_decide."]
+    if not isinstance(value.get("owners_may_decide", False), bool):
+        return ["owners_may_decide is true or false."]
+    return []
 
 
 def check_fields(items: Any, builtin: set[str]) -> list[str]:

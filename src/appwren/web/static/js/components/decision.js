@@ -87,6 +87,7 @@ export function decisionsTab(record, history, vocab, { mayDecide, onDecide }) {
   const show = (d) => h("div", { class: "stack-sm" },
     h("div", { class: "row-sm wrap" }, dispositionBadge(d.disposition, label(vocab, "dispositions", d.disposition), { decided: true }),
       h("span", { class: "muted" }, `${d.ref} by ${d.decided_by} on ${date(d.decided_on)}`),
+      d.self_recorded ? pill("Recorded by its own owner", "warn") : null,
       d.differed ? pill(`Recommended then: ${label(vocab, "dispositions", d.recommendation)}`, "info") : null,
       d.review_due ? pill("Review due", "warn") : null),
     h("p", { class: "prose" }, d.rationale),

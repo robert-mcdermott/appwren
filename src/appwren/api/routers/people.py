@@ -59,6 +59,10 @@ class NewUnit(BaseModel):
     kind: str = Field(max_length=40)
     code: str | None = Field(default=None, max_length=60)
     parent_id: int | None = None
+    above: bool = Field(
+        default=False,
+        description="Add it as the new top unit, with the current top unit beneath it",
+    )
 
 
 class UnitChanges(BaseModel):
@@ -199,6 +203,7 @@ def create_unit(request: Request, body: NewUnit) -> dict[str, Any]:
             kind=body.kind,
             code=body.code,
             parent_id=body.parent_id,
+            above=body.above,
         )
         return envelope(units.view(unit))
 

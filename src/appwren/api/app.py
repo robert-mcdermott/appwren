@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 
-from appwren import PRODUCT_NAME, __version__
+from appwren import PRODUCT_NAME, __version__, jobs
 from appwren.access.middleware import install_access
 from appwren.access.policy import authorize
 from appwren.api.problems import install_problem_handlers
@@ -17,8 +17,11 @@ from appwren.api.routers import (
     branding,
     decisions,
     inventory,
+    keeping,
     landscape,
+    operations,
     people,
+    program,
     reporting,
     session,
     sso,
@@ -33,7 +36,7 @@ from appwren.home import DataHome
 
 ROUTERS = (
     system, session, sso, people, branding, inventory, assessment, decisions, reporting,
-    landscape,
+    landscape, operations, keeping, program,
 )  # fmt: skip
 
 
@@ -44,9 +47,13 @@ def create_app(config: Config) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         home.require()
         app.state.db = Database(config.database_url)
+        # The scheduler runs beside the server for as long as it is up.
+        stop_jobs = jobs.start_worker(app.state.db, config) if config.server.scheduler else None
         try:
             yield
         finally:
+            if stop_jobs is not None:
+                stop_jobs.set()
             app.state.db.dispose()
 
     app = FastAPI(

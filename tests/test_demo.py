@@ -205,6 +205,49 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         assert len(snaps) == 4 and snaps[-1].taken_at.date() >= TODAY - timedelta(days=100)
         # Every application that is not retired has a unit and is visible to the organization.
         assert records.search(session, ME, APPLICATION, {"status": "active"})[1] >= 100
+        # Keeping current (wave 3). The research software engineer keeps the two pieces of
+        # research software in the storylines.
+        from appwren.db.models import Account, Campaign, Notice, RecordOwner, Task
+        from appwren.oversight import campaigns
+
+        engineer = session.scalars(
+            select(Account).where(Account.email == "kiran.lockwood@bramblewood.example")
+        ).one()
+        kept = set(
+            session.scalars(
+                select(Application.name)
+                .join(RecordOwner, RecordOwner.record_id == Application.id)
+                .where(
+                    RecordOwner.record_type == "application", RecordOwner.account_id == engineer.id
+                )
+            )
+        )
+        assert {"Cohort Analysis Platform", "Imaging Pipeline"} <= kept
+        # Some records have lapsed and say so; the worked example has not.
+        stale = [r["name"] for r in in_service if "not_confirmed" in r["quality"]]
+        assert 12 <= len(stale) <= len(in_service) / 3
+        assert {"Executive Dashboards", "Applicant Tracking"} <= set(stale)
+        assert tracker["stale"] is None
+        # A closed campaign that found most of what it asked, and one under way.
+        found = {
+            row.name: campaigns.summary(session, ME, row)
+            for row in session.scalars(select(Campaign))
+        }
+        spring = found["Clinical Research assessments, spring"]
+        under_way = found["Shared Resources record confirmation"]
+        assert spring["status"] == "closed" and spring["progress"]["percent"] >= 60
+        assert under_way["status"] == "open" and 20 <= under_way["progress"]["percent"] <= 80
+        # Tasks: the leaver's four, end of support for the database release, grants ending,
+        # and the Calendra notice date, each for someone.
+        open_tasks = session.scalars(select(Task).where(Task.status == "open")).all()
+        kinds = {task.kind for task in open_tasks}
+        assert kinds == {"departure", "end_of_support", "grant_end", "contract_notice"}
+        assert sum(task.kind == "departure" for task in open_tasks) == 4
+        assert all(task.account_id for task in open_tasks)
+        assert any("Calendra" in task.title for task in open_tasks)
+        # People have notices, most of them read.
+        unread = session.scalars(select(Notice).where(Notice.read_at.is_(None))).all()
+        assert unread and len(unread) < len(session.scalars(select(Notice)).all())
 
 
 def _names(session: Any) -> list[tuple[str, str, str | None]]:

@@ -12,6 +12,8 @@ import { peoplePicker } from "../components/people-picker.js";
 import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
 import { editRecord, SECTIONS } from "../components/record-forms.js";
 import { openWorking, scorecard, scoresTab, verdict } from "../components/scorecard.js";
+import { confirmationLine, confirmRecord } from "../components/confirmation.js";
+import { contestsCard } from "../components/contests.js";
 import { decisionsTab, recordDecision } from "../components/decision.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
@@ -762,6 +764,13 @@ function assessmentTab(record, ctx) {
         : h("p", { class: "muted" }, "None."))));
 }
 
+/** Each application once, however many of its components use a release. */
+function uniqueApps(uses) {
+  const seen = new Map();
+  for (const use of uses) seen.set(use.application.ref, use.application);
+  return [...seen.values()];
+}
+
 export function applicationPage(main, params, extraTabs = []) {
   const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["decisions", "Decisions"], ["components", "Components"],
     ["capabilities", "Capabilities"], ["connections", "Connections"], ["cost", "Cost"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
@@ -771,7 +780,7 @@ export function applicationPage(main, params, extraTabs = []) {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact, runs, cost] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
@@ -779,9 +788,11 @@ export function applicationPage(main, params, extraTabs = []) {
         tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null,
         tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null,
         tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null,
-        tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null]);
+        tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null,
+        tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
-        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null };
+        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null,
+        contests: contested?.data ?? null };
     },
     view: (data, reload) => {
       const record = data.record;
@@ -793,7 +804,8 @@ export function applicationPage(main, params, extraTabs = []) {
       const decideButton = record.can?.decide ? button("Record a decision", { onclick: decide }) : null;
       const extra = extraTabs.find(([key]) => key === tab);
       const body = tab === "history" ? card({ flush: true }, timeline(data.history))
-        : tab === "scores" ? scoresTab(data.scores, { ref: record.ref, vocab: data.vocab })
+        : tab === "scores" ? h("div", { class: "stack-lg" }, scoresTab(data.scores, { ref: record.ref, vocab: data.vocab }),
+          contestsCard(record.ref, data.scores, data.contests, reload))
           : tab === "assessment" ? assessmentTab(record, ctx)
             : tab === "decisions" ? decisionsTab(record, data.decisions, data.vocab, { mayDecide: record.can?.decide, onDecide: decide })
             : tab === "components" ? componentsTab(record, ctx)
@@ -807,6 +819,7 @@ export function applicationPage(main, params, extraTabs = []) {
           actions: h("div", { class: "row-sm" }, assessButton, decideButton, edit) }),
         h("div", { class: "app-summary" }, scorecard(data.scores, { onOpen: open }),
           verdict(data.scores, data.vocab, record.decision ?? null)),
+        confirmationLine(data.scores.confirmation, data.scores.stale?.penalty, () => confirmRecord(record, reload)),
         tabBar(tabs.map(([key, text]) => [key, text]), tab),
         body);
     },
@@ -935,16 +948,22 @@ function sharedOverview(type, record, ctx) {
       : h("p", { class: "muted" }, "Nothing recorded. Say what it is built on: its language, framework, database, and platform.")));
   }
   if (type === "technology") {
-    main.push(card({ title: "Releases and support", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editReleases(record, ctx) }) : null,
+    main.push(card({ title: "Releases and support", actions: h("div", { class: "row-sm" },
+      record.use_count ? h("a", { class: "btn btn-sm", href: `/applications?technology=${record.ref}` }, "Every application on it") : null,
+      record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editReleases(record, ctx) }) : null),
       flush: record.releases.length > 0 },
     record.releases.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Release"), h("th", { scope: "col" }, "Support"), h("th", { scope: "col" }, "Ends"), h("th", { scope: "col" }, "Used by"))),
       h("tbody", {}, record.releases.map((r) => h("tr", {}, h("td", { class: "cell-main" }, r.cycle), h("td", {}, supportPill(r.support)),
         h("td", { class: "nowrap" }, r.support_ends ? date(r.support_ends) : "—", r.extended_ends ? h("div", { class: "cell-sub" }, `Extended to ${date(r.extended_ends)}`) : null),
-        h("td", {}, r.used_by.length ? h("div", { class: "chips" }, r.used_by.map((u) => recordChip(u.application))) : h("span", { class: "subtle" }, "None")))))))
+        h("td", {}, r.used_by.length ? h("div", { class: "stack-sm" }, h("div", { class: "chips" }, uniqueApps(r.used_by).map((u) => recordChip(u))),
+          h("a", { class: "cell-sub", href: `/applications?technology=${record.ref}&release=${encodeURIComponent(r.cycle)}` }, `As a list of ${plural(uniqueApps(r.used_by).length, "application")}, to export`))
+          : h("span", { class: "subtle" }, "None")))))))
       : h("p", { class: "muted" }, "No releases recorded. Add each version line with the date its support ends.")));
     if (record.unpinned?.length) {
-      main.push(card({ title: "Used with no release named" }, h("div", { class: "chips" }, record.unpinned.map((u) => recordChip(u.component)))));
+      main.push(card({ title: "Used with no release named",
+        actions: h("a", { class: "btn btn-sm", href: `/applications?technology=${record.ref}&release=none` }, "As a list") },
+      h("div", { class: "chips" }, record.unpinned.map((u) => recordChip(u.component)))));
     }
   }
   if (type === "vendor") {

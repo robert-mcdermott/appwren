@@ -19,6 +19,7 @@ const WHERE = {
   assessment: ["Answer the assessment", "?tab=assessment"],
   components: ["Record its components and what they are built on", "?tab=components"],
   capabilities: ["Say which capabilities it serves", "?tab=capabilities"],
+  confirm: ["Confirm the record", ""],
 };
 
 /** The four scores and confidence, each a button that opens its working. */

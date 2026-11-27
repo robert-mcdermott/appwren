@@ -97,10 +97,12 @@ def test_verify_reports_a_whole_and_a_broken_history(
 
 
 def test_doctor_on_a_healthy_installation(
-    instance: Instance, capsys: pytest.CaptureFixture[str]
+    instance: Instance, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv("APPWREN_SERVER_SCHEDULER", "true")  # as a new installation has it
     assert run("doctor", config=instance.path) == 0
     out = capsys.readouterr().out
+    assert "Email" in out and "not set up" in out and "Scheduled work" in out
     for name in (
         "Python",
         "Configuration",
@@ -315,3 +317,46 @@ def test_users_from_the_command_line(
     code, _, err = users("disable", "ghost@bramblewood.example")
     assert code == 1 and "no account for ghost@bramblewood.example" in err
     assert run("verify", config=instance.path) == 0
+
+
+def test_doctor_says_when_nothing_is_doing_the_scheduled_work(
+    instance: Instance, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """With the server's scheduler off, something else has to run the jobs."""
+    assert run("doctor", config=instance.path) == 0  # a warning, not a failure
+    assert "appwren jobs run" in capsys.readouterr().out
+    assert run("jobs", "run", config=instance.path) == 0
+    ran = capsys.readouterr().out
+    assert "reminders: Nothing to do" in ran and "triggers:" in ran
+    assert run("doctor", config=instance.path) == 0
+    assert "Everything checks out." in capsys.readouterr().out
+    assert run("jobs", config=instance.path) == 0
+    assert "reminders" in capsys.readouterr().out
+    assert run("mail", "run", config=instance.path) == 1  # email is not set up
+
+
+@pytest.mark.sqlite_only
+def test_init_can_make_the_organization_and_a_first_team(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Every application needs a unit, so a new installation can start with its organization
+    and the team that is starting with AppWren. Run again, it adds no units."""
+    from appwren.config import load_config
+    from appwren.db.engine import Database
+    from appwren.people import units
+
+    config = tmp_path / "appwren.toml"
+    assert run("init", "--organization", "Northwind Institute", "--first-unit",
+               "Research Applications", config=config) == 0  # fmt: skip
+    out = capsys.readouterr().out
+    assert "Organization: Northwind Institute" in out
+    assert "First unit: Research Applications, within Northwind Institute" in out
+    assert run("init", "--organization", "Someone Else", config=config) == 0
+    db = Database(load_config(config).database_url)
+    try:
+        with db.read() as session:
+            found = {unit.name: unit for unit in units.all_units(session)}
+        assert set(found) == {"Northwind Institute", "Research Applications"}
+        assert found["Research Applications"].parent_id == found["Northwind Institute"].id
+    finally:
+        db.dispose()

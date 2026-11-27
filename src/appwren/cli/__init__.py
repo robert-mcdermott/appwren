@@ -254,6 +254,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     try:
         if any(_install_program(db).values()):
             print("Program: loaded the default program")
+        _first_units(db, args)
         users.first_admin(db, config, args)
     finally:
         db.dispose()
@@ -261,6 +262,33 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Note: {warning}")
     print("\nNext: run `appwren doctor`, then `appwren serve`.")
     return EXIT_OK
+
+
+def _first_units(db: Database, args: argparse.Namespace) -> None:
+    """The organization as its top unit and, if wished, a first unit beneath it, such as the
+    team that is starting with AppWren. Only where there are no units yet."""
+    from appwren.access.principal import Principal
+    from appwren.people import units
+
+    with db.read() as session:
+        if units.all_units(session):
+            return
+    organization, first = args.organization, args.first_unit
+    if organization is None and sys.stdin.isatty() and not args.password_stdin:
+        print("\nEvery application belongs to a unit. Start with your organization's name.")
+        organization = input("Your organization (Enter to add units later): ").strip() or None
+        if organization:
+            first = input("A first unit within it, such as your team (Enter to skip): ").strip()
+    if not organization:
+        print("Units: none yet. Add them under Admin, Units, or import them.")
+        return
+    setup = Principal.for_command("Setup")
+    with db.write(setup.actor) as session:
+        top = units.create(session, setup, name=organization, kind="organization")
+        print(f"Organization: {top.name}")
+        if first:
+            unit = units.create(session, setup, name=first, kind="team", parent_id=top.id)
+            print(f"First unit: {unit.name}, within {top.name}")
 
 
 def _port_free(host: str, port: int) -> bool:
@@ -375,6 +403,67 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return EXIT_ERROR
 
 
+def cmd_jobs(args: argparse.Namespace) -> int:
+    from appwren import jobs
+
+    config, home = _load(args)
+    home.require()
+    db = _database(config)
+    try:
+        if args.action == "run":
+            if args.key:
+                result = jobs.run_job(db, config, args.key, force=True)
+                results = [result] if result else []
+                if result is None:
+                    print(f"{args.key} is being run by another process. Nothing was done.")
+            else:
+                results = jobs.run_due(db, config)
+                if not results:
+                    print("Nothing is due.")
+            for result in results:
+                print(f"{result['key']}: {result['summary']}")
+            return EXIT_ERROR if any(r["status"] == "failed" for r in results) else EXIT_OK
+        jobs.ensure(db)
+        with db.read() as session:
+            for job in jobs.status(session):
+                state = "paused" if not job["enabled"] else job["last_status"] or "not run yet"
+                due = f"{job['next_run_at']:%Y-%m-%d %H:%M} UTC" if job["next_run_at"] else "-"
+                print(f"{job['key']:<10} {state:<12} next {due}  {job['last_summary'] or ''}")
+    finally:
+        db.dispose()
+    return EXIT_OK
+
+
+def cmd_mail(args: argparse.Namespace) -> int:
+    from appwren import mail
+
+    config, home = _load(args)
+    home.require()
+    if not config.mail.enabled:
+        raise AppWrenError(
+            "Email is not set up. Give [mail] a host and a from address in the configuration."
+        )
+    db = _database(config)
+    try:
+        if args.action == "test":
+            with db.read() as session:
+                account = accounts.by_email(session, accounts.normalize_email(args.email))
+            if account is None:
+                raise AppWrenError(f"There is no account for {args.email}.")
+            mail.send_test(db, config, account)
+            print(f"Sent a test message to {account.email}.")
+        else:
+            done = mail.run_once(db, config)
+            print(
+                f"Email: {done['queued']} notices and {done['digests']} summaries queued, "
+                f"{done['sent']} sent, {done['failed']} could not be sent."
+            )
+            return EXIT_ERROR if done["failed"] else EXIT_OK
+    finally:
+        db.dispose()
+    return EXIT_OK
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     from appwren.cli import doctor
 
@@ -446,8 +535,8 @@ def build_parser() -> argparse.ArgumentParser:
         "init",
         help="set up a new installation",
         description="Write a configuration file if there is none, create the data home, "
-        "create or upgrade the database, and create the first administrator if there is "
-        "none. Safe to run again.",
+        "create or upgrade the database, create the organization's top unit if there are no "
+        "units, and create the first administrator if there is none. Safe to run again.",
     )
     init.add_argument(
         "--force", action="store_true", help="overwrite an existing configuration file"
@@ -456,6 +545,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--admin-email", metavar="EMAIL", help="create the first administrator with this address"
     )
     init.add_argument("--admin-name", metavar="NAME", help="the first administrator's name")
+    init.add_argument(
+        "--organization", metavar="NAME",
+        help="the organization's name, as its top unit, if there are no units yet",
+    )  # fmt: skip
+    init.add_argument(
+        "--first-unit", metavar="NAME",
+        help="a first unit within the organization, such as the team starting with AppWren",
+    )  # fmt: skip
     init.add_argument("--password-stdin", action="store_true", help=STDIN_HELP)
     init.set_defaults(handler=cmd_init)
 
@@ -657,6 +754,48 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run", action="store_true", help="say what would change, and change nothing"
     )
     import_eol.set_defaults(handler=cmd_import_eol)
+
+    scheduled = commands.add_parser(
+        "jobs",
+        help="see scheduled work, or run it now",
+        description="Scheduled work sends reminders, and sends email where that is set up. "
+        "The server does this by itself while it runs. These commands are for seeing how it "
+        "is going, and for running it from a scheduled task where the server's own scheduler "
+        "is turned off.",
+    )
+    job_commands = scheduled.add_subparsers(title="commands", metavar="COMMAND")
+    job_run = job_commands.add_parser(
+        "run",
+        help="run the jobs that are due, or one job now",
+        description="Run every job that is due. With a job's name, run that one now whether "
+        "or not it is due. A job another process is running is left to it.",
+    )
+    job_run.add_argument("key", nargs="?", metavar="JOB", help="one job to run now")
+    job_run.set_defaults(handler=cmd_jobs, action="run")
+    scheduled.set_defaults(handler=cmd_jobs, action="list")
+
+    mailer = commands.add_parser(
+        "mail",
+        help="send waiting email, or test the mail settings",
+        description="Email is optional. Where it is set up, the server sends it by itself while "
+        "it runs. These commands are for testing the settings and for sending by hand.",
+    )
+    mail_commands = mailer.add_subparsers(title="commands", metavar="COMMAND")
+    mail_run = mail_commands.add_parser(
+        "run",
+        help="queue and send what is waiting",
+        description="Queue notices and daily summaries, and send what is waiting. Exits with 1 "
+        "if a message could not be sent.",
+    )
+    mail_run.set_defaults(handler=cmd_mail, action="run")
+    mail_test = mail_commands.add_parser(
+        "test",
+        help="send one test message to an account",
+        description="Send one message now to the account with this address, and say whether "
+        "the mail server accepted it.",
+    )
+    mail_test.add_argument("email", metavar="EMAIL", help="the account to send it to")
+    mail_test.set_defaults(handler=cmd_mail, action="test")
 
     doctor = commands.add_parser(
         "doctor",

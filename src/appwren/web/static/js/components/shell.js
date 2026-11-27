@@ -1,6 +1,6 @@
 // The app shell: sidebar, top bar, and the place pages are drawn.
 
-import { del } from "../core/api.js";
+import { del, get } from "../core/api.js";
 import { h, icon, iconButton } from "../core/dom.js";
 import { wren } from "../core/icons.js";
 import { onNavigate } from "../core/router.js";
@@ -10,15 +10,19 @@ import { openAppearance } from "./appearance.js";
 import { openPalette } from "./cmdk.js";
 import { avatar } from "./ui.js";
 
+/** Records found by words, for the command palette. Loaded when first wanted. */
+export const quickFind = async (text) => (await import("../pages/find.js")).quickFind(text);
+
 // Each entry appears only for people who can use it. Sections arrive as the product grows.
 export const NAV = [
-  { items: [{ href: "/", label: "Home", iconName: "home", exact: true }] },
+  { items: [{ href: "/", label: "Home", iconName: "home", exact: true }, { href: "/tasks", label: "Tasks", iconName: "flag" }] },
   {
     heading: "Portfolio",
     items: [
       { href: "/applications", label: "Applications", iconName: "application" },
       { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
       { href: "/decisions", label: "Decisions", iconName: "decision" },
+      { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },
       { href: "/contracts", label: "Contracts", iconName: "contract" },
     ],
@@ -47,10 +51,12 @@ export const NAV = [
   {
     heading: "Admin",
     items: [
+      { href: "/admin/program", label: "Program", iconName: "quality", when: "configure" },
       { href: "/admin/people", label: "People", iconName: "people", when: "admin" },
       { href: "/admin/units", label: "Units", iconName: "units", when: "admin" },
       { href: "/admin/appearance", label: "Appearance", iconName: "appearance", when: "admin" },
       { href: "/admin/sso", label: "Single sign-on", iconName: "key", when: "admin" },
+      { href: "/admin/scheduled-work", label: "Scheduled work", iconName: "clock", when: "admin" },
     ],
   },
 ];
@@ -88,7 +94,9 @@ export function commands(meta) {
   })));
   return [
     ...pages,
-    { label: "Your account", hint: "Page", iconName: "user", href: "/account", keywords: "profile password" },
+    { label: "Your account", hint: "Page", iconName: "user", href: "/account", keywords: "profile password email" },
+    { label: "Notices", hint: "Page", iconName: "bell", href: "/notices", keywords: "reminders bell" },
+    { label: "Search everything", hint: "Page", iconName: "search", href: "/search", keywords: "find" },
     { label: "Appearance…", hint: "Action", iconName: "appearance", run: () => openAppearance(meta), keywords: "theme palette colors" },
     { label: mode() === "dark" ? "Switch to light" : "Switch to dark", hint: "Action",
       iconName: mode() === "dark" ? "sun" : "moon", run: () => setMode(mode() === "dark" ? "light" : "dark"), keywords: "theme mode" },
@@ -164,16 +172,34 @@ export function mountShell(root, meta) {
           icon(item.iconName), item.label));
       })))));
   };
+  // How many notices are unread, beside the bell. Asked for again whenever the page changes.
+  const count = h("span", { class: "bell-count", "aria-hidden": "true", hidden: true });
+  const bell = h("a", { class: "icon-button notice-bell", href: "/notices", "aria-label": "Notices" }, icon("bell"), count);
+  const showUnread = (unread) => {
+    count.hidden = !unread;
+    count.textContent = unread > 99 ? "99+" : String(unread);
+    bell.setAttribute("aria-label", unread ? `Notices, ${unread} unread` : "Notices");
+  };
+  const askUnread = async () => {
+    try {
+      showUnread((await get("/api/v1/notices/count", null, { fresh: true })).data.unread);
+    } catch {
+      // The bell is a convenience: if the count cannot be had, it shows none.
+    }
+  };
+  document.addEventListener("notices", (event) => showUnread(event.detail.unread));
   onNavigate(() => {
     drawNav();
     shell.removeAttribute("data-nav");
+    askUnread();
   });
   drawNav();
+  askUnread();
 
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
   const search = h("button", { type: "button", class: "search-button", "aria-label": "Open the command palette",
-    onclick: () => openPalette(commands(meta)) },
-  icon("search", "icon icon-sm"), h("span", {}, "Go to…"), h("kbd", {}, isMac ? "⌘K" : "Ctrl K"));
+    onclick: () => openPalette(commands(meta), { find: quickFind }) },
+  icon("search", "icon icon-sm"), h("span", {}, "Find or go to…"), h("kbd", {}, isMac ? "⌘K" : "Ctrl K"));
 
   const powered = meta.branding.show_powered_by && meta.branding.product_name !== "AppWren"
     ? h("div", { class: "powered" }, "Powered by ", h("a", { href: "https://github.com/robert-mcdermott/appwren", target: "_blank", rel: "noopener" }, "AppWren"))
@@ -189,6 +215,7 @@ export function mountShell(root, meta) {
         search,
         h("div", { class: "spacer row-sm" },
           meta.demo ? h("span", { class: "demo-flag", title: "A fictional organization. Nothing here is real." }, "Demo data") : null,
+          bell,
           iconButton("appearance", "Appearance", { onclick: () => openAppearance(meta) }),
           userMenu(meta))),
       main));

@@ -244,6 +244,46 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("DELETE", "/api/v1/session"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/demo"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/password"): EVERYONE,
+    ("GET", "/api/v1/campaigns"): EVERYONE,
+    ("POST", "/api/v1/campaigns"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/preview"): {"steward", "manager"},
+    ("GET", "/api/v1/campaigns/{ref}"): EVERYONE,
+    ("POST", "/api/v1/campaigns/{ref}/remind"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/{ref}/close"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/{ref}/cancel"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/{ref}/items/{item_id}/excuse"): {"steward", "manager"},
+    ("GET", "/api/v1/tasks"): EVERYONE,
+    ("GET", "/api/v1/tasks/{task_id}"): EVERYONE,
+    ("POST", "/api/v1/tasks/{task_id}/close"): EVERYONE,
+    ("GET", "/api/v1/accounts/{account_id}/holdings"): EVERYONE,
+    ("POST", "/api/v1/accounts/{account_id}/hand-over"): {"admin", "manager"},
+    ("GET", "/api/v1/program"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/vocabularies/{name}"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/fields"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/decision-rules"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/questionnaire"): {"manager", "admin"},
+    ("POST", "/api/v1/program/scoring/preview"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/scoring"): {"manager", "admin"},
+    ("GET", "/api/v1/search"): EVERYONE,
+    ("GET", "/api/v1/views"): EVERYONE,
+    ("POST", "/api/v1/views"): EVERYONE,
+    ("PATCH", "/api/v1/views/{view_id}"): EVERYONE,
+    ("DELETE", "/api/v1/views/{view_id}"): EVERYONE,
+    ("GET", "/api/v1/similar-applications"): EVERYONE,
+    ("GET", "/api/v1/applications/{ref}/contests"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/contests"): EVERYONE,
+    ("GET", "/api/v1/contests"): EVERYONE,
+    ("POST", "/api/v1/contests/{contest_id}/answer"): ARCHITECTS,
+    ("GET", "/api/v1/jobs"): {"admin"},
+    ("POST", "/api/v1/jobs/{key}/run"): {"admin"},
+    ("PUT", "/api/v1/jobs/{key}"): {"admin"},
+    ("GET", "/api/v1/mail"): {"admin"},
+    ("POST", "/api/v1/mail/test"): {"admin"},
+    ("GET", "/api/v1/notices"): EVERYONE,
+    ("GET", "/api/v1/notices/count"): EVERYONE,
+    ("POST", "/api/v1/notices/read"): EVERYONE,
+    ("GET", "/api/v1/session/preferences"): EVERYONE,
+    ("PUT", "/api/v1/session/preferences"): EVERYONE,
     # Single sign-on. The round trip is open to all, and answers 404 unless it is set up.
     ("GET", "/api/v1/sso/start"): EVERYONE | {"nobody"},
     ("GET", "/api/v1/sso/callback"): EVERYONE | {"nobody"},
@@ -366,6 +406,8 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("GET", "/api/v1/applications/{ref}/scores"): EVERYONE,
     ("POST", "/api/v1/applications/{ref}/score-preview"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/assessments"): EVERYONE,
+    ("GET", "/api/v1/applications/{ref}/confirmations"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/confirmations"): EVERYONE,
     ("POST", "/api/v1/applications/{ref}/assessments"): EVERYONE,
     ("POST", "/api/v1/applications/{ref}/decisions"): {"leader", "manager"},
     ("GET", "/api/v1/applications/{ref}/decisions"): EVERYONE,
@@ -428,7 +470,10 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             )
             path = path.replace("{kind}", "favicon" if "branding" in template else "vendors")
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
-            path = path.replace("{snapshot_id}", "9999")
+            path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
+            path = path.replace("{item_id}", "9999").replace("{task_id}", "9999")
+            path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
+            path = path.replace("{name}", "no_such_list")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:
@@ -439,6 +484,12 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             body: dict[str, object] | None = {}
             if template == "/api/v1/accounts" and method == "POST":
                 body = {"email": f"new-{role}@bramblewood.example", "display_name": "New"}
+            elif template.startswith("/api/v1/program/"):
+                body = {"items": [], "fields": [], "definition": {}, "owners_may_decide": False}
+            elif template.endswith("/answer"):
+                body = {"accept": False, "answer": "No."}
+            elif template.endswith("/hand-over"):
+                body = {"to": people.accounts["member"]}
             elif template.endswith("/roles"):
                 body = {"roles": [{"role": "admin"}] if role == "admin" else []}
             elif template.endswith("/units") and method == "PUT":

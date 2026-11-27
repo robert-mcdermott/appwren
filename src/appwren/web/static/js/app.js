@@ -7,7 +7,7 @@ import { fallback, route, start } from "./core/router.js";
 import { can, setSession } from "./core/session.js";
 import { openPalette } from "./components/cmdk.js";
 import { TYPES } from "./components/record.js";
-import { commands, mountShell } from "./components/shell.js";
+import { commands, mountShell, quickFind } from "./components/shell.js";
 import { emptyState } from "./components/ui.js";
 import { setProduct, setTitle } from "./pages/page.js";
 
@@ -54,6 +54,8 @@ async function boot() {
 
   route("/", page("home", "home", meta));
   route("/account", page("account", "account"));
+  route("/notices", page("notices", "noticeList"));
+  route("/search", page("find", "searchPage"));
   route("/applications", page("records", "applicationList"));
   route("/applications/:ref", page("record", "applicationPage"));
   route("/applications/:ref/assess", page("assess", "assess"));
@@ -75,6 +77,11 @@ async function boot() {
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));
+  route("/campaigns", page("campaigns", "campaignList"));
+  route("/campaigns/:ref", page("campaigns", "campaignPage"));
+  route("/tasks", page("tasks", "taskList"));
+  route("/tasks/:id", page("tasks", "taskPage"));
+  route("/people/:id/holdings", page("tasks", "holdingsPage"));
   route("/snapshots", page("decisions", "snapshotList"));
   route("/snapshots/:ref", page("decisions", "snapshotPage"));
   if (can("admin")) {
@@ -82,7 +89,9 @@ async function boot() {
     route("/admin/units", page("admin-units", "adminUnits"));
     route("/admin/appearance", page("admin-appearance", "adminAppearance"));
     route("/admin/sso", page("admin-sso", "adminSso"));
+    route("/admin/scheduled-work", page("admin-operations", "adminOperations"));
   }
+  if (can("configure")) route("/admin/program", page("admin-program", "adminProgram"));
   fallback(page("not-found", "notFound"));
 
   window.addEventListener("appwren:signed-out", () => window.location.reload());
@@ -99,10 +108,10 @@ async function boot() {
     const typing = event.target.closest?.("input, textarea, select, [contenteditable]");
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
-      openPalette(commands(meta));
+      openPalette(commands(meta), { find: quickFind });
     } else if (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey) {
       event.preventDefault();
-      openPalette(commands(meta));
+      openPalette(commands(meta), { find: quickFind });
     }
   });
   await start();

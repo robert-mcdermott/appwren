@@ -27,6 +27,7 @@ QUALITY = {
     "no_assessment": "Never assessed",
     "assessment_expired": "Assessment expired",
     "low_confidence": "Low confidence",
+    "not_confirmed": "Not confirmed in time",
     "missing_required": "Missing what its stage requires",
 }
 CONFIDENCE_BANDS = [
@@ -96,6 +97,7 @@ def rows(
                 ("no_assessment", result["assessment"] is None),
                 ("assessment_expired", bool(result["assessment"]) and not has["assessment"]),
                 ("low_confidence", result["confidence"] < threshold),
+                ("not_confirmed", result.get("stale") is not None),
                 ("missing_required", bool(missing["now"])),
             )
             if true
@@ -359,8 +361,22 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 "Its assessment has expired",
                 f"/applications/{ref}/assess",
             )
+        if "not_confirmed" in row["quality"]:
+            add(
+                row,
+                "warning",
+                "confirm",
+                "Confirm that its record is right",
+                f"/applications/{ref}",
+            )
         for key in row["flags"]:
-            if key in ("assessment_expired", "mismatch", "decision_review_due", "cost_review"):
+            if key in (
+                "assessment_expired",
+                "mismatch",
+                "decision_review_due",
+                "cost_review",
+                "stale",
+            ):
                 continue
             severity = (
                 "danger" if key in ("restricted_unsupported", "no_accountable") else "warning"
@@ -402,6 +418,55 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 waiting.append({**_chip(row), "why": "Decision differs from the recommendation"})
             elif not row["decision"] and row["recommendation"] not in (None, "assess", "incubate"):
                 waiting.append({**_chip(row), "why": "No decision yet"})
+    from appwren.oversight import campaigns
+
+    asked_for = campaigns.owed(session, principal)
+    # What a campaign asks is said once: as the campaign's, with its date.
+    by_campaign = {(a["application"]["ref"], a["kind"]) for a in asked_for}
+    items = [
+        item
+        for item in items
+        if not (
+            (item["kind"] == "confirm" and (item["application"]["ref"], "confirm") in by_campaign)
+            or (item["kind"] == "assess" and (item["application"]["ref"], "assess") in by_campaign)
+        )
+    ]
+    for asked in asked_for:
+        verb = "Assess it" if asked["kind"] == "assess" else "Confirm that its record is right"
+        items.append(
+            {
+                "severity": "danger" if asked["late"] else "warning",
+                "kind": "campaign",
+                "text": f"{verb}, for {asked['campaign']['name']}, "
+                f"by {asked['due_on'].isoformat()}",
+                "href": asked["href"],
+                "application": asked["application"],
+            }
+        )
+    from appwren.oversight import tasks
+
+    for task in tasks.owed(session, principal):
+        items.append(
+            {
+                "severity": "danger" if task["late"] else "warning",
+                "kind": "task",
+                "text": f"{task['title']}, by {task['due_on'].isoformat()}",
+                "href": f"/tasks/{task['id']}",
+                "application": task["about"] or {"ref": "", "name": "", "type": "task"},
+            }
+        )
+    from appwren.oversight import contests
+
+    for contest in contests.waiting(session, principal):
+        items.append(
+            {
+                "severity": "warning",
+                "kind": "contest",
+                "text": f"{contest['raised_by']} contests {contest['factor_label'].lower()}",
+                "href": f"/applications/{contest['application']['ref']}?tab=scores",
+                "application": contest["application"],
+            }
+        )
     items.sort(key=lambda item: (SEVERITY.get(item["severity"], 3), item["application"]["name"]))
     return {
         "items": items,

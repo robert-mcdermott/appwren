@@ -416,6 +416,11 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application": "An application's reference: at either end",
         "data_class": "A class of data, by its key",
         "capability": "A capability's reference: the applications that serve it",
+        "technology": "A technology's reference: what is built on it (for an application, any "
+        "of its components)",
+        "release": "With technology, one of its releases by its cycle, such as 6.0; none for "
+        "those that name no release",
+        "version": "With technology, the exact version as recorded, or its start, such as 6.0.2",
     }
     whole = name.endswith("_id") or name in ("sensitivity", "ending_within")
     annotation: Any = int | None if whole else bool | None if name == "auto_renews" else str | None

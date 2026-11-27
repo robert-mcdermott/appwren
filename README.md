@@ -14,6 +14,7 @@ It is built with particular care for research and health organizations that are 
 - **One definition of an application.** Applications, their components, and their deployments are separate records, so the portfolio compares like with like.
 - **Judged by the right rubric.** A pilot is not judged like a system of record, nor research software like a commercial product.
 - **Research-ready.** Grant funding and end dates, research continuity, research data classes, and single-maintainer risk are built in.
+- **Kept current by design.** Owners confirm their records on a cadence, departures and contract and grant ends raise tasks, and a record nobody confirms says so where everyone can see it.
 - **A history that cannot be quietly changed.** Every change is in an append-only, hash-chained log.
 - **Quiet by default.** No scanners or agents; connectors to other tools only when an administrator turns them on.
 - **Open and yours.** Apache 2.0, no paid edition, SQLite on a laptop or PostgreSQL on a server, and your own name and colors.
@@ -24,14 +25,14 @@ You need [uv](https://docs.astral.sh/uv/), which provides the right Python (3.12
 
 ```bash
 uv sync                   # install AppWren
-uv run appwren init       # write appwren.toml, create ./var and the database, create your administrator
+uv run appwren init       # write appwren.toml, create ./var, the database, your organization, and your administrator
 uv run appwren doctor     # check the installation
 uv run appwren serve      # run it at http://127.0.0.1:8000
 ```
 
 `init` asks for your email address, your name, and a password of at least 12 characters. Open the address `serve` prints and sign in.
 
-The administrator account sets the installation up: units, people, and appearance. To run the portfolio, give someone the manager role under Admin → People, and stewards and leaders for the units that will use it. Then bring in your applications from a spreadsheet. [Getting started](docs/getting-started.md) walks through all of it.
+The administrator account sets the installation up: units, people, and appearance. To run the portfolio, give someone the manager role under Admin → People, and stewards and leaders for the units that will use it. Then bring in your applications from a spreadsheet. [Getting started](docs/getting-started.md) walks through all of it, and [Start with one team](docs/getting-started.md#start-with-one-team) says how a single team can begin on its own and let the rest of the organization join later.
 
 ## Try the demo
 
@@ -42,7 +43,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 87 deployments on six hosting platforms, 22 contracts, about 125 assessments, 65 decisions, and four quarterly portfolio snapshots. Nothing in it is real.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 88 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, four quarterly portfolio snapshots, two campaigns, and tasks raised by what happened. Nothing in it is real.
 
 ![The portfolio chart in the demo: each application placed by business value and technical health, sized by cost, and colored by risk exposure](docs/img/portfolio-chart-light.webp)
 
@@ -50,7 +51,7 @@ Its sign-in page offers eight sample people and asks for no password. Try a few:
 
 | Sign in as | To see |
 |---|---|
-| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, and overlap |
+| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, campaigns and tasks, and the program to shape |
 | The research applications steward | Specimen Tracker: recommended *Modernize*, with three flags, every score's working, what would break if it went, and what it costs |
 | The clinical research leader | A decision that keeps an application the scores would replace, and why |
 | The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline, and the picture of how anything is connected |
@@ -61,9 +62,18 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.2.0 adds the landscape around each application.
+Version 0.3.0 keeps the portfolio current without a central team chasing it.
 
-**The landscape, new in 0.2.0**
+**Keeping current, new in 0.3.0**
+
+- **What is waiting on you:** Home, a bell of notices, reminders before things fall due and after, escalated to the steward and the leader, and email as it happens or in a daily summary, if you set it up.
+- **Confirming a record** on a cadence by tier, in one step; a record nobody confirms in time is stale, flagged, counted, and 15 points lower in confidence until someone does.
+- **Campaigns** that ask the owners in a unit to confirm or assess by a date, closing each item by themselves, with coverage by unit.
+- **Tasks raised by what happens:** a contract's notice date near, a release reaching end of support, a grant ending, an owner leaving; each settles by itself when its cause does. And everything a person holds, passed on in one step.
+- **Find and tidy:** one search across every record, saved views of any list, likely duplicates shown as an application is added, and owners contesting a score with the evidence.
+- **The program, shaped in the app:** lists, fields, the wording of the questions, and the scoring model's weights, thresholds, and cadence, with a preview of every application a change would move before it is published; and a portfolio snapshot each month.
+
+**The landscape, from 0.2.0**
 
 - **Interfaces and data flows:** what each application sends and receives, how, how often, and which classes of data pass; and a view that follows a class of data and marks where it arrives unrecorded.
 - **How a record is connected:** a picture around any record that works from the keyboard, with a list that says the same; and, for an application, **what breaks if this goes**.
@@ -89,7 +99,7 @@ Version 0.2.0 adds the landscape around each application.
 - **An append-only history** chained by hash, checked with `appwren verify`.
 - **Branding and themes,** a JSON API under `/api/v1`, a command line for setup and recovery, and the program as a file.
 
-Upgrading from 0.1.0 is `uv sync` and `uv run appwren db upgrade`; see [Upgrade](docs/configuration.md#upgrade). The [roadmap](spec/roadmap.md) says what is next, and the [changelog](CHANGELOG.md) lists everything in each release.
+Upgrading from 0.1.0 or 0.2.0 is `uv sync` and `uv run appwren db upgrade`; see [Upgrade](docs/configuration.md#upgrade). The [roadmap](spec/roadmap.md) says what is next, and the [changelog](CHANGELOG.md) lists everything in each release.
 
 ## Documentation
 
@@ -100,6 +110,7 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 | [Getting started](docs/getting-started.md) | Whoever installs AppWren and sets it up |
 | [The portfolio](docs/the-portfolio.md) | Everyone who keeps, assesses, or reads an application |
 | [The landscape](docs/the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches |
+| [Keeping current](docs/keeping-current.md) | Everyone who keeps an application, and the portfolio team |
 | [Running the program](docs/running-the-program.md) | The portfolio team, and administrators |
 | [Configuration](docs/configuration.md) | Whoever runs the server |
 | [API](docs/api.md) | Anyone connecting another system |

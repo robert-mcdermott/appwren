@@ -226,6 +226,43 @@ export async function editRecord(type, { record = null, preset = {}, only = null
         }
       };
       const wanted = (key) => !only || only.includes(key);
+      // Before an application is added or renamed: those already on record it may be (INV-15).
+      const likely = type === "application" ? h("div", { "aria-live": "polite" }) : null;
+      if (likely) {
+        let timer = null;
+        let latest = 0;
+        const look = async () => {
+          const mine = ++latest;
+          const vendor = readers.vendor_id?.();
+          const aliases = readers.aliases?.();
+          const params = { name: name.input.value, aliases: Array.isArray(aliases) ? aliases.join(",") : (aliases ?? ""),
+            vendor: typeof vendor === "string" && vendor.startsWith("VEN-") ? vendor : null,
+            product: readers.product?.() ?? null, except: record?.ref ?? null };
+          if (record && params.name === record.name) {
+            likely.replaceChildren();
+            return;
+          }
+          try {
+            const found = (await get("/api/v1/similar-applications", params, { fresh: true })).data;
+            if (mine !== latest) return;
+            likely.replaceChildren(found.length ? h("div", { class: "alert alert-warn" }, h("div", { class: "stack-sm" },
+              h("strong", {}, found.length === 1 ? "This may be on record already:" : "These may be on record already:"),
+              h("ul", { class: "plain-list" }, found.map((app) => h("li", {},
+                h("a", { href: `/applications/${app.ref}`, target: "_blank", rel: "noopener" }, `${app.name} (${app.ref})`),
+                ` · ${app.why.toLowerCase()}`))),
+              h("span", { class: "subtle" }, "If it is the same application, add to that record instead. If not, go on."))) : "");
+          } catch {
+            // A convenience: if it cannot be asked, the form works as before.
+          }
+        };
+        const later = () => {
+          clearTimeout(timer);
+          timer = setTimeout(look, 350);
+        };
+        body.addEventListener("input", later);
+        body.addEventListener("change", later);
+        header.splice(1, 0, likely);
+      }
       const definition = type === "application" && !record && program.definition
         ? h("details", { class: "disclosure" }, h("summary", {}, "What counts as an application?"),
           h("div", { class: "prose stack-sm" }, h("p", {}, program.definition.text),

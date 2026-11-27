@@ -214,6 +214,9 @@ def record(
         session.flush()
         if previous is not None:
             previous.superseded_by = row.id
+    from appwren.oversight import campaigns
+
+    campaigns.refresh_application(session, application.id, "assess")
     return row
 
 
@@ -338,6 +341,9 @@ def gather(
         relying[source] |= receivers
     dependents = {app_id: len(found - {app_id}) for app_id, found in relying.items()}
     assessments = latest(session, ids)
+    from appwren.oversight import attestation
+
+    confirmed = attestation.facts(session, apps, model, on)
     extra: dict[int, dict[str, Any]] = defaultdict(dict)
     for gatherer in EXTRA_FACTS:
         for app_id, found in gatherer(session, apps).items():
@@ -388,6 +394,7 @@ def gather(
             "decided_within_year": False,
             "decision": None,
             "decision_review_due": False,
+            **confirmed[app.id],
             **extra.get(app.id, {}),
         }  # fmt: skip
     return out
@@ -398,15 +405,20 @@ def _peer(app: Application, bv: float | None) -> dict[str, Any]:
 
 
 def score_all(
-    session: Session, apps: list[Application], *, on: date | None = None
+    session: Session,
+    apps: list[Application],
+    *,
+    on: date | None = None,
+    definition: Mapping[str, Any] | None = None,
 ) -> dict[int, dict[str, Any]]:
     """Each application's scores, recommendation, flags, and working. The primary providers
-    an application overlaps with are scored too, since consolidation compares with them."""
+    an application overlaps with are scored too, since consolidation compares with them.
+    ``definition`` scores them under a model that is not (yet) the current one."""
     import appwren.decisions  # noqa: F401  (the decision on record is a fact too)
 
     on = on or today_()
     model_row = current_model(session)
-    model = model_row.definition
+    model = definition if definition is not None else model_row.definition
     facts = gather(session, apps, model, on)
     wanted = {peer for f in facts.values() if (peer := f.get("peer_id")) and peer not in facts}
     peer_apps = {app.id: app for app in apps}

@@ -44,6 +44,56 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("GET", "/api/v1/sso"): Needs.ADMIN,
     ("POST", "/api/v1/sso/check"): Needs.ADMIN,
     ("PUT", "/api/v1/sso/mappings"): Needs.ADMIN,
+    # Scheduled work and email, for whoever keeps the installation
+    ("GET", "/api/v1/jobs"): Needs.ADMIN,
+    ("POST", "/api/v1/jobs/{key}/run"): Needs.ADMIN,
+    ("PUT", "/api/v1/jobs/{key}"): Needs.ADMIN,
+    ("GET", "/api/v1/mail"): Needs.ADMIN,
+    ("POST", "/api/v1/mail/test"): Needs.ADMIN,
+    # Each person's own notices, and how they want to be told
+    ("GET", "/api/v1/notices"): Needs.MEMBER,
+    ("GET", "/api/v1/notices/count"): Needs.MEMBER,
+    ("POST", "/api/v1/notices/read"): Needs.MEMBER,
+    ("GET", "/api/v1/session/preferences"): Needs.MEMBER,
+    ("PUT", "/api/v1/session/preferences"): Needs.MEMBER,
+    # Campaigns: started and run by managers and stewards, each within their scope; read by
+    # everyone, each item shown to those who may see its application
+    ("GET", "/api/v1/campaigns"): Needs.MEMBER,
+    ("POST", "/api/v1/campaigns"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/preview"): Needs.STEWARD,
+    ("GET", "/api/v1/campaigns/{ref}"): Needs.MEMBER,
+    ("POST", "/api/v1/campaigns/{ref}/remind"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/{ref}/close"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/{ref}/cancel"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/{ref}/items/{item_id}/excuse"): Needs.STEWARD,
+    # Tasks: each person's own, and those in their units; closed by whoever it is for or a
+    # steward or manager over it
+    ("GET", "/api/v1/tasks"): Needs.MEMBER,
+    ("GET", "/api/v1/tasks/{task_id}"): Needs.MEMBER,
+    ("POST", "/api/v1/tasks/{task_id}/close"): Needs.MEMBER,
+    # What a person holds: their own, or anyone's for administrators and managers
+    ("GET", "/api/v1/accounts/{account_id}/holdings"): Needs.MEMBER,
+    ("POST", "/api/v1/accounts/{account_id}/hand-over"): Needs.MEMBER,
+    # Finding: search and saved views for everyone; sharing a view is checked by the service
+    ("GET", "/api/v1/search"): Needs.MEMBER,
+    ("GET", "/api/v1/views"): Needs.MEMBER,
+    ("POST", "/api/v1/views"): Needs.MEMBER,
+    ("PATCH", "/api/v1/views/{view_id}"): Needs.MEMBER,
+    ("DELETE", "/api/v1/views/{view_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/similar-applications"): Needs.MEMBER,
+    # Contests: raised by whoever keeps the application, answered by the portfolio team
+    ("GET", "/api/v1/applications/{ref}/contests"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/contests"): Needs.MEMBER,
+    ("GET", "/api/v1/contests"): Needs.MEMBER,
+    ("POST", "/api/v1/contests/{contest_id}/answer"): Needs.ARCHITECT,
+    # Shaping the program: managers for the whole organization, and administrators
+    ("GET", "/api/v1/program"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/vocabularies/{name}"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/fields"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/decision-rules"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/questionnaire"): Needs.CONFIGURE,
+    ("POST", "/api/v1/program/scoring/preview"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/scoring"): Needs.CONFIGURE,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,
@@ -162,6 +212,8 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("GET", "/api/v1/applications/{ref}/scores"): Needs.MEMBER,
     ("POST", "/api/v1/applications/{ref}/score-preview"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/assessments"): Needs.MEMBER,
+    ("GET", "/api/v1/applications/{ref}/confirmations"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/confirmations"): Needs.MEMBER,
     ("POST", "/api/v1/applications/{ref}/assessments"): Needs.MEMBER,
     # Decisions and the portfolio
     ("POST", "/api/v1/applications/{ref}/decisions"): Needs.DECIDE,

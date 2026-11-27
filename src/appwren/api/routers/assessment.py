@@ -13,6 +13,7 @@ from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION
+from appwren.oversight import attestation
 
 router = APIRouter(prefix="/api/v1", tags=["assessment and scores"])
 
@@ -49,7 +50,52 @@ def scores(request: Request, ref: str) -> dict[str, Any]:
     with reading(request) as session:
         app = records.load(session, principal, APPLICATION, ref)
         result = assessment.score_one(session, app)
-        return envelope(assessment.shown(session, principal, app, result))
+        model = assessment.current_model(session).definition
+        return envelope(
+            {
+                **assessment.shown(session, principal, app, result),
+                "confirmation": attestation.state(session, principal, app, model),
+            }
+        )
+
+
+class ConfirmBody(BaseModel):
+    note: str | None = Field(default=None, max_length=2000)
+
+
+@router.get("/applications/{ref}/confirmations", summary="Who has confirmed the record, and when")
+def confirmations(request: Request, ref: str) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        app = records.load(session, principal, APPLICATION, ref)
+        model = assessment.current_model(session).definition
+        return envelope(
+            {
+                **attestation.state(session, principal, app, model),
+                "history": attestation.history(session, app),
+            }
+        )
+
+
+@router.post(
+    "/applications/{ref}/confirmations",
+    summary="Confirm that the record is right",
+    status_code=201,
+)
+def confirm(request: Request, ref: str, body: ConfirmBody) -> dict[str, Any]:
+    """Anyone named on the application, its unit's stewards, and managers confirm that its
+    record and its parts are right as of today (CUR-03)."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        app = records.load(session, principal, APPLICATION, ref)
+        row = attestation.confirm(session, principal, app, note=body.note)
+        model = assessment.current_model(session).definition
+        return envelope(
+            {
+                **attestation.state(session, principal, app, model),
+                "confirmed": attestation.view(row),
+            }
+        )
 
 
 @router.post("/applications/{ref}/score-preview", summary="What the scores would be")

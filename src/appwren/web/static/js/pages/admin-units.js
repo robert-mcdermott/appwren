@@ -10,14 +10,15 @@ import { toast } from "../components/toast.js";
 import { card, emptyState, pageHeader, statusPill } from "../components/ui.js";
 import { show } from "./page.js";
 
-const KINDS = ["organization", "division", "department", "center", "core", "lab", "office"];
+const KINDS = ["organization", "division", "department", "center", "core", "lab", "office", "team"];
 
-function editUnit({ unit = null, parent = null, units, reload }) {
+function editUnit({ unit = null, parent = null, above = false, units, reload }) {
   const isNew = !unit;
-  const isRoot = isNew ? !units.length : unit.parent_id == null;
+  const isRoot = isNew ? !units.length || above : unit.parent_id == null;
+  const top = units.find((u) => u.parent_id == null);
   openOverlay({
-    title: isNew ? (isRoot ? "Add your organization" : "Add a unit") : unit.name,
-    subtitle: isNew && parent ? `Within ${parent.name}` : null,
+    title: isNew ? (above ? "Put a unit above the top" : isRoot ? "Add your organization" : "Add a unit") : unit.name,
+    subtitle: isNew && parent ? `Within ${parent.name}` : above && top ? `${top.name}, and everything within it, will be within the new unit` : null,
     render: (body, footer, close) => {
       const name = field("Name", { value: unit?.name ?? "", required: true });
       const kind = select("Kind", KINDS.map((k) => [k, titleCase(k)]),
@@ -35,6 +36,7 @@ function editUnit({ unit = null, parent = null, units, reload }) {
         event.preventDefault();
         const values = { name: name.input.value, kind: kind.input.value, code: code.input.value || null };
         if (parentField) values.parent_id = Number(parentField.input.value);
+        if (above) values.above = true;
         if (status) values.status = status.input.value;
         const done = await submit({ button: save, fields: { name, kind, code }, banner: problem,
           run: () => (isNew ? post("/api/v1/units", values) : patch(`/api/v1/units/${unit.id}`, values)) });
@@ -82,6 +84,7 @@ export function adminUnits(main) {
         pageHeader({ eyebrow: "Admin", title: "Units",
           lede: "Every record belongs to a unit. A steward of a unit also looks after every unit within it.",
           actions: [button("Import", { iconName: "upload", onclick: importer }),
+            data.units.length ? button("Put a unit above the top", { onclick: () => editUnit({ ...context, above: true }) }) : null,
             button("Add a unit", { kind: "btn-primary", iconName: "plus", onclick: () => editUnit(context) })] }),
         data.units.length
           ? card({ title: plural(data.units.length, "unit"), flush: true }, h("ul", { class: "tree card-body" }, data.tree.map((root) => node(root, context))))
