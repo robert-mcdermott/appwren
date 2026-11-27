@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-palette="wren">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adopting AppWren · AppWren</title>
+<meta name="description" content="This guide is for an organization deciding whether to take up AppWren, and for whoever will lead it there. It says what AppWren asks of you, what to settle before installing anything, and a path from ">
+<meta property="og:title" content="Adopting AppWren">
+<meta property="og:description" content="This guide is for an organization deciding whether to take up AppWren, and for whoever will lead it there. It says what AppWren asks of you, what to settle before installing anything, and a path from ">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://robert-mcdermott.github.io/appwren/img/portfolio-chart-light.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/wren-mark.svg">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/theme.js"></script>
+<script src="assets/site.js" defer></script>
+</head>
+<body class="page-adopting">
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <button class="menu-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
+  <a class="brand" href="index.html"><img src="assets/wren-mark.svg" alt="" width="26" height="26"><span>AppWren</span><span class="version">v0.7.0</span></a>
+  <div class="search" role="search">
+    <input id="search" type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" role="listbox" aria-label="Search results" hidden></div>
+  </div>
+  <div class="theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-choice="light" aria-label="Light theme" title="Light">☀</button><button type="button" data-theme-choice="system" aria-label="Follow the system theme" title="System">◐</button><button type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">☾</button>
+  </div>
+  <a class="github" href="https://github.com/robert-mcdermott/appwren" rel="noopener">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="menu" id="menu" aria-label="Documentation"><div class="menu-group"><div class="menu-title">Start</div><ul><li><a href="index.html">Overview</a></li><li><a href="adopting.html" aria-current="page">Adopting AppWren</a></li><li><a href="getting-started.html">Getting started</a></li></ul></div><div class="menu-group"><div class="menu-title">Use</div><ul><li><a href="the-portfolio.html">The portfolio</a></li><li><a href="the-landscape.html">The landscape</a></li><li><a href="keeping-current.html">Keeping current</a></li><li><a href="planning-change.html">Planning change</a></li><li><a href="insight.html">Insight</a></li><li><a href="handbook.html">The program handbook</a></li><li><a href="signals.html">Facts from other systems</a></li><li><a href="running-the-program.html">Running the program</a></li></ul></div><div class="menu-group"><div class="menu-title">Run</div><ul><li><a href="configuration.html">Configuration</a></li></ul></div><div class="menu-group"><div class="menu-title">Reference</div><ul><li><a href="api.html">The API</a></li><li><a href="api-reference.html">API reference</a></li><li><a href="cli.html">Command reference</a></li><li><a href="changelog.html">Changelog</a></li></ul></div></nav>
+  <main id="content" class="content">
+<h1 id="adopting-appwren">Adopting AppWren</h1>
+<p>This guide is for an organization deciding whether to take up AppWren, and for whoever will lead it there. It says what AppWren asks of you, what to settle before installing anything, and a path from nothing to a running program in about a quarter.</p>
+<h2 id="is-it-for-you">Is it for you?<a class="anchor" href="#is-it-for-you" aria-label="Link to this section">#</a></h2>
+<p>AppWren suits an organization that wants to know what applications it runs, who answers for each, and what to do with them, and wants the answers kept true by the people who know them rather than by a central team chasing. It is built for a few hundred to a few thousand applications; the <a href="configuration.html#how-large-it-runs">measurements</a> go to five thousand.</p>
+<p>It is open source under the Apache 2.0 license. It runs on one server, on SQLite for a small team or PostgreSQL for many people at once, and reaches out to nothing an administrator has not switched on.</p>
+<p>It is not an asset database for every server and laptop, a ticketing system, or a project tracker. It holds applications and the parts of them worth deciding about, and links to the systems that hold the rest.</p>
+<h2 id="try-it-first">Try it first<a class="anchor" href="#try-it-first" aria-label="Link to this section">#</a></h2>
+<p>The demo organization shows every screen with two years of history, and needs nothing set up:</p>
+<div class="code"><pre><code class="language-bash">uv run appwren demo
+uv run appwren --config demo/appwren.toml serve</code></pre></div>
+<p>Sign in as any of its sample people from the sign-in page. Spend an hour as the portfolio manager, then as an application owner: the second view is the one that decides whether a program will last. See <a href="getting-started.html#explore-the-demo-organization">Explore the demo organization</a>.</p>
+<h2 id="before-you-install-anything">Before you install anything<a class="anchor" href="#before-you-install-anything" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table><thead><tr><th scope="col">Settle</th><th scope="col">Because</th></tr></thead><tbody><tr><td><strong>Who owns the program</strong></td><td>One named person, usually in IT strategy, enterprise architecture, or the CIO's office, who will hold the quarterly reviews and make the leadership reports</td></tr><tr><td><strong>What the units are</strong></td><td>Every application belongs to a unit. Take them from the organization chart, two or three levels deep, not deeper</td></tr><tr><td><strong>Who decides</strong></td><td>Managers decide anywhere; leaders decide for their units. Nobody decides about an application they answer for</td></tr><tr><td><strong>Where it will run</strong></td><td>A server you look after, a container platform, or a virtual machine; PostgreSQL if more than a few dozen people will use it at once. See <a href="configuration.html#deploy">Deploy</a></td></tr><tr><td><strong>How people will sign in</strong></td><td>Single sign-on with your identity provider is better than passwords: leavers lose access with their account. See <a href="configuration.html#single-sign-on">Single sign-on</a></td></tr><tr><td><strong>What you already know</strong></td><td>The spreadsheet of applications that every organization has somewhere. It is the first import</td></tr></tbody></table></div>
+<h2 id="weeks-1-and-2-stand-it-up">Weeks 1 and 2: stand it up<a class="anchor" href="#weeks-1-and-2-stand-it-up" aria-label="Link to this section">#</a></h2>
+<ol><li>Install it (<a href="getting-started.html">Getting started</a>), or start the <a href="configuration.html#deploy">container recipe</a>. Begin from the <a href="getting-started.html#start-from-a-program-shaped-like-yours">starter program</a> closest to your organization.</li><li>Connect single sign-on and email, and make it look like yours: your name, logo, colors, and, if you say <em>department</em> where AppWren says <em>unit</em>, your words (<a href="running-the-program.html#appearance">Appearance</a>).</li><li>Add the units and the portfolio team. Give a second person the administrator role.</li><li>Run <code>uv run appwren doctor --production</code> and fix what it says. Set up <code>appwren backup</code> to run every night, and restore one backup somewhere else once, to know it works (<a href="configuration.html#back-up-and-restore">Back up and restore</a>).</li></ol>
+<h2 id="weeks-2-to-4-make-the-program-yours">Weeks 2 to 4: make the program yours<a class="anchor" href="#weeks-2-to-4-make-the-program-yours" aria-label="Link to this section">#</a></h2>
+<p>Read <a href="running-the-program.html#shape-the-program">Shape the program</a>, then change only what you are sure of: the definition's examples in your organization's words, the tiers' descriptions, the domains, and the fields you will really fill in. Leave the scoring model as it is until you have seen it score your own applications; every factor and weight is described in <a href="https://github.com/robert-mcdermott/appwren/blob/main/spec/engine.md" rel="noopener">the engine</a>, and a change is previewed before it is published.</p>
+<h2 id="weeks-4-to-6-a-pilot-with-one-or-two-units">Weeks 4 to 6: a pilot with one or two units<a class="anchor" href="#weeks-4-to-6-a-pilot-with-one-or-two-units" aria-label="Link to this section">#</a></h2>
+<p>Import their applications, name an accountable owner for each, and run a confirmation campaign. Sit with two or three owners while they confirm and assess, and change what confuses them. A pilot that ends with every record confirmed and assessed, and one portfolio review held, is ready to widen.</p>
+<h2 id="weeks-6-to-12-open-the-door">Weeks 6 to 12: open the door<a class="anchor" href="#weeks-6-to-12-open-the-door" aria-label="Link to this section">#</a></h2>
+<p>Import the rest, a few units at a time, each with its own campaign. Turn on the connectors your organization can use (<a href="signals.html">Facts from other systems</a>), so that support dates, code activity, and sign-ins arrive without anyone typing them. Hold the first review in each unit that has finished its campaign.</p>
+<p>At the end of the first quarter, make a <a href="insight.html#leadership-reports">leadership report</a>. From then on, the <a href="handbook.html">program handbook</a> describes the rhythm.</p>
+<h2 id="connecting-other-systems">Connecting other systems<a class="anchor" href="#connecting-other-systems" aria-label="Link to this section">#</a></h2>
+<ul><li><strong>Reading the portfolio:</strong> issue an <a href="api.html#sign-in-as-another-system">API token</a> for the system that needs it, with the least role that will do and for reading only.</li><li><strong>Being told when something happens:</strong> register a <a href="api.html#be-told-when-something-happens">webhook</a> for decisions, stage changes, and lapses.</li><li><strong>Facts your own tools know:</strong> a push key lets a script post incidents, tickets, and the like onto records (<a href="signals.html">Facts from other systems</a>).</li></ul>
+<h2 id="what-has-been-checked-and-what-has-not">What has been checked, and what has not<a class="anchor" href="#what-has-been-checked-and-what-has-not" aria-label="Link to this section">#</a></h2>
+<p>AppWren's code has been reviewed against the OWASP Application Security Verification Standard, level 1, and every screen is checked for accessibility on each release; the record is in <a href="https://github.com/robert-mcdermott/appwren/blob/main/spec/reviews/2026-11-security-and-accessibility.md" rel="noopener">the review</a>. The review was of the code, not a penetration test of a deployed installation, and no person has yet used it with a screen reader. An organization with its own security or accessibility team should have them look before relying on it for anything sensitive.</p>
+<h2 id="what-appwren-will-not-do">What AppWren will not do<a class="anchor" href="#what-appwren-will-not-do" aria-label="Link to this section">#</a></h2>
+<ul><li>It will not decide for you. It recommends, with its working shown; a named person decides, and the decision is kept.</li><li>It will not count what nobody can open. Every figure is the length of a list someone may see.</li><li>It will not send anything anywhere you have not set up: no telemetry, no calls home.</li><li>It will not change its history. Every change is kept, hash-chained, and can be verified with <code>appwren verify</code>.</li></ul>
+    <nav class="pager" aria-label="Pages"><a class="prev" href="index.html"><span>Previous</span>Overview</a><a class="next" href="getting-started.html"><span>Next</span>Getting started</a></nav>
+    <footer class="foot">Describes AppWren 0.7.0. Apache License 2.0. Screenshots show an invented organization; every person and record in them is fictional.</footer>
+  </main>
+  <aside class="toc" aria-label="On this page"><div class="menu-title">On this page</div><ul><li class="l2"><a href="#is-it-for-you">Is it for you?</a></li><li class="l2"><a href="#try-it-first">Try it first</a></li><li class="l2"><a href="#before-you-install-anything">Before you install anything</a></li><li class="l2"><a href="#weeks-1-and-2-stand-it-up">Weeks 1 and 2: stand it up</a></li><li class="l2"><a href="#weeks-2-to-4-make-the-program-yours">Weeks 2 to 4: make the program yours</a></li><li class="l2"><a href="#weeks-4-to-6-a-pilot-with-one-or-two-units">Weeks 4 to 6: a pilot with one or two units</a></li><li class="l2"><a href="#weeks-6-to-12-open-the-door">Weeks 6 to 12: open the door</a></li><li class="l2"><a href="#connecting-other-systems">Connecting other systems</a></li><li class="l2"><a href="#what-has-been-checked-and-what-has-not">What has been checked, and what has not</a></li><li class="l2"><a href="#what-appwren-will-not-do">What AppWren will not do</a></li></ul></aside>
+</div>
+</body>
+</html>
