@@ -4043,6 +4043,60 @@
               "description": "A capability's reference: the applications that serve it",
               "title": "Capability"
             }
+          },
+          {
+            "description": "A technology's reference: what is built on it (for an application, any of its components)",
+            "in": "query",
+            "name": "technology",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A technology's reference: what is built on it (for an application, any of its components)",
+              "title": "Technology"
+            }
+          },
+          {
+            "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+            "in": "query",
+            "name": "release",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+              "title": "Release"
+            }
+          },
+          {
+            "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+              "title": "Version"
+            }
           }
         ],
         "responses": {
@@ -6204,6 +6258,60 @@
               ],
               "description": "An application's reference: at either end",
               "title": "Application"
+            }
+          },
+          {
+            "description": "A technology's reference: what is built on it (for an application, any of its components)",
+            "in": "query",
+            "name": "technology",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A technology's reference: what is built on it (for an application, any of its components)",
+              "title": "Technology"
+            }
+          },
+          {
+            "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+            "in": "query",
+            "name": "release",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, one of its releases by its cycle, such as 6.0; none for those that name no release",
+              "title": "Release"
+            }
+          },
+          {
+            "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
+              "title": "Version"
             }
           }
         ],

@@ -117,6 +117,7 @@ export const SCENES = [
       box.value = "Expense reporting"; box.dispatchEvent(new Event("input", { bubbles: true }));
       await new Promise((done) => setTimeout(done, 1200)); })()` },
   { name: "contests", as: "architect", path: app("Flow Cytometry Scheduler", "scores") },
+  { name: "applications-built-on", as: "architect", path: first("/api/v1/technologies?q=PostgreSQL", "(rows) => `/applications?technology=${rows[0].ref}&release=13`") },
   { name: "program", as: "portfolio", path: "/admin/program?list=platform_kinds" },
   { name: "program-fields", as: "portfolio", path: "/admin/program?tab=fields" },
   { name: "program-questions", as: "portfolio", path: "/admin/program?tab=questions" },

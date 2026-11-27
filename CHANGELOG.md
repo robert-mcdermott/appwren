@@ -74,6 +74,10 @@ record is stale on the day of the upgrade.
 - **Saved views.** Any list's filters are kept under a name from its **Views** button,
   privately, or shared with everyone by stewards, architects, and managers. A view keeps the
   question, so each person who opens it sees only what they may.
+- **Applications by what they are built on.** The applications and components lists, and
+  their exports, narrow to a technology, one of its releases, or an exact version, such as
+  every application on .NET 6, or on 6.0.25. A technology's page links each release to that
+  list. An application counts when any of its components is on it.
 - **Likely duplicates.** Adding or renaming an application shows those already on record
   whose name or alias is close, or that are the same product from the same vendor.
 - **Contesting a score.** Whoever keeps an application says a factor is wrong, what it should

@@ -205,3 +205,85 @@ def test_an_owner_contests_a_factor_and_the_portfolio_team_answers(
             select(Notice.text).where(Notice.account_id == people.accounts["member"])
         ).all()
     assert f"Architect Person accepted your contest of reliability for {ref} Sample Tracker" in told
+
+
+def test_a_list_narrowed_by_what_it_is_built_on_is_the_technologys_used_by(
+    as_role: Clients, db: Database, people: People
+) -> None:
+    """Which applications run .NET 6, and which exact version: the list says the same as the
+    technology's page, for each reader, and exports."""
+    from appwren.inventory import parts
+    from appwren.inventory.registry import COMPONENT, TECHNOLOGY
+
+    with db.write(ME.actor) as session:
+        dotnet = records.create(session, ME, TECHNOLOGY, {"name": ".NET", "kind": "framework"})
+        parts.set_releases(session, ME, dotnet, [{"cycle": "6"}, {"cycle": "8"}])
+        plan = {
+            "Grants Portal": ("HALE", False, [("6", "6.0.25"), ("8", "8.0.1")]),
+            "Payroll Bridge": ("HALE", False, [("6", "6.0.11")]),
+            "Secret Ledger": ("CANCER", True, [("6", "6.0.25")]),
+            "Old Kiosk": ("HALE", False, [("", "4.8")]),
+        }
+        for name, (unit, restricted, uses) in plan.items():
+            app = records.create(
+                session, ME, APPLICATION,
+                {"name": name, "org_unit_id": people.units[unit], "tier": "3",
+                 "sourcing": "built_here", "restricted": restricted},
+                accountable=people.accounts["manager" if restricted else "member"],
+            )  # fmt: skip
+            for index, (release, version) in enumerate(uses):
+                component = records.create(
+                    session, ME, COMPONENT,
+                    {"name": f"{name} part {index}", "application_id": app.id, "kind": "service"},
+                )  # fmt: skip
+                parts.set_technologies(
+                    session, ME, component,
+                    [{"technology": dotnet.ref, "release": release or None, "version": version}],
+                )  # fmt: skip
+        ref = dotnet.ref
+    for role in ("member", "manager"):
+        principal = who(db, people, role)
+        with db.read() as session:
+            page = records.detail(
+                session, principal, TECHNOLOGY, records.load(session, principal, TECHNOLOGY, ref)
+            )
+            for release in page["releases"]:
+                shown = {use["application"]["ref"] for use in release["used_by"]}
+                rows, _ = records.search(
+                    session, principal, APPLICATION,
+                    {"technology": ref, "release": release["cycle"]}, limit=200,
+                )  # fmt: skip
+                assert {row.ref for row in rows} == shown, (role, release["cycle"])
+            unpinned = {use["application"]["ref"] for use in page["unpinned"]}
+            rows, _ = records.search(
+                session, principal, APPLICATION, {"technology": ref, "release": "none"}
+            )
+            assert {row.ref for row in rows} == unpinned
+    with db.read() as session:
+        member = who(db, people, "member")
+        on_six, _ = records.search(
+            session, member, APPLICATION, {"technology": ref, "release": "6"}
+        )
+        assert sorted(row.name for row in on_six) == ["Grants Portal", "Payroll Bridge"]
+        exact, _ = records.search(
+            session, member, APPLICATION, {"technology": ref, "version": "6.0.25"}
+        )
+        assert [row.name for row in exact] == ["Grants Portal"]  # the restricted one is not seen
+        parts_on, _ = records.search(
+            session, member, COMPONENT, {"technology": ref, "release": "8"}
+        )
+        assert [row.name for row in parts_on] == ["Grants Portal part 1"]
+        with pytest.raises(Invalid):
+            records.search(session, member, APPLICATION, {"technology": ref, "release": "5"})
+        with pytest.raises(Invalid):
+            records.search(session, member, APPLICATION, {"release": "6"})
+    exported = as_role("member").get(
+        "/api/v1/exports/applications", params={"technology": ref, "release": "6", "format": "csv"}
+    )
+    assert exported.status_code == 200
+    lines = exported.text.strip().splitlines()
+    assert (
+        len(lines) == 3
+        and "Payroll Bridge" in exported.text
+        and "Secret Ledger" not in exported.text
+    )

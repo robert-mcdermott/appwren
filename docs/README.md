@@ -48,6 +48,7 @@ These two are written from the code, so they always match the version they ship 
 | What are we paying for twice? | [Overlap](the-landscape.md#overlap) |
 | Which capability rests on the weakest software? | [The capability map, measured](the-landscape.md#the-capability-map-measured) |
 | What falls out of support next year, and what runs on it? | [Lifecycle](the-landscape.md#lifecycle) |
+| Which applications run on a particular release, such as .NET 6? | [Which applications run on a release](the-landscape.md#which-applications-run-on-a-release) |
 | How do I avoid typing support dates? | [Support dates from a file](the-landscape.md#support-dates-from-a-file) |
 | Which applications hold health data, and how well are they looked after? | [Who handles a class of data](the-landscape.md#who-handles-a-class-of-data) |
 | How do I break an application's cost down? | [What it costs](the-portfolio.md#what-it-costs) |

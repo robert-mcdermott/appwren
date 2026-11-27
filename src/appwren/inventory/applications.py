@@ -386,6 +386,13 @@ def _conditions(session: Session, principal: Principal, filters: Mapping[str, An
                 )
             )
         )
+    from appwren.inventory.parts import built_on
+
+    using = built_on(session, filters)
+    if using is not None:  # any of its components built on it
+        found.append(
+            Application.id.in_(select(Component.application_id).where(Component.id.in_(using)))
+        )
     return found
 
 

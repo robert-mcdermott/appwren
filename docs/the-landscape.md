@@ -106,6 +106,12 @@ Narrow it to what is past its end of support, ending within a year, or supported
 
 The counts here are the same as on each technology's page, which names the applications.
 
+### Which applications run on a release
+
+To answer "which applications run on .NET 6?", open the technology and, beside the release, choose **As a list**. The applications list opens narrowed to it, and **Export** gives the same rows as a spreadsheet. **Every application on it** does the same for every release, and the card of components that name no release has its own list. An application is on a release when any of its components is.
+
+The same narrowing works in the address and through the API: `technology` (a reference), with `release` (a release's cycle, or `none`), or `version` (an exact version as recorded, such as `6.0.25`, or its start, such as `6.0`). The components list takes them too. Each list is cut to what the reader may see, like any other.
+
 ### Radar
 
 **Radar**, reached from Technologies or Lifecycle, shows the technologies in use by the organization's view of each for new work: *Adopt*, *Trial*, *Assess*, or *Hold*, each with its kind and how many components run on it. Technologies that are in use and that nobody has placed are listed apart: someone should say whether new work may use them.

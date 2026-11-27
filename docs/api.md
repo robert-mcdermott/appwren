@@ -105,6 +105,7 @@ Every list route takes the same parameters:
 | `limit` | How many to return: 50 by default, 200 at most |
 | `cursor` | Where to continue from: `next_cursor` or `prev_cursor` from the last answer |
 | `owner` | An account's id: only the records that person is named on |
+| `technology`, `release`, `version` | Applications and components built on a technology's reference; with `release`, one of its releases by cycle (`none` for those that name none); with `version`, an exact version or its start. An application counts when any of its components does |
 | `mine` | `true` for only the records you are named on |
 
 Each kind of record adds its own filters, such as `lifecycle`, `sourcing`, `tier`, `domain`, `data_class`, and `capability` for applications; `application` and `data_class` for interfaces; `platform_id` and `environment` for deployments; and `ending_within` (days) for contracts. The OpenAPI document lists them.

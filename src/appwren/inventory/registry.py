@@ -201,7 +201,7 @@ APPLICATION = register(
             "vendor_id",
             "sensitivity",
         ),
-        more_filters=("data_class", "capability"),
+        more_filters=("data_class", "capability", "technology", "release", "version"),
     )
 )
 COMPONENT = register(
@@ -219,7 +219,7 @@ COMPONENT = register(
             F("hosting", "Hosting", "choice", vocab="hosting"),
         ),
         filters=("status", "kind", "application_id"),
-        more_filters=("application",),
+        more_filters=("application", "technology", "release", "version"),
         sorts=("updated_at", "name", "ref", "status", "kind"),
     )
 )

@@ -105,6 +105,7 @@ None block the start. These defaults have been taken and can be changed before t
 - [x] Saved views: a list's filters under a name, private or shared
 - [x] Likely duplicates when an application is added or renamed, by name, alias, and vendor product
 - [x] Contesting a score: on a factor, with a note and a link; accepted or answered by the portfolio team; listed for them
+- [x] Applications and components narrowed by what they are built on: a technology, a release, or an exact version; each release on a technology's page links to its list (added at release prep, at the maintainer's request)
 
 **Acceptance (met):** a search never returns a record its searcher could not open, for each of the seven roles; a contest and its answer stay on the record.
 
@@ -140,3 +141,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **What the demo adds draws from its own random sequence.** Confirmations and campaign answers drew from the demo's one sequence and moved who owned what, which left the research software engineer with nothing to keep. That was already so in 0.2.0, by chance; they now keep two named storylines, and later additions cannot move earlier ones.
 - **The tests run scheduled work themselves.** A scheduler in every test server ran jobs behind the tests' backs and held connections of its own.
 - **A link in a drawing has no text for its address.** The router read a link's `href` property, which for an SVG `<a>` is an object, so every bubble on the portfolio chart opened a page that was not there; it had been so since 0.1.0, and the keyboard check, which goes through the table, could not see it. The router reads the attribute now, and the bubbles have a label that follows the pointer. Found by the maintainer.
+- **Which applications run on a release.** Asked at release prep: how would information security find every application on a particular version of .NET? The technology's page named them, but no list could be narrowed to them, so none could be exported. The applications and components lists now take `technology`, `release`, and `version`, decided by the same rule as the page (any component on it, cut to what the reader may see), and each release on the page links to its list; a test holds the list equal to the page for each release and each reader.
