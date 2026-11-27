@@ -47,6 +47,19 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   application, with a dry run first: it updates what it describes and adds any component it
   names, and removes nothing, so the same file twice changes nothing. Files are read with a
   safe loader; PyYAML is the sixth runtime dependency.
+- **Engineering maturity.** Automated checks for each component (monitoring, backups,
+  documentation, tests, continuous integration, automated dependency updates, and no open
+  critical dependency alert) give it bronze, silver, or gold, and its application the level
+  of its least mature component, with what is missing for the next. They are shown on the
+  component and on its application's Components part, as a filter of the applications list,
+  and on Reports → Engineering maturity, by unit. The levels and their checks are in the
+  scoring model, beside the cadence. Only what is built here, or has a repository, is
+  measured.
+- **Signals as factors.** What sources supply joins the scores: incidents, open critical and
+  high dependency alerts, code activity, and engineering maturity in technical health, and
+  support tickets in cost and burden. Each counts only where a source supplies it, so an
+  application without one scores as before, and the working names where each came from.
+  An installation running an earlier default model unchanged gets them on upgrade.
 - The history names the release whose dates changed, and shows the reason given for an
   override.
 

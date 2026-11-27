@@ -270,6 +270,8 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("PATCH", "/api/v1/connectors/{key}"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/check"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/run"): {"admin"},
+    ("GET", "/api/v1/maturity"): EVERYONE,
+    ("GET", "/api/v1/maturity/{ref}"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,
     ("POST", "/api/v1/applications/{ref}/catalog"): KEEPERS,
     ("GET", "/api/v1/push-keys"): {"admin"},

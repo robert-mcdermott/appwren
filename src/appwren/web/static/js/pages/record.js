@@ -636,6 +636,7 @@ function componentsTab(record, ctx) {
         anyCode ? [h("td", {}, codeCell(c)), h("td", {}, code[c.ref] ? alerts(code[c.ref].dependency_alerts) : h("span", { class: "subtle" }, "—"))] : null,
         h("td", {}, statusPill(c.status)))))))
       : h("p", { class: "muted" }, "No components recorded. A service, a database, a batch job, or a report that is built, bought, or kept on its own is a component; its technologies are recorded on it.")),
+  ctx.maturity?.cards.applicationMaturity(ctx.maturity.found),
   runsCard(record, ctx),
   card({ title: "Catalog file", actions: catalogActions },
     h("p", { class: "muted" }, "The application and its components as a catalog-info.yaml, to keep beside the code. Imported again, it updates what it describes and adds any component it names; nothing it leaves out is removed.")));
@@ -756,17 +757,21 @@ function connectionsTab(record, ctx) {
 
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
-  const [record, vocab, unitIndex, entries, program, fromSources] = await Promise.all([
+  const measuring = type === "component" || (type === "application" && tab === "components");
+  const [record, vocab, unitIndex, entries, program, fromSources, measured, cards] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
     tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
-    get(`/api/v1/sourced/${ref}`, null, { fresh: true })]);
-  return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program, sourced: fromSources.data };
+    get(`/api/v1/sourced/${ref}`, null, { fresh: true }),
+    measuring ? get(`/api/v1/maturity/${ref}`, null, { fresh: true }) : null,
+    measuring ? import("../components/maturity.js") : null]);
+  return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program, sourced: fromSources.data,
+    maturity: measured ? { found: measured.data, cards: cards } : null };
 }
 
 function context(data, reload) {
   const fieldLabels = Object.fromEntries(Object.values(data.catalog.types).flatMap((t) => t.fields.map((f) => [f.name, f.label])));
   for (const f of data.catalog.fields ?? []) fieldLabels[f.key] = f.label;
-  return { vocab: data.vocab, units: data.units, catalog: data.catalog, sourced: data.sourced, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
+  return { vocab: data.vocab, units: data.units, catalog: data.catalog, sourced: data.sourced, maturity: data.maturity, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
 }
 
 function assessmentTab(record, ctx) {
@@ -975,6 +980,7 @@ function sharedOverview(type, record, ctx) {
         h("td", {}, [t.release, t.version].filter(Boolean).join(" · ") || h("span", { class: "subtle" }, "Not known")),
         h("td", {}, h("div", { class: "row-sm" }, supportPill(t.support), t.support_ends ? h("span", { class: "subtle" }, date(t.support_ends)) : null)))))))
       : h("p", { class: "muted" }, "Nothing recorded. Say what it is built on: its language, framework, database, and platform.")));
+    main.push(ctx.maturity?.cards.componentMaturity(ctx.maturity.found));
   }
   if (type === "technology") {
     const marks = byRelease(ctx.sourced);

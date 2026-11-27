@@ -103,6 +103,9 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/connectors/{key}/check"): Needs.ADMIN,
     ("POST", "/api/v1/connectors/{key}/run"): Needs.ADMIN,
     # What sources supply: read with the record; overridden by whoever keeps it
+    # Engineering maturity, for anyone, of what they may see
+    ("GET", "/api/v1/maturity"): Needs.MEMBER,
+    ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,
     # Catalog files: exported by anyone who may see the application, imported by its keepers
     ("GET", "/api/v1/applications/{ref}/catalog"): Needs.MEMBER,
     ("POST", "/api/v1/applications/{ref}/catalog"): Needs.KEEP,

@@ -197,7 +197,9 @@ function scoringTab(program, reload) {
     const sumCells = columns.map((profile) => {
       const cell = h("td", { class: "nowrap" });
       sums.push(() => {
-        const total = factors.reduce((sum, factor) => sum + Number(resolved(profile, dimension.key, factor) || 0), 0);
+        // A signal comes on top: it counts only where a source supplies it.
+        const total = factors.filter((factor) => factor.kind !== "signal")
+          .reduce((sum, factor) => sum + Number(resolved(profile, dimension.key, factor) || 0), 0);
         cell.textContent = `${total}`;
         cell.dataset.wrong = String(total !== 100);
       });
@@ -205,13 +207,15 @@ function scoringTab(program, reload) {
     });
     return card({ title: dimension.label, flush: true }, h("div", { class: "table-wrap" }, h("table", { class: "table table-compact" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Factor"), columns.map((profile) => h("th", { scope: "col" }, profile.label)))),
-      h("tbody", {}, factors.map((factor) => h("tr", {}, h("td", {}, factor.label),
+      h("tbody", {}, factors.map((factor) => h("tr", {}, h("td", {}, factor.label,
+        factor.kind === "signal" ? h("span", { class: "cell-sub" }, " · a signal, on top") : null),
         columns.map((profile) => h("td", {}, numberInput(resolved(profile, dimension.key, factor), `${factor.label}, ${profile.label}`, { min: 0, max: 100,
           oninput: (event) => {
             setWeight(profile, dimension.key, factor, Number(event.target.value || 0));
             recount();
           } }))))),
-      h("tr", { class: "sum-row" }, h("th", { scope: "row" }, "Adds up to (must be 100)"), sumCells)))));
+      h("tr", { class: "sum-row" }, h("th", { scope: "row" }, factors.some((factor) => factor.kind === "signal")
+        ? "Adds up to, without the signals (must be 100)" : "Adds up to (must be 100)"), sumCells)))));
   });
   recount();
   const cadence = model.cadence ?? (model.cadence = {});

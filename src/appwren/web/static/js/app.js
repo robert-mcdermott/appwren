@@ -74,6 +74,7 @@ async function boot() {
   route("/dashboard", page("dashboard", "dashboard"));
   route("/data-quality", page("quality", "dataQuality"));
   route("/data-handling", page("data-handling", "dataHandling"));
+  route("/maturity", page("maturity", "maturityReport"));
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));

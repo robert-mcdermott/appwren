@@ -233,6 +233,25 @@ def factor_result(
             return {**out, "state": UNKNOWN, "why": why, "where": "assessment"}
         return {**out, "state": KNOWN, "level": int(level), "value": int(level),
                 "why": "Answered in the assessment", "source": "assessment"}  # fmt: skip
+    if kind == "signal":
+        signal = (facts.get("signals") or {}).get(factor["signal"])
+        if signal is None:
+            return {**out, "state": NOT_APPLICABLE, "why": "No source supplies it"}
+        value, source = signal["value"], signal["from"]
+        if "map" in factor:
+            level = factor["map"].get(str(value))
+            if level is None:
+                return {**out, "state": NOT_APPLICABLE, "value": value, "from": source,
+                        "why": f"{value} has no level"}  # fmt: skip
+            said = signal.get("said") or str(value)
+        else:
+            level = band_level(float(value), factor["bands"], factor["direction"])
+            said = f"{value:,} {factor.get('unit', '')}".strip()
+        return {**out, "state": KNOWN, "level": level, "value": value, "source": "signal",
+                "from": source, "why": f"{said}, from {source}"}  # fmt: skip
+    sourced = (facts.get("sources") or {}).get(factor.get("fact", ""))
+    if sourced:
+        out["from"] = sourced
     if kind == "choice":
         value = facts.get(factor["fact"])
         if value is None:

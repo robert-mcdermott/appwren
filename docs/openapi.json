@@ -4311,6 +4311,22 @@
               "description": "With technology, the exact version as recorded, or its start, such as 6.0.2",
               "title": "Version"
             }
+          },
+          {
+            "in": "query",
+            "name": "maturity",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Maturity"
+            }
           }
         ],
         "responses": {
@@ -10941,6 +10957,102 @@
         "summary": "Send yourself a test message",
         "tags": [
           "operations"
+        ]
+      }
+    },
+    "/api/v1/maturity": {
+      "get": {
+        "description": "How many applications are at each level under each unit below ``unit`` (the whole\norganization by default). Each count includes the units below, as the list does.",
+        "operationId": "maturity_report_api_v1_maturity_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Unit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Maturity Report Api V1 Maturity Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Engineering maturity by unit",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/maturity/{ref}": {
+      "get": {
+        "operationId": "maturity_of_api_v1_maturity__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Maturity Of Api V1 Maturity  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's or a component's engineering maturity",
+        "tags": [
+          "connectors"
         ]
       }
     },

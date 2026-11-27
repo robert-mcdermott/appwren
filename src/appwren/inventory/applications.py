@@ -390,6 +390,12 @@ def _conditions(session: Session, principal: Principal, filters: Mapping[str, An
                 )
             )
         )
+    if filters.get("maturity"):
+        from appwren.inventory import maturity
+
+        found.append(
+            Application.id.in_(maturity.applications_at(session, str(filters["maturity"])))
+        )
     from appwren.inventory.parts import built_on
 
     using = built_on(session, filters)

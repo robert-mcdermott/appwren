@@ -428,6 +428,7 @@ def q(
 
 
 VENDOR_SOURCED = {"field": "vendor_sourced", "op": "eq", "value": True}
+BUILT = {"field": "sourcing", "op": "in", "value": ["built_here", "research_software"]}
 
 QUESTIONNAIRE = {
     "sections": [
@@ -629,6 +630,46 @@ STANDARD = {
             question="vendor_viability",
             applies=VENDOR_SOURCED,
         ),
+        # Signals: each counts only where a source supplies it (SCR-11).
+        f(
+            "incidents",
+            "Incidents",
+            "signal",
+            10,
+            signal="incidents_90d",
+            bands=[1, 3, 6, 10],
+            direction="falling",
+            unit="in 90 days",
+        ),
+        f(
+            "dependency_alerts",
+            "Dependency alerts",
+            "signal",
+            10,
+            signal="open_alerts",
+            bands=[1, 3, 6, 10],
+            direction="falling",
+            unit="critical and high, open",
+        ),
+        f(
+            "code_activity",
+            "Code activity",
+            "signal",
+            5,
+            signal="days_since_change",
+            bands=[30, 90, 180, 365],
+            direction="falling",
+            unit="days since its code changed",
+            applies=BUILT,
+        ),
+        f(
+            "engineering_maturity",
+            "Engineering maturity",
+            "signal",
+            10,
+            signal="maturity",
+            map={"none": 1, "bronze": 3, "silver": 4, "gold": 5},
+        ),
     ],
     "cost_burden": [
         f(
@@ -665,6 +706,16 @@ STANDARD = {
         ),
         f("support_effort", "Support effort", "answer", 25, question="support_effort"),
         f("change_effort", "Change effort", "answer", 20, question="change_effort"),
+        f(
+            "support_load",
+            "Support load",
+            "signal",
+            10,
+            signal="tickets_90d",
+            bands=[10, 30, 60, 120],
+            direction="falling",
+            unit="tickets in 90 days",
+        ),
     ],
     "risk_exposure": [
         f("data_exposure", "Data exposure", "computed", 35, compute="data_exposure"),
@@ -736,6 +787,22 @@ SCORING = {
         # How far ahead a contract's notice date, a release's end of support, and a grant's
         # end raise a task.
         "triggers": {"contract_notice_days": 60, "end_of_support_days": 180, "grant_end_days": 180},
+    },
+    # Engineering maturity: each level adds its checks to those below it (SCR-12).
+    "maturity": {
+        "levels": [
+            {
+                "key": "bronze",
+                "label": "Bronze",
+                "checks": ["monitoring", "backups", "documentation"],
+            },
+            {"key": "silver", "label": "Silver", "checks": ["tests", "ci"]},
+            {
+                "key": "gold",
+                "label": "Gold",
+                "checks": ["dependency_updates", "no_critical_alerts"],
+            },
+        ]
     },
     "profiles": [
         {

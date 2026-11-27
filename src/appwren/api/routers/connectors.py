@@ -16,7 +16,7 @@ from appwren.connectors import discovery, push, sourced
 from appwren.core.clock import utc_now
 from appwren.core.errors import Invalid, NotFound
 from appwren.db.models import PushKey, TechnologyRelease
-from appwren.inventory import records
+from appwren.inventory import maturity, records
 from appwren.inventory.registry import find_any
 
 router = APIRouter(prefix="/api/v1", tags=["connectors"])
@@ -192,6 +192,26 @@ def restore_discovered(request: Request, item_id: int) -> dict[str, Any]:
     with writing(request, principal.actor) as session:
         row = discovery.restore(session, principal, discovery.load(session, item_id))
         return envelope(discovery.view(row, None))
+
+
+@router.get("/maturity", summary="Engineering maturity by unit")
+def maturity_report(request: Request, unit: int | None = None) -> dict[str, Any]:
+    """How many applications are at each level under each unit below ``unit`` (the whole
+    organization by default). Each count includes the units below, as the list does."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(maturity.report(session, principal, unit))
+
+
+@router.get("/maturity/{ref}", summary="An application's or a component's engineering maturity")
+def maturity_of(request: Request, ref: str) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        record_type, _ = find_any(session, ref)
+        if record_type.key not in ("application", "component"):
+            raise Invalid("Nothing to show.", {"ref": "Only an application or a component."})
+        record = records.load(session, principal, record_type, ref)
+        return envelope(maturity.of_record(session, principal, record_type, record))
 
 
 def _target(

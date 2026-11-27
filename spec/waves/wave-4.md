@@ -95,14 +95,14 @@ Built with slice 1, as the framework's first connector: it needs no credential, 
 
 **Acceptance:** a pushed fact lands with its source; a key cannot read anything or post to any other route; a catalog file imported twice changes nothing the second time.
 
-## Slice 6: Engineering maturity ☐
+## Slice 6: Engineering maturity ☑
 
 **Goal:** what engineering practice each component has, measured.
 
-- [ ] The checks, each from a record's field or a sourced fact: monitoring, backups, documentation, tests, continuous integration, dependency updates, no open critical alert
-- [ ] Bronze, silver, and gold for each component, and for its application at the level of its least mature component; what is missing for the next level
-- [ ] Shown on the component and application pages, as a list filter, and as a report by unit
-- [ ] Signals as factors: the facts from sources join the factors they inform, where a source supplies them
+- [x] The checks, each from a record's field or a sourced fact: monitoring, backups, documentation, tests, continuous integration, dependency updates, no open critical alert
+- [x] Bronze, silver, and gold for each component, and for its application at the level of its least mature component; what is missing for the next level
+- [x] Shown on the component and application pages, as a list filter, and as a report by unit
+- [x] Signals as factors: the facts from sources join the factors they inform, where a source supplies them
 
 **Acceptance:** a component's level is exactly what its checks give, and the report's counts are the length of the lists behind them.
 
@@ -123,3 +123,6 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **The demo's sign-ins keep its storylines.** The demo's identity provider gives each bought or rented application its users as already recorded, and lists six registrations on no record and one dismissed.
 - **A push key is the only way to post facts.** A person signed in, even an administrator, is refused at `POST /api/v1/facts`, and a key is refused everywhere else, because nothing else reads it. A batch is checked whole before anything is written: one bad fact and nothing lands, with each problem named by its place in the list.
 - **Catalog files are written under AppWren's own version.** The files use the common descriptor shape (documents with `kind`, `metadata`, and `spec`; a `System` for the application, a `Component` or `Resource` for each part). Import accepts any `apiVersion`; export writes `appwren/v1` with AppWren's references in each document, so a file kept in a repository matches the same records when imported again. Owners are not taken from a file: people are named in AppWren.
+- **Signals come on top of a dimension's weights.** A signal factor (incidents, dependency alerts, code activity, engineering maturity, support load) counts only where a source supplies it; elsewhere it does not apply, which is not the same as unknown, so it neither lowers confidence nor moves a score. A dimension's other factors still add up to 100. The working names the source of each signal, and of a field a source fills, such as users. The default model has them; an installation running an earlier default unchanged gets them on upgrade, and one that shaped its own model keeps it.
+- **Only what is built here is measured.** Engineering maturity is measured for applications built here and for any with a repository recorded; a bought product's engineering is its vendor's, and it is shown as not measured. A check about code applies to every component that is code, so code with no repository recorded cannot pass it; a database or infrastructure is not code.
+- **The worked example stays as spec/engine.md has it.** The demo gives no signals to the worked example's application, so its scores are worked through exactly as before.

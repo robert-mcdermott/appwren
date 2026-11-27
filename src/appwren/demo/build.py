@@ -1422,6 +1422,8 @@ class Builder:
             for app in rows:
                 health = self.health.get(app.ref, "fair")
                 story = stories.get(app.name)
+                if story == "worked_example":
+                    continue  # spec/engine.md works its scores through without signals
                 pool = [f"{app.ref.lower()}-dev{n}" for n in range(app.maintainers or 1)]
                 parts_of = session.scalars(
                     select(Component)
@@ -1513,6 +1515,32 @@ class Builder:
             connectors.change(session, admin, connectors.load(session, "github"),
                               {"enabled": False})  # fmt: skip
 
+    def documents(self) -> None:
+        """Where each application's documentation is: kept more often where it is in good
+        health. Added when the maturity checks came, as a team would fill them in."""
+        from appwren.db.models import Application
+
+        r = random.Random(self.seed * 7907 + 6)  # wave 4's own draws
+        worked = {spec[0] for spec in c.APPLICATIONS if spec[10].get("story") == "worked_example"}
+        moment = self.end - timedelta(days=5, hours=2)
+        with self.db.read() as session:
+            apps = session.scalars(
+                select(Application).where(Application.status == "active").order_by(Application.ref)
+            ).all()
+            chance = {"good": 0.8, "fair": 0.55, "poor": 0.2}
+            wanted = [
+                (app.ref, app.name) for app in apps
+                if app.name not in worked
+                and r.random() < chance[self.health.get(app.ref, "fair")]
+            ]  # fmt: skip
+        with clock_set_to(lambda: moment), self.db.write(ME.actor) as session:
+            for ref, name in wanted:
+                app = records.load(session, ME, APPLICATION, ref)
+                slug = "-".join(_ascii(name).lower().replace("'", "").split())
+                records.update(session, ME, APPLICATION, app,
+                               {"docs_url": f"https://docs.{c.DOMAIN}/{slug}"},
+                               version=app.version)  # fmt: skip
+
     def signins(self) -> None:
         """The identity provider: what is bought or rented, matched by name, with its users as
         recorded; and the registrations on no record, listed as they were found."""
@@ -1599,7 +1627,12 @@ class Builder:
                 ).order_by(Application.ref)
             ).all()  # fmt: skip
             facts = []
+            worked = {
+                spec[0] for spec in c.APPLICATIONS if spec[10].get("story") == "worked_example"
+            }
             for app in apps:
+                if app.name in worked:
+                    continue  # spec/engine.md works its scores through without signals
                 health = self.health.get(app.ref, "fair")
                 low, high = {"good": (0, 1), "fair": (1, 3), "poor": (4, 12)}[health]
                 tickets = {"good": (2, 15), "fair": (10, 40), "poor": (30, 90)}[health]
@@ -1657,6 +1690,7 @@ class Builder:
         self.run()
         self.remind()
         self.sources()
+        self.documents()
         self.code()
         self.signins()
         self.pushes()
