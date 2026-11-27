@@ -166,7 +166,8 @@ SOURCES: list[Callable[[Session, date, date], Iterable[Due]]] = []
 
 def _sources() -> None:
     """Make sure every module that adds dates of its own has added them."""
-    import appwren.oversight.attestation  # noqa: F401
+    import appwren.oversight.attestation
+    import appwren.oversight.campaigns  # noqa: F401
 
 
 def due_items(session: Session, on: date, horizon: date) -> list[Due]:

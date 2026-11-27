@@ -76,6 +76,8 @@ async function boot() {
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));
+  route("/campaigns", page("campaigns", "campaignList"));
+  route("/campaigns/:ref", page("campaigns", "campaignPage"));
   route("/snapshots", page("decisions", "snapshotList"));
   route("/snapshots/:ref", page("decisions", "snapshotPage"));
   if (can("admin")) {

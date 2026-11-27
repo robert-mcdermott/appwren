@@ -273,7 +273,8 @@ function sections(name, title, html) {
 const TAGS = {
   system: "System", session: "Signing in", "single sign-on": "Single sign-on", people: "People and units", branding: "Appearance",
   inventory: "The inventory", "assessment and scores": "Assessment and scores", "decisions and the portfolio": "Decisions and the portfolio",
-  landscape: "The landscape, and cost", "reports, imports, and exports": "Reports, imports, and exports",
+  landscape: "The landscape, and cost", "keeping current": "Keeping current", "reports, imports, and exports": "Reports, imports, and exports",
+  operations: "Scheduled work, email, and notices",
 };
 
 function schemaType(schema) {

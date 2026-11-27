@@ -214,6 +214,9 @@ def record(
         session.flush()
         if previous is not None:
             previous.superseded_by = row.id
+    from appwren.oversight import campaigns
+
+    campaigns.refresh_application(session, application.id, "assess")
     return row
 
 

@@ -645,6 +645,70 @@
         "title": "BrandingBody",
         "type": "object"
       },
+      "CampaignBody": {
+        "properties": {
+          "due_on": {
+            "default": "",
+            "description": "The date it is due by",
+            "title": "Due On",
+            "type": "string"
+          },
+          "kind": {
+            "default": "",
+            "description": "confirm or assess",
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "org_unit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Omit for the whole organization",
+            "title": "Org Unit Id"
+          },
+          "stages": {
+            "description": "Only these stages; all if empty",
+            "items": {
+              "type": "string"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "tiers": {
+            "description": "Only these tiers; all if empty",
+            "items": {
+              "type": "string"
+            },
+            "title": "Tiers",
+            "type": "array"
+          }
+        },
+        "title": "CampaignBody",
+        "type": "object"
+      },
       "CapabilitiesBody": {
         "properties": {
           "capabilities": {
@@ -1461,6 +1525,18 @@
           }
         },
         "title": "DeploymentBody",
+        "type": "object"
+      },
+      "ExcuseBody": {
+        "properties": {
+          "reason": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "ExcuseBody",
         "type": "object"
       },
       "ExternalRefBody": {
@@ -4665,6 +4741,402 @@
         "summary": "Say which units use it",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/campaigns": {
+      "get": {
+        "operationId": "list_campaigns_api_v1_campaigns_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Campaigns Api V1 Campaigns Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Campaigns, newest first, with their progress",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "post": {
+        "description": "Makes an item for each application in service in the unit and beneath it, of the tiers\nand stages named, and tells each person asked once, with a count.",
+        "operationId": "start_campaign_api_v1_campaigns_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Start Campaign Api V1 Campaigns Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start a campaign",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/preview": {
+      "post": {
+        "description": "How many applications it would cover and how many people it would ask, and which\napplications have nobody to ask. Nothing is saved.",
+        "operationId": "preview_campaign_api_v1_campaigns_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Preview Campaign Api V1 Campaigns Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What a campaign would ask, and of whom",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}": {
+      "get": {
+        "operationId": "get_campaign_api_v1_campaigns__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this unit's items",
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this unit's items",
+              "title": "Unit"
+            }
+          },
+          {
+            "description": "pending, done, or excused",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pending, done, or excused",
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Only what was asked of you",
+            "in": "query",
+            "name": "mine",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only what was asked of you",
+              "title": "Mine",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Campaign Api V1 Campaigns  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A campaign, its coverage by unit, and its items",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/cancel": {
+      "post": {
+        "operationId": "cancel_campaign_api_v1_campaigns__ref__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Cancel Campaign Api V1 Campaigns  Ref  Cancel Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel a campaign",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/close": {
+      "post": {
+        "operationId": "close_campaign_api_v1_campaigns__ref__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Close Campaign Api V1 Campaigns  Ref  Close Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close a campaign, keeping what it found",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/items/{item_id}/excuse": {
+      "post": {
+        "operationId": "excuse_item_api_v1_campaigns__ref__items__item_id__excuse_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcuseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Excuse Item Api V1 Campaigns  Ref  Items  Item Id  Excuse Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Excuse one application, with a reason",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{ref}/remind": {
+      "post": {
+        "operationId": "remind_campaign_api_v1_campaigns__ref__remind_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Remind Campaign Api V1 Campaigns  Ref  Remind Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remind whoever still owes something",
+        "tags": [
+          "keeping current"
         ]
       }
     },

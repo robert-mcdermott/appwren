@@ -48,9 +48,17 @@ def _mail(db: Database, config: Config) -> dict[str, int]:
 
 
 def _reminders(db: Database, _config: Config) -> dict[str, int]:
+    # A campaign's item is done when its thing is done, whoever did it and however; the few a
+    # change elsewhere did not close are closed here, under the scheduler's name.
+    from appwren.oversight import campaigns
+
+    with db.write(SCHEDULER, action="job.reminders") as session:
+        closed = campaigns.refresh_all(session)
     # Reminders are notices, which are not history, so no actor writes them.
     with db.bookkeeping() as session:
-        return reminders.send(session)
+        counts = reminders.send(session)
+    counts["campaign_items_done"] = closed
+    return counts
 
 
 def _tidy(db: Database, _config: Config) -> dict[str, int]:

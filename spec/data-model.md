@@ -211,6 +211,10 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 `attestation(application_id, attested_by, attested_by_name, attested_on, note)`. That a person who keeps an application confirmed its record is right on a date. A statement, never edited; the next follows it. The day the installation began asking is the program setting `attestation_began`.
 
+### Campaign
+
+`campaign(ref, name, kind, message, org_unit_id, tiers, stages, due_on, status, started_on, started_by, started_by_name, ended_on)` (`CMG-0004`). The owners of the applications in a unit and beneath it, narrowed by tier and stage, asked to confirm their records (`confirm`) or to assess (`assess`) by a date. `campaign_item(campaign_id, application_id, org_unit_id, account_id, status, done_on, done_by_name, excuse)` is one application and who was asked: pending until the thing is done after the campaign began, or excused with a reason.
+
 ## Later waves (sketch)
 
 | Wave | Entities |

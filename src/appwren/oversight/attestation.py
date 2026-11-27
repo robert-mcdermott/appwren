@@ -128,6 +128,9 @@ def confirm(
     )
     session.add(row)
     session.flush()
+    from appwren.oversight import campaigns
+
+    campaigns.refresh_application(session, app.id, "confirm")
     return row
 
 

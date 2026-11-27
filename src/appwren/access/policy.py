@@ -56,6 +56,16 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/notices/read"): Needs.MEMBER,
     ("GET", "/api/v1/session/preferences"): Needs.MEMBER,
     ("PUT", "/api/v1/session/preferences"): Needs.MEMBER,
+    # Campaigns: started and run by managers and stewards, each within their scope; read by
+    # everyone, each item shown to those who may see its application
+    ("GET", "/api/v1/campaigns"): Needs.MEMBER,
+    ("POST", "/api/v1/campaigns"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/preview"): Needs.STEWARD,
+    ("GET", "/api/v1/campaigns/{ref}"): Needs.MEMBER,
+    ("POST", "/api/v1/campaigns/{ref}/remind"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/{ref}/close"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/{ref}/cancel"): Needs.STEWARD,
+    ("POST", "/api/v1/campaigns/{ref}/items/{item_id}/excuse"): Needs.STEWARD,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,

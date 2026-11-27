@@ -36,6 +36,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   reminded, and its data confidence is 15 points lower until someone confirms it. A record
   never confirmed is due one period after it was added or after the upgrade, whichever is
   later, so nothing is stale on the day of the upgrade.
+- **Campaigns.** Managers and stewards ask the owners of the applications in a unit, narrowed
+  by tier and stage if they wish, to confirm their records or to assess their applications by
+  a date (`CMG-0002`). Before starting, it says how many people it would ask and which
+  applications have nobody to ask. Each person is told once, with a count, and finds what is
+  asked of them on Home. An item closes itself when the record is confirmed or the
+  application assessed after the campaign began. The campaign's page shows its progress and
+  its coverage by unit, least covered first, and can remind, excuse an application with a
+  reason, close, or cancel.
 
 ### Changed
 

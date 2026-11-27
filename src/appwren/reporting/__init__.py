@@ -418,6 +418,31 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 waiting.append({**_chip(row), "why": "Decision differs from the recommendation"})
             elif not row["decision"] and row["recommendation"] not in (None, "assess", "incubate"):
                 waiting.append({**_chip(row), "why": "No decision yet"})
+    from appwren.oversight import campaigns
+
+    asked_for = campaigns.owed(session, principal)
+    # What a campaign asks is said once: as the campaign's, with its date.
+    by_campaign = {(a["application"]["ref"], a["kind"]) for a in asked_for}
+    items = [
+        item
+        for item in items
+        if not (
+            (item["kind"] == "confirm" and (item["application"]["ref"], "confirm") in by_campaign)
+            or (item["kind"] == "assess" and (item["application"]["ref"], "assess") in by_campaign)
+        )
+    ]
+    for asked in asked_for:
+        verb = "Assess it" if asked["kind"] == "assess" else "Confirm that its record is right"
+        items.append(
+            {
+                "severity": "danger" if asked["late"] else "warning",
+                "kind": "campaign",
+                "text": f"{verb}, for {asked['campaign']['name']}, "
+                f"by {asked['due_on'].isoformat()}",
+                "href": asked["href"],
+                "application": asked["application"],
+            }
+        )
     items.sort(key=lambda item: (SEVERITY.get(item["severity"], 3), item["application"]["name"]))
     return {
         "items": items,

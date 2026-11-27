@@ -244,6 +244,14 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("DELETE", "/api/v1/session"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/demo"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/password"): EVERYONE,
+    ("GET", "/api/v1/campaigns"): EVERYONE,
+    ("POST", "/api/v1/campaigns"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/preview"): {"steward", "manager"},
+    ("GET", "/api/v1/campaigns/{ref}"): EVERYONE,
+    ("POST", "/api/v1/campaigns/{ref}/remind"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/{ref}/close"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/{ref}/cancel"): {"steward", "manager"},
+    ("POST", "/api/v1/campaigns/{ref}/items/{item_id}/excuse"): {"steward", "manager"},
     ("GET", "/api/v1/jobs"): {"admin"},
     ("POST", "/api/v1/jobs/{key}/run"): {"admin"},
     ("PUT", "/api/v1/jobs/{key}"): {"admin"},
@@ -441,6 +449,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{kind}", "favicon" if "branding" in template else "vendors")
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
+            path = path.replace("{item_id}", "9999")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:

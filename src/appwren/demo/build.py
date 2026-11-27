@@ -28,7 +28,7 @@ from appwren.access.principal import Grant, Principal
 from appwren.core.clock import clock_set_to
 from appwren.core.errors import AppWrenError, Invalid, PermissionDenied
 from appwren.db.engine import Database
-from appwren.db.models import Application, Capability, Vendor
+from appwren.db.models import Application, Campaign, CampaignItem, Capability, Vendor
 from appwren.demo import content as c
 from appwren.inventory import applications, links, parts, records
 from appwren.inventory.registry import (
@@ -43,7 +43,7 @@ from appwren.inventory.registry import (
     VENDOR,
 )
 from appwren.landscape import costs
-from appwren.oversight import attestation
+from appwren.oversight import attestation, campaigns
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -634,6 +634,75 @@ class Builder:
             self.confirm(name, last)
             last += period - self.rng.randint(0, 20)
 
+    def campaign(
+        self,
+        days_ago: float,
+        values: dict[str, Any],
+        *,
+        due_in: int,
+        ends: float | None = None,
+        answers: tuple[tuple[float, float], ...] = (),
+    ) -> None:
+        """A campaign started by the portfolio manager; some of those asked do it as asked,
+        later; and perhaps its close."""
+        manager = self.cast["portfolio"]
+
+        def run() -> None:
+            principal = self.principal(manager)
+            unit = values.get("unit")
+            with self.db.write(principal.actor) as session:
+                campaigns.start(session, principal, {
+                    **values, "org_unit_id": self.units[unit] if unit else None,
+                    "due_on": (self.now.date() + timedelta(days=due_in)).isoformat(),
+                })  # fmt: skip
+            self.tally("campaigns")
+
+        def answer(share: float) -> None:
+            with self.db.read() as session:
+                found = session.scalars(
+                    select(Campaign).where(Campaign.name == values["name"])
+                ).one()
+                pending = [
+                    (item.application_id, item.account_id)
+                    for item in session.scalars(
+                        select(CampaignItem).where(
+                            CampaignItem.campaign_id == found.id,
+                            CampaignItem.status == "pending",
+                            CampaignItem.account_id.is_not(None),
+                        )
+                    )
+                ]
+            for app_id, account_id in sorted(pending):
+                if self.rng.random() >= share or account_id in self.departed:
+                    continue
+                by = self.principal(account_id)
+                with self.db.write(by.actor) as session:
+                    app = session.get(Application, app_id)
+                    try:
+                        if values["kind"] == "assess":
+                            vendor = app.sourcing in ("saas", "commercial", "vendor_custom")
+                            given = self.answers(self.health[app.ref], self.tier[app.ref], vendor)
+                            assessment.record(session, by, app, given)
+                        else:
+                            attestation.confirm(session, by, app)
+                    except PermissionDenied:
+                        continue
+                self.tally("assessments" if values["kind"] == "assess" else "confirmations")
+
+        def close() -> None:
+            principal = self.principal(manager)
+            with self.db.write(principal.actor) as session:
+                found = session.scalars(
+                    select(Campaign).where(Campaign.name == values["name"])
+                ).one()
+                campaigns.end(session, principal, found, "close")
+
+        self.at(days_ago, run)
+        for later, share in answers:
+            self.at(later, lambda share=share: answer(share))
+        if ends is not None:
+            self.at(ends, close)
+
     def decider(self, ref: str) -> int:
         """A manager decides, or the leader of the application's area; never its owner."""
         unit = self.unit_of[ref]
@@ -900,6 +969,18 @@ class Builder:
                 self.confirm(name, r.randint(380, 460))
             else:
                 self.confirm_on_cadence(name, lapsed=name not in storied and r.random() < 0.08)
+        # Campaigns: last spring's assessments in Clinical Research, closed; and the cores
+        # asked to confirm their records, under way.
+        self.campaign(
+            262, {"name": "Clinical Research assessments, spring", "kind": "assess",
+                  "unit": "CLIN", "message": "Before the summer review of the clinic's systems."},
+            due_in=35, ends=215, answers=((252, 0.5), (240, 0.5)),
+        )  # fmt: skip
+        self.campaign(
+            21, {"name": "Shared Resources record confirmation", "kind": "confirm", "unit": "SR",
+                 "message": "Ahead of the cores' budget review: is each record still right?"},
+            due_in=40, answers=((15, 0.45), (6, 0.25)),
+        )  # fmt: skip
         # The year of reviews: a snapshot each quarter, and decisions after it.
         for days in (365, 272, 182, 91):
             self.snapshot(days)
