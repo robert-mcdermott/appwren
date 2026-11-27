@@ -117,6 +117,8 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("DELETE", "/api/v1/interfaces/{ref}/links/{link_id}"): Needs.MEMBER,
     ("GET", "/api/v1/interfaces/{ref}/history"): Needs.MEMBER,
     ("GET", "/api/v1/data-flows"): Needs.MEMBER,
+    ("GET", "/api/v1/graph/{ref}"): Needs.MEMBER,
+    ("GET", "/api/v1/applications/{ref}/impact"): Needs.MEMBER,
     ("GET", "/api/v1/questionnaire"): Needs.MEMBER,
     ("GET", "/api/v1/scoring-model"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/scores"): Needs.MEMBER,

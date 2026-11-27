@@ -17,7 +17,7 @@ from appwren.demo import build
 from appwren.events import chain
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, INTERFACE, TECHNOLOGY
-from appwren.landscape import interfaces
+from appwren.landscape import graph, interfaces
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -106,6 +106,15 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         tracker_value = tracker["dimensions"]["business_value"]["factors"]
         depends = next(f for f in tracker_value if f["key"] == "dependents")
         assert depends["why"] == "3 active applications depend on it"
+        # What breaks if it goes: its three dependents, and the capability it alone provides.
+        broken = graph.impact(session, ME, app_named(session, "Specimen Tracker"))
+        assert {row["name"] for row in broken["direct"]} == {
+            "Biorepository Request Portal",
+            "Freezer Watch",
+            "Research Data Warehouse",
+        }
+        assert [row["name"] for row in broken["capabilities_left"]] == ["Biospecimen management"]
+        assert len(broken["beyond"]) >= 2 and len(broken["interfaces"]) == 3
         flows = interfaces.flows(session, ME, "identifiable_research")
         lost = [row["target"]["name"] for row in flows["interfaces"] if row["undeclared"]]
         assert lost == ["Executive Dashboards"] and flows["total"] >= 20

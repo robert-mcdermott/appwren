@@ -493,12 +493,44 @@ function interfaceTable(rows, ctx, { other, heading }) {
       h("td", {}, dataClasses(ctx.vocab, r.data_classes, r.undeclared)))))));
 }
 
+/** What would be touched if the application stopped, in words and lists. */
+function impactCard(record, ctx) {
+  const found = ctx.impact;
+  if (!found) return null;
+  const relying = found.direct.length + found.beyond.length;
+  const chips = (rows) => h("div", { class: "chips" }, rows.map((r) => recordChip(r)));
+  const lead = relying || found.hidden
+    ? `${plural(found.direct.length, "application depends", "applications depend")} on it directly${found.beyond.length ? `, and ${found.beyond.length} more through ${found.direct.length === 1 ? "it" : "them"}` : ""}. Together with its own, up to ${Number(found.people).toLocaleString()} people use one of them.`
+    : "No application is recorded as depending on it.";
+  const notes = [
+    found.research_continuity ? "Active studies depend on it." : null,
+    found.regulated_record ? "It is the system of record for regulated information." : null,
+    found.records_retention ? "Its data must be kept after it is retired." : null,
+    found.external_users ? "People outside the organization use it." : null,
+  ].filter(Boolean);
+  return card({ title: "What breaks if this goes", actions: h("a", { class: "btn btn-sm", href: `/graph/${record.ref}` }, "The picture") },
+    h("div", { class: "stack" },
+      h("p", {}, lead, found.hidden ? ` ${plural(found.hidden, "more that you do not have access to is", "more that you do not have access to are")} not named.` : ""),
+      facts([
+        ["Depends on it directly", found.direct.length ? chips(found.direct) : null],
+        ["And through those", found.beyond.length ? chips(found.beyond) : null],
+        ["Interfaces that would stop", found.interfaces.length ? h("div", { class: "chips" }, found.interfaces.map((r) => recordChip({ ...r, type: "interface" }))) : null],
+        ["Capabilities left with nothing", found.capabilities_left.length ? chips(found.capabilities_left) : null],
+        ["Capabilities that would lose their primary", found.capabilities_weakened.length
+          ? h("div", { class: "stack-sm" }, found.capabilities_weakened.map((c) => h("div", { class: "row-sm wrap" }, recordChip(c),
+            h("span", { class: "subtle" }, "still served by"), c.others.length ? c.others.map((o) => recordChip(o)) : h("span", { class: "subtle" }, "applications you do not have access to")))) : null],
+        ["Units that use it", found.units.length ? found.units.map((u) => u.name).join(", ") : null],
+      ]),
+      notes.length ? h("ul", { class: "bullets" }, notes.map((text) => h("li", {}, text))) : null));
+}
+
 function connectionsTab(record, ctx) {
   const sends = ctx.interfaces.filter((r) => r.source?.ref === record.ref);
   const receives = ctx.interfaces.filter((r) => r.target?.ref === record.ref);
   const add = (end, text) => (record.can?.edit ? button(text, { kind: "btn-sm", iconName: "plus", onclick: () =>
     editRecord("interface", { preset: { [end]: record.ref }, onDone: () => ctx.reload() }) }) : null);
   return h("div", { class: "stack-lg" },
+    impactCard(record, ctx),
     card({ title: `Sends data to ${plural(new Set(sends.map((r) => r.target?.ref)).size, "application")}`, actions: add("source_id", "It sends data"), flush: sends.length > 0 },
       sends.length ? interfaceTable(sends, ctx, { other: "target", heading: "To" })
         : h("p", { class: "muted" }, "No interface is recorded from it. An application that receives its data depends on it, and counts toward its value.")),
@@ -555,19 +587,20 @@ export function applicationPage(main, params, extraTabs = []) {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
         tab === "decisions" ? get(`${base}/decisions`, null, { fresh: true }) : null,
-        tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null]);
+        tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null,
+        tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
-        interfaces: joined?.data ?? [] };
+        interfaces: joined?.data ?? [], impact: impact?.data ?? null };
     },
     view: (data, reload) => {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
-      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces };
+      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces, impact: data.impact };
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord("application", { record, onDone: reload }) }) : null;
       const assessButton = record.can?.assess ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
       const decide = () => recordDecision(record, data.scores, data.vocab, reload);
@@ -767,8 +800,9 @@ export function recordPage(main, type, params) {
       document.title = `${record.name} · ${record.ref}`;
       const ctx = context(data, reload);
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord(type, { record, onDone: reload }) }) : null;
+      const picture = h("a", { class: "btn", href: `/graph/${record.ref}` }, "How it is connected");
       return h("div", { class: "stack" },
-        recordHeader(record, { badges: [statusPill(record.status)], actions: edit }),
+        recordHeader(record, { badges: [statusPill(record.status)], actions: h("div", { class: "row-sm" }, picture, edit) }),
         tabBar([["overview", "Overview"], ["history", "History"]], tab),
         tab === "history" ? card({ flush: true }, timeline(data.history)) : sharedOverview(type, record, ctx));
     },

@@ -15,6 +15,13 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **Data flows.** Landscape → Data flows follows a class of data between applications, and
   marks any interface that delivers a class the receiving application's record does not
   list.
+- **How a record is connected.** Every application, component, capability, technology,
+  vendor, and interface opens a picture of what it is joined to, with any neighbor opened a
+  ring further. It works from the keyboard, and a list beside it says everything the
+  picture does.
+- **What breaks if this goes.** An application's Connections part lists what depends on it,
+  directly and through those; the interfaces that would stop; the capabilities left with no
+  provider, or without their primary; and the people and units affected.
 
 ### Changed
 

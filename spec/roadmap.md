@@ -48,7 +48,7 @@ Detail: [waves/wave-1.md](waves/wave-1.md)
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
 | 1 | Interfaces and data flows | Interfaces with direction, method, frequency, owner, and data classes; the flow view for a data class | ☑ |
-| 2 | Dependency graph and impact | The focused graph around any record; *what breaks if this goes* | ☐ |
+| 2 | Dependency graph and impact | The focused graph around any record; *what breaks if this goes* | ☑ |
 | 3 | Deployments and hosting | Environments, hosting platforms, deployments of applications and components | ☐ |
 | 4 | Cost, funding, and contracts | Cost lines by category and funding source, contracts with renewal and notice dates, cost per user and license use as factors | ☐ |
 | 5 | Overlap and the capability heat map | Capabilities served more than once, side by side; the tree colored by any score | ☐ |

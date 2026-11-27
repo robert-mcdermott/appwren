@@ -9,7 +9,9 @@ from fastapi import APIRouter, Query, Request
 
 from appwren.access.policy import current
 from appwren.api.common import envelope, reading
-from appwren.landscape import interfaces
+from appwren.inventory import records
+from appwren.inventory.registry import APPLICATION, find_any
+from appwren.landscape import graph, interfaces
 
 router = APIRouter(prefix="/api/v1", tags=["landscape"])
 
@@ -25,3 +27,25 @@ def data_flows(
     principal = current(request)
     with reading(request) as session:
         return envelope(interfaces.flows(session, principal, data_class))
+
+
+@router.get("/graph/{ref}", summary="A record and what it is connected to, in groups")
+def graph_around(request: Request, ref: str) -> dict[str, Any]:
+    """The neighbors of any record, grouped by what joins them: dependencies, interfaces,
+    capabilities, components, technologies, and vendors. ``hidden`` counts those the reader
+    may not see."""
+    principal = current(request)
+    with reading(request) as session:
+        record_type, found = find_any(session, ref)
+        record = records.load(session, principal, record_type, found.ref)
+        return envelope(graph.around(session, principal, record_type, record))
+
+
+@router.get("/applications/{ref}/impact", summary="What breaks if an application goes")
+def application_impact(request: Request, ref: str) -> dict[str, Any]:
+    """What depends on it, directly and beyond; the interfaces that would stop; the
+    capabilities left with no provider, or without their primary; and the people affected."""
+    principal = current(request)
+    with reading(request) as session:
+        record = records.load(session, principal, APPLICATION, ref)
+        return envelope(graph.impact(session, principal, record))

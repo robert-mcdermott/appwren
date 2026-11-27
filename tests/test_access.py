@@ -320,6 +320,8 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("DELETE", "/api/v1/interfaces/{ref}/links/{link_id}"): EVERYONE,
     ("GET", "/api/v1/interfaces/{ref}/history"): EVERYONE,
     ("GET", "/api/v1/data-flows"): EVERYONE,
+    ("GET", "/api/v1/graph/{ref}"): EVERYONE,
+    ("GET", "/api/v1/applications/{ref}/impact"): EVERYONE,
     ("PUT", "/api/v1/technologies/{ref}/releases"): ARCHITECTS,
     ("GET", "/api/v1/questionnaire"): EVERYONE,
     ("GET", "/api/v1/scoring-model"): EVERYONE,

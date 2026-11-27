@@ -55,16 +55,18 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** interfaces are a record type like any other, so lists, filters, export, history, and optimistic concurrency came with the registry. The access rules now ask a record type which applications it belongs to, where they asked whether it was a component. The demo has 24 interfaces, one of them re-keyed by hand each morning and one delivering identifiable research data to dashboards whose record lists only financial data.
 
-## Slice 2: Dependency graph and impact ☐
+## Slice 2: Dependency graph and impact ☑
 
 **Goal:** the picture around any record, and an honest answer to *what breaks if this goes*.
 
-- [ ] One function that gathers a record's neighbors: links, interfaces, capabilities, components and their technologies, vendor, and (from slice 3) platforms; filtered by what the reader may see
-- [ ] `/graph/{ref}`: the focused picture, one ring out, with any neighbor opened a ring further; drawn as SVG, reachable and operable from the keyboard, with a list beside it that holds everything the picture does
-- [ ] **Impact** on the application: direct and transitive dependents, interfaces that stop, capabilities left with no active provider, users and units affected, and what it would leave orphaned
-- [ ] The keyboard check covers the picture
+- [x] One function that gathers a record's neighbors: links, interfaces, capabilities, components and their technologies, vendor, and succession; filtered by what the reader may see, with the rest counted. Later slices add platforms, contracts, and funding to it
+- [x] `/graph/{ref}`: the focused picture, one ring out, with any neighbor opened a ring further; drawn as SVG, reachable and operable from the keyboard, with a list beside it that holds everything the picture does
+- [x] **What breaks if this goes** on the application's Connections part: direct and transitive dependents, interfaces that stop, capabilities left with no active provider or without their primary, the people and units affected, and what its record says must outlive it
+- [x] The keyboard check covers the picture
 
-**Acceptance:** the list beside the picture always has as many records as the answer; nothing a reader may not see appears as a node, an edge, or a count; impact for the worked example names its three dependents and the capability it alone provides.
+**Acceptance (met):** the list beside the picture always has as many records as the answer, and the keyboard check holds it so; nothing a reader may not see appears as a node, a row, or a name, in the picture or in the impact, and is counted instead; a loop of dependencies ends; impact for the worked example names its three dependents and the capability it alone provides.
+
+**Done:** every kind of record has a picture, seen from its own side: an application's dependencies, flows, capabilities, parts, technologies, vendor, and what it replaced; a technology's components; a vendor's applications; a capability's providers. Impact follows the same rule the engine counts dependents by, ring by ring, and adds up the people who use anything it reaches as an upper bound.
 
 ## Slice 3: Deployments and hosting ☐
 
@@ -142,3 +144,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **Undeclared data is marked, not fixed.** An interface that carries a class its receiver's record does not list is a disagreement between two records, and AppWren cannot know which is wrong. It marks the interface and the flow, and says what it costs: the receiver's exposure is worked out from what its record lists.
 - **History names what an id points to.** A change to a vendor, a successor, or an owner was told as a number. Fields that hold another record or a person are now told by name, for every record type.
 - **A record's parts are few.** Interfaces, dependencies, and (next) impact share one part of the application's page, Connections, where a part each would have made eleven.
+- **Impact and the score follow one rule.** What depends on an application is worked out once: a recorded dependency, or receiving its data. The engine counts it for business value, and impact walks it outward, so the number in the working and the list on the page cannot disagree.
+- **People affected is an upper bound, and says so.** The users of an application and of everything that depends on it are added together; the same person may use several. The page says "up to".
