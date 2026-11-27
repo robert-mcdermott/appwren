@@ -238,6 +238,7 @@ def _portfolio(session: Session, principal: Principal, config: AssistantConfig) 
     from appwren.people import units
 
     names = {unit.id: unit.name for unit in units.all_units(session)}
+    sensitive = set(access.sensitive_fields(session))
     out = []
     for app in session.scalars(
         select(Application).where(Application.status == "active",
@@ -248,12 +249,17 @@ def _portfolio(session: Session, principal: Principal, config: AssistantConfig) 
             continue
         if any(rank.get(c, 3) > limit for c in app.data_classes or []):
             continue
+        hidden = set() if access.sees_sensitive(session, principal, app) else sensitive
         out.append({
             "ref": app.ref, "name": app.name, "summary": (app.summary or "")[:240],
             "unit": names.get(app.org_unit_id), "stage": labels["lifecycle"].get(app.lifecycle),
             "tier": labels["tiers"].get(app.tier or ""),
             "decision": labels["dispositions"].get(app.disposition or ""),
         })  # fmt: skip
+        for name, key in (("summary", "summary"), ("org_unit_id", "unit"), ("lifecycle", "stage"),
+                          ("tier", "tier"), ("disposition", "decision")):  # fmt: skip
+            if name in hidden:  # a field marked sensitive is not told (review, finding B)
+                out[-1].pop(key, None)
     return out
 
 

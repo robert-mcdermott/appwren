@@ -226,8 +226,10 @@ def principal_for(session: Session, row: ApiToken) -> Principal:
         account = session.get(Account, row.account_id)
         assert account is not None  # authenticate checked it
         person = accounts.principal_for(session, account)
-        return replace(person, token_id=row.id, name=f"{person.name} (token {row.prefix})",
-                       has_password=False)  # fmt: skip
+        # A token never administers, whoever's it is (review of wave 8, finding E).
+        grants = tuple(grant for grant in person.grants if grant.role != roles.ADMIN)
+        return replace(person, grants=grants, token_id=row.id,
+                       name=f"{person.name} (token {row.prefix})", has_password=False)  # fmt: skip
 
     grants = () if row.role == roles.MEMBER else (Grant(row.role, row.org_unit_id),)
     coverage: dict[str, frozenset[int] | None] = {}

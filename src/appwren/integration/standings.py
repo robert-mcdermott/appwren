@@ -97,6 +97,15 @@ def run_once(db: Database, _config: Any = None, fetch: Fetch = fetch_json) -> di
     counts = {"read": 0, "changed": 0, "failed": 0}
     for ref_id, system, value in rows:
         spec = readable[system]
+        if not value.strip(". ") or not value.isprintable():
+            # "." and ".." would climb the address's path, carrying the key elsewhere.
+            with db.write(READER) as session:
+                row = session.get(ExternalRef, ref_id)
+                if row is not None:
+                    row.standing_read_at = utc_now()
+                    row.standing_error = "The identifier cannot be used in an address."
+            counts["failed"] += 1
+            continue
         url = str(spec["standing_url"]).replace("{id}", quote(value, safe=""))
         headers = {"Accept": "application/json", "User-Agent": "AppWren"}
         key = os.environ.get(str(spec.get("key_env") or ""), "")

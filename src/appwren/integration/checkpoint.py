@@ -45,6 +45,13 @@ def check(
     if data_class is not None and data_class not in classes:
         raise Invalid("That is not a data class.",
                       {"data_class": f"Use one of: {', '.join(classes)}."})  # fmt: skip
+    # A field the program marks sensitive is not told to someone who may not see it, here
+    # any more than on the record (review of wave 8, finding B).
+    hidden = (
+        set()
+        if access.sees_sensitive(session, principal, app)
+        else set(access.sensitive_fields(session))
+    )
     stages = vocab.labels(session, "lifecycle")
     dispositions = vocab.labels(session, "dispositions")
     labels = vocab.labels(session, "data_classes")
@@ -55,8 +62,12 @@ def check(
 
     in_service = app.status == "active" and app.lifecycle in APPROVED_STAGES
     stage = stages.get(app.lifecycle, app.lifecycle)
-    reason("stage", in_service, f"Its lifecycle stage is {stage}" + (
-        "" if in_service else ", which is not open to new use"))  # fmt: skip
+    if "lifecycle" in hidden:
+        reason("stage", in_service, "Its lifecycle stage " + (
+            "is open to new use" if in_service else "is not open to new use"))  # fmt: skip
+    else:
+        reason("stage", in_service, f"Its lifecycle stage is {stage}" + (
+            "" if in_service else ", which is not open to new use"))  # fmt: skip
     if app.disposition:
         kept = app.disposition not in AGAINST
         said = dispositions.get(app.disposition, app.disposition).lower()
@@ -73,11 +84,16 @@ def check(
     approved = all(item["ok"] for item in reasons)
     answer: dict[str, Any] = {
         "ref": app.ref, "name": app.name if seen else None, "checked_on": today(),
-        "stage": app.lifecycle, "decision": app.disposition, "approved": approved,
-        "data_classes": list(app.data_classes or []),
+        "stage": None if "lifecycle" in hidden else app.lifecycle,
+        "decision": app.disposition, "approved": approved,
+        "data_classes": None if "data_classes" in hidden else list(app.data_classes or []),
         "flags": [flag["text"] for flag in scored["flags"] if flag["severity"] == "danger"],
     }  # fmt: skip
-    if data_class is not None:
+    if data_class is not None and "data_classes" in hidden:
+        # What data it handles is not this person's to know, so it is not answered.
+        reason("data_class", False, "What data it handles is not shown to you")
+        answer["asked_data_class"], answer["allowed"] = data_class, None
+    elif data_class is not None:
         handles = data_class in (app.data_classes or [])
         word = labels.get(data_class, data_class).lower()
         reason("data_class", handles, f"Its record says it handles {word}" if handles

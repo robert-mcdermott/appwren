@@ -8,6 +8,7 @@ kept in the history under their name, or dismisses it.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from sqlalchemy import select
@@ -21,6 +22,8 @@ from appwren.inventory import access, records
 from appwren.inventory.registry import APPLICATION
 
 MAX_PENDING = 50  # for one application at once
+MAX_MINE = 10  # from one person, or one token, on one application at once
+MAX_VALUE = 4000  # characters, as JSON: the longest field is a summary
 HEADER = {"name": "Name", "summary": "Summary"}
 
 
@@ -52,12 +55,21 @@ def propose(
     note = " ".join(str(values.get("note") or "").split())[:1000] or None
     if "value" not in values:
         errors["value"] = "Give the value to propose."
+    elif len(json.dumps(values.get("value"), default=str)) > MAX_VALUE:
+        errors["value"] = f"Keep a proposed value to {MAX_VALUE:,} characters."
     pending = session.scalars(
         select(Suggestion.id).where(Suggestion.application_id == app.id,
                                     Suggestion.status == "pending")
     ).all()  # fmt: skip
     if len(pending) >= MAX_PENDING:
         errors["field"] = "This application has as many waiting suggestions as it may hold."
+    mine = session.scalars(
+        select(Suggestion.id).where(Suggestion.application_id == app.id,
+                                    Suggestion.status == "pending",
+                                    Suggestion.source == principal.name[:200])
+    ).all()  # fmt: skip
+    if len(mine) >= MAX_MINE:
+        errors["field"] = f"You have {MAX_MINE} proposals waiting on it. Wait for an answer."
     if errors:
         raise Invalid("The suggestion was not made.", errors)
     row = Suggestion(
@@ -82,9 +94,18 @@ def view(row: Suggestion, labels: dict[str, str]) -> dict[str, Any]:
 def of_application(session: Session, principal: Principal, app: Application) -> dict[str, Any]:
     """What waits on the application, and the last few decided."""
     labels = _fields()
-    rows = session.scalars(
-        select(Suggestion).where(Suggestion.application_id == app.id).order_by(Suggestion.id.desc())
+    pending = session.scalars(
+        select(Suggestion)
+        .where(Suggestion.application_id == app.id, Suggestion.status == "pending")
+        .order_by(Suggestion.id.desc())
     ).all()
+    decided = session.scalars(
+        select(Suggestion)
+        .where(Suggestion.application_id == app.id, Suggestion.status != "pending")
+        .order_by(Suggestion.id.desc())
+        .limit(10)
+    ).all()
+    rows = [*pending, *decided]
     hidden = _withheld(session, principal, app)
     shown = [row for row in rows if row.field not in hidden]
     return {

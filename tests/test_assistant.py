@@ -108,3 +108,21 @@ def test_it_answers_from_what_the_person_may_see(
     assert kept[0]["purpose"] == "question" and kept[0]["asked_by"] == "Member Person"
     assert "What watches freezers?" in kept[0]["prompt"]
     assert member.get("/api/v1/assistant/exchanges").status_code == 403
+
+
+def test_a_sensitive_field_is_not_told_to_it(
+    helper: tuple[Callable[[str], TestClient], Model], db: Database, people: People
+) -> None:
+    """Review of wave 8, finding B: what the program marks sensitive stays out of the prompt."""
+    as_role, model = helper
+    admin = as_role("admin")
+    program = admin.get("/api/v1/program").json()["data"]
+    marked = [*program["sensitive_fields"], "tier"]
+    admin.put(
+        "/api/v1/program/fields", json={"fields": program["fields"], "sensitive_fields": marked}
+    )
+    add_app(db, people, name="Freezer Watch", unit="CANCER", tier="1", data_classes=["internal"])
+    model.answer = "Nothing to say."
+    as_role("member").post("/api/v1/assistant/ask", json={"question": "Which are critical?"})
+    told = model.asked[-1][1]["content"]
+    assert "Freezer Watch" in told and "Mission critical" not in told
