@@ -23,8 +23,19 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   the public endoflife.date dataset, for each technology with an end-of-life key, by the same
   rules as the import from a file: releases are added and dates updated, and nothing is
   removed.
+- **Source code hosting.** A connector for GitHub or a GitHub Enterprise server reads, for
+  each component whose repository is in one organization: its languages, when its code last
+  changed, how many people changed it over 90 days, its open dependency alerts by severity,
+  and whether it has a README, tests, continuous integration, automated dependency updates,
+  and a catalog file. An application whose every repository was read gets its maintainers
+  from those people. The facts are shown on the component and on its application's
+  Components part.
 - The history names the release whose dates changed, and shows the reason given for an
   override.
+
+### Fixed
+
+- A component's and a deployment's page named their application twice.
 
 ## 0.3.0 (2026-11-26)
 

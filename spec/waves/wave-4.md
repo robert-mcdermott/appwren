@@ -52,14 +52,14 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** with no connector switched on, no outbound connection is made; a connector reading a value writes it with its source, an override wins until removed, and a failed run leaves every value as it was.
 
-## Slice 2: Source code hosting ☐
+## Slice 2: Source code hosting ☑
 
 **Goal:** what the repositories know about each component.
 
-- [ ] A GitHub connector: a host (github.com or an enterprise address), an organization, a token with read access
-- [ ] For each component whose repository is on that host: its languages, its last change, its active contributors over 90 days, its open dependency alerts by severity, and whether it has a README, tests, continuous integration, dependency updates, and a catalog file
-- [ ] An application's maintainers from its components' contributors, sourced
-- [ ] Shown on the component's page and its application's Components part
+- [x] A GitHub connector: a host (github.com or an enterprise address), an organization, a token with read access
+- [x] For each component whose repository is on that host: its languages, its last change, its active contributors over 90 days, its open dependency alerts by severity, and whether it has a README, tests, continuous integration, dependency updates, and a catalog file
+- [x] An application's maintainers from its components' contributors, sourced
+- [x] Shown on the component's page and its application's Components part
 
 **Acceptance:** against a fake host inside the tests, each fact lands on the right component with its source; a repository the token cannot read is reported unmatched, and nothing else changes.
 
@@ -117,3 +117,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **CI tests each commit's files once.** The workflow ran every test on the push and again for the pull request, though spec/process.md said otherwise from wave 1. It now does what the process says: a pushed branch is tested, its pull request shows that result, a merge holding already-tested files and a tag start nothing, and a newer push stops the older run.
 - **A run reads first and writes after.** Reading a source takes as long as the source does, so the reading holds no lock on the database; only once all of it has succeeded is it written, in one transaction. A record removed in between is passed over.
 - **The demo's connector is switched off.** The demo has the end-of-life connector with three weeks of runs, one failed, and one date overridden, then switched off, so that a demo never reaches out to anything.
+- **An application's maintainers are counted only from all of its repositories.** The code-hosting connector sets an application's maintainers only when it read every repository the application's components name; from some of them the count would be too low. Where the host will not say whether a repository has dependency alerts (they are off, or the token may not read them), the alerts are not known, which is not the same as none.
+- **The demo's repositories keep its storylines.** Who changed each demo repository is drawn so that an application's maintainers come out as already recorded; nothing the earlier waves told moves.

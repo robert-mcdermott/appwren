@@ -221,6 +221,17 @@ EOL_LATEST = {
     ("postgres", "16"): "16.6", ("django", "4.2"): "4.2.17", ("django", "5.2"): "5.2.1",
 }  # fmt: skip
 
+# What a repository is written in, by the technologies its component is built on.
+LANGUAGE_OF = {
+    "python": ["Python"], "django": ["Python", "HTML"], "node": ["TypeScript", "JavaScript"],
+    "react": ["TypeScript", "CSS"], "angularjs": ["JavaScript", "HTML"], "java": ["Java"],
+    "spring": ["Java"], "php": ["PHP"], "dotnet": ["C#"], "r": ["R"], "shiny": ["R", "CSS"],
+    "matlab": ["MATLAB"], "nextflow": ["Nextflow"], "snakemake": ["Python"],
+}  # fmt: skip
+CODE_ORG = "bramblewood"
+# A repository the connector's token was never given: every run reports it.
+UNREADABLE = "Space Planning"
+
 # name, capability keys (the first is where it is primary, if any), sourcing, unit, tier,
 # users, maintainers, vendor, technologies [(tech, release)], health (good, fair, poor),
 # and anything else that makes it what it is.

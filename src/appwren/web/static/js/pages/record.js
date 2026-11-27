@@ -15,7 +15,7 @@ import { openWorking, scorecard, scoresTab, verdict } from "../components/scorec
 import { confirmationLine, confirmRecord } from "../components/confirmation.js";
 import { contestsCard } from "../components/contests.js";
 import { decisionsTab, recordDecision } from "../components/decision.js";
-import { byRelease, sourcedCard, sourcedMark } from "../components/sourced.js";
+import { byRelease, sourcedCard, sourcedMark, sourcedValue } from "../components/sourced.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
@@ -416,6 +416,7 @@ function applicationOverview(record, ctx) {
       record.successor || record.replaces?.length ? card({ title: "Succession" }, facts([
         ["Replaced by", record.successor ? recordChip(record.successor) : null],
         ["Replaces", record.replaces?.length ? h("div", { class: "chips" }, record.replaces.map((r) => recordChip(r))) : null]])) : null,
+      sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
       linksCard(record, ctx),
       externalCard(record, ctx)));
 }
@@ -606,11 +607,31 @@ function runsCard(record, ctx) {
 function componentsTab(record, ctx) {
   const add = record.can?.edit ? button("Add a component", { kind: "btn-sm", iconName: "plus", onclick: () =>
     editRecord("component", { preset: { application_id: record.ref }, onDone: () => ctx.reload() }) }) : null;
+  const code = Object.fromEntries((ctx.sourced?.components ?? []).map((c) => [c.ref, Object.fromEntries(c.values.map((v) => [v.field, v]))]));
+  const anyCode = Object.keys(code).length > 0;
+  const alerts = (v) => {
+    if (!v) return h("span", { class: "subtle" }, "Not known");
+    const counts = v.shown ?? {};
+    const open = Object.values(counts).reduce((sum, n) => sum + n, 0);
+    if (!open) return h("span", { class: "subtle" }, "None open");
+    return h("div", { class: "row-sm wrap" }, ["critical", "high"].filter((key) => counts[key]).map((key) => pill(`${counts[key]} ${key}`, key === "critical" ? "danger" : "warn")),
+      counts.medium || counts.low ? h("span", { class: "subtle" }, `${(counts.medium ?? 0) + (counts.low ?? 0)} lower`) : null);
+  };
+  const codeCell = (c) => {
+    const facts = code[c.ref];
+    if (!facts) return h("span", { class: "subtle" }, c.repo_url ? "Not read" : "No repository");
+    return h("div", { class: "stack-sm" }, h("span", {}, facts.languages ? sourcedValue(facts.languages) : "—"),
+      facts.last_change ? h("span", { class: "cell-sub" }, `Changed ${date(facts.last_change.shown)}`) : null,
+      facts.contributors ? h("span", { class: "cell-sub" }, `${plural(facts.contributors.shown, "person", "people")} in 90 days`) : null);
+  };
   return h("div", { class: "stack-lg" }, card({ title: plural(record.components.length, "component"), actions: add, flush: record.components.length > 0 },
     record.components.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
-      h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Component"), h("th", { scope: "col" }, "Kind"), h("th", { scope: "col" }, "Status"))),
+      h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Component"), h("th", { scope: "col" }, "Kind"),
+        anyCode ? [h("th", { scope: "col" }, "Code"), h("th", { scope: "col" }, "Dependency alerts")] : null, h("th", { scope: "col" }, "Status"))),
       h("tbody", {}, record.components.map((c) => h("tr", {},
-        h("td", {}, recordChip(c)), h("td", {}, label(ctx.vocab, "component_kinds", c.kind)), h("td", {}, statusPill(c.status)))))))
+        h("td", {}, recordChip(c)), h("td", {}, label(ctx.vocab, "component_kinds", c.kind)),
+        anyCode ? [h("td", {}, codeCell(c)), h("td", {}, code[c.ref] ? alerts(code[c.ref].dependency_alerts) : h("span", { class: "subtle" }, "—"))] : null,
+        h("td", {}, statusPill(c.status)))))))
       : h("p", { class: "muted" }, "No components recorded. A service, a database, a batch job, or a report that is built, bought, or kept on its own is a component; its technologies are recorded on it.")),
   runsCard(record, ctx));
 }
@@ -1014,9 +1035,6 @@ function sharedOverview(type, record, ctx) {
         : h("p", { class: "muted" }, "Nothing is recorded as running here. A deployment is added from its application's Components part.")));
     glance.push(["Provider", record.vendor ? recordChip(record.vendor) : "Ourselves"]);
   }
-  if (type === "deployment") {
-    glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
-  }
   if (type === "interface") {
     const missing = record.undeclared ?? [];
     main.push(card({ title: "What passes" },
@@ -1029,7 +1047,6 @@ function sharedOverview(type, record, ctx) {
           missing.map((key) => label(ctx.vocab, "data_classes", key).toLowerCase()).join(", "),
           ". Either this interface carries less than is recorded here, or that record needs the class added: its exposure is worked out from what it lists.")) : null)));
   }
-  if (type === "component") glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
   main.push(linksCard(record, ctx));
   return h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
     h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)),

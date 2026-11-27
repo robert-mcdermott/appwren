@@ -91,7 +91,7 @@ function restore(item, { ref, release, reload }) {
   });
 }
 
-function entry(item, { canEdit, ...where }) {
+function entry(item, { canEdit, quiet = false, ...where }) {
   const what = where.release ? `${item.label.toLowerCase()} of ${where.release}` : item.label.toLowerCase();
   const actions = canEdit ? h("div", { class: "row-sm" }, item.overridden
     ? button("Use the source's value", { kind: "btn-sm btn-ghost", "aria-label": `Use the source's value for ${what}`, onclick: () => restore(item, where) })
@@ -99,7 +99,7 @@ function entry(item, { canEdit, ...where }) {
   const note = item.overridden
     ? h("div", { class: "cell-sub" }, `Overridden by ${item.override_by ?? "a change by hand"}: ${item.override_reason}. ${item.source_name} says `,
       sourcedValue(item, item.value), ".")
-    : h("div", { class: "cell-sub" }, `From ${item.source_name}, read ${relative(item.read_at)}`);
+    : quiet ? null : h("div", { class: "cell-sub" }, `From ${item.source_name}, read ${relative(item.read_at)}`);
   return [h("dt", {}, where.release ? `${where.release} · ${item.label}` : item.label),
     h("dd", {}, h("div", { class: "row-sm wrap" }, h("span", {}, sourcedValue(item)), item.overridden ? pill("Overridden", "warn") : null), note, actions)];
 }
@@ -110,16 +110,18 @@ export function sourcedCard(ref, sourced, { canEdit = false, reload }) {
   const all = [...(sourced?.values ?? []).map((item) => [item, null]),
     ...(sourced?.releases ?? []).flatMap((release) => release.values.map((item) => [item, release.cycle]))];
   if (!all.length) return null;
-  const list = (items) => h("dl", { class: "dl dl-stacked" }, items.map(([item, release]) => entry(item, { ref, release, canEdit, reload })));
+  const named = [...new Set(all.map(([item]) => item.source_name))];
+  const sources = named.join(", ");
+  // With one source, the line above the list says where every value came from.
+  const list = (items) => h("dl", { class: "dl dl-stacked" }, items.map(([item, release]) => entry(item, { ref, release, canEdit, reload, quiet: named.length === 1 })));
   const overridden = all.filter(([item]) => item.overridden);
   const holding = all.filter(([item]) => !item.overridden);
-  const sources = [...new Set(all.map(([item]) => item.source_name))].join(", ");
   const latest = all.map(([item]) => item.read_at).sort().at(-1);
   return card({ title: "From other systems" },
     h("div", { class: "stack" },
       h("p", { class: "subtle" }, `${all.length === 1 ? "One value" : `${all.length} values`} from ${sources}, last read ${relative(latest)}. A connector only reads; an override wins until it is removed.`),
       overridden.length ? list(overridden) : null,
-      holding.length > 4 ? h("details", {}, h("summary", {}, overridden.length ? `The other ${holding.length}` : `All ${holding.length}`), list(holding))
+      holding.length > 10 ? h("details", {}, h("summary", {}, overridden.length ? `The other ${holding.length}` : `All ${holding.length}`), list(holding))
         : holding.length ? list(holding) : null));
 }
 

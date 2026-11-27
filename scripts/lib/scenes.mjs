@@ -130,6 +130,8 @@ export const SCENES = [
   { name: "connectors", as: "admin", path: "/admin/connectors" },
   { name: "connector-add", as: "admin", path: "/admin/connectors", step: press("Add a connector: End-of-life data") },
   { name: "technology-sourced", as: "architect", path: record("technologies", "Ubuntu") },
+  { name: "application-code", as: "res_steward", path: app("Freezer Watch", "components") },
+  { name: "component-code", as: "res_steward", path: record("components", "Freezer Watch application") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

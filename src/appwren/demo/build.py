@@ -1392,6 +1392,139 @@ class Builder:
         with self.db.read() as session:
             self.tally("connector runs", len(session.scalars(select(ConnectorRun.id)).all()))
 
+    def code(self) -> None:
+        """The code-hosting connector: the repositories of what is built here, read daily for
+        two weeks. Who changed each repository is drawn so that an application's maintainers
+        come out as already recorded, and its storyline stays as it was."""
+        from appwren import connectors
+        from appwren.connectors.kinds import codehost as gh
+        from appwren.db.models import Application, Component, ComponentTechnology, Technology
+        from appwren.events.actor import Actor
+
+        r = random.Random(self.seed * 104729 + 4)  # wave 4's own draws
+        admin = self.principal(self.cast["admin"])
+        keys = {ref: key for key, (ref, _) in self.techs.items()}
+        stories = {spec[0]: spec[10].get("story") for spec in c.APPLICATIONS}
+        start = self.end - timedelta(days=14, hours=6)
+        plan: list[tuple[int, str, dict[str, Any]]] = []  # component id, its repository, facts
+        apps: dict[int, int] = {}
+        with clock_set_to(lambda: start), self.db.write(ME.actor) as session:
+            rows = session.scalars(
+                select(Application)
+                .where(
+                    Application.status == "active",
+                    Application.sourcing.in_(("built_here", "research_software")),
+                    Application.lifecycle.not_in(("retired", "retiring")),
+                    Application.maintainers > 0,
+                )
+                .order_by(Application.ref)
+            ).all()
+            for app in rows:
+                health = self.health.get(app.ref, "fair")
+                story = stories.get(app.name)
+                pool = [f"{app.ref.lower()}-dev{n}" for n in range(app.maintainers or 1)]
+                parts_of = session.scalars(
+                    select(Component)
+                    .where(Component.application_id == app.id, Component.kind == "service")
+                    .order_by(Component.ref)
+                ).all()
+                built: list[tuple[Any, list[str]]] = []
+                for part in parts_of:
+                    techs = session.scalars(
+                        select(Technology.ref)
+                        .join(
+                            ComponentTechnology, ComponentTechnology.technology_id == Technology.id
+                        )
+                        .where(ComponentTechnology.component_id == part.id)
+                    ).all()
+                    languages: list[str] = []
+                    for ref in techs:
+                        for word in c.LANGUAGE_OF.get(keys.get(ref, ""), []):
+                            if word not in languages:
+                                languages.append(word)
+                    if languages:  # a desktop database has no repository
+                        built.append((part, languages))
+                if not built:
+                    continue
+                apps[app.id] = len(pool)
+                for index, (part, languages) in enumerate(built):
+                    slug = "-".join(_ascii(part.name).lower().replace("'", "").split())
+                    repo = f"https://github.com/{c.CODE_ORG}/{slug}"
+                    records.update(session, ME, COMPONENT, part, {"repo_url": repo},
+                                   version=part.version)  # fmt: skip
+                    # Every maintainer changed one repository or another; the first takes
+                    # whoever is left over, so that together they are the recorded count.
+                    who = pool if index == 0 else r.sample(pool, r.randint(1, len(pool)))
+                    ago = {"good": (1, 12), "fair": (15, 60), "poor": (60, 85)}[health]
+                    alerts = _alerts(r, health)
+                    chance = {"good": 0.9, "fair": 0.5, "poor": 0.15}[health]
+                    facts = {
+                        gh.LANGUAGES: languages,
+                        gh.LAST_CHANGE: self.day(-r.randint(*ago)).isoformat(),
+                        gh.CONTRIBUTORS: len(who),
+                        gh.ALERTS: alerts,
+                        gh.README: health != "poor" or r.random() < 0.5,
+                        gh.TESTS: r.random() < chance,
+                        gh.CI: r.random() < chance + 0.05,
+                        gh.UPDATES: r.random() < chance - 0.2,
+                        gh.CATALOG: health == "good" and r.random() < 0.4,
+                    }
+                    if story == "single_maintainer":
+                        facts[gh.TESTS] = facts[gh.CI] = facts[gh.UPDATES] = False
+                    plan.append((part.id, repo, {"who": set(who), "facts": facts,
+                                                 "app": app.id, "name": part.name}))  # fmt: skip
+        hidden = {item[0] for item in plan if item[2]["name"].startswith(c.UNREADABLE)}
+        with clock_set_to(lambda: start), self.db.write(admin.actor) as session:
+            row = connectors.add(session, admin, {
+                "key": "github", "kind": "codehost", "name": "GitHub",
+                "settings": {"host_url": "https://github.com", "organization": c.CODE_ORG},
+            })  # fmt: skip
+            connectors.change(session, admin, row, {"enabled": True})
+            connector_id = row.id
+        actor = Actor.system("Connector: GitHub")
+        missed = [
+            {"what": f"{item[2]['name']} ({item[1].split('github.com/')[1]})",
+             "why": "the token cannot read this repository, or it does not exist"}
+            for item in plan if item[0] in hidden
+        ]  # fmt: skip
+        for days in range(14, 0, -1):
+            at = self.end - timedelta(days=days, hours=6, minutes=30)
+            counts = {"asked": 0, "read": 0, "changed": 0, "unchanged": 0, "kept": 0,
+                      "unmatched": len(missed)}  # fmt: skip
+            with clock_set_to(lambda at=at: at), self.db.write(actor) as session:
+                people: dict[int, set[str]] = {}
+                broken: set[int] = set()
+                for component_id, _, item in plan:
+                    counts["asked"] += 1
+                    if component_id in hidden:
+                        broken.add(item["app"])
+                        continue
+                    counts["asked"] += 5
+                    part = session.get(Component, component_id)
+                    for spec, value in item["facts"].items():
+                        self._put(session, counts, part, spec, value, at)
+                    people.setdefault(item["app"], set()).update(item["who"])
+                for app_id, count in apps.items():
+                    if app_id not in broken and app_id in people:
+                        app = session.get(Application, app_id)
+                        self._put(session, counts, app, gh.MAINTAINERS, count, at)
+            self._ran(connector_id, at, "ok", counts, None, missed)
+        with clock_set_to(lambda: self.end), self.db.write(admin.actor) as session:
+            connectors.change(session, admin, connectors.load(session, "github"),
+                              {"enabled": False})  # fmt: skip
+
+    @staticmethod
+    def _put(
+        session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
+        at: datetime,
+    ) -> None:  # fmt: skip
+        from appwren.connectors import sourced
+
+        outcome = sourced.write(session, source="github", source_name="GitHub", record=record,
+                                spec=spec, value=value, read_at=at)  # fmt: skip
+        counts["read"] += 1
+        counts[outcome] += 1
+
     def _ran(
         self, connector_id: int, at: datetime, status: str, counts: dict[str, int],
         error: str | None, unmatched: list[dict[str, str]],
@@ -1417,6 +1550,7 @@ class Builder:
         self.run()
         self.remind()
         self.sources()
+        self.code()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:
@@ -1435,6 +1569,17 @@ class Builder:
                 },
             )
         return Summary(self.seed, self.end.date(), dict(sorted(self.counts.items())), self.sample)
+
+
+def _alerts(r: random.Random, health: str) -> dict[str, int]:
+    """Open dependency alerts by severity: few where the code is kept, many where it is not."""
+    if health == "good":
+        return {"critical": 0, "high": 0, "medium": r.randint(0, 1), "low": r.randint(0, 2)}
+    if health == "fair":
+        return {"critical": 0, "high": r.randint(0, 2), "medium": r.randint(1, 4),
+                "low": r.randint(0, 3)}  # fmt: skip
+    return {"critical": r.randint(1, 3), "high": r.randint(2, 6), "medium": r.randint(2, 6),
+            "low": r.randint(1, 4)}  # fmt: skip
 
 
 def build(db: Database, *, seed: int = 1, today: date | None = None) -> Summary:

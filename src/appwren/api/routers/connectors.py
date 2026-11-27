@@ -130,6 +130,8 @@ def sourced_values(request: Request, ref: str) -> dict[str, Any]:
         }
         if record_type.key == "technology":
             found["releases"] = sourced.of_technology(session, principal, record)
+        if record_type.key == "application":
+            found["components"] = sourced.of_components(session, principal, record)
         return envelope(found)
 
 

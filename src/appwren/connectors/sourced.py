@@ -47,6 +47,12 @@ def field(record_type: str, name: str, label: str, kind: str, *, column: bool = 
     return spec
 
 
+def _order(record_type: str, name: str) -> int:
+    """Where a field comes among those a source supplies: in the order its kind gives them."""
+    keys = list(FIELDS)
+    return keys.index((record_type, name)) if (record_type, name) in FIELDS else len(keys)
+
+
 def spec_for(record_type: str, name: str) -> Field | None:
     """The field a source may supply, once every kind has said which it supplies."""
     import appwren.connectors.kinds  # noqa: F401
@@ -120,6 +126,7 @@ def write(
     value = clean(spec, value)
     read_at = read_at or utc_now()
     row = _row(session, spec, record.id)
+    before = row.value if row is not None else None
     if row is None:
         row = FactValue(record_type=spec.record_type, record_id=record.id, field=spec.name,
                         source=source, source_name=source_name, read_at=read_at,
@@ -137,7 +144,7 @@ def write(
     if row.overridden:
         return "kept"
     if not spec.column:
-        return "changed" if not _same(spec, row.value, value) else "unchanged"
+        return "unchanged" if _same(spec, before, value) else "changed"
     current = getattr(record, spec.name)
     if _same(spec, current, value):
         return "unchanged"
@@ -240,7 +247,33 @@ def of_record(
         if spec is None or row.field in hidden:
             continue
         out.append(view(row, spec))
-    return out
+    return sorted(out, key=lambda item: _order(record_type, item["field"]))
+
+
+def of_components(session: Session, principal: Principal, record: Any) -> list[dict[str, Any]]:
+    """An application's components, each with what sources supply for it."""
+    from appwren.db.models import Component
+
+    components = session.scalars(
+        select(Component).where(Component.application_id == record.id).order_by(Component.name)
+    ).all()
+    found = {component.id: component.ref for component in components}
+    out: dict[str, list[dict[str, Any]]] = {}
+    if not found:
+        return []
+    for row in session.scalars(
+        select(FactValue)
+        .where(FactValue.record_type == "component", FactValue.record_id.in_(found))
+        .order_by(FactValue.field)
+    ):
+        spec = spec_for("component", row.field)
+        if spec is not None:
+            out.setdefault(found[row.record_id], []).append(view(row, spec))
+    return [
+        {"ref": ref,
+         "values": sorted(values, key=lambda item: _order("component", item["field"]))}
+        for ref, values in out.items()
+    ]  # fmt: skip
 
 
 def forget(session: Session, record_type: str, record_id: int) -> None:
@@ -272,7 +305,11 @@ def of_technology(session: Session, principal: Principal, record: Any) -> list[d
         spec = spec_for("technology_release", row.field)
         if spec is not None:
             out.setdefault(found[row.record_id], []).append(view(row, spec))
-    return [{"cycle": cycle, "values": values} for cycle, values in sorted(out.items())]
+    return [
+        {"cycle": cycle,
+         "values": sorted(values, key=lambda item: _order("technology_release", item["field"]))}
+        for cycle, values in sorted(out.items())
+    ]  # fmt: skip
 
 
 def values(

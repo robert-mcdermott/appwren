@@ -344,3 +344,148 @@ def test_the_scheduler_runs_connectors(instance: Any, people: People, source: So
     assert result is not None
     assert result["status"] == "ok" and result["counts"]["connectors_run"] == 1
     assert sourced.FIELDS[("technology_release", "support_ends")] is endoflife.ENDS
+
+
+# --- Source code hosting (slice 2) --------------------------------------------------------------
+
+COMMITS = [
+    {"author": {"login": "Ana"}, "commit": {"author": {"email": "ana@lab.test"}}},
+    {"author": {"login": "ana"}, "commit": {"author": {"email": "ana@lab.test"}}},
+    {"author": None, "commit": {"author": {"email": "bo@lab.test"}}},
+    {"author": {"login": "dependabot[bot]"}, "commit": {"author": {"email": "bot@x.test"}}},
+]
+GITHUB = {
+    "/orgs/lab": {"login": "lab"},
+    "/repos/lab/tracker": {"pushed_at": "2026-11-20T10:00:00Z"},
+    "/repos/lab/tracker/languages": {"JavaScript": 1200, "Python": 5000},
+    "/repos/lab/tracker/commits": COMMITS,
+    "/repos/lab/tracker/dependabot/alerts": [
+        {"security_advisory": {"severity": "critical"}},
+        {"security_advisory": {"severity": "high"}},
+        {"security_advisory": {"severity": "high"}},
+    ],
+    "/repos/lab/tracker/contents": [{"name": "README.md"}, {"name": "tests"},
+                                    {"name": ".github"}, {"name": "catalog-info.yaml"}],
+    "/repos/lab/tracker/contents/.github": [{"name": "workflows"}, {"name": "dependabot.yml"}],
+    "/repos/lab/tracker-ui": {"pushed_at": "2026-10-01T08:00:00Z"},
+    "/repos/lab/tracker-ui/languages": {"TypeScript": 900},
+    "/repos/lab/tracker-ui/commits": [{"author": {"login": "cy"}, "commit": {}}],
+    "/repos/lab/tracker-ui/dependabot/alerts": httpx.Response(403),
+    "/repos/lab/tracker-ui/contents": [{"name": "src"}],
+    "/repos/lab/other": {"pushed_at": "2025-01-01T00:00:00Z"},
+    "/repos/lab/other/languages": {"R": 10},
+    "/repos/lab/other/commits": [],
+    "/repos/lab/other/contents": [{"name": "readme"}],
+}  # fmt: skip
+
+
+def component(db: Database, people: People, app: str, name: str, repo: str | None) -> str:
+    from appwren.inventory.registry import COMPONENT
+
+    steward = who(db, people, "steward")
+    with db.write(steward.actor) as session:
+        return records.create(session, steward, COMPONENT, {
+            "name": name, "application_id": app, "kind": "service", "repo_url": repo,
+        }).ref  # fmt: skip
+
+
+def facts(db: Database, record_type: str, ref: str) -> dict[str, Any]:
+    from appwren.inventory.registry import TYPES
+
+    with db.read() as session:
+        record = records.load(session, ME, TYPES[record_type], ref)
+        return {
+            row.field: row.value
+            for row in session.scalars(
+                select(FactValue).where(
+                    FactValue.record_type == record_type, FactValue.record_id == record.id
+                )
+            )
+        }
+
+
+def test_what_the_repositories_know(
+    as_role: Clients, db: Database, people: People, source: Source,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:  # fmt: skip
+    from tests.test_inventory import add_app
+
+    source.answers.update(GITHUB)
+    tracker = add_app(db, people, name="Tracker", maintainers=1)
+    api = component(db, people, tracker, "Tracker API", "https://github.com/Lab/tracker.git")
+    ui = component(db, people, tracker, "Tracker UI", "https://github.com/lab/tracker-ui")
+    other = add_app(db, people, name="Other", maintainers=4)
+    component(db, people, other, "Other app", "https://github.com/lab/other")
+    component(db, people, other, "Other secret", "https://github.com/lab/secret")
+    component(db, people, other, "Elsewhere", "https://gitlab.example.org/lab/x")
+    component(db, people, other, "Another org", "https://github.com/someone-else/x")
+    admin = who(db, people, "admin")
+    with db.write(admin.actor) as session:
+        row = connectors.add(session, admin, {"key": "github", "kind": "codehost", "name": "GitHub",
+                                              "settings": {"organization": "lab"}})  # fmt: skip
+        assert row.credential_env == "APPWREN_GITHUB_TOKEN"
+        connectors.change(session, admin, row, {"enabled": True})
+    monkeypatch.setenv("APPWREN_GITHUB_TOKEN", "read-only")
+    assert as_role("admin").post("/api/v1/connectors/github/check").json()["data"]["said"] == (
+        "lab answers. 4 components have a repository there."
+    )
+    done = connectors.run(db, "github")
+    assert done["status"] == "ok", done
+    # Nine facts of the API, eight of each other repository whose alerts are not known, and
+    # Tracker's maintainers: all of them new.
+    assert done["counts"]["changed"] == done["counts"]["read"] == 9 + 8 + 8 + 1
+    assert done["unmatched"] == [{"what": "Other secret (lab/secret)",
+                                  "why": "the token cannot read this repository, or it does not "
+                                         "exist"}]  # fmt: skip
+    asked = set(source.paths)
+    assert "/repos/someone-else/x" not in asked and not any("gitlab" in p for p in asked)
+    assert all(r.headers["Authorization"] == "Bearer read-only" for r in source.asked)
+    assert facts(db, "component", api) == {
+        "languages": ["Python", "JavaScript"], "last_change": "2026-11-20", "contributors": 2,
+        "dependency_alerts": {"critical": 1, "high": 2, "medium": 0, "low": 0},
+        "has_readme": True, "has_tests": True, "has_ci": True, "has_dependency_updates": True,
+        "has_catalog_file": True,
+    }  # fmt: skip
+    ui_facts = facts(db, "component", ui)
+    assert "dependency_alerts" not in ui_facts  # the host would not say: not known, not none
+    assert ui_facts["has_readme"] is False and ui_facts["contributors"] == 1
+    # Tracker's repositories were all read: its maintainers are the three people who changed
+    # them. Other's were not, so its own count stands.
+    with db.read() as session:
+        from appwren.inventory.registry import APPLICATION
+
+        assert records.load(session, ME, APPLICATION, tracker).maintainers == 3
+        assert records.load(session, ME, APPLICATION, other).maintainers == 4
+    shown = as_role("member").get(f"/api/v1/sourced/{api}").json()["data"]["values"]
+    assert {item["field"]: item["source_name"] for item in shown}["languages"] == "GitHub"
+    # A second run changes nothing.
+    again = connectors.run(db, "github")
+    assert (
+        again["counts"]["changed"] == 0 and again["counts"]["unchanged"] == again["counts"]["read"]
+    )
+
+
+def test_a_component_value_has_no_field_of_its_own_to_override_by_hand(
+    as_role: Clients, db: Database, people: People, source: Source,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:  # fmt: skip
+    from tests.test_inventory import add_app
+
+    source.answers.update(GITHUB)
+    tracker = add_app(db, people, name="Tracker")
+    api = component(db, people, tracker, "Tracker API", "https://github.com/lab/tracker")
+    admin = who(db, people, "admin")
+    with db.write(admin.actor) as session:
+        row = connectors.add(session, admin, {"key": "github", "kind": "codehost", "name": "GitHub",
+                                              "settings": {"organization": "lab"}})  # fmt: skip
+        connectors.change(session, admin, row, {"enabled": True})
+    monkeypatch.setenv("APPWREN_GITHUB_TOKEN", "read-only")
+    connectors.run(db, "github")
+    url = f"/api/v1/sourced/{api}/has_tests/override"
+    steward = as_role("steward")
+    said = steward.post(url, json={"value": False, "reason": "Those are fixtures, not tests"})
+    assert said.status_code == 200, said.text
+    assert connectors.run(db, "github")["counts"]["kept"] == 1
+    shown = {v["field"]: v for v in steward.get(f"/api/v1/sourced/{api}").json()["data"]["values"]}
+    assert shown["has_tests"]["shown"] is False and shown["has_tests"]["value"] is True
+    assert as_role("member").post(url, json={"value": True, "reason": "x"}).status_code == 403
