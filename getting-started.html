@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" data-palette="wren">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · AppWren</title>
+<meta name="description" content="This guide takes you from nothing to a running AppWren that your organization can sign in to. It is for whoever installs it and sets it up. Allow about fifteen minutes.">
+<meta property="og:title" content="Getting started">
+<meta property="og:description" content="This guide takes you from nothing to a running AppWren that your organization can sign in to. It is for whoever installs it and sets it up. Allow about fifteen minutes.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://robert-mcdermott.github.io/appwren/img/portfolio-chart-light.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/wren-mark.svg">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/theme.js"></script>
+<script src="assets/site.js" defer></script>
+</head>
+<body class="page-getting-started">
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <button class="menu-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
+  <a class="brand" href="index.html"><img src="assets/wren-mark.svg" alt="" width="26" height="26"><span>AppWren</span><span class="version">v0.2.0</span></a>
+  <div class="search" role="search">
+    <input id="search" type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" role="listbox" aria-label="Search results" hidden></div>
+  </div>
+  <div class="theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-choice="light" aria-label="Light theme" title="Light">☀</button><button type="button" data-theme-choice="system" aria-label="Follow the system theme" title="System">◐</button><button type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">☾</button>
+  </div>
+  <a class="github" href="https://github.com/robert-mcdermott/appwren" rel="noopener">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="menu" id="menu" aria-label="Documentation"><div class="menu-group"><div class="menu-title">Start</div><ul><li><a href="index.html">Overview</a></li><li><a href="getting-started.html" aria-current="page">Getting started</a></li></ul></div><div class="menu-group"><div class="menu-title">Use</div><ul><li><a href="the-portfolio.html">The portfolio</a></li><li><a href="the-landscape.html">The landscape</a></li><li><a href="running-the-program.html">Running the program</a></li></ul></div><div class="menu-group"><div class="menu-title">Run</div><ul><li><a href="configuration.html">Configuration</a></li></ul></div><div class="menu-group"><div class="menu-title">Reference</div><ul><li><a href="api.html">The API</a></li><li><a href="api-reference.html">API reference</a></li><li><a href="cli.html">Command reference</a></li><li><a href="changelog.html">Changelog</a></li></ul></div></nav>
+  <main id="content" class="content">
+<h1 id="getting-started">Getting started</h1>
+<p>This guide takes you from nothing to a running AppWren that your organization can sign in to. It is for whoever installs it and sets it up. Allow about fifteen minutes.</p>
+<p>If you only want to look around first, skip to <a href="#explore-the-demo-organization">Explore the demo organization</a>.</p>
+<h2 id="what-you-need">What you need<a class="anchor" href="#what-you-need" aria-label="Link to this section">#</a></h2>
+<ul><li><a href="https://docs.astral.sh/uv/" rel="noopener">uv</a>, which provides the right Python (3.12 or later).</li><li>A copy of this repository.</li></ul>
+<p>Every command in these guides is run through <code>uv run appwren …</code> from the repository directory. The full list is in the <a href="cli.html">command reference</a>.</p>
+<h2 id="install">Install<a class="anchor" href="#install" aria-label="Link to this section">#</a></h2>
+<div class="code"><pre><code class="language-bash">uv sync</code></pre></div>
+<h2 id="set-up-the-installation">Set up the installation<a class="anchor" href="#set-up-the-installation" aria-label="Link to this section">#</a></h2>
+<div class="code"><pre><code class="language-bash">uv run appwren init</code></pre></div>
+<p><code>init</code> does five things:</p>
+<ol><li>Writes <code>appwren.toml</code>, the deployment settings, in the current directory.</li><li>Creates the data home, <code>./var</code>, which holds everything that is not in the database.</li><li>Creates the database. With no other setting, this is a SQLite file inside the data home.</li><li>Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, interface methods, environments, cost categories, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.</li><li>Asks for your email address, your name, and a password, and creates the first administrator.</li></ol>
+<p>The password needs at least 12 characters. Length matters more than symbols: a few unrelated words make a good one.</p>
+<p><code>init</code> is safe to run again. It leaves an existing configuration file alone, adds only what is missing from the program, and creates an administrator only if there is none.</p>
+<p>To set up without being asked anything, name the administrator and pipe the password in:</p>
+<div class="code"><pre><code class="language-bash">printf '%s' &quot;$ADMIN_PASSWORD&quot; | uv run appwren init \
+  --admin-email you@example.org --admin-name &quot;Your Name&quot; --password-stdin</code></pre></div>
+<h2 id="check-it">Check it<a class="anchor" href="#check-it" aria-label="Link to this section">#</a></h2>
+<div class="code"><pre><code class="language-bash">uv run appwren doctor</code></pre></div>
+<p><code>doctor</code> checks the configuration, the data home, that the database answers, that its schema is the one this version expects, that the database still refuses changes to the history, and that the history verifies. It exits with 1 if anything must be fixed.</p>
+<h2 id="run-it">Run it<a class="anchor" href="#run-it" aria-label="Link to this section">#</a></h2>
+<div class="code"><pre><code class="language-bash">uv run appwren serve</code></pre></div>
+<p>The server prints its address, by default <code>http://127.0.0.1:8000</code>. Use <code>--port</code> to pick another port.</p>
+<p><code>serve</code> refuses to start in three cases, and says what to do in each:</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table><thead><tr><th scope="col">It says</th><th scope="col">Do this</th></tr></thead><tbody><tr><td>The database schema is behind</td><td><code>uv run appwren db upgrade</code></td></tr><tr><td>There is no administrator yet</td><td><code>uv run appwren users add you@example.org --name &quot;Your Name&quot; --role admin</code></td></tr><tr><td>The port is already in use</td><td>Stop what is using it, or pass <code>--port</code></td></tr></tbody></table></div>
+<p>As installed, AppWren listens only on the machine it runs on. To put it in front of other people, read <a href="configuration.html">Configuration</a> first.</p>
+<h2 id="sign-in-for-the-first-time">Sign in for the first time<a class="anchor" href="#sign-in-for-the-first-time" aria-label="Link to this section">#</a></h2>
+<p>Open the address in a browser and sign in with the email address and password you gave <code>init</code>.</p>
+<p>AppWren signs in with local accounts: an email address and a password that it keeps. Nothing else has to be installed or connected. Signing in with your organization's identity provider, such as Microsoft Entra ID, is optional and can be added at any time: see <a href="configuration.html#single-sign-on">Single sign-on</a>.</p>
+<ul><li>Five failed attempts within fifteen minutes stop sign-in for that account from that address for a few minutes.</li><li>A sign-in ends after 12 hours without activity, and after 7 days in any case. Both are <a href="configuration.html#server">settings</a>.</li><li>To change your password, open the account menu at the top right and choose <strong>Your account</strong>. Changing it signs out your other sessions.</li><li>If you cannot sign in at all, reset the password from the command line: <code>uv run appwren users reset-password you@example.org</code>.</li></ul>
+<h2 id="set-up-the-organization">Set up the organization<a class="anchor" href="#set-up-the-organization" aria-label="Link to this section">#</a></h2>
+<p>The administrator account sets the installation up. It does not keep applications or record decisions: that belongs to the roles below, and an administrator who also does that work is given a second role.</p>
+<h3 id="units">Units<a class="anchor" href="#units" aria-label="Link to this section">#</a></h3>
+<p><strong>Admin → Units</strong> holds the organization as a hierarchy of any depth: divisions, departments, centers, core facilities, labs, clinics, offices, and teams. Every application belongs to a unit, roles can be limited to a unit and everything beneath it, and figures roll up the tree. Give each unit a short code; imports refer to units by it.</p>
+<h3 id="people-and-roles">People and roles<a class="anchor" href="#people-and-roles" aria-label="Link to this section">#</a></h3>
+<p><strong>Admin → People</strong> adds accounts and gives them roles. A person with no role is a member: they can read the catalog, and they keep the applications they are named on.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table><thead><tr><th scope="col">Role</th><th scope="col">What it is for</th></tr></thead><tbody><tr><td><strong>Manager</strong></td><td>The portfolio team. Edits any application, records decisions, takes snapshots, and shapes the program. Can be limited to a unit</td></tr><tr><td><strong>Architect</strong></td><td>Keeps the records the whole organization shares (capabilities, technologies, vendors, hosting platforms, and funding sources) and assesses applications. Can be limited to a unit</td></tr><tr><td><strong>Leader</strong></td><td>Leads a unit. Sees it and everything beneath it, and records decisions for its applications</td></tr><tr><td><strong>Steward</strong></td><td>Keeps a unit's applications complete and current: adds, edits, imports, and assesses them</td></tr><tr><td><strong>Auditor</strong></td><td>Reads everything, including the full history, and changes nothing</td></tr><tr><td><strong>Admin</strong></td><td>Accounts, units, sign-in, appearance, and system settings</td></tr></tbody></table></div>
+<p><a href="running-the-program.html#roles-and-scope">Running the program</a> says exactly what each role may do.</p>
+<h3 id="import-units-and-people">Import units and people<a class="anchor" href="#import-units-and-people" aria-label="Link to this section">#</a></h3>
+<p>Both screens take a CSV file, which is the quick way to load an organization. Each import can be run dry first and reports every problem by row, so nothing is half-loaded. The import dialog shows the columns it expects.</p>
+<h3 id="appearance">Appearance<a class="anchor" href="#appearance" aria-label="Link to this section">#</a></h3>
+<p><strong>Admin → Appearance</strong> sets the product's name, your organization's name, a logo, an accent color, and the default palette. See <a href="running-the-program.html#appearance">Running the program</a>.</p>
+<h2 id="bring-in-your-applications">Bring in your applications<a class="anchor" href="#bring-in-your-applications" aria-label="Link to this section">#</a></h2>
+<p>Most organizations start from a spreadsheet. <strong>Applications → Import</strong> reads a CSV file, matches its columns to AppWren's fields, and runs dry first, reporting every problem by row. A row with a reference already on record updates that application; any other row adds one. See <a href="the-portfolio.html#import-and-export">Import and export</a>.</p>
+<p>Then give the stewards of each unit a week to fill the gaps. <strong>Reports → Data quality</strong> shows, unit by unit, what is missing.</p>
+<h2 id="explore-the-demo-organization">Explore the demo organization<a class="anchor" href="#explore-the-demo-organization" aria-label="Link to this section">#</a></h2>
+<p>To see AppWren with data in it before you set anything up, build the demo:</p>
+<div class="code"><pre><code class="language-bash">uv run appwren demo                                 # builds ./demo
+uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020</code></pre></div>
+<p>The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 87 deployments on six hosting platforms, 22 contracts, about 125 assessments, 65 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, a database release reaching end of support next quarter, research data flowing into dashboards whose record does not list it, a contract whose notice date is two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.</p>
+<figure><a href="img/home-manager-light.webp" class="only-light"><img src="img/home-manager-light.webp" alt="Home for the demo's portfolio manager: what is waiting on them, most urgent first, beside their roles" width="1360" height="860" loading="lazy"></a><a href="img/home-manager-dark.webp" class="only-dark"><img src="img/home-manager-dark.webp" alt="Home for the demo's portfolio manager: what is waiting on them, most urgent first, beside their roles" width="1360" height="860" loading="lazy"></a></figure>
+<p>Its sign-in page offers eight sample people and asks for no password:</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table><thead><tr><th scope="col">Sign in as</th><th scope="col">To see</th></tr></thead><tbody><tr><td>The portfolio manager</td><td>The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, and snapshots</td></tr><tr><td>The enterprise architect</td><td>The capability map and its measures, data flows, the lifecycle timeline and radar, hosting platforms, and the picture of how anything is connected</td></tr><tr><td>The chief information officer</td><td>Decisions for Information Technology's applications, and the reviews coming due</td></tr><tr><td>The clinical research leader</td><td>A decision that keeps an application the scores would replace, and why</td></tr><tr><td>The research applications steward</td><td>Specimen Tracker: its scores and their working, what would break if it went, where it runs, and what it costs line by line</td></tr><tr><td>The research software engineer</td><td>A member's view: the applications they keep, and the costs and contracts they may not see elsewhere</td></tr><tr><td>The auditor</td><td>Everything, read-only, with every change in one place under Reports, History</td></tr><tr><td>The administrator</td><td>People, units, sign-in, and appearance, and no part in the portfolio's judgments</td></tr></tbody></table></div>
+<p><code>appwren demo --seed 2</code> builds a different Bramblewood with the same shape, and <code>--force</code> rebuilds one that is already there.</p>
+<p>A demo listens only on the machine it runs on. See <a href="configuration.html#the-demo-and-the-network">Configuration</a> before changing that.</p>
+<h2 id="next">Next<a class="anchor" href="#next" aria-label="Link to this section">#</a></h2>
+<ul><li>To record applications, assess them, read their scores, and record what they cost, read <a href="the-portfolio.html">The portfolio</a>.</li><li>To record what passes between them, where they run, and what falls out of support, read <a href="the-landscape.html">The landscape</a>.</li><li>To decide who sees what, and to shape the questions and the scoring model, read <a href="running-the-program.html">Running the program</a>.</li></ul>
+    <nav class="pager" aria-label="Pages"><a class="prev" href="index.html"><span>Previous</span>Overview</a><a class="next" href="the-portfolio.html"><span>Next</span>The portfolio</a></nav>
+    <footer class="foot">Describes AppWren 0.2.0. Apache License 2.0. Screenshots show an invented organization; every person and record in them is fictional.</footer>
+  </main>
+  <aside class="toc" aria-label="On this page"><div class="menu-title">On this page</div><ul><li class="l2"><a href="#what-you-need">What you need</a></li><li class="l2"><a href="#install">Install</a></li><li class="l2"><a href="#set-up-the-installation">Set up the installation</a></li><li class="l2"><a href="#check-it">Check it</a></li><li class="l2"><a href="#run-it">Run it</a></li><li class="l2"><a href="#sign-in-for-the-first-time">Sign in for the first time</a></li><li class="l2"><a href="#set-up-the-organization">Set up the organization</a></li><li class="l3"><a href="#units">Units</a></li><li class="l3"><a href="#people-and-roles">People and roles</a></li><li class="l3"><a href="#import-units-and-people">Import units and people</a></li><li class="l3"><a href="#appearance">Appearance</a></li><li class="l2"><a href="#bring-in-your-applications">Bring in your applications</a></li><li class="l2"><a href="#explore-the-demo-organization">Explore the demo organization</a></li><li class="l2"><a href="#next">Next</a></li></ul></aside>
+</div>
+</body>
+</html>

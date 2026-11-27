@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" data-palette="wren">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AppWren: know every application, and what to do with it</title>
+<meta name="description" content="AppWren is one living record of every application an organization runs: who answers for it, what it is for, what it is built on, what it costs, and how healthy it is. From that record it works out a r">
+<meta property="og:title" content="AppWren: know every application, and what to do with it">
+<meta property="og:description" content="AppWren is one living record of every application an organization runs: who answers for it, what it is for, what it is built on, what it costs, and how healthy it is. From that record it works out a r">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://robert-mcdermott.github.io/appwren/img/portfolio-chart-light.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/wren-mark.svg">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/theme.js"></script>
+<script src="assets/site.js" defer></script>
+</head>
+<body class="page-index">
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <button class="menu-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
+  <a class="brand" href="index.html"><img src="assets/wren-mark.svg" alt="" width="26" height="26"><span>AppWren</span><span class="version">v0.2.0</span></a>
+  <div class="search" role="search">
+    <input id="search" type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" role="listbox" aria-label="Search results" hidden></div>
+  </div>
+  <div class="theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-choice="light" aria-label="Light theme" title="Light">☀</button><button type="button" data-theme-choice="system" aria-label="Follow the system theme" title="System">◐</button><button type="button" data-theme-choice="dark" aria-label="Dark theme" title="Dark">☾</button>
+  </div>
+  <a class="github" href="https://github.com/robert-mcdermott/appwren" rel="noopener">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="menu" id="menu" aria-label="Documentation"><div class="menu-group"><div class="menu-title">Start</div><ul><li><a href="index.html" aria-current="page">Overview</a></li><li><a href="getting-started.html">Getting started</a></li></ul></div><div class="menu-group"><div class="menu-title">Use</div><ul><li><a href="the-portfolio.html">The portfolio</a></li><li><a href="the-landscape.html">The landscape</a></li><li><a href="running-the-program.html">Running the program</a></li></ul></div><div class="menu-group"><div class="menu-title">Run</div><ul><li><a href="configuration.html">Configuration</a></li></ul></div><div class="menu-group"><div class="menu-title">Reference</div><ul><li><a href="api.html">The API</a></li><li><a href="api-reference.html">API reference</a></li><li><a href="cli.html">Command reference</a></li><li><a href="changelog.html">Changelog</a></li></ul></div></nav>
+  <main id="content" class="content">
+<section class="hero">
+  <p class="eyebrow">Open-source application portfolio management</p>
+  <h1 id="appwren">Know every application, and what to do with it</h1>
+  <p class="lead">AppWren is one living record of every application an organization runs: who answers for it, what it is for, what it is built on, what it costs, and how healthy it is. From that record it works out a recommendation for each one, and shows the reasoning.</p>
+  <div class="cta">
+    <a class="button primary" href="getting-started.html">Get started</a>
+    <a class="button" href="#try-it">Try the demo</a>
+    <a class="button" href="https://github.com/robert-mcdermott/appwren" rel="noopener">Source on GitHub</a>
+  </div>
+  <figure class="shot"><a href="img/portfolio-chart-light.webp" class="only-light"><img src="img/portfolio-chart-light.webp" alt="The portfolio chart: every scored application by business value against technical health, sized by cost and colored by risk exposure" width="1360" height="860" loading="lazy"></a><a href="img/portfolio-chart-dark.webp" class="only-dark"><img src="img/portfolio-chart-dark.webp" alt="The portfolio chart: every scored application by business value against technical health, sized by cost and colored by risk exposure" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="principles" aria-label="What it holds to">
+  <div>
+    <h2 id="the-reasoning-is-on-the-screen">The reasoning is on the screen</h2>
+    <p>Every score opens to its factors, levels, weights, and sources, and every recommendation to the rule that produced it. Nothing is typed in as a verdict.</p>
+  </div>
+  <div>
+    <h2 id="people-decide">People decide</h2>
+    <p>The system recommends. A named person records what will be done and why. Where the two differ, both are shown, and neither overwrites the other.</p>
+  </div>
+  <div>
+    <h2 id="unknown-is-not-zero">Unknown is not zero</h2>
+    <p>A fact nobody has recorded is left out of the score and counted against confidence. Too little known means <em>Assess</em>, never a guess.</p>
+  </div>
+  <div>
+    <h2 id="quiet-by-design">Quiet by design</h2>
+    <p>No scanners, collectors, or agents, and no access to anything else on the network. It records what people know and decide.</p>
+  </div>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Scores</p>
+    <h2 id="four-scores-with-their-working">Four scores, each with its working</h2>
+    <p>Business value, technical health, cost and burden, and risk exposure are worked out from the record and from what assessors answered. Each opens to the factors behind it, the level each stands at, its weight, and where the fact came from.</p>
+    <p>Beside them is data confidence: how much of each score's weight is known, and which missing facts would raise it most, each with a link to where it is entered.</p>
+    <p><a class="more" href="the-portfolio.html#the-working">How a score is worked out</a></p>
+  </div>
+  <figure class="shot"><a href="img/application-working-light.webp" class="only-light"><img src="img/application-working-light.webp" alt="An application's scores opened to their working: each factor, its level, its weight, and the source of the fact" width="1360" height="860" loading="lazy"></a><a href="img/application-working-dark.webp" class="only-dark"><img src="img/application-working-dark.webp" alt="An application's scores opened to their working: each factor, its level, its weight, and the source of the fact" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Recommendations</p>
+    <h2 id="a-recommendation-and-the-rule-behind-it">A recommendation, and the rule behind it</h2>
+    <p>Invest, maintain, tolerate, modernize, replace, consolidate, retire, incubate, or assess: rules are tried in order, and the record names the one that matched.</p>
+    <p>A guardrail protects what must not go without a successor. A <em>Retire</em> for the only provider of a capability, or for a system of record for regulated information, becomes <em>Replace</em>, and the working says why.</p>
+    <p><a class="more" href="the-portfolio.html#recommendations">Recommendations</a></p>
+  </div>
+  <figure class="shot"><a href="img/application-light.webp" class="only-light"><img src="img/application-light.webp" alt="An application's record: its lifecycle stage, the people named on it, its four scores, the recommendation, and its flags" width="1360" height="860" loading="lazy"></a><a href="img/application-dark.webp" class="only-dark"><img src="img/application-dark.webp" alt="An application's record: its lifecycle stage, the people named on it, its four scores, the recommendation, and its flags" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Decisions</p>
+    <h2 id="a-decision-is-a-person-s">A decision is a person's, with a reason and a date</h2>
+    <p>Whoever leads the unit, or the portfolio team, records the disposition: what will be done, why, by when, and when to look again. The scores as they stood that day are kept with it.</p>
+    <p>A decision that differs from the recommendation is not an error. It is listed as a mismatch with its reason, so a review starts from the cases worth talking about.</p>
+    <p><a class="more" href="the-portfolio.html#decisions">Decisions and mismatches</a></p>
+  </div>
+  <figure class="shot"><a href="img/decide-light.webp" class="only-light"><img src="img/decide-light.webp" alt="Recording a decision for an application: the disposition, the rationale, and the review date, with the recommendation and the rule behind it alongside" width="1360" height="860" loading="lazy"></a><a href="img/decide-dark.webp" class="only-dark"><img src="img/decide-dark.webp" alt="Recording a decision for an application: the disposition, the rationale, and the review date, with the recommendation and the rule behind it alongside" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Overlap</p>
+    <h2 id="what-are-we-paying-for-twice">What are we paying for twice?</h2>
+    <p>Applications are mapped to the capabilities they serve. Every capability served by more than one is listed with those applications side by side: scores, recommendation, decision, how many people use each, and what each costs.</p>
+    <p>Name a primary provider, and the others that are worth less are recommended for consolidation.</p>
+    <p><a class="more" href="the-landscape.html#overlap">Overlap</a></p>
+  </div>
+  <figure class="shot"><a href="img/overlap-light.webp" class="only-light"><img src="img/overlap-light.webp" alt="Overlap: the applications that serve one capability, side by side with their scores, recommendations, and decisions" width="1360" height="860" loading="lazy"></a><a href="img/overlap-dark.webp" class="only-dark"><img src="img/overlap-dark.webp" alt="Overlap: the applications that serve one capability, side by side with their scores, recommendations, and decisions" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Impact</p>
+    <h2 id="what-breaks-if-this-goes">What breaks if this goes?</h2>
+    <p>Before a retirement is recommended, an application's Connections say what it would touch: what depends on it, directly and in turn, the interfaces that would stop, and the capabilities left with nothing behind them.</p>
+    <p>It also says which units use it, up to how many people, and what its record says must outlive it, such as active studies or data that must be kept.</p>
+    <p><a class="more" href="the-landscape.html#what-breaks-if-this-goes">What breaks if this goes</a></p>
+  </div>
+  <figure class="shot"><a href="img/application-connections-light.webp" class="only-light"><img src="img/application-connections-light.webp" alt="An application's Connections: what would break if it went, and what it sends and receives" width="1360" height="860" loading="lazy"></a><a href="img/application-connections-dark.webp" class="only-dark"><img src="img/application-connections-dark.webp" alt="An application's Connections: what would break if it went, and what it sends and receives" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Data flows</p>
+    <h2 id="follow-a-class-of-data">Follow a class of data from system to system</h2>
+    <p>An interface records data passing from one application to another: by what method, how often, and which classes of data it carries. Choose a class to see every interface that carries it and every application that holds it.</p>
+    <p>Where an interface delivers a class the receiving application's record does not list, the flow is marked, because that application's risk is understated until someone settles it.</p>
+    <p><a class="more" href="the-landscape.html#follow-a-class-of-data">Follow a class of data</a></p>
+  </div>
+  <figure class="shot"><a href="img/data-flows-light.webp" class="only-light"><img src="img/data-flows-light.webp" alt="Data flows: the interfaces that carry identifiable research data, one of them into an application whose record does not list it" width="1360" height="860" loading="lazy"></a><a href="img/data-flows-dark.webp" class="only-dark"><img src="img/data-flows-dark.webp" alt="Data flows: the interfaces that carry identifiable research data, one of them into an application whose record does not list it" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Lifecycle</p>
+    <h2 id="what-falls-out-of-support">What falls out of support, and what runs on it</h2>
+    <p>Components are built on technology releases, and each release has a day its support ends. The timeline shows the releases in use, soonest first, with how many components in how many applications are on each.</p>
+    <p>Support dates can be typed, or brought in from a file of end-of-life data that you supply. An application on a release past its date scores worse for it, and one that also holds restricted data is flagged.</p>
+    <p><a class="more" href="the-landscape.html#lifecycle">Lifecycle</a></p>
+  </div>
+  <figure class="shot"><a href="img/lifecycle-light.webp" class="only-light"><img src="img/lifecycle-light.webp" alt="Lifecycle: releases in use on a timeline, the ones past their end of support first" width="1360" height="860" loading="lazy"></a><a href="img/lifecycle-dark.webp" class="only-dark"><img src="img/lifecycle-dark.webp" alt="Lifecycle: releases in use on a timeline, the ones past their end of support first" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Cost</p>
+    <h2 id="what-it-costs-line-by-line">What it costs, line by line, and who pays</h2>
+    <p>An application's cost is a list of lines: a license, hosting, a support contract, your own people's time, each with what pays for it. A grant has an end date, and an application paid for by one that ends within a year is flagged until someone decides what becomes of it.</p>
+    <p>Contracts carry their renewal and notice dates and whether a data agreement is in place. Cost and contracts are shown only to those who may see them, and a total is given whole or not at all.</p>
+    <p><a class="more" href="the-portfolio.html#cost-and-contracts">Cost and contracts</a></p>
+  </div>
+  <figure class="shot"><a href="img/application-cost-light.webp" class="only-light"><img src="img/application-cost-light.webp" alt="An application's cost: the yearly figure, the cost for each person who uses it, and the lines that add up to it" width="1360" height="860" loading="lazy"></a><a href="img/application-cost-dark.webp" class="only-dark"><img src="img/application-cost-dark.webp" alt="An application's cost: the yearly figure, the cost for each person who uses it, and the lines that add up to it" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Capabilities</p>
+    <h2 id="the-capability-map-measured">The capability map, measured</h2>
+    <p>The map shows what the organization does, and how many applications stand behind each part of it: none, one, or an overlap.</p>
+    <p>Measure it by any score, by data confidence, or by the health of the weakest application behind each capability, since a capability is as exposed as the worst thing it rests on.</p>
+    <p><a class="more" href="the-landscape.html#the-capability-map-measured">The capability map, measured</a></p>
+  </div>
+  <figure class="shot"><a href="img/capability-heat-light.webp" class="only-light"><img src="img/capability-heat-light.webp" alt="The capability map measured by the technical health of the weakest application behind each capability" width="1360" height="860" loading="lazy"></a><a href="img/capability-heat-dark.webp" class="only-dark"><img src="img/capability-heat-dark.webp" alt="The capability map measured by the technical health of the weakest application behind each capability" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Connections</p>
+    <h2 id="what-is-this-connected-to">What is this connected to?</h2>
+    <p>Every record opens to a picture of what it is joined to: what it depends on, where its data goes, the capabilities it serves, what it is built on, where it runs, and the contracts and funding behind it.</p>
+    <p>A list beside the picture says the same in full, and all of it works from the keyboard. Records the reader may not see are counted, never named.</p>
+    <p><a class="more" href="the-landscape.html#how-a-record-is-connected">How a record is connected</a></p>
+  </div>
+  <figure class="shot"><a href="img/graph-light.webp" class="only-light"><img src="img/graph-light.webp" alt="The picture of how the research data warehouse is connected: what it depends on, sends to, receives from, serves, and is built on" width="1360" height="860" loading="lazy"></a><a href="img/graph-dark.webp" class="only-dark"><img src="img/graph-dark.webp" alt="The picture of how the research data warehouse is connected: what it depends on, sends to, receives from, serves, and is built on" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Data handling</p>
+    <h2 id="who-handles-this-class-of-data">Which applications hold health data, and how well are they kept?</h2>
+    <p>Choose a class of data and get the applications that handle it, with what an analysis of risk asks about each: who answers for it, where it runs, how people sign in, the support state of what it is built on, and whether a data agreement is in place.</p>
+    <p>The same rows export as a spreadsheet.</p>
+    <p><a class="more" href="the-landscape.html#who-handles-a-class-of-data">Who handles a class of data</a></p>
+  </div>
+  <figure class="shot"><a href="img/data-handling-light.webp" class="only-light"><img src="img/data-handling-light.webp" alt="Data handling: the applications that handle protected health information, with owner, hosting, sign-in, technology support, and data agreement" width="1360" height="860" loading="lazy"></a><a href="img/data-handling-dark.webp" class="only-dark"><img src="img/data-handling-dark.webp" alt="Data handling: the applications that handle protected health information, with owner, hosting, sign-in, technology support, and data agreement" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Home</p>
+    <h2 id="what-each-person-owes">One page of what each person owes</h2>
+    <p>Most people who keep an application are not portfolio specialists. Home lists what is theirs to do: an application never assessed or whose assessment has expired, a flag on one of theirs, a record that lacks what its stage requires.</p>
+    <p>The dashboard gives the portfolio team the whole: recommendations beside decisions, flags, confidence, and what everything costs, with every figure a link to the list it counts.</p>
+    <p><a class="more" href="running-the-program.html#home">Home and the dashboard</a></p>
+  </div>
+  <figure class="shot"><a href="img/home-steward-light.webp" class="only-light"><img src="img/home-steward-light.webp" alt="Home for a unit's steward: the applications that need something, with what each needs" width="1360" height="860" loading="lazy"></a><a href="img/home-steward-dark.webp" class="only-dark"><img src="img/home-steward-dark.webp" alt="Home for a unit's steward: the applications that need something, with what each needs" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="section">
+  <h2 id="also-in-it">Also in it</h2>
+  <div class="rest">
+    <div>
+      <h3 id="one-definition-of-an-application">One definition of an application</h3>
+      <p>Applications, their components, and where each runs are separate records, so the portfolio compares like with like.</p>
+    </div>
+    <div>
+      <h3 id="judged-by-the-right-rubric">Judged by the right rubric</h3>
+      <p>A shared platform is judged on what rests on it, and research software on whether it can be kept going. A pilot is not judged on use at all.</p>
+    </div>
+    <div>
+      <h3 id="ready-for-research">Ready for research</h3>
+      <p>Grant funding and its end dates, studies that depend on an application, research data classes, and software kept by one person are all part of the record.</p>
+    </div>
+    <div>
+      <h3 id="working-on-the-first-day">Working on the first day</h3>
+      <p>The vocabularies, a starter capability map of 43 capabilities, a question bank, and a scoring model with its profiles, rules, and flags come with a new installation.</p>
+    </div>
+    <div>
+      <h3 id="a-program-you-can-change">A program you can change</h3>
+      <p>The questions, weights, thresholds, and rules are yours to change. Each version is kept, and every assessment and snapshot names the one it used.</p>
+    </div>
+    <div>
+      <h3 id="a-history-that-holds">A history that holds</h3>
+      <p>Every change is in an append-only, hash-chained log, with who made it. An auditor reads everything and changes nothing.</p>
+    </div>
+    <div>
+      <h3 id="snapshots">The portfolio as it stood</h3>
+      <p>A snapshot keeps every application's scores, recommendation, and decision on a day, so a review can be compared with the one before.</p>
+    </div>
+    <div>
+      <h3 id="in-and-out">In and out</h3>
+      <p>Applications come in from a spreadsheet, with a dry run that reports every problem by row. Every list exports as CSV, and as JSON through the API.</p>
+    </div>
+    <div>
+      <h3 id="who-sees-what">Who sees what</h3>
+      <p>Roles are held over units. Sensitive fields, costs, and contracts are withheld from those who may not see them, in every list, figure, and export.</p>
+    </div>
+    <div>
+      <h3 id="where-it-runs">Where it runs</h3>
+      <p>Hosting platforms list everything on them by environment: what would stop if a data center or a cloud account were lost.</p>
+    </div>
+    <div>
+      <h3 id="sign-in-your-way">Sign in your way</h3>
+      <p>Local accounts out of the box. Optional single sign-on by OpenID Connect, built to work with Microsoft Entra ID, with roles and units taken from the provider.</p>
+    </div>
+    <div>
+      <h3 id="open-and-yours">Open and yours</h3>
+      <p>Apache 2.0 with no paid edition. SQLite on a laptop or PostgreSQL on a server, no build step, and your own name and colors.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 id="try-it">Try it</h2>
+  <p>You need <a href="https://docs.astral.sh/uv/" rel="noopener">uv</a>, which provides the right Python. Clone the repository and build the demo organization: a fictional research institute with a clinic, two years of history, 107 applications, three survey tools doing one job, a grant about to end, a database release reaching the end of its support, and a decision that differs from its recommendation.</p>
+  <div class="code"><pre><code class="language-bash">git clone https://github.com/robert-mcdermott/appwren.git
+cd appwren
+uv sync
+uv run appwren demo
+uv run appwren --config demo/appwren.toml serve</code></pre></div>
+  <p>Open <code>http://127.0.0.1:8020</code>. The sign-in page offers eight sample people and asks for no password. Start as the portfolio manager. <a href="getting-started.html#explore-the-demo-organization">Explore the demo organization</a> says who to try next, and <a href="getting-started.html">Getting started</a> sets up an installation of your own.</p>
+</section>
+
+<section class="section">
+  <h2 id="the-guides">The guides</h2>
+  <div class="cards">
+    <a href="getting-started.html"><strong>Getting started</strong><span>Install, first sign-in, units and people, bringing in your applications, the demo</span></a>
+    <a href="the-portfolio.html"><strong>The portfolio</strong><span>The record, assessment, scores and their working, recommendations, decisions, cost and contracts</span></a>
+    <a href="the-landscape.html"><strong>The landscape</strong><span>Interfaces and data flows, impact, hosting, overlap, the capability map, lifecycle</span></a>
+    <a href="running-the-program.html"><strong>Running the program</strong><span>Roles, who sees what, the scoring model, the dashboard, snapshots, the history</span></a>
+    <a href="configuration.html"><strong>Configuration</strong><span>The settings file, single sign-on, PostgreSQL, upgrading, reverse proxies</span></a>
+    <a href="api.html"><strong>API</strong><span>Sign-in, the CSRF token, responses, errors, and lists</span></a>
+    <a href="api-reference.html"><strong>API reference</strong><span>Every route of the JSON API, from the OpenAPI document</span></a>
+    <a href="cli.html"><strong>Command reference</strong><span>Every <code>appwren</code> command and option</span></a>
+  </div>
+</section>
+
+<section class="section">
+  <h2 id="where-it-stands">Where it stands</h2>
+  <p>These pages describe version 0.2.0: the portfolio and the landscape around it. It signs in with local accounts or, if you set it up, single sign-on. Nothing reminds anyone yet: notices, email, attestation, and search across every kind of record come next, then read-only connectors to the tools that already know the facts. The <a href="https://github.com/robert-mcdermott/appwren/blob/main/spec/roadmap.md" rel="noopener">roadmap</a> says what comes next and in what order, and the <a href="changelog.html">changelog</a> lists what is in each release.</p>
+</section>
+
+    <nav class="pager" aria-label="Pages"><span></span><a class="next" href="getting-started.html"><span>Next</span>Getting started</a></nav>
+    <footer class="foot">Describes AppWren 0.2.0. Apache License 2.0. Screenshots show an invented organization; every person and record in them is fictional.</footer>
+  </main>
+  <aside class="toc" aria-label="On this page"><div class="menu-title">On this page</div><ul><li class="l2"><a href="#the-reasoning-is-on-the-screen">The reasoning is on the screen</a></li><li class="l2"><a href="#people-decide">People decide</a></li><li class="l2"><a href="#unknown-is-not-zero">Unknown is not zero</a></li><li class="l2"><a href="#quiet-by-design">Quiet by design</a></li><li class="l2"><a href="#four-scores-with-their-working">Four scores, each with its working</a></li><li class="l2"><a href="#a-recommendation-and-the-rule-behind-it">A recommendation, and the rule behind it</a></li><li class="l2"><a href="#a-decision-is-a-person-s">A decision is a person's, with a reason and a date</a></li><li class="l2"><a href="#what-are-we-paying-for-twice">What are we paying for twice?</a></li><li class="l2"><a href="#what-breaks-if-this-goes">What breaks if this goes?</a></li><li class="l2"><a href="#follow-a-class-of-data">Follow a class of data from system to system</a></li><li class="l2"><a href="#what-falls-out-of-support">What falls out of support, and what runs on it</a></li><li class="l2"><a href="#what-it-costs-line-by-line">What it costs, line by line, and who pays</a></li><li class="l2"><a href="#the-capability-map-measured">The capability map, measured</a></li><li class="l2"><a href="#what-is-this-connected-to">What is this connected to?</a></li><li class="l2"><a href="#who-handles-this-class-of-data">Which applications hold health data, and how well are they kept?</a></li><li class="l2"><a href="#what-each-person-owes">One page of what each person owes</a></li><li class="l2"><a href="#also-in-it">Also in it</a></li><li class="l3"><a href="#one-definition-of-an-application">One definition of an application</a></li><li class="l3"><a href="#judged-by-the-right-rubric">Judged by the right rubric</a></li><li class="l3"><a href="#ready-for-research">Ready for research</a></li><li class="l3"><a href="#working-on-the-first-day">Working on the first day</a></li><li class="l3"><a href="#a-program-you-can-change">A program you can change</a></li><li class="l3"><a href="#a-history-that-holds">A history that holds</a></li><li class="l3"><a href="#snapshots">The portfolio as it stood</a></li><li class="l3"><a href="#in-and-out">In and out</a></li><li class="l3"><a href="#who-sees-what">Who sees what</a></li><li class="l3"><a href="#where-it-runs">Where it runs</a></li><li class="l3"><a href="#sign-in-your-way">Sign in your way</a></li><li class="l3"><a href="#open-and-yours">Open and yours</a></li><li class="l2"><a href="#try-it">Try it</a></li><li class="l2"><a href="#the-guides">The guides</a></li><li class="l2"><a href="#where-it-stands">Where it stands</a></li></ul></aside>
+</div>
+</body>
+</html>
