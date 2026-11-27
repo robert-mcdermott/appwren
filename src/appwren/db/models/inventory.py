@@ -279,12 +279,18 @@ class ExternalRef(Base):
 
     __tablename__ = "external_ref"
     __audit_parent__ = ("@record_type", "record_id")
+    # A change of standing is history; when it was read, or why it could not be, is not.
+    __audit_skip__ = frozenset({"standing_read_at", "standing_error"})
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     record_type: Mapped[str] = mapped_column(String(24))
     record_id: Mapped[int] = mapped_column(Integer)
     system: Mapped[str] = mapped_column(String(40))
     value: Mapped[str] = mapped_column(String(200))
+    # Where the other system says how the record stands (INT-07): approved, open, closed.
+    standing: Mapped[str | None] = mapped_column(String(80))
+    standing_read_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    standing_error: Mapped[str | None] = mapped_column(String(200))
 
     __table_args__ = (
         UniqueConstraint("record_type", "record_id", "system", "value"),

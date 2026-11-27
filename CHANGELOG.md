@@ -20,6 +20,9 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   records it cites, and drafts an application from a document for the person to correct
   and add. It is never told of applications that handle data more sensitive than the
   configuration allows, it changes nothing, and every exchange is kept.
+- **Standings elsewhere.** A system in the program's list of other systems may name a
+  `standing_url`; a job then reads how each linked record stands there (approved, open,
+  closed) and shows it beside the link, with any change kept in the history.
 - **A tool server for AI assistants.** `appwren tools serve` lets an assistant that speaks
   the Model Context Protocol search and read AppWren, ask the checkpoint, see what waits on
   the person, and propose changes, through the API as that person.

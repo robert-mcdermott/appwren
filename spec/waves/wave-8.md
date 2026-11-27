@@ -46,9 +46,9 @@ None block the start. These defaults have been taken and can be changed before t
 - [x] Answers questions with links to the records behind the answer
 - [x] Every exchange kept; off and invisible until configured
 
-## Slice 4: Other governance records ☐
+## Slice 4: Other governance records ☑
 
-- [ ] External references with their standing, where the other system offers it
+- [x] External references with their standing, where the other system offers it
 
 ## Slice 5: Release prep ☐
 
@@ -59,3 +59,4 @@ None block the start. These defaults have been taken and can be changed before t
 Decisions and discoveries made during the wave are logged here, newest last.
 - **A personal token is the person, cut down to reading and proposing.** It is built from their account's own roles, so an assistant sees exactly what they do; the middleware lets it make one kind of change, a proposal. A proposal of a sensitive field the person may not see is refused, since it would say what they think the value is. Accepting is a person's own edit, signed in, never a token's.
 - **The assistant is told a list, not the database.** A question is answered from a compact list of the applications in service the person may see (reference, name, summary, unit, stage, tier, decision), leaving out any that handle data more sensitive than `max_data_class`; references in the answer are linked only if they were in that list. A draft is checked field by field against the form's own choices. The model server is asked with no database session open.
+- **A standing is read like a connector reads, and kept like a change.** The program names the address per system, with the identifier as `{id}`, where to look in the JSON answer, and a key's variable, which may not be the server's own. The job writes the standing with a system actor, so a change appears in the record's history; when it was read and why it failed are bookkeeping, not history.

@@ -526,7 +526,8 @@ def external_refs_of(
         )
         found[row.record_id].append(
             {"system": row.system, "label": system.get("label", row.system), "value": row.value,
-             "url": link}
+             "url": link, "standing": row.standing, "standing_read_at": row.standing_read_at,
+             "standing_error": row.standing_error}
         )  # fmt: skip
     return found
 

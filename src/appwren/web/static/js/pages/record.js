@@ -104,7 +104,9 @@ export function externalCard(record, ctx) {
   if (!(refs.length || record.can?.edit)) return null;
   return card({ title: "Known elsewhere as", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editExternal", record, ctx) }) : null },
     refs.length ? h("dl", { class: "dl" }, refs.map((item) => [h("dt", {}, item.label),
-      h("dd", {}, item.url ? h("a", { href: item.url, target: "_blank", rel: "noopener noreferrer" }, item.value) : item.value)]))
+      h("dd", {}, item.url ? h("a", { href: item.url, target: "_blank", rel: "noopener noreferrer" }, item.value) : item.value,
+        item.standing ? [" ", pill(item.standing, "")] : null,
+        item.standing_error ? h("div", { class: "cell-sub" }, `Its standing could not be read: ${item.standing_error}`) : null)]))
       : h("p", { class: "muted" }, "No identifier in another system is recorded."));
 }
 
