@@ -1,5 +1,5 @@
 """Insight: trends between portfolio snapshots, scores over time, and shares of the
-portfolio (RPT-04, SCR-14), and leadership reports (RPT-05)."""
+portfolio (RPT-04, SCR-14), leadership reports (RPT-05), and the record as of a day (RPT-06)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
-from appwren.insight import reports, shares, trends
+from appwren.insight import asof, reports, shares, trends
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION
 
@@ -76,3 +76,27 @@ def get_report(request: Request, ref: str) -> dict[str, Any]:
     principal = current(request)
     with reading(request) as session:
         return envelope(reports.view(reports.load(session, principal, ref)))
+
+
+@router.get("/as-of", summary="The portfolio as it stood on a day")
+def portfolio_as_of(
+    request: Request, on: str = Query(description="The day, YYYY-MM-DD, today or earlier")
+) -> dict[str, Any]:
+    """The applications in service at the end of that day, each with its stage, unit, tier,
+    and decision then, beside its stage and decision now. Read from the history."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(asof.portfolio(session, principal, asof.day(on)))
+
+
+@router.get("/applications/{ref}/as-of", summary="An application as it stood on a day")
+def application_as_of(
+    request: Request, ref: str,
+    on: str = Query(description="The day, YYYY-MM-DD, today or earlier"),
+) -> dict[str, Any]:  # fmt: skip
+    """Each of its values at the end of that day beside its value now, its decision then, and
+    its scores in the nearest portfolio snapshot taken on or before it."""
+    principal = current(request)
+    with reading(request) as session:
+        app = records.load(session, principal, APPLICATION, ref)
+        return envelope(asof.application(session, principal, app, asof.day(on)))

@@ -277,6 +277,7 @@ See [Insight](insight.md).
 | `GET /applications/{ref}/score-history` | Its scores at each portfolio snapshot and each decision, oldest first |
 | `GET /shares` | The costliest tenth, the dearest tenth per user, the least used fifth, and the oldest fifth of the applications in service |
 | `GET` · `POST /reports` · `GET /reports/{ref}` | Leadership reports, the latest period first; make one with a `title`, `period_from`, and `period_to` (a manager); one report as it was made, with its `digest` and whether it is `intact`. Read by those who may see every record |
+| `GET /as-of` · `GET /applications/{ref}/as-of` | The portfolio `on` a day: the applications in service at its end, each with its stage, unit, tier, and decision then and now; one application on a day, each value then beside now, with its decision and scores then. Read from the history |
 
 ### The program and the installation
 

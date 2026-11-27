@@ -5239,6 +5239,62 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/as-of": {
+      "get": {
+        "description": "Each of its values at the end of that day beside its value now, its decision then, and\nits scores in the nearest portfolio snapshot taken on or before it.",
+        "operationId": "application_as_of_api_v1_applications__ref__as_of_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The day, YYYY-MM-DD, today or earlier",
+            "in": "query",
+            "name": "on",
+            "required": true,
+            "schema": {
+              "description": "The day, YYYY-MM-DD, today or earlier",
+              "title": "On",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Application As Of Api V1 Applications  Ref  As Of Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application as it stood on a day",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/assessments": {
       "get": {
         "operationId": "list_assessments_api_v1_applications__ref__assessments_get",
@@ -6572,6 +6628,53 @@
         "summary": "Say which units use it",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/as-of": {
+      "get": {
+        "description": "The applications in service at the end of that day, each with its stage, unit, tier,\nand decision then, beside its stage and decision now. Read from the history.",
+        "operationId": "portfolio_as_of_api_v1_as_of_get",
+        "parameters": [
+          {
+            "description": "The day, YYYY-MM-DD, today or earlier",
+            "in": "query",
+            "name": "on",
+            "required": true,
+            "schema": {
+              "description": "The day, YYYY-MM-DD, today or earlier",
+              "title": "On",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Portfolio As Of Api V1 As Of Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The portfolio as it stood on a day",
+        "tags": [
+          "insight"
         ]
       }
     },

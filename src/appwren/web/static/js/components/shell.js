@@ -50,6 +50,7 @@ export const NAV = [
       { href: "/reports", label: "Leadership reports", iconName: "list", when: "read_all" },
       { href: "/trends", label: "Trends", iconName: "chart" },
       { href: "/shares", label: "Shares of the portfolio", iconName: "chart" },
+      { href: "/as-of", label: "As of a day", iconName: "clock" },
       { href: "/data-quality", label: "Data quality", iconName: "quality" },
       { href: "/data-handling", label: "Data handling", iconName: "shield" },
       { href: "/maturity", label: "Engineering maturity", iconName: "check" },

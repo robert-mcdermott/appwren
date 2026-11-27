@@ -52,12 +52,12 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** a report reopened after the records change shows exactly what it showed when made, and its digest checks.
 
-## Slice 3: As of ☐
+## Slice 3: As of ☑
 
 **Goal:** the record as it stood on a chosen date.
 
-- [ ] Any application as it stood on a date, from the history
-- [ ] The portfolio as it stood on a date: what was in service, at what stage, with what decision
+- [x] Any application as it stood on a date, from the history
+- [x] The portfolio as it stood on a date: what was in service, at what stage, with what decision
 
 **Acceptance:** an application changed after a date shows, as of that date, the values it had then.
 

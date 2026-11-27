@@ -21,6 +21,10 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   the decisions taken, the reviews closed, initiatives, requests, and retirements with their
   savings. It is worked out once and kept whole, with its SHA-256 digest checked whenever it
   is opened, and prints cleanly. A new guide, *Insight*, covers these.
+- **As of a day.** Reports → As of a day shows the applications in service at the end of a
+  chosen day, with each one's stage and decision then beside now; an application's History
+  part shows it as it stood on a day, value by value, with its decision and scores then.
+  Both are read from the history: nothing is stored for them.
 
 ### Changed
 

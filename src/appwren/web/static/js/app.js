@@ -79,6 +79,8 @@ async function boot() {
   route("/retirements", page("retirements", "retirementReport"));
   route("/trends", page("trends", "trendsPage"));
   route("/shares", page("shares", "sharesPage"));
+  route("/as-of", page("as-of", "portfolioAsOf"));
+  route("/applications/:ref/as-of", page("as-of", "applicationAsOf"));
   if (can("read_all")) {
     route("/reports", page("reports", "reportList"));
     route("/reports/:ref", page("reports", "reportPage"));

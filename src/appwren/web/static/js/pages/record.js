@@ -652,7 +652,7 @@ export function applicationPage(main, params, extraTabs = []) {
       const decide = () => recordDecision(record, data.scores, data.vocab, reload);
       const decideButton = record.can?.decide ? button("Record a decision", { onclick: decide }) : null;
       const extra = extraTabs.find(([key]) => key === tab);
-      const body = tab === "history" ? card({ flush: true }, timeline(data.history))
+      const body = tab === "history" ? card({ flush: true, actions: h("a", { href: `/applications/${record.ref}/as-of` }, "As it stood on a day") }, timeline(data.history))
         : tab === "scores" ? h("div", { class: "stack-lg" }, scoresTab(data.scores, { ref: record.ref, vocab: data.vocab }),
           contestsCard(record.ref, data.scores, data.contests, reload), data.overTime)
           : tab === "assessment" ? assessmentTab(record, ctx)

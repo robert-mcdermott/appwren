@@ -125,3 +125,52 @@ def test_a_report_is_kept_as_it_was_made(as_role: Clients, db: Database, people:
     with db.engine.begin() as connection:  # behind the application's back
         connection.execute(Report.__table__.update().values(content=tampered))
     assert not manager.get(f"/api/v1/reports/{report['ref']}").json()["data"]["intact"]
+
+
+def test_an_application_and_the_portfolio_as_they_stood(
+    as_role: Clients, db: Database, people: People
+) -> None:
+    from datetime import timedelta
+
+    from appwren.core import clock
+
+    now = clock.utc_now()
+    ago = lambda days: now - timedelta(days=days)  # noqa: E731
+    with clock.frozen_at(ago(10)):
+        ref = add_app(db, people, name="Tissue Log", users=120, lifecycle="active")
+    with clock.frozen_at(ago(8)):
+        decide(db, people, "manager", ref, disposition="maintain")
+        snapshot(db, people, "Back then")
+    with clock.frozen_at(ago(2)):
+        with db.write(ME.actor) as session:
+            app = records.load(session, ME, APPLICATION, ref)
+            records.update(session, ME, APPLICATION, app,
+                           {"name": "Tissue Register", "users": 300,
+                            "lifecycle": "phase_in"}, version=app.version)  # fmt: skip
+        decide(db, people, "manager", ref, disposition="replace")
+    later = add_app(db, people, name="Came later")
+    member = as_role("member")
+    then = (now - timedelta(days=5)).date().isoformat()
+    found = member.get(f"/api/v1/applications/{ref}/as-of", params={"on": then}).json()["data"]
+    assert found["existed"] and found["changes_since"] >= 1
+    values = {row["field"]: row for row in found["fields"]}
+    assert (values["name"]["then"], values["name"]["now"]) == ("Tissue Log", "Tissue Register")
+    assert (values["users"]["then"], values["users"]["now"]) == (120, 300)
+    assert values["lifecycle"]["then"] == "Active" and values["lifecycle"]["changed"]
+    assert not values["tier"]["changed"]
+    assert found["decision"]["disposition"] == "maintain"
+    assert found["scores"]["snapshot"]["name"] == "Back then"
+    # Before it was created, it was not on record.
+    early = (now - timedelta(days=20)).date().isoformat()
+    gone = member.get(f"/api/v1/applications/{ref}/as-of", params={"on": early}).json()["data"]
+    assert gone["existed"] is False
+    # The portfolio on that day: it, as it was, and not the one added since.
+    whole = member.get("/api/v1/as-of", params={"on": then}).json()["data"]
+    names = {row["name_then"]: row for row in whole["applications"]}
+    assert "Came later" not in names and later
+    row = names["Tissue Log"]
+    assert (row["lifecycle"], row["lifecycle_now"]) == ("active", "phase_in")
+    assert (row["decision"], row["decision_now"]) == ("maintain", "replace")
+    assert whole["since"]["added"] == 1
+    tomorrow = (now + timedelta(days=1)).date().isoformat()
+    assert member.get("/api/v1/as-of", params={"on": tomorrow}).status_code == 422
