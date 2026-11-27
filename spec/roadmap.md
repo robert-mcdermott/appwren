@@ -56,6 +56,8 @@ Detail: [waves/wave-1.md](waves/wave-1.md)
 | 7 | Exports for a risk analysis | Applications by data class with owners, versions, hosting, sign-in, and support status; external references; the organization-wide history | ☑ |
 | 8 | Release prep | Guides, changelog, release | ☑ |
 
+Detail: [waves/wave-2.md](waves/wave-2.md)
+
 ## Documentation site (between v0.2.0 and v0.3.0) ☑
 
 **Goal:** a product site that lets someone outside the project find AppWren, see it, and try it. It waits until the main screens have settled; screenshots taken during wave 1 would be stale within weeks. The Markdown in the repository stays the documentation, and the site is built from it unchanged ([ADR-0009](decisions/0009-documentation-toolchain.md)).
@@ -65,7 +67,7 @@ Detail: [waves/wave-1.md](waves/wave-1.md)
 - **An accessibility audit** over the same scenes, and one for the site itself at desk and phone widths.
 - **Publishing:** the site is whatever is committed on the `gh-pages` branch, written only when asked to publish. The site states the version it describes.
 
-## Wave 3: Keeping current (v0.3.0) ☐
+## Wave 3: Keeping current (v0.3.0) ◐
 
 **Goal:** a portfolio that stays true without a central team chasing it.
 
@@ -74,10 +76,12 @@ Detail: [waves/wave-1.md](waves/wave-1.md)
 | 1 | Schedules and email | The job scheduler, the cadence table, reminders and escalation, SMTP delivery, digests, preferences, in-app notices | ☐ |
 | 2 | Attestation | Owners confirm their records on a cadence by tier; stale records lower confidence | ☐ |
 | 3 | Campaigns | Assessment and attestation campaigns to owners in a scope, with progress by unit | ☐ |
-| 4 | Triggers | An owner leaving, a renewal, an end of support, a grant ending; reassignment in one step | ☐ |
+| 4 | Triggers and reassignment | An owner leaving, a renewal, an end of support, a grant ending; reassignment in one step | ☐ |
 | 5 | Find and tidy | Search across all records, saved views, likely duplicates, contesting a score | ☐ |
 | 6 | Program editors | Vocabularies, fields, questions, profiles, rules, and cadences edited in the app with an impact preview; monthly snapshots | ☐ |
 | 7 | Release prep | Guides, changelog, release | ☐ |
+
+Detail: [waves/wave-3.md](waves/wave-3.md)
 
 ## Wave 4: Signals (v0.4.0) ☐
 
