@@ -33,7 +33,7 @@ About 180 accounts: a portfolio manager and two architects; IT leaders and divis
 
 ### Scale
 
-Enough to look like an organization that has used AppWren for a year, and small enough to build in under a minute. Wave 1 figures:
+Enough to look like an organization that has used AppWren for a year, and small enough to build in under a minute. Figures as of wave 2:
 
 | Records | About | Notes |
 |---|---|---|
@@ -51,9 +51,9 @@ Enough to look like an organization that has used AppWren for a year, and small 
 | Cost lines | about 200 | Five applications in six have their cost broken down; the lines add up to the cost on record |
 | Contracts | 22 | One for each vendor, with renewals spread over three years |
 | Assessments | 125 | Re-assessments over time; some expired; a dozen applications never assessed |
-| Decisions | 70 | Some superseded; several mismatches with today's recommendation; some due for review |
+| Decisions | 65 | Some superseded; several mismatches with today's recommendation; some due for review |
 | Portfolio snapshots | 4 | Quarterly, for the last year |
-| Events | about 2,000 | All verified by `appwren verify` |
+| Events | about 2,300 | All verified by `appwren verify` |
 
 ### Storylines
 
