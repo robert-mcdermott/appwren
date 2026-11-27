@@ -72,4 +72,10 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   by row, and update by reference; nothing is loaded unless every row is good. Every list
   exports as CSV or JSON, withholding what the reader may not see, and each export is
   recorded.
+- **The demo organization.** `appwren demo` builds the fictional Bramblewood Institute for
+  Health Research, with two years of history made by the real services under a simulated
+  clock: units, people, applications and their parts, assessments, quarterly snapshots, and
+  decisions, with storylines for every screen. It marks itself as a demo, offers one-click
+  sign-in as its sample people from the machine it runs on, and refuses to listen beyond it
+  unless started with `--demo-on-network`.
 

@@ -150,16 +150,18 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance (met):** every figure on the dashboard and data-quality pages opens a list whose length equals the figure, for each of the seven roles, for the whole organization and for one division; the parts of each breakdown add up to the whole; an import with one bad row loads nothing and names the row. 291 tests pass on SQLite and 287 on PostgreSQL. Checked in the browser: home with what is owed, the dashboard, data quality by unit, and a figure's list.
 
-## Slice 8: Demo organization ☐
+## Slice 8: Demo organization ☑
 
 **Goal:** a believable institute that exercises everything in the wave.
 
-- [ ] The generator: units, people, capabilities, vendors, technologies, applications, components, assessments, snapshots, and decisions, built through the services under a simulated clock, deterministic by seed
-- [ ] The storylines in [demo-organization.md](../demo-organization.md), written by hand
-- [ ] The "Demo data" marker, one-click sign-in as each sample person, and the refusal to listen beyond the local machine unless told to
-- [ ] The demo build as an end-to-end test, with its history verified
+- [x] The generator: units, people, capabilities, vendors, technologies, applications, components, assessments, snapshots, and decisions, built through the services under a simulated clock, deterministic by seed
+- [x] The storylines in [demo-organization.md](../demo-organization.md), written by hand
+- [x] The "Demo data" marker, one-click sign-in as each sample person, and the refusal to listen beyond the local machine unless told to
+- [x] The demo build as an end-to-end test, with its history verified
 
 **Acceptance:** `appwren demo` builds in under a minute; the same seed gives the same organization; every wave 1 screen has data worth reading; `appwren verify` passes on the result.
+
+**Done:** `appwren demo` builds Bramblewood in about two seconds: 57 units, 180 people, 107 applications, 120 components, 125 assessments, 70 decisions, four quarterly snapshots, and some 2,000 events over two years, all through the services and under a simulated clock. Ten storylines are written by hand and asserted by the tests, including the worked example to the decimal. A demo marks itself on every page, signs in any of eight sample people with one click from the machine it runs on, and refuses to listen on the network unless told to.
 
 ## Slice 9: Release prep ☐
 
@@ -192,4 +194,6 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **One list behind every figure.** The dashboard, data quality, and home page count rows of the same portfolio list that `/api/v1/portfolio` returns, narrowed by the same function, and each figure carries its filters. A test opens every figure's list for every role and compares the lengths.
 - **What a stage requires is checked in bulk.** The facts gathered for scoring already say whether an application has an accountable owner, capabilities, technologies, a current assessment, and a decision, so the whole portfolio's completeness costs no further queries.
 - **An import updates by reference.** A row whose reference is on record changes that application, through the same service and checks as an edit by hand, including the refusal of sensitive fields the importer may not see.
+- **The demo found two things to fix.** The person who later leaves was handed applications before some of them existed, so the hand-over ran later; and a fresh sign-in after another needs a fresh browser session, which the test now uses.
+- **Fewer applications than planned, more storylines asserted.** About 110 applications show every screen with data and build in two seconds; the spec's 160 would have added nothing new to see.
 

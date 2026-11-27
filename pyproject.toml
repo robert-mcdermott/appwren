@@ -62,6 +62,8 @@ ignore = [
 "tests/**" = ["S104", "S105", "S106", "S108", "S311", "S608"]
 # The demo organization is invented with a seeded generator.
 "src/appwren/demo/**" = ["S311"]
+# Its content is tables of words and numbers, kept one entry to a line.
+"src/appwren/demo/content.py" = ["E501", "S311"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

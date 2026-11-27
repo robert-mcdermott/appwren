@@ -242,6 +242,7 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("GET", "/api/v1/session"): EVERYONE,
     ("POST", "/api/v1/session"): EVERYONE | {"nobody"},
     ("DELETE", "/api/v1/session"): EVERYONE | {"nobody"},
+    ("POST", "/api/v1/session/demo"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/password"): EVERYONE,
     # Single sign-on. The round trip is open to all, and answers 404 unless it is set up.
     ("GET", "/api/v1/sso/start"): EVERYONE | {"nobody"},
@@ -367,7 +368,11 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
     for role in [*ROLES, "nobody"]:
         own = people.accounts.get(role, people.accounts["member"])
         for (method, template), may in sorted(REACH.items()):
-            if (method, template) in {("DELETE", "/api/v1/session"), ("POST", "/api/v1/session")}:
+            if (method, template) in {
+                ("DELETE", "/api/v1/session"),
+                ("POST", "/api/v1/session"),
+                ("POST", "/api/v1/session/demo"),
+            }:
                 continue  # exercised above; they would end or replace the session under test
             client = as_role(None if role == "nobody" else role)
             path = template.replace("{account_id}", str(own)).replace(

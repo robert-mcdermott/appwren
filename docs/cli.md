@@ -18,6 +18,7 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren db`](#appwren-db) | Look after the database schema |
 | [`appwren users`](#appwren-users) | Manage accounts from the command line |
 | [`appwren verify`](#appwren-verify) | Check that the history has not been altered |
+| [`appwren demo`](#appwren-demo) | Build a fictional organization to explore |
 | [`appwren program`](#appwren-program) | Move the program between installations |
 | [`appwren doctor`](#appwren-doctor) | Check that this installation is healthy |
 
@@ -42,6 +43,7 @@ Run AppWren's web server. It refuses to start on a database whose schema is behi
 | `--port` `PORT` | port to listen on (default: from the configuration) |
 | `--workers` `WORKERS` | server processes (default: from the configuration) |
 | `--reload` | restart when the code changes (development) |
+| `--demo-on-network` | let a demo organization listen beyond this machine (anyone who reaches it can sign in as its sample people) |
 
 ## `appwren db`
 
@@ -114,6 +116,17 @@ Show an account's roles, or with --set replace the roles granted in AppWren. Rol
 ## `appwren verify`
 
 Recompute the hash chain over every event in the history and report the first one that does not hold. Exits with 1 if the history is broken.
+
+## `appwren demo`
+
+Build the Bramblewood Institute for Health Research, a fictional organization with two years of history, in its own directory. Everything in it is made by the same code the app uses. Start it with the command it prints.
+
+| Option | Meaning |
+|---|---|
+| `PATH` | where to build it (default: ./demo) |
+| `--seed` `SEED` | a different number gives a different Bramblewood |
+| `--port` `PORT` | the port its server will use (default: 8020) |
+| `--force` | rebuild a demo that is already there |
 
 ## `appwren program`
 

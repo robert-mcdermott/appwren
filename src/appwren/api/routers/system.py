@@ -11,6 +11,7 @@ from sqlalchemy import text
 from appwren import TAGLINE, __version__
 from appwren.api.common import database, envelope, reading
 from appwren.db import migrate
+from appwren.demo.build import marker as demo_marker
 from appwren.program import branding
 
 router = APIRouter(prefix="/api/v1", tags=["system"])
@@ -43,6 +44,7 @@ def meta(request: Request) -> dict[str, Any]:
     """What the web app needs before anyone signs in."""
     with reading(request) as session:
         brand = branding.public_view(branding.load(session))
+        demo = demo_marker(session)
     sso = request.app.state.config.sso
     return envelope(
         {
@@ -50,6 +52,8 @@ def meta(request: Request) -> dict[str, Any]:
             "version": __version__,
             "branding": brand,
             "palettes": list(branding.PALETTES),
+            # A demo says so, and names the sample people its sign-in page offers.
+            "demo": {"built_on": demo["built_on"], "accounts": demo["accounts"]} if demo else None,
             # Single sign-on is optional. Nothing about it is said unless it is set up.
             "sso": {"label": sso.label, "local_sign_in": sso.local_sign_in}
             if sso.enabled

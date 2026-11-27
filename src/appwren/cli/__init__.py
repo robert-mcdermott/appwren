@@ -27,6 +27,7 @@ from appwren.core import log as logs
 from appwren.core.errors import AppWrenError
 from appwren.db import migrate
 from appwren.db.engine import Database
+from appwren.demo import build as demo_build
 from appwren.events import chain
 from appwren.home import DataHome
 from appwren.people import accounts
@@ -121,6 +122,64 @@ def cmd_program_import(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+DEMO_MARKER = ".appwren-demo"
+
+
+def cmd_demo(args: argparse.Namespace) -> int:
+    import shutil
+    import time
+
+    root = Path(args.path).expanduser().resolve()
+    marker = root / DEMO_MARKER
+    if root.exists() and any(root.iterdir()):
+        if not marker.is_file():
+            raise AppWrenError(f"{root} is not empty and is not a demo. Choose another directory.")
+        if not args.force:
+            raise AppWrenError(
+                f"There is already a demo in {root}. Start it with:\n"
+                f"  appwren --config {root / CONFIG_NAME} serve\n"
+                "or rebuild it with --force."
+            )
+        for name in ("var", CONFIG_NAME):  # only what this command made
+            target = root / name
+            if target.is_dir():
+                shutil.rmtree(target)
+            elif target.exists():
+                target.unlink()
+    root.mkdir(parents=True, exist_ok=True)
+    marker.write_text("An AppWren demo organization. Safe to delete.\n", encoding="utf-8")
+    path = root / CONFIG_NAME
+    path.write_text(
+        example_config_text().replace("port = 8000", f"port = {args.port}"), encoding="utf-8"
+    )
+    config = load_config(path, env={})
+    DataHome(config.data.home).create()
+    started = time.monotonic()
+    db = Database(config.database_url)
+    try:
+        migrate.upgrade(db.engine)
+        summary = demo_build.build(db, seed=args.seed)
+        with db.engine.connect() as conn:
+            report = chain.verify(conn)
+    finally:
+        db.dispose()
+    counts = summary.counts
+    print(f"Built the {demo_build.ORGANIZATION} in {root}")
+    print(
+        f"  {counts.get('units', 0)} units, {counts.get('accounts', 0)} people, "
+        f"{counts.get('applications', 0)} applications, {counts.get('components', 0)} "
+        f"components, {counts.get('technologies', 0)} technologies"
+    )
+    print(
+        f"  {counts.get('assessments', 0)} assessments, {counts.get('decisions', 0)} decisions, "
+        f"{counts.get('portfolio snapshots', 0)} portfolio snapshots, {report.events} events, "
+        f"in {time.monotonic() - started:.0f} seconds"
+    )
+    print(f"\nStart it with:\n  appwren --config {path} serve")
+    print("and sign in as any of its sample people from the sign-in page.")
+    return EXIT_OK
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     path = find_config_path(args.config)
     if path.exists() and not args.force:
@@ -177,7 +236,8 @@ def cmd_serve(args: argparse.Namespace) -> int:
     db = _database(config)  # refuses a schema that is behind
     try:
         with db.read() as session:
-            if accounts.active_admins(session) == 0:
+            is_demo = demo_build.marker(session) is not None
+            if accounts.active_admins(session) == 0 and not is_demo:
                 raise AppWrenError(
                     "Nobody could sign in: there is no administrator yet. Create one first:\n"
                     "  appwren users add you@example.org --name 'Your Name' --role admin"
@@ -186,6 +246,15 @@ def cmd_serve(args: argparse.Namespace) -> int:
         db.dispose()
     host = args.host or config.server.host
     port = args.port or config.server.port
+    if is_demo:
+        if args.demo_on_network:
+            os.environ["APPWREN_DEMO_ON_NETWORK"] = "1"
+        elif host not in ("127.0.0.1", "localhost", "::1"):
+            raise AppWrenError(
+                "This is a demo organization: anyone who can reach it can sign in as any of "
+                "its sample people.\nIt listens only on this machine unless you say otherwise: "
+                "appwren serve --demo-on-network"
+            )
     workers = 1 if args.reload else (args.workers or config.server.workers)
     if not _port_free(host, port):
         raise AppWrenError(
@@ -360,6 +429,12 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument(
         "--reload", action="store_true", help="restart when the code changes (development)"
     )
+    serve.add_argument(
+        "--demo-on-network",
+        action="store_true",
+        help="let a demo organization listen beyond this machine (anyone who reaches it can "
+        "sign in as its sample people)",
+    )
     serve.set_defaults(handler=cmd_serve)
 
     db = commands.add_parser(
@@ -462,6 +537,26 @@ def build_parser() -> argparse.ArgumentParser:
         "first one that does not hold. Exits with 1 if the history is broken.",
     )
     verify.set_defaults(handler=cmd_verify)
+
+    demo = commands.add_parser(
+        "demo",
+        help="build a fictional organization to explore",
+        description="Build the Bramblewood Institute for Health Research, a fictional "
+        "organization with two years of history, in its own directory. Everything in it is "
+        "made by the same code the app uses. Start it with the command it prints.",
+    )
+    demo.add_argument(
+        "path", nargs="?", default="demo", metavar="PATH",
+        help="where to build it (default: ./demo)",
+    )  # fmt: skip
+    demo.add_argument(
+        "--seed", type=int, default=1, help="a different number gives a different Bramblewood"
+    )
+    demo.add_argument(
+        "--port", type=int, default=8020, help="the port its server will use (default: 8020)"
+    )
+    demo.add_argument("--force", action="store_true", help="rebuild a demo that is already there")
+    demo.set_defaults(handler=cmd_demo)
 
     program = commands.add_parser(
         "program",

@@ -29,7 +29,7 @@ Units nest three and four deep, so scoped roles and roll-ups have something to s
 
 ### People
 
-About 220 accounts: a portfolio manager and two enterprise architects; IT leaders and division leaders; stewards for most units; product managers, engineers, and research software engineers who own applications; principal investigators and lab managers who own lab tools; and an auditor. One owner has left, so some of their applications are orphaned. Sample accounts for each role are listed on the demo's sign-in page.
+About 180 accounts: a portfolio manager and two architects; IT leaders and division leaders; stewards for most units; product managers, engineers, and research software engineers who own applications; principal investigators and lab managers who own lab tools; and an auditor. One owner has left, so some of their applications are orphaned. Sample accounts for each role are listed on the demo's sign-in page.
 
 ### Scale
 
@@ -37,28 +37,29 @@ Enough to look like an organization that has used AppWren for a year, and small 
 
 | Records | About | Notes |
 |---|---|---|
-| Org units | 65 | Four levels, including IT teams |
-| Accounts | 220 | Every role represented; one departed |
-| Capabilities | 70 | Three levels across research, clinical, administrative, education, and IT |
-| Vendors | 45 | Software companies, service providers, open-source projects, a consortium |
-| Technologies | 45 | Languages, frameworks, databases, operating systems, platforms; each with releases and invented support dates |
-| Applications | 160 | Every sourcing type, lifecycle stage, tier, and disposition; about forty research software tools |
-| Components | 260 | Most custom and commercial applications decomposed; most SaaS with none |
-| Assessments | 230 | Re-assessments over time; some expired; some applications never assessed |
-| Decisions | 90 | Some superseded; several mismatches with today's recommendation; some due for review |
+| Org units | 57 | Four levels, including IT teams and 24 labs |
+| Accounts | 180 | Every role represented; one who has left |
+| Capabilities | 43 | The default program's starter map |
+| Vendors | 30 | Software companies, service providers, open-source projects, a consortium, a partner university |
+| Technologies | 24 | Languages, frameworks, databases, operating systems, platforms; each with releases and invented support dates |
+| Applications | 107 | Every sourcing type and tier, most lifecycle stages, and about forty research tools kept by labs |
+| Components | 120 | Most built and commercial applications decomposed; most SaaS with none |
+| Assessments | 125 | Re-assessments over time; some expired; a dozen applications never assessed |
+| Decisions | 70 | Some superseded; several mismatches with today's recommendation; some due for review |
 | Portfolio snapshots | 4 | Quarterly, for the last year |
+| Events | about 2,000 | All verified by `appwren verify` |
 
 ### Storylines
 
 Hand-written situations, each asserted by a test, so that every wave 1 screen has something worth reading:
 
 - **The worked example.** *Specimen Tracker* produces exactly the figures in [engine.md](engine.md#a-worked-example): Modernize, with three flags.
-- **Three tools for one job.** Three survey tools serve *Participant surveys*; one is the primary, one is recommended for consolidation into it, and the third is the only one used by the clinic and stays.
+- **Three tools for one job.** Three survey tools serve *Participant surveys*: the survey hub is the primary; an old in-house tool is recommended for consolidation into it, and the decision agrees; the clinic's questionnaires are recommended for consolidation too, but the decision on record keeps them, for a reason the scores cannot know.
 - **The grant ends.** A lab's imaging pipeline, paid for by a grant that ends in five months, with no decision recorded.
 - **The single maintainer.** A tier 2 analysis platform kept by one research software engineer.
 - **The incubator.** A pilot of a new electronic lab notebook, in Evaluating, recommended *Incubate*.
 - **The mismatch.** A commercial scheduling system recommended *Replace*; the decision on record is *Maintain* until a contract ends, with a review date next month.
 - **The orphan.** Four applications whose accountable owner left, flagged and listed on the steward's home page.
 - **Not enough to say.** A dozen applications recorded from the spreadsheet import with no assessment, recommended *Assess*, each showing what would raise its confidence.
-- **The end of support.** A database release used by eleven components reaches end of support next quarter.
+- **The end of support.** A database release used by a dozen components reaches end of support next quarter.
 - **Retired properly.** An old reporting tool retired last year, with its decision, its successor, and its history.
