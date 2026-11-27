@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from appwren.access.principal import Principal
 from appwren.api.problems import problem
@@ -43,6 +44,18 @@ def check_origin(request: Request) -> None:
 
 
 def _authenticate(request: Request) -> Principal | None:
+    from appwren.integration import tokens
+
+    header = request.headers.get("authorization", "")
+    if header[:7].lower() == "bearer " and header[7:].strip().startswith(tokens.PREFIX):
+        # Another system presents a token instead of a session: the role it was issued for.
+        # (A push key is a bearer too, and is checked by the one route that takes it.)
+        with request.app.state.db.bookkeeping() as session:
+            row = tokens.authenticate(session, header[7:].strip())
+            if row is None:
+                raise HTTPException(401, "That token is not valid, has expired, or was revoked.")
+            request.state.token_reads_only = row.read_only
+            return tokens.principal_for(session, row)
     token = request.cookies.get(sessions.COOKIE)
     if not token:
         return None
@@ -61,17 +74,51 @@ def _authenticate(request: Request) -> Principal | None:
 
 def _prepare(request: Request) -> None:
     unsafe = request.method not in SAFE
-    if unsafe:
-        check_origin(request)
+    request.state.token_reads_only = None
     principal = _authenticate(request)
     request.state.principal = principal
+    if principal is not None and principal.token_id is not None:
+        # No browser is involved, so there is no other site to guard against.
+        if unsafe and request.state.token_reads_only:
+            raise HTTPException(403, "This token may read, and may not change anything.")
+        return
+    if unsafe:
+        check_origin(request)
     if unsafe and principal is not None and (request.method, request.url.path) not in NO_TOKEN:
         sent = request.headers.get(sessions.CSRF_HEADER, "")
         if not sent or not hmac.compare_digest(sent, principal.csrf_token):
             raise HTTPException(403, "The request is missing its CSRF token. Reload the page.")
 
 
+class BodyLimit:
+    """Counts what a request sends, as it arrives, and stops at ``MAX_BODY``. A request that
+    declares its length is refused before it is read; this catches one that does not, sent in
+    pieces, which would otherwise be read whole."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        seen = 0
+
+        async def counted() -> Message:
+            nonlocal seen
+            message = await receive()
+            if message["type"] == "http.request":
+                seen += len(message.get("body", b""))
+                if seen > MAX_BODY:
+                    raise HTTPException(413, "That is too large to send.")
+            return message
+
+        await self.app(scope, counted, send)
+
+
 def install_access(app: FastAPI) -> None:
+    app.add_middleware(BodyLimit)
+
     @app.middleware("http")
     async def access(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]

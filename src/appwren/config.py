@@ -38,6 +38,8 @@ class ServerConfig:
     session_idle_hours: int = 12
     session_max_days: int = 7
     scheduler: bool = True  # run scheduled work inside this server
+    # Whose X-Forwarded-For and X-Forwarded-Proto to believe: addresses, or * for any.
+    trusted_proxies: str = "127.0.0.1"
 
 
 @dataclass(frozen=True)
@@ -97,6 +99,8 @@ class Config:
     data: DataConfig = field(default_factory=DataConfig)
     sso: SsoConfig = field(default_factory=SsoConfig)
     mail: MailConfig = field(default_factory=MailConfig)
+    # The [branding] section, checked: an ``appwren.program.branding.FileBranding``, or None.
+    branding: Any = None
 
     @property
     def database_url(self) -> str:
@@ -165,7 +169,7 @@ def parse_config(
     sections: dict[str, Any] = {}
 
     for name in raw:
-        if name not in _SECTIONS:
+        if name not in _SECTIONS and name != "branding":
             problems.append(f"[{name}] is not a section AppWren knows")
 
     for name, cls in _SECTIONS.items():
@@ -175,7 +179,13 @@ def parse_config(
             table = {}
         sections[name] = _build(name, cls, table, env, problems)
 
-    config = Config(path=path, **sections)
+    brand = None
+    if "branding" in raw:
+        from appwren.program import branding as brand_rules
+
+        brand, found = brand_rules.from_file(raw["branding"], base_dir)
+        problems.extend(found)
+    config = Config(path=path, branding=brand, **sections)
     config = replace(config, data=replace(config.data, home=_resolve(config.data.home, base_dir)))
     config = replace(
         config,

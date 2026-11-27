@@ -81,6 +81,12 @@ def _snapshots(db: Database, _config: Config) -> dict[str, int]:
         return {"monthly_snapshots_taken": decisions.take_monthly(session)}
 
 
+def _webhooks(db: Database, config: Config) -> dict[str, int]:
+    from appwren.integration import webhooks
+
+    return webhooks.run_once(db, config)
+
+
 def _tidy(db: Database, _config: Config) -> dict[str, int]:
     now = utc_now()
     with db.bookkeeping() as session:
@@ -110,6 +116,10 @@ JOBS: dict[str, JobSpec] = {
                 "Queues notices and daily summaries and sends what is waiting, where email is "
                 "set up",
                 timedelta(minutes=1), _mail),
+        JobSpec("webhooks", "Webhooks",
+                "Tells each webhook an administrator has registered of what it asked for, "
+                "signed, and tries again later where a delivery fails",
+                timedelta(minutes=1), _webhooks),
         JobSpec("connectors", "Connectors",
                 "Runs each connector an administrator has switched on, when it is due",
                 timedelta(minutes=15), _connectors),

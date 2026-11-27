@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from appwren import PRODUCT_NAME
 from appwren.config import Config, MailConfig
+from appwren.core import color
 from appwren.core.clock import utc_now
 from appwren.core.errors import AppWrenError
 from appwren.db.engine import Database
@@ -91,6 +92,7 @@ class Look:
     organization: str
     base_url: str
     footer: str = ""
+    accent: str = ""  # the organization's accent, a checked hex color, or empty
 
     def link(self, href: str | None) -> str | None:
         return f"{self.base_url}{href}" if self.base_url and href else None
@@ -102,6 +104,8 @@ def look(session: Session, config: Config) -> Look:
         brand.product_name or PRODUCT_NAME,
         brand.organization_name,
         config.server.base_url,
+        brand.email_footer,
+        brand.accent if color.is_hex(brand.accent) else "",
     )
 
 
@@ -142,9 +146,12 @@ def compose(
         + "</li>"
         for title, href in items
     )
+    heading = how.product + (f" · {how.organization}" if how.organization else "")
     page = (
         '<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:15px;'
         'line-height:1.5;color:#1c1b19;max-width:36em">'
+        f'<div style="border-top:4px solid {escape(how.accent or "#0f5876", quote=True)};'
+        f'padding-top:8px;margin-bottom:16px;font-weight:600">{escape(heading)}</div>'
         f"<p>{escape(greeting)},</p><p>{escape(intro)}</p>"
         f'<ul style="padding-left:20px">{rows}</ul>'
         f'<p style="color:#6b6862;font-size:13px;border-top:1px solid #e3e0da;padding-top:12px">'

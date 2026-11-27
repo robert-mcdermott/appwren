@@ -36,6 +36,25 @@ The password needs at least 12 characters. Length matters more than symbols: a f
 
 `init` is safe to run again. It leaves an existing configuration file alone, adds only what is missing from the program, creates units only if there are none, and creates an administrator only if there is none.
 
+### Start from a program shaped like yours
+
+The default program suits a research organization with some clinical work. If yours is another kind, begin from a **starter program** instead: the default program as that kind of organization would first change it, with its own capability map, domains, kinds of unit, data classes, funding, and examples of what counts as an application. The question bank, the scoring model, and the lifecycle are the default's, so every application is assessed and scored the same way.
+
+| Starter | For |
+|---|---|
+| `starter-research-institute` | An independent research institute: labs and core facilities, grant-funded software, research data |
+| `starter-academic-medical-center` | Hospitals and clinics beside research and teaching, a fuller clinical map, tier 1 kept for patient care and safety |
+| `starter-university` | Colleges, schools, and departments; teaching and student services beside research; student records as their own class of data |
+| `starter-nonprofit` | Programs and the people they serve, fundraising and donors, volunteers, restricted funding |
+| `starter-company` | Customers, products, and operations, corporate functions, customer and payment data |
+
+```bash
+uv run appwren program starters                  # what each is for
+uv run appwren init --program starter-university
+```
+
+A starter is a beginning, not a commitment: everything in it can be changed afterwards like any program ([Shape the program](running-the-program.md#shape-the-program)). The values of the default program that a starter leaves out are kept, retired, so nothing that refers to them breaks.
+
 To set up without being asked anything, name the administrator and pipe the password in:
 
 ```bash

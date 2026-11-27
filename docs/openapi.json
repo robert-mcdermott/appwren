@@ -7,6 +7,12 @@
             "maxLength": 20,
             "title": "Accent",
             "type": "string"
+          },
+          "accent_dark": {
+            "default": "",
+            "maxLength": 20,
+            "title": "Accent Dark",
+            "type": "string"
           }
         },
         "required": [
@@ -660,6 +666,47 @@
             "title": "Accent",
             "type": "string"
           },
+          "accent_dark": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accent Dark"
+          },
+          "email_footer": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Footer"
+          },
+          "footer_links": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Footer Links"
+          },
           "organization_name": {
             "default": "",
             "maxLength": 400,
@@ -677,15 +724,50 @@
             "type": "string"
           },
           "score_ramp": {
-            "default": "ordinal",
-            "maxLength": 20,
-            "title": "Score Ramp",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Ramp"
           },
           "show_powered_by": {
             "default": true,
             "title": "Show Powered By",
             "type": "boolean"
+          },
+          "sign_in_message": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sign In Message"
+          },
+          "terms": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terms"
           }
         },
         "required": [
@@ -3853,6 +3935,57 @@
         "title": "TechnologyUse",
         "type": "object"
       },
+      "TokenBody": {
+        "properties": {
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "YYYY-MM-DD; 90 days if none",
+            "title": "Expires On"
+          },
+          "name": {
+            "description": "What it is for, such as the system using it",
+            "maxLength": 80,
+            "title": "Name",
+            "type": "string"
+          },
+          "org_unit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The unit it is for, if any",
+            "title": "Org Unit Id"
+          },
+          "read_only": {
+            "default": true,
+            "description": "Whether it may only read",
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "role": {
+            "description": "manager, architect, auditor, leader, steward, or member",
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "role"
+        ],
+        "title": "TokenBody",
+        "type": "object"
+      },
       "UnitChanges": {
         "properties": {
           "code": {
@@ -4163,6 +4296,63 @@
           "items"
         ],
         "title": "VocabularyBody",
+        "type": "object"
+      },
+      "WebhookBody": {
+        "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "topics": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What it is told of",
+            "title": "Topics"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An https:// address",
+            "title": "Url"
+          }
+        },
+        "title": "WebhookBody",
         "type": "object"
       }
     }
@@ -4826,6 +5016,320 @@
         "summary": "Upload a logo or tab icon",
         "tags": [
           "branding"
+        ]
+      }
+    },
+    "/api/v1/admin/tokens": {
+      "get": {
+        "operationId": "list_tokens_api_v1_admin_tokens_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Tokens Api V1 Admin Tokens Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The API tokens, and when each was last used",
+        "tags": [
+          "integration"
+        ]
+      },
+      "post": {
+        "description": "The token itself is in the answer, and never again: only its hash is kept.",
+        "operationId": "issue_token_api_v1_admin_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Issue Token Api V1 Admin Tokens Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue an API token",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/admin/tokens/{token_id}": {
+      "delete": {
+        "operationId": "revoke_token_api_v1_admin_tokens__token_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "title": "Token Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Revoke Token Api V1 Admin Tokens  Token Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke an API token",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/admin/webhooks": {
+      "get": {
+        "operationId": "list_webhooks_api_v1_admin_webhooks_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Webhooks Api V1 Admin Webhooks Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The webhooks, and how their deliveries are going",
+        "tags": [
+          "integration"
+        ]
+      },
+      "post": {
+        "description": "Its signing secret is in the answer, and never again.",
+        "operationId": "add_webhook_api_v1_admin_webhooks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Add Webhook Api V1 Admin Webhooks Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a webhook",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/admin/webhooks/{webhook_id}": {
+      "delete": {
+        "operationId": "remove_webhook_api_v1_admin_webhooks__webhook_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "schema": {
+              "title": "Webhook Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Remove Webhook Api V1 Admin Webhooks  Webhook Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a webhook",
+        "tags": [
+          "integration"
+        ]
+      },
+      "patch": {
+        "operationId": "change_webhook_api_v1_admin_webhooks__webhook_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "schema": {
+              "title": "Webhook Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Change Webhook Api V1 Admin Webhooks  Webhook Id  Patch",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change a webhook, or switch it off or on",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
+    "/api/v1/admin/webhooks/{webhook_id}/test": {
+      "post": {
+        "operationId": "test_webhook_api_v1_admin_webhooks__webhook_id__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "schema": {
+              "title": "Webhook Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Test Webhook Api V1 Admin Webhooks  Webhook Id  Test Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send a test delivery now",
+        "tags": [
+          "integration"
         ]
       }
     },

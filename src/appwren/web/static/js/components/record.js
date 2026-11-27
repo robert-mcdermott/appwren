@@ -51,6 +51,22 @@ export const TYPES = {
     lede: "What pays: operating budgets, grants, chargebacks, and capital projects. Cost lines say which pays for what." },
 };
 
+/** What the organization calls a unit, when it has its own word. */
+export const UNIT = { label: "Unit", plural: "Units" };
+
+/** Use the organization's own words for the kinds of record and for units. */
+export function applyTerms(terms = {}) {
+  const lower = (word) => /^[A-Z][a-z]/.test(word) ? word[0].toLowerCase() + word.slice(1) : word;
+  for (const [key, words] of Object.entries(terms)) {
+    if (key === "unit") Object.assign(UNIT, { label: words.one, plural: words.many });
+    else if (TYPES[key]) {
+      const noun = lower(words.one);
+      Object.assign(TYPES[key], { label: words.one, plural: words.many, noun, nouns: lower(words.many),
+        article: `${/^[aeiou]/i.test(noun) ? "an" : "a"} ${noun}` });
+    }
+  }
+}
+
 const BY_PREFIX = Object.fromEntries(Object.entries(TYPES).map(([key, type]) => [type.prefix, key]));
 
 export function typeOfRef(ref) {

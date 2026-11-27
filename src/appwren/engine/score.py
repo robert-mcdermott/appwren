@@ -305,11 +305,27 @@ def _sign_in_level(profile: Mapping[str, Any], facts: Mapping[str, Any]) -> int 
 # --- The whole --------------------------------------------------------------------------------
 
 
+# A profile resolved once for each model scoring many applications. The model itself is kept
+# with it, so an id the garbage collector has given to another model never matches.
+_RESOLVED: dict[tuple[int, str], tuple[Mapping[str, Any], dict[str, Any]]] = {}
+
+
+def _resolved(model: Mapping[str, Any], key: str) -> dict[str, Any]:
+    found = _RESOLVED.get((id(model), key))
+    if found is not None and found[0] is model:
+        return found[1]
+    if len(_RESOLVED) > 32:
+        _RESOLVED.clear()
+    resolved = models.resolve(model, key)
+    _RESOLVED[(id(model), key)] = (model, resolved)
+    return resolved
+
+
 def evaluate(facts: Mapping[str, Any], model: Mapping[str, Any], *, today: date) -> dict[str, Any]:
     """Score one application. ``facts`` are as gathered by the assessment service."""
     facts = dict(facts)
     thresholds = model["thresholds"]
-    profile = models.resolve(model, models.choose(model, facts))
+    profile = _resolved(model, models.choose(model, facts))
     computed = _computed(facts, today, _sign_in_level(profile, facts))
     facts["sole_provider"] = any(
         item.get("others", 0) == 0 for item in facts.get("capabilities") or []

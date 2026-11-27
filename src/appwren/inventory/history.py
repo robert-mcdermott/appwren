@@ -48,8 +48,9 @@ def words(text: str) -> str:
 class Lookups:
     """Names for the keys and ids that events hold, loaded when first needed."""
 
-    def __init__(self, session: Session, record_type: RecordType) -> None:
+    def __init__(self, session: Session, record_type: RecordType, principal: Any = None) -> None:
         self.session = session
+        self.principal = principal  # when given, an application they may not see is not named
         self.labels = {**LABELS, **{field.name: field.label for field in record_type.fields}}
         self.vocabularies = {
             **VOCABULARIES,
@@ -77,8 +78,16 @@ class Lookups:
                 rows = self.session.execute(select(Account.id, Account.display_name)).all()
             else:
                 model: Any = TYPES[kind].model
-                rows = self.session.execute(select(model.id, model.ref, model.name)).all()
-                rows = [(row[0], f"{row[1]} {row[2]}") for row in rows]  # type: ignore[misc]
+                if kind == "application" and self.principal is not None:
+                    from appwren.inventory import access
+
+                    rows = [(app.id, f"{app.ref} {app.name}"
+                             if access.sees_application(self.session, self.principal, app)
+                             else "an application you may not see")
+                            for app in self.session.scalars(select(model))]  # fmt: skip
+                else:
+                    rows = self.session.execute(select(model.id, model.ref, model.name)).all()
+                    rows = [(row[0], f"{row[1]} {row[2]}") for row in rows]  # type: ignore[misc]
             self._names[kind] = {row[0]: row[1] for row in rows}
         return self._names[kind].get(identifier, f"{words(kind).lower()} {identifier}")
 
@@ -272,9 +281,11 @@ def for_record(
     *,
     limit: int = 300,
     withheld: frozenset[str] = frozenset(),
+    principal: Any = None,
 ) -> list[dict[str, Any]]:
     """The record's history, newest first, with the values of any sensitive field the reader
-    may not see withheld. Permission to see the record is the caller's to check."""
+    may not see withheld, and no application they may not see named. Permission to see the
+    record is the caller's to check."""
     events = session.scalars(
         select(Event)
         .where(
@@ -286,7 +297,7 @@ def for_record(
         .order_by(Event.id.desc())
         .limit(limit)
     ).all()
-    lookups = Lookups(session, record_type)
+    lookups = Lookups(session, record_type, principal)
     # What belongs to a withheld field is withheld with it: cost lines go with the cost.
     unseen = {child for name in withheld for child in CHILDREN_OF.get(name, ())}
     events = [event for event in events if event.subject_type not in unseen]

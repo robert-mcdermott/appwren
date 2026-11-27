@@ -22,6 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from appwren.core.clock import today
+from appwren.db.among import among
 from appwren.db.models import Application, Component, FactValue
 from appwren.engine.facts import EXTRA_FACTS
 
@@ -47,7 +48,7 @@ def gather(session: Session, apps: list[Application]) -> dict[int, dict[str, Any
     sources: dict[int, dict[str, str]] = defaultdict(dict)
     for row in session.scalars(
         select(FactValue).where(
-            FactValue.record_type == "application", FactValue.record_id.in_(ids)
+            FactValue.record_type == "application", among(FactValue.record_id, ids)
         )
     ):
         if row.field in APPLICATION_SIGNALS and _holds(row) is not None:
@@ -66,7 +67,7 @@ def gather(session: Session, apps: list[Application]) -> dict[int, dict[str, Any
         for row in session.scalars(
             select(FactValue).where(
                 FactValue.record_type == "component",
-                FactValue.record_id.in_(owner),
+                among(FactValue.record_id, owner),
                 FactValue.field.in_(("dependency_alerts", "last_change")),
             )
         ):

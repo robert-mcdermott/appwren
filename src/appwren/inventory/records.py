@@ -19,12 +19,13 @@ from sqlalchemy.orm import Session
 from appwren.access.principal import Principal
 from appwren.core.clock import utc_now
 from appwren.core.errors import Conflict, Invalid, NotFound, PermissionDenied
+from appwren.db.among import among
 from appwren.db.models import Account, ExternalRef, OrgUnit, RecordOwner
 from appwren.db.models.inventory import ACCOUNTABLE, RECORD_STATUSES
 from appwren.db.refs import claim_ref, next_ref, parse_ref
 from appwren.events import audit
 from appwren.inventory import access
-from appwren.inventory.registry import TYPES, Field, RecordType
+from appwren.inventory.registry import APPLICATION, TYPES, Field, RecordType
 from appwren.people import units
 from appwren.program import vocab
 
@@ -156,8 +157,13 @@ def active_unit(session: Session, value: Any, field: str, errors: Errors) -> int
     return found.id
 
 
-def reference(session: Session, target: str, value: Any, field: str, errors: Errors) -> int | None:
-    """Another record, given by its reference (or its id). Stored as its id."""
+def reference(
+    session: Session, target: str, value: Any, field: str, errors: Errors, *,
+    principal: Principal | None = None,
+) -> int | None:  # fmt: skip
+    """Another record, given by its reference (or its id). Stored as its id. An application
+    the person may not see is answered as if there were none, so that trying references one
+    by one names nothing hidden."""
     if value is None or value == "":
         return None
     record_type = TYPES[target]
@@ -168,6 +174,14 @@ def reference(session: Session, target: str, value: Any, field: str, errors: Err
         found = session.scalars(
             select(model).where(model.ref == str(value).strip().upper())
         ).first()
+    principal = principal or session.info.get("principal")
+    if (
+        found is not None
+        and record_type is APPLICATION
+        and principal is not None
+        and not access.sees_application(session, principal, found)
+    ):
+        found = None
     if found is None:
         errors.add(field, f"There is no {record_type.label} {value}.")
         return None
@@ -312,6 +326,19 @@ def _apply(
     return errors
 
 
+def _applied(
+    session: Session, principal: Principal, record_type: RecordType, record: Any,
+    values: Mapping[str, Any], *, creating: bool,
+) -> Errors:  # fmt: skip
+    """``_apply``, with the person at hand, so that a reference they may not see is refused."""
+    before = session.info.get("principal")
+    session.info["principal"] = principal
+    try:
+        return _apply(session, record_type, record, values, creating=creating)
+    finally:
+        session.info["principal"] = before
+
+
 def create(
     session: Session,
     principal: Principal,
@@ -328,7 +355,7 @@ def create(
     starting = record_type.extra.get("new")
     if starting is not None:
         starting(record)
-    errors = _apply(session, record_type, record, values, creating=True)
+    errors = _applied(session, principal, record_type, record, values, creating=True)
     if errors:
         raise Invalid(f"The {record_type.label} was not saved.", errors)
     may_add = record_type.extra.get("can_add")
@@ -405,7 +432,7 @@ def update(
     require_version(record_type, record, version)
     with audit.operation(session, f"{record_type.key}.edit"):
         with session.no_autoflush:
-            errors = _apply(session, record_type, record, values, creating=False)
+            errors = _applied(session, principal, record_type, record, values, creating=False)
         if errors:
             session.expire(record)  # put back what was there
             raise Invalid(f"The {record_type.label} was not saved.", errors)
@@ -487,7 +514,7 @@ def external_refs_of(
         return found
     for row in session.scalars(
         select(ExternalRef)
-        .where(ExternalRef.record_type == record_type.key, ExternalRef.record_id.in_(ids))
+        .where(ExternalRef.record_type == record_type.key, among(ExternalRef.record_id, ids))
         .order_by(ExternalRef.id)
     ):
         system = systems.get(row.system, {})
@@ -519,7 +546,7 @@ def owners_of(
     rows = session.execute(
         select(RecordOwner, Account)
         .join(Account, Account.id == RecordOwner.account_id)
-        .where(RecordOwner.record_type == record_type.key, RecordOwner.record_id.in_(ids))
+        .where(RecordOwner.record_type == record_type.key, among(RecordOwner.record_id, ids))
         .order_by(Account.display_name)
     )
     for owner, account in rows:

@@ -99,8 +99,9 @@ def _snapshot(session: Session, until: datetime) -> PortfolioSnapshot | None:
 class _Shown:
     """Values as people read them: a vocabulary's label, a unit's or record's name."""
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, principal: Principal | None = None) -> None:
         self.session = session
+        self.principal = principal  # an application they may not see is not named
         self.vocabularies: dict[str, dict[str, str]] = {}
         self.units = {unit.id: unit.name for unit in session.scalars(select(OrgUnit))}
 
@@ -121,7 +122,15 @@ class _Shown:
         if field.kind == "ref" and field.target in TYPES:
             record_type = TYPES[field.target]
             row = self.session.get(record_type.model, value)
-            return row.name if row is not None else "A record since removed"
+            if row is None:
+                return "A record since removed"
+            if (
+                record_type is APPLICATION
+                and self.principal is not None
+                and not access.sees_application(self.session, self.principal, row)
+            ):
+                return "An application you may not see"
+            return row.name
         if field.name == "status":
             return {"active": "Active", "archived": "Archived"}.get(value, value)
         if field.kind == "bool":
@@ -144,7 +153,7 @@ def application(session: Session, principal: Principal, app: Application, on: da
                                          access.sensitive_fields(session)))  # fmt: skip
     if not costs.sees_cost(session, principal, app):
         withheld.add("annual_cost")
-    shown = _Shown(session)
+    shown = _Shown(session, principal)
     fields = []
     for field in (*BASE, *APPLICATION.fields):
         if field.name in withheld:

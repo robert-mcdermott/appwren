@@ -110,12 +110,10 @@ def select(found: list[dict[str, Any]], filters: Mapping[str, Any]) -> list[dict
     lists and counts its figures."""
     on = today().isoformat()
     out = []
+    value = filters.get
+    stored = [(name, str(value(name))) for name in STORED if value(name) not in (None, "")]
     for row in found:
-        value = filters.get
-        if any(
-            value(name) not in (None, "") and str(row.get(name)) != str(value(name))
-            for name in STORED
-        ):
+        if stored and any(str(row.get(name)) != wanted for name, wanted in stored):
             continue
         if value("in_service") in (True, "true") and row["lifecycle"] in NOT_IN_SERVICE:
             continue
@@ -289,14 +287,15 @@ def data_quality(session: Session, principal: Principal, base: Mapping[str, Any]
     for row in found:
         by_unit[row["org_unit_id"]].append(row)
     units = []
-    for unit_id, _rows in sorted(by_unit.items(), key=lambda pair: names.get(pair[0] or 0, "")):
+    for unit_id, mine in sorted(by_unit.items(), key=lambda pair: names.get(pair[0] or 0, "")):
         scope = {**base, "unit_only": unit_id}
+        # Counted from the unit's own rows: the same answer as from all of them, sooner.
         units.append(
             {
                 "unit": {"id": unit_id, "name": names.get(unit_id or 0, "No unit")},
-                "total": _figure("Applications", found, scope),
+                "total": _figure("Applications", mine, scope),
                 "issues": [
-                    _figure(text, found, {**scope, "quality": key}, key=key)
+                    _figure(text, mine, {**scope, "quality": key}, key=key)
                     for key, text in QUALITY.items()
                 ],
             }

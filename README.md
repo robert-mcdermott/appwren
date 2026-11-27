@@ -62,9 +62,18 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.6.0 reads the record back as a whole, for leadership.
+Version 0.7.0 is for an organization that has never seen AppWren: to install it, make it its own, and run it in production.
 
-**Insight, new in 0.6.0**
+**Adoption, new in 0.7.0**
+
+- **Backup, restore, and moving** between SQLite and PostgreSQL, each one command, with the history verified at the end; and figures for how it runs at five thousand applications.
+- **The brand kit:** your colors by day and after dark, logo files, typefaces, a sign-in message and picture, footer links, an email line, and your own words for *unit* or *application*.
+- **Starter programs** for a research institute, an academic medical center, a university, a nonprofit, and a company.
+- **API tokens** an administrator issues for a role, and **signed webhooks** for decisions, stage changes, and lapses; the API held to the last release's contract.
+- **Deployment recipes:** a container image, compose with PostgreSQL, a sandboxed systemd unit, proxy examples, and `doctor --production`.
+- **A security review** against a published standard, recorded with its findings and fixes, and **two new guides**: the program handbook and adopting AppWren.
+
+**Insight, from 0.6.0**
 
 - **Trends** between two portfolio snapshots, or one and today: the figures each held, the applications whose recommendation changed, whose scores moved, and whose flags came or went, and the decisions recorded between them. An application's scores over time.
 - **Shares of the portfolio:** the costliest tenth, the dearest tenth per user, the least used fifth, and the oldest fifth. A share never feeds a score.
@@ -132,12 +141,14 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 
 | Guide | For |
 |---|---|
+| [Adopting AppWren](docs/adopting.md) | An organization deciding whether, and how, to take it up |
 | [Getting started](docs/getting-started.md) | Whoever installs AppWren and sets it up |
 | [The portfolio](docs/the-portfolio.md) | Everyone who keeps, assesses, or reads an application |
 | [The landscape](docs/the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches |
 | [Keeping current](docs/keeping-current.md) | Everyone who keeps an application, and the portfolio team |
 | [Planning change](docs/planning-change.md) | The people who decide what happens to applications, and those who carry it out |
 | [Insight](docs/insight.md) | The portfolio team, and leadership |
+| [The program handbook](docs/handbook.md) | The portfolio team: from the first decisions to the yearly rhythm |
 | [Facts from other systems](docs/signals.md) | Administrators who connect other tools, and everyone who reads what they supply |
 | [Running the program](docs/running-the-program.md) | The portfolio team, and administrators |
 | [Configuration](docs/configuration.md) | Whoever runs the server |

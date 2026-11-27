@@ -22,6 +22,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from appwren.db.among import among
 from appwren.db.models import Application, Component, FactValue
 from appwren.engine.maturity import CHECKS, CODE_CHECKS, DEFAULT, NONE, levels, problems, ranks
 
@@ -50,7 +51,7 @@ def _facts(session: Session, component_ids: list[int]) -> dict[int, dict[str, An
     for row in session.scalars(
         select(FactValue).where(
             FactValue.record_type == "component",
-            FactValue.record_id.in_(component_ids),
+            among(FactValue.record_id, component_ids),
             FactValue.field.in_(CODE_FACTS),
         )
     ):

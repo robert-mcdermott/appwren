@@ -16,6 +16,8 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren init`](#appwren-init) | Set up a new installation |
 | [`appwren serve`](#appwren-serve) | Run the web server |
 | [`appwren db`](#appwren-db) | Look after the database schema |
+| [`appwren backup`](#appwren-backup) | Write the whole installation to one file |
+| [`appwren restore`](#appwren-restore) | Load a backup into an empty installation |
 | [`appwren users`](#appwren-users) | Manage accounts from the command line |
 | [`appwren verify`](#appwren-verify) | Check that the history has not been altered |
 | [`appwren demo`](#appwren-demo) | Build a fictional organization to explore |
@@ -34,6 +36,7 @@ Write a configuration file if there is none, create the data home, create or upg
 | `--force` | overwrite an existing configuration file |
 | `--admin-email` `EMAIL` | create the first administrator with this address |
 | `--admin-name` `NAME` | the first administrator's name |
+| `--program` `STARTER` | begin from a starter program, such as starter-university (see: appwren program starters) |
 | `--organization` `NAME` | the organization's name, as its top unit, if there are no units yet |
 | `--first-unit` `NAME` | a first unit within the organization, such as the team starting with AppWren |
 | `--password-stdin` | read the password from standard input instead of asking |
@@ -61,6 +64,31 @@ Apply any migrations the database has not had. Export first: an upgrade cannot b
 ### `appwren db current`
 
 Show which migration the database is at, and which this version expects. Exits with 1 when they differ.
+
+### `appwren db move`
+
+Copy every table into another database that has not been set up, such as from SQLite to PostgreSQL or back, by way of a backup. The history is verified in the new database. The old one is left as it was.
+
+| Option | Meaning |
+|---|---|
+| `--to` `URL` | the new database's address |
+| `--to-env` `NAME` | the name of an environment variable holding the address, to keep a password off the command line |
+
+## `appwren backup`
+
+Write every table, every attachment and brand file, and a manifest to one gzipped tar. It can be made while the server is running. The file does not depend on the kind of database, so it restores into SQLite or PostgreSQL. It holds everything in the installation: keep it as carefully as the database itself.
+
+| Option | Meaning |
+|---|---|
+| `--out` `FILE` | where to write it (default: appwren-backup-DATE.tar.gz) |
+
+## `appwren restore`
+
+Load a backup into the configured database and data home. The database must hold no accounts and no history: nothing is ever overwritten. The history is verified once it is loaded.
+
+| Option | Meaning |
+|---|---|
+| `FILE` | the backup, a .tar.gz written by appwren backup |
 
 ## `appwren users`
 
@@ -151,8 +179,12 @@ Load a program pack. The whole pack is checked first, and nothing is loaded unle
 
 | Option | Meaning |
 |---|---|
-| `FILE` | the pack to load |
+| `FILE` | the pack to load, or the key of a starter program |
 | `--dry-run` | say what would change, and change nothing |
+
+### `appwren program starters`
+
+List the starter programs: the default program as a research institute, an academic medical center, a university, a nonprofit, or a company would first change it. Begin a new installation from one with init --program, or load one over a program with program import.
 
 ## `appwren technologies`
 
@@ -198,3 +230,7 @@ Send one message now to the account with this address, and say whether the mail 
 ## `appwren doctor`
 
 Check the configuration, the data home, the database and its schema, and the history. Exits with 1 if anything must be fixed.
+
+| Option | Meaning |
+|---|---|
+| `--production` | also check what matters once people depend on it: an https address, the database, administrators, sign-in, email, scheduled work, backups, and who can read the data home; a demo organization fails |

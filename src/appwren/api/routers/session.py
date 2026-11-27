@@ -79,8 +79,14 @@ def sign_in(request: Request, body: SignIn, response: Response) -> Any:
 
     db = database(request)
     with reading(request) as session:
-        blocked = sessions.throttled(session, *pair) or sessions.throttled(
-            session, *wide, limit=sessions.THROTTLE_WIDE
+        # When the account alone is past its limit, someone elsewhere may be trying to lock
+        # its owner out. An address that has not failed for it still gets one try, so the
+        # owner can sign in; one that has, gets none (review finding 5).
+        account_over = sessions.throttled(session, wide[0], limit=sessions.THROTTLE_WIDE)
+        blocked = (
+            sessions.throttled(session, *pair)
+            or sessions.throttled(session, *wide[1:], limit=sessions.THROTTLE_WIDE)
+            or (account_over and sessions.throttled(session, *pair, limit=1))
         )
     if blocked:
         return problem(

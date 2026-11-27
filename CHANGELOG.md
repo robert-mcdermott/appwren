@@ -4,6 +4,84 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.7.0 (2026-11-27)
+
+Wave 7, *Adoption*: an organization that has never seen AppWren installs it, makes it its
+own, and runs it in production. An installation is backed up, restored, and moved between
+SQLite and PostgreSQL by command, and is measured at five thousand applications. It wears
+the organization's own colors, logo files, typefaces, and words; begins from a starter
+program shaped like the organization; lets other systems in with tokens limited to a role
+and tells them what happens with signed webhooks; and is deployed from recipes checked by
+`doctor --production`. Its code has been reviewed against a published security standard,
+and two new guides cover running a program and adopting AppWren.
+
+### Added
+
+- **Backup and restore.** `appwren backup` writes the whole installation (every table, the
+  brand and attachment files, and a manifest) to one file, even while the server runs;
+  `appwren restore` loads it into an empty installation and verifies the history. The file
+  does not depend on the kind of database.
+- **Moving between databases.** `appwren db move` copies an installation into another, empty
+  database, from SQLite to PostgreSQL or back, and verifies the history there.
+- **The brand kit.** Admin → Appearance adds an accent for dark mode, a message and a
+  picture on the sign-in page, up to five links at the foot of the sidebar and the sign-in
+  page, a last line for every email (which now opens with the product's name in the
+  accent), and the organization's own words for application, component, capability,
+  technology, vendor, and unit, used in the menu, page titles, and lists. A new `[branding]`
+  section of the configuration file sets an exact palette by day and after dark, logo
+  files, typefaces, and any of the above, shown in the app as locked.
+- **Starter programs.** `appwren init --program` begins a new installation from the default
+  program as a research institute, an academic medical center, a university, a nonprofit,
+  or a company would first change it: its own capability map, domains, kinds of unit, data
+  classes, funding, fields, and examples. `appwren program starters` lists them, and
+  `appwren program import` loads one by its key.
+- **API tokens.** An administrator issues a token under Admin → API tokens for one role
+  (never administrator), for one unit if the role has one, for reading only unless told
+  otherwise, and until a day at most a year away. It is shown once and kept as a hash;
+  what it changes is recorded against its name.
+- **Webhooks.** Admin → Webhooks registers addresses to be told, in small signed messages,
+  when a decision is recorded, an application changes stage, or a confirmation or an
+  assessment lapses. Failed deliveries are tried again, and every delivery is listed.
+- **The API's contract.** A test holds the API to the last release's OpenAPI document:
+  nothing it offered is taken away, and no request asks for more.
+- **Deployment recipes.** `deploy/` holds a container image that runs read-only and
+  unprivileged, a compose file with PostgreSQL, a sandboxed systemd unit, and nginx and
+  Caddy examples. The image's first start can name the organization and the starter
+  program. A new `[server] trusted_proxies` setting says whose forwarded headers to believe.
+- **`appwren doctor --production`** checks what matters once people depend on an
+  installation: an https address, not a demo, PostgreSQL, two administrators, single
+  sign-on, email, scheduled work, a recent backup, and who can read the data home.
+- **Two new guides.** *The program handbook* is for the portfolio team: the decisions to
+  make first, the first ninety days, the yearly rhythm of reviews, campaigns, and reports,
+  measures worth watching, and what goes wrong. *Adopting AppWren* is for an organization
+  deciding whether, and how, to take it up.
+- **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
+  50,000 components; the figures are in the configuration guide.
+
+### Security
+
+A review against the OWASP Application Security Verification Standard, level 1, is recorded
+in `spec/reviews/`. What it found is fixed, each with a test:
+
+- An API token was taken for the maker of records made at the command line, so a member's
+  token could list restricted applications and read contract values.
+- A restricted application could be named through a reference to it: as another's
+  successor, by trying references one by one, in a message about a capability's primary
+  provider, in a scenario, or in the history. It is now *an application you may not see*.
+- A connector could be given one of the server's own secret variables, and send it to a
+  host of an administrator's choosing.
+- A request with no declared length was read in full before the size limit applied.
+- Wrong passwords from many addresses could lock an account's owner out; a clean address
+  now gets one try.
+- A webhook could be pointed at the server's own machine.
+
+### Fixed
+
+- Pages that read every application failed on SQLite past about 32,000 components, from the
+  database's limit on query parameters.
+- The dashboard, data quality, overlap, the portfolio list, Home, and shares of the
+  portfolio are two to twenty times faster on a large portfolio.
+
 ## 0.6.0 (2026-11-27)
 
 Wave 6, *Insight*: the record read back as a whole, for leadership. Two portfolio snapshots

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import exists, or_, select
+from sqlalchemy import exists, false, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -98,18 +98,18 @@ def visible(
     if trusted is None:
         return None
     me = principal.account_id
-    owned = exists(
-        select(RecordOwner.id).where(
-            RecordOwner.record_type == APPLICATION.key,
-            RecordOwner.record_id == Application.id,
-            RecordOwner.account_id == me,
+    conditions: list[ColumnElement[bool]] = [Application.restricted.is_(False)]
+    if me is not None:
+        # Only a person is named on records or makes them. A token, with no account, must
+        # not match the records nobody is named on, or that the command line made.
+        owned = exists(
+            select(RecordOwner.id).where(
+                RecordOwner.record_type == APPLICATION.key,
+                RecordOwner.record_id == Application.id,
+                RecordOwner.account_id == me,
+            )
         )
-    )
-    conditions: list[ColumnElement[bool]] = [
-        Application.restricted.is_(False),
-        owned,
-        Application.created_by == me,
-    ]
+        conditions += [owned, Application.created_by == me]
     if trusted:
         conditions.append(Application.org_unit_id.in_(trusted))
     seen = or_(*conditions)
@@ -200,6 +200,9 @@ def sees_sensitive_where(principal: Principal) -> ColumnElement[bool] | None:
     application's sensitive fields."""
     if sees_all_sensitive(principal):
         return None
+    if principal.account_id is None:  # a token: named on nothing
+        trusted = principal.units_for(*TRUSTED) or frozenset()
+        return Application.org_unit_id.in_(trusted) if trusted else false()
     owned = exists(
         select(RecordOwner.id).where(
             RecordOwner.record_type == APPLICATION.key,

@@ -175,6 +175,11 @@ export const SCENES = [
   { name: "scenario", as: "architect", path: async (page) => `/scenarios/${await first("/api/v1/scenarios")(page)}` },
   { name: "scenario-changes", as: "architect", path: async (page) => `/scenarios/${await first("/api/v1/scenarios")(page)}`, step: click("Edit the changes") },
   { name: "scenario-initiative", as: "architect", path: async (page) => `/scenarios/${await first("/api/v1/scenarios")(page)}`, step: click("Make an initiative of it") },
+  // Adoption (wave 7)
+  { name: "tokens", as: "admin", path: "/admin/tokens" },
+  { name: "token-issue", as: "admin", path: "/admin/tokens", step: click("Issue a token") },
+  { name: "webhooks", as: "admin", path: "/admin/webhooks" },
+  { name: "webhook-add", as: "admin", path: "/admin/webhooks", step: click("Add a webhook") },
   { name: "application-over-time", as: "portfolio", path: app("Freezer Watch", "scores") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },

@@ -128,20 +128,20 @@ Detail: [waves/wave-5.md](waves/wave-5.md)
 
 Detail: [waves/wave-6.md](waves/wave-6.md)
 
-## Wave 7: Adoption (v0.7.0) ☐
+## Wave 7: Adoption (v0.7.0) ☑
 
 **Goal:** an organization that has never seen AppWren installs it, makes it its own, and runs it in production.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Production | Measured performance at 5,000 applications; several workers; backup, restore, and moving between databases | ☐ |
-| 2 | Brand kit | A custom palette, sign-in page message, email header, footer links, the organization's own terms | ☐ |
-| 3 | Starter programs | Program packs for a research institute, an academic medical center, a university, a general nonprofit, and a company | ☐ |
-| 4 | API for others | Scoped tokens, signed webhooks, a recorded API contract | ☐ |
-| 5 | Deployment | A container image, a compose file, a hardened systemd unit, proxy examples, `doctor --production` | ☐ |
-| 6 | Security and accessibility review | The standard security verification review; the full accessibility audit and screen-reader check | ☐ |
-| 7 | The program handbook | One guide for a portfolio team; the adopter's guide | ☐ |
-| 8 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Production | Measured performance at 5,000 applications; several workers; backup, restore, and moving between databases | ☑ |
+| 2 | Brand kit | A custom palette, sign-in page message, email header, footer links, the organization's own terms | ☑ |
+| 3 | Starter programs | Program packs for a research institute, an academic medical center, a university, a general nonprofit, and a company | ☑ |
+| 4 | API for others | Scoped tokens, signed webhooks, a recorded API contract | ☑ |
+| 5 | Deployment | A container image, a compose file, a hardened systemd unit, proxy examples, `doctor --production` | ☑ |
+| 6 | Security and accessibility review | The standard security verification review; the full accessibility audit. A screen-reader session by a person is still to do | ☑ |
+| 7 | The program handbook | One guide for a portfolio team; the adopter's guide | ☑ |
+| 8 | Release prep | Guides, changelog, release | ☑ |
 
 ## Wave 8: Connected (v0.8.0) ☐
 

@@ -52,7 +52,9 @@ def shares(session: Session, principal: Principal) -> dict[str, Any]:
         )
         if access.sees_application(session, principal, app)
     ]  # fmt: skip
-    costed = [app for app in apps if costs.sees_cost(session, principal, app)]
+    hidden = costs.cost_is_sensitive(session)  # once, not for each application
+    costed = [app for app in apps
+              if not hidden or access.sees_sensitive(session, principal, app)]  # fmt: skip
     on = today()
 
     def cost(app: Application) -> float | None:

@@ -293,6 +293,16 @@ def test_a_credential_comes_only_from_the_environment(
                                             "settings": {"org": "lab"},
                                             "credential_env": "ghp_secret"})  # fmt: skip
         assert "credential_env" in bad.value.errors  # a credential is not a variable's name
+        # Nor may it be one the server reads for itself: that would send its own secret to
+        # whatever host the connector names (review finding 3).
+        connectors.reserve("MY_SMTP_PASSWORD")
+        for own in ("APPWREN_SSO_CLIENT_SECRET", "APPWREN_DATABASE_URL", "PGPASSWORD",
+                    "MY_SMTP_PASSWORD", "APPWREN_CONFIG"):  # fmt: skip
+            with pytest.raises(Invalid) as bad:
+                connectors.add(session, admin, {"key": "t2", "kind": "tokened", "name": "T",
+                                                "settings": {"org": "lab"},
+                                                "credential_env": own})  # fmt: skip
+            assert "server's own" in bad.value.errors["credential_env"], own
         row = connectors.add(session, admin, {"key": "tok", "kind": "tokened", "name": "T",
                                               "settings": {"org": "lab"}})  # fmt: skip
         assert row.credential_env == "TEST_SOURCE_TOKEN"

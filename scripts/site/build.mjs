@@ -24,8 +24,8 @@ const IMAGES = "img"; // the directory of screenshots, inside docs/ and on the s
 
 // Reading order, in groups. Each guide becomes a page of the same name.
 export const MENU = [
-  ["Start", [["index", "Overview"], ["getting-started", "Getting started"]]],
-  ["Use", [["the-portfolio", "The portfolio"], ["the-landscape", "The landscape"], ["keeping-current", "Keeping current"], ["planning-change", "Planning change"], ["insight", "Insight"], ["signals", "Facts from other systems"], ["running-the-program", "Running the program"]]],
+  ["Start", [["index", "Overview"], ["adopting", "Adopting AppWren"], ["getting-started", "Getting started"]]],
+  ["Use", [["the-portfolio", "The portfolio"], ["the-landscape", "The landscape"], ["keeping-current", "Keeping current"], ["planning-change", "Planning change"], ["insight", "Insight"], ["handbook", "The program handbook"], ["signals", "Facts from other systems"], ["running-the-program", "Running the program"]]],
   ["Run", [["configuration", "Configuration"]]],
   ["Reference", [["api", "The API"], ["api-reference", "API reference"], ["cli", "Command reference"], ["changelog", "Changelog"]]],
 ];

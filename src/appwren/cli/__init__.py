@@ -39,7 +39,12 @@ EXIT_ERROR = 1
 
 
 def _load(args: argparse.Namespace) -> tuple[Config, DataHome]:
+    from appwren import connectors
+    from appwren.program import branding
+
     config = load_config(args.config)
+    branding.pin(config.branding)
+    connectors.reserve(config.sso.client_secret_env, config.mail.password_env)
     home = DataHome(config.data.home)
     if home.is_initialized():
         logs.configure(args.verbose, quiet=args.quiet, log_dir=home.logs)
@@ -58,13 +63,36 @@ def _database(config: Config, *, current: bool = True) -> Database:
     return db
 
 
-def _install_program(db: Database) -> dict[str, int]:
-    """Load whatever of the default program is missing."""
+def _install_program(db: Database, starter: str | None = None) -> dict[str, int]:
+    """Load whatever of the default program is missing; with a starter, begin from it."""
+    from sqlalchemy import select
+
+    from appwren.core.errors import Invalid
+    from appwren.db.models import Capability
     from appwren.events.actor import Actor
     from appwren.program import packs
 
     with db.write(Actor.command("Setup")) as session:
+        if starter and session.scalar(select(Capability.id).limit(1)):
+            packs.starter(starter)  # a key that is not a starter is still an error
+            # init is run again on every start of a container: the program stays as it is.
+            print(f"Program: already set up, so {starter} was not loaded over it")
+        elif starter:
+            try:
+                pack = packs.start(session, starter)
+            except Invalid as exc:
+                raise AppWrenError(" ".join(exc.errors.values())) from exc
+            print(f"Program: started from {pack['pack']['title'].removeprefix('Starter: ')}")
         return packs.install(session)
+
+
+def cmd_program_starters(_args: argparse.Namespace) -> int:
+    from appwren.program import packs
+
+    for item in packs.starters():
+        print(f"{item['key']}\n  {item['description']}\n")
+    print("Begin a new installation from one with: appwren init --program KEY")
+    return EXIT_OK
 
 
 def cmd_program_export(args: argparse.Namespace) -> int:
@@ -135,14 +163,20 @@ def cmd_program_import(args: argparse.Namespace) -> int:
     import json
 
     from appwren.access.principal import Principal
-    from appwren.core.errors import Invalid
+    from appwren.core.errors import Invalid, NotFound
     from appwren.program import packs
 
     config, _ = _load(args)
-    try:
-        pack = json.loads(Path(args.file).read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        raise AppWrenError(f"{args.file} could not be read as a pack: {exc}") from exc
+    if args.file.startswith(packs.STARTER_PREFIX) and not Path(args.file).exists():
+        try:
+            pack = packs.starter(args.file)
+        except NotFound as exc:
+            raise AppWrenError(str(exc)) from exc
+    else:
+        try:
+            pack = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise AppWrenError(f"{args.file} could not be read as a pack: {exc}") from exc
     db = _database(config)
     principal = Principal.for_command()
     try:
@@ -252,7 +286,7 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Database: {kind}, now at migration {after}")
     db = Database(config.database_url)
     try:
-        if any(_install_program(db).values()):
+        if any(_install_program(db, args.program).values()) and not args.program:
             print("Program: loaded the default program")
         _first_units(db, args)
         users.first_admin(db, config, args)
@@ -350,6 +384,8 @@ def cmd_serve(args: argparse.Namespace) -> int:
         reload_dirs=[str(Path(__file__).resolve().parent.parent)] if args.reload else None,
         log_level="warning" if args.quiet else "info",
         server_header=False,
+        proxy_headers=True,
+        forwarded_allow_ips=config.server.trusted_proxies,
     )
     return EXIT_OK
 
@@ -384,6 +420,82 @@ def cmd_db_current(args: argparse.Namespace) -> int:
     print(f"Database: {current or 'empty'}")
     print(f"This version of {PRODUCT_NAME}: {head}")
     return EXIT_OK if current == head else EXIT_ERROR
+
+
+def cmd_backup(args: argparse.Namespace) -> int:
+    from datetime import datetime
+
+    from appwren import backup
+
+    config, home = _load(args)
+    home.require()
+    db = _database(config)
+    out = Path(args.out or f"appwren-backup-{datetime.now():%Y%m%d-%H%M%S}.tar.gz")
+    try:
+        report = backup.create(db.engine, home, out)
+    finally:
+        db.dispose()
+    print(
+        f"Wrote {out}: {report.rows} rows in {report.tables} tables, {report.files} files, "
+        f"{report.events} events of history, at migration {report.revision}."
+    )
+    return EXIT_OK
+
+
+def cmd_restore(args: argparse.Namespace) -> int:
+    from appwren import backup
+
+    config, home = _load(args)
+    home.create()  # a restore may be the first thing done on a new server
+    db = _database(config, current=False)
+    try:
+        report = backup.restore(db.engine, home, Path(args.file))
+        behind = not migrate.is_current(db.engine)
+    finally:
+        db.dispose()
+    print(
+        f"Restored {report.rows} rows in {report.tables} tables and {report.files} files. "
+        f"The history holds: {report.events} events verify."
+    )
+    if behind:
+        print(f"The backup was at migration {report.revision}. Now run: appwren db upgrade")
+    return EXIT_OK
+
+
+def cmd_db_move(args: argparse.Namespace) -> int:
+    """Copy the installation into another, empty database, by way of a backup."""
+    from appwren import backup
+
+    target = args.to or os.environ.get(args.to_env or "", "")
+    if not target:
+        raise AppWrenError(
+            "Say where to move it: --to with the new database's address, or --to-env with the "
+            "name of an environment variable that holds it (better, when it has a password)."
+        )
+    config, home = _load(args)
+    home.require()
+    source = _database(config)
+    out = home.exports / f"move-{os.getpid()}.tar.gz"
+    home.exports.mkdir(parents=True, exist_ok=True)
+    try:
+        backup.create(source.engine, home, out)
+    finally:
+        source.dispose()
+    destination = Database(target)
+    try:
+        report = backup.restore(destination.engine, home, out)
+    finally:
+        destination.dispose()
+        out.unlink(missing_ok=True)
+    print(
+        f"Moved {report.rows} rows in {report.tables} tables; the history holds: "
+        f"{report.events} events verify in the new database."
+    )
+    print(
+        "The old database is untouched. Point the configuration at the new one "
+        "([database] url, or APPWREN_DATABASE_URL), then start the server."
+    )
+    return EXIT_OK
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -467,7 +579,7 @@ def cmd_mail(args: argparse.Namespace) -> int:
 def cmd_doctor(args: argparse.Namespace) -> int:
     from appwren.cli import doctor
 
-    checks = doctor.run(args.config)
+    checks = doctor.run(args.config, production=args.production)
     width = max(len(check.name) for check in checks)
     for check in checks:
         print(f"{doctor.MARKS[check.status]} {check.name.ljust(width)}  {check.detail}")
@@ -546,6 +658,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     init.add_argument("--admin-name", metavar="NAME", help="the first administrator's name")
     init.add_argument(
+        "--program",
+        metavar="STARTER",
+        help="begin from a starter program, such as starter-university "
+        "(see: appwren program starters)",
+    )
+    init.add_argument(
         "--organization", metavar="NAME",
         help="the organization's name, as its top unit, if there are no units yet",
     )  # fmt: skip
@@ -598,7 +716,43 @@ def build_parser() -> argparse.ArgumentParser:
         "Exits with 1 when they differ.",
     )
     current.set_defaults(handler=cmd_db_current)
+    move = db_commands.add_parser(
+        "move",
+        help="copy the installation into another, empty database",
+        description="Copy every table into another database that has not been set up, such "
+        "as from SQLite to PostgreSQL or back, by way of a backup. The history is verified in "
+        "the new database. The old one is left as it was.",
+    )
+    move.add_argument("--to", metavar="URL", help="the new database's address")
+    move.add_argument(
+        "--to-env", metavar="NAME",
+        help="the name of an environment variable holding the address, to keep a password "
+        "off the command line",
+    )  # fmt: skip
+    move.set_defaults(handler=cmd_db_move)
     db.set_defaults(handler=lambda _args: db.print_help() or EXIT_OK)
+
+    saving = commands.add_parser(
+        "backup",
+        help="write the whole installation to one file",
+        description="Write every table, every attachment and brand file, and a manifest to one "
+        "gzipped tar. It can be made while the server is running. The file does not depend on "
+        "the kind of database, so it restores into SQLite or PostgreSQL. It holds everything "
+        "in the installation: keep it as carefully as the database itself.",
+    )
+    saving.add_argument(
+        "--out", metavar="FILE", help="where to write it (default: appwren-backup-DATE.tar.gz)"
+    )
+    saving.set_defaults(handler=cmd_backup)
+    loading = commands.add_parser(
+        "restore",
+        help="load a backup into an empty installation",
+        description="Load a backup into the configured database and data home. The database "
+        "must hold no accounts and no history: nothing is ever overwritten. The history is "
+        "verified once it is loaded.",
+    )
+    loading.add_argument("file", help="the backup, a .tar.gz written by appwren backup")
+    loading.set_defaults(handler=cmd_restore)
 
     people = commands.add_parser(
         "users",
@@ -726,11 +880,22 @@ def build_parser() -> argparse.ArgumentParser:
         "loaded unless all of it can be. A vocabulary value in use is retired rather than "
         "removed, and capabilities are only ever added.",
     )
-    program_import.add_argument("file", metavar="FILE", help="the pack to load")
+    program_import.add_argument(
+        "file", metavar="FILE", help="the pack to load, or the key of a starter program"
+    )
     program_import.add_argument(
         "--dry-run", action="store_true", help="say what would change, and change nothing"
     )
     program_import.set_defaults(handler=cmd_program_import)
+    program_starters = program_commands.add_parser(
+        "starters",
+        help="list the starter programs that come with AppWren",
+        description="List the starter programs: the default program as a research institute, "
+        "an academic medical center, a university, a nonprofit, or a company would first "
+        "change it. Begin a new installation from one with init --program, or load one over "
+        "a program with program import.",
+    )
+    program_starters.set_defaults(handler=cmd_program_starters)
 
     technologies = commands.add_parser(
         "technologies",
@@ -803,6 +968,12 @@ def build_parser() -> argparse.ArgumentParser:
         description="Check the configuration, the data home, the database and its schema, "
         "and the history. Exits with 1 if anything must be fixed.",
     )
+    doctor.add_argument(
+        "--production", action="store_true",
+        help="also check what matters once people depend on it: an https address, the "
+        "database, administrators, sign-in, email, scheduled work, backups, and who can read "
+        "the data home; a demo organization fails",
+    )  # fmt: skip
     doctor.set_defaults(handler=cmd_doctor)
 
     parser.set_defaults(handler=lambda _args: parser.print_help() or EXIT_OK)

@@ -29,7 +29,7 @@ Relative paths in the file are resolved against the file's own directory, not th
 
 ## Every section and key
 
-The file has five sections. Only the first three matter for a new installation; `[sso]` and `[mail]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
+The file has six sections. Only the first three matter for a new installation; `[sso]`, `[mail]`, and `[branding]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
 
 ### `[server]`
 
@@ -41,7 +41,8 @@ The file has five sections. Only the first three matter for a new installation; 
 | `base_url` | `""` | The public address people use to reach AppWren, such as `"https://appwren.example.org"`. Used for the single sign-on redirect address and for links in email. Set it when you use either |
 | `session_idle_hours` | `12` | A sign-in ends after this long without activity |
 | `session_max_days` | `7` | A sign-in ends after this long in any case |
-| `scheduler` | `true` | Run scheduled work (triggers, reminders, email, the monthly snapshot) inside this server. See [Scheduled work](#scheduled-work) |
+| `scheduler` | `true` | Run scheduled work (triggers, reminders, email, webhooks, the monthly snapshot) inside this server. See [Scheduled work](#scheduled-work) |
+| `trusted_proxies` | `"127.0.0.1"` | The proxies whose `X-Forwarded-For` and `X-Forwarded-Proto` are believed, separated by commas, or `"*"` for any. Leave it alone when the proxy is on the same machine. In a container the proxy is at another address: name it, or use `"*"` if only the proxy can reach AppWren. Either way, the proxy must **replace** `X-Forwarded-For` with the address it saw, not add to what the client sent: AppWren limits sign-in attempts by that address. The nginx and Caddy examples in `deploy/` do this |
 
 `host`, `port`, and `workers` can also be given to `uv run appwren serve` as `--host`, `--port`, and `--workers`, which take precedence for that run.
 
@@ -90,6 +91,77 @@ Email is optional and off until both `host` and `from_address` are set. See [Ema
 
 AppWren also gives advice that does not stop it running. `serve` and `doctor` warn when several workers share one SQLite file, when `base_url` is `http://` on a host other than localhost, and when email is set up but `base_url` is empty, so messages cannot link back.
 
+### `[branding]`
+
+Optional. Leave it out and the look is set in the app, under **Admin → Appearance**, as before.
+
+Use this section when the look has to be exact: every color by day and after dark, the official logo files, the brand's typefaces. It is also the way to keep a brand in version control, or to give several installations the same look.
+
+**What is set here wins** over what the app stores, and shows under Admin → Appearance as locked, marked *Set in the configuration file*. Whatever this section leaves out can still be changed in the app. Nothing here is written to the database, so taking a line out gives that setting back to the app. A change takes effect when the server is restarted.
+
+| Key | Meaning |
+|---|---|
+| `product_name` | The name in the sidebar, the browser tab, and email. Up to 40 characters |
+| `organization_name` | Your organization's name, on the sign-in page |
+| `show_powered_by` | `false` to hide the small "Powered by AppWren" link |
+| `logo_light`, `logo_dark` | Image files for light and dark backgrounds. With no `logo_dark`, the light one is used for both |
+| `favicon` | The browser tab icon |
+| `sign_in_image` | The picture beside the sign-in form |
+| `logo_height` | The logo's height in the sidebar, in pixels, from 20 to 48. The usual is 30. Use it where a brand sets a least width for its logo |
+| `font` | The typeface for everything, as a list of font names in order of preference |
+| `font_headings` | A different typeface for page titles and section headings |
+| `sign_in_message` | A message on the sign-in page, up to 600 characters |
+| `email_footer` | The last line of every email |
+| `footer_links` | Up to five links, each `{ label = "…", url = "…" }` |
+| `terms` | Your own words for AppWren's, as tables: `[branding.terms.unit]` with `one = "Department"` and `many = "Departments"`. The words that can be set are `application`, `component`, `capability`, `technology`, `vendor`, and `unit` |
+| `palette` | One of the built-in palettes: `wren`, `slate`, `garnet` |
+| `accent`, `accent_dark` | An accent color over a built-in palette, as hex. Not needed when `[branding.colors]` is set |
+
+Image paths are relative to the file's folder. Images are PNG, JPEG, WebP, or SVG, up to 2 MB, and are served as they are: AppWren scales a logo and changes nothing else about it.
+
+Fonts are named, never shipped. A name works on a computer that has the font installed, and the next name in the list is tried on one that does not, so end the list with fonts every computer has. A font that is licensed, as most brand typefaces are, cannot be put on the server for everyone.
+
+#### Exact colors
+
+`[branding.colors.day]` and `[branding.colors.night]` replace the built-in palettes. Give both, or neither. Each color is a hex value.
+
+| Color | What it is | If left out |
+|---|---|---|
+| `bg` | The page behind everything | Needed |
+| `surface` | Cards, panels, and fields | Needed |
+| `text` | Ordinary text | Needed |
+| `muted` | Secondary text | Needed |
+| `accent` | Links, primary buttons, and the selected page | Needed |
+| `on_accent` | Text on a primary button | Black or white, whichever reads better |
+| `stripe` | The second color of the stripe across the top of the page | The accent |
+| `border` | Hairlines between things | A step from the surface |
+| `border_strong`, `surface_2`, `surface_3`, `subtle`, `accent_hover`, `accent_soft` | Finer shades: stronger lines, the sidebar and quieter panels, the faintest text, a button under the pointer, the background of a selected item | Worked out from the colors above, a step lighter or darker on the same hue |
+
+```toml
+[branding]
+product_name = "Lantern"
+organization_name = "Harbor Valley Institute"
+logo_light = "brand/harbor-valley.svg"
+logo_dark = "brand/harbor-valley-white.svg"
+favicon = "brand/harbor-valley-icon.png"
+font = ["Inter", "Arial"]
+
+[branding.colors.day]
+bg = "#f6f5f2"
+surface = "#ffffff"
+text = "#1d2733"
+muted = "#57606b"
+accent = "#1f5f8b"
+
+[branding.colors.night]
+bg = "#12171d"
+surface = "#1a222b"
+text = "#ffffff"
+muted = "#b9c2cc"
+accent = "#6cb6e6"
+on_accent = "#0f1a24"
+```
+
 ## Environment overrides
 
 Any value can be overridden by an environment variable named `APPWREN_<SECTION>_<KEY>`, in capitals. The environment wins over the file.
@@ -99,6 +171,7 @@ Any value can be overridden by an environment variable named `APPWREN_<SECTION>_
 | `APPWREN_SERVER_HOST` | `[server] host` |
 | `APPWREN_SERVER_PORT` | `[server] port` |
 | `APPWREN_SERVER_WORKERS` | `[server] workers` |
+| `APPWREN_SERVER_TRUSTED_PROXIES` | `[server] trusted_proxies` |
 | `APPWREN_SERVER_BASE_URL` | `[server] base_url` |
 | `APPWREN_SERVER_SESSION_IDLE_HOURS` | `[server] session_idle_hours` |
 | `APPWREN_SERVER_SESSION_MAX_DAYS` | `[server] session_max_days` |
@@ -132,7 +205,7 @@ The data home is created by `init`. With the default settings it is `./var`.
 | `exports/` | Reserved for exports |
 | `.appwren-home` | A marker that says this directory is a data home |
 
-- Back it up as a whole. With PostgreSQL, back up the database as well.
+- Back it up with `appwren backup` ([Back up and restore](#back-up-and-restore)), which takes the database and the files here together.
 - Do not edit its contents by hand.
 - It must be writable by the account that runs the server.
 - Request bodies and tokens are never written to the log.
@@ -295,7 +368,74 @@ SQLite is the default and needs no setup. Use PostgreSQL when many people will u
    uv run appwren doctor
    ```
 
-Moving an existing installation from SQLite to PostgreSQL is not automated in this release. Start new installations on the database you mean to keep.
+An installation already running on SQLite moves with one command: see [Move to another database](#move-to-another-database).
+
+## Back up and restore
+
+```bash
+uv run appwren backup --out appwren-backup.tar.gz
+```
+
+A backup is one gzipped file: every table, as lines of JSON, every file in the data home's `brand/` and `files/`, and a manifest that says which version and migration made it and how many rows each table held. It can be made while the server is running: the tables are read in one transaction, so they agree with each other. The file does not depend on the kind of database, so a backup of SQLite restores into PostgreSQL and the other way round. It holds everything, password hashes included, and is written readable by its owner only: keep it as carefully as the database.
+
+To restore, set up an installation whose database is empty (a new `appwren.toml` and data home, or a new PostgreSQL database), then:
+
+```bash
+uv run appwren restore appwren-backup.tar.gz
+uv run appwren db upgrade     # if the backup came from an earlier version
+```
+
+A restore refuses a database that has accounts or history: nothing is ever overwritten. It checks that every table loaded whole, and verifies the history once it is in, so a damaged backup is found at once and not months later.
+
+## Move to another database
+
+```bash
+export NEW_DATABASE_URL=postgresql+psycopg://appwren:…@db.example.org:5432/appwren
+uv run appwren db move --to-env NEW_DATABASE_URL
+```
+
+`db move` makes a backup and restores it into the new database, which must be empty, then verifies the history there. The old database is left as it was. Point the configuration at the new one (`[database] url`, or `APPWREN_DATABASE_URL`) and start the server. `--to` takes the address itself; `--to-env` names an environment variable that holds it, which keeps a password off the command line and out of the shell's history.
+
+## How many server processes
+
+One process serves a small team well, and is all SQLite should be given: SQLite allows one writer at a time, and `serve` warns when several workers share one SQLite file. With PostgreSQL, add processes when many people work at once:
+
+```toml
+[server]
+workers = 4
+```
+
+Each process is a whole server. They share nothing but the database and the data home:
+
+- **Sign-in sessions** are kept in the database, so a person stays signed in whichever process answers.
+- **Scheduled work** is claimed in the database before it runs, so a job runs once however many processes there are.
+- **The history** is appended under a lock on its last entry, so it stays a single line.
+
+## How large it runs
+
+AppWren is measured with the demo organization copied up to **5,029 applications and 52,029 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
+
+| Request | SQLite | PostgreSQL |
+|---|---|---|
+| A page of applications, searched, filtered, or sorted | 19–55 ms | 52–92 ms |
+| One application, its history, its scores over time | 3–10 ms | 7–29 ms |
+| A page of components | 48 ms | 19 ms |
+| Search everything | 157 ms | 124 ms |
+| The capability map, the lifecycle | 90–116 ms | 56–165 ms |
+| Shares of the portfolio | 110 ms | 106 ms |
+| Engineering maturity | 1.1 s | 1.1 s |
+| Home, the portfolio list, the dashboard, data quality, overlap | 1.7–1.9 s | 1.7–2.0 s |
+
+The pages in the last row score every application in service each time they are opened, so their time grows with the portfolio: at 500 applications each takes about a fifth of a second. Everything that opens one record, or a page of a list, stays fast at any size.
+
+You can repeat the measurement on your own hardware. It builds a throwaway installation in a temporary directory and touches nothing else:
+
+```bash
+uv run python scripts/perf.py                                     # 5,000 applications on SQLite
+uv run python scripts/perf.py --applications 1000 --components 10000
+```
+
+To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. The script exits with 1 if a median is over its budget, which is two and a half seconds unless you give `--budget`.
 
 ## Upgrade
 
@@ -306,7 +446,7 @@ uv sync
 uv run appwren db upgrade
 ```
 
-`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
+`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first, with `uv run appwren backup`: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
 
 ## Run behind a reverse proxy
 
@@ -318,6 +458,47 @@ AppWren speaks plain HTTP and expects a reverse proxy to terminate TLS in front 
 - Requests larger than 32 MB are refused.
 
 The app sets its own security headers, including a content security policy with no inline script or style and no third-party origins, so the proxy does not need to add them.
+
+## Deploy
+
+`deploy/` holds recipes for running AppWren in production. Each was tried as it is written.
+
+| File | What it is |
+|---|---|
+| `Containerfile` | An image with the application and nothing of yours: it runs as an unprivileged user, keeps everything in the volume at `/data`, and works with a read-only root and every capability dropped |
+| `compose.yaml`, `compose.env.example` | AppWren with PostgreSQL, for `docker compose` or `podman compose`. AppWren listens on `127.0.0.1:8000` of the host, for a proxy in front |
+| `entrypoint.sh` | What the image runs on every start: `init`, which creates what is missing and brings the database up to date, then `serve` |
+| `appwren.service` | A systemd unit with systemd's sandboxing switched on: no new privileges, a read-only system, only the data home writable, no capabilities |
+| `nginx.conf`, `Caddyfile` | A reverse proxy that terminates TLS and replaces `X-Forwarded-For` with the address it saw |
+
+With compose:
+
+```bash
+cp deploy/compose.env.example deploy/.env     # then fill in deploy/.env
+docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+```
+
+On the first start, `APPWREN_ADMIN_EMAIL` and `APPWREN_ADMIN_PASSWORD` create the first administrator, `APPWREN_ORGANIZATION` the organization's top unit, and `APPWREN_PROGRAM` the [starter program](getting-started.md#start-from-a-program-shaped-like-yours) to begin from; on later starts each is left alone, so remove the password once you have signed in. Back the volume up with `appwren backup` run inside the container: `docker compose -f deploy/compose.yaml exec appwren appwren backup --out /data/backup.tar.gz`, then copy the file somewhere else.
+
+### Before people depend on it
+
+```bash
+uv run appwren doctor --production
+```
+
+On top of the usual checks, `--production` looks at what matters once people rely on the installation, and fails or advises:
+
+| Check | Fails or advises when |
+|---|---|
+| Address | `[server] base_url` is not an `https://` address (fails) |
+| Demo | This is a demo organization, where anyone can sign in as anyone (fails) |
+| Database for production | It is SQLite, which suits a small team on one server |
+| Administrators | There is only one, so nobody can manage it while they are away |
+| Sign-in | People sign in with passwords kept here rather than single sign-on |
+| Email for production | Email is not set up, so nobody is told of work that waits for them |
+| Scheduled work | The scheduler is off, or nothing has run in fifteen minutes |
+| Backup | `appwren backup` has not run in two days, or ever |
+| Data home access | Other accounts on the machine can read the data home |
 
 ## The demo and the network
 

@@ -101,6 +101,8 @@ def _visible_to(session: Session, principal: Principal) -> Any:
         .where(where)
     )
     me = principal.account_id
+    if me is None:  # a token: it made nothing and owns nothing
+        return Contract.id.in_(covering)
     return or_(Contract.created_by == me, Contract.owner_id == me, Contract.id.in_(covering))
 
 
@@ -251,7 +253,8 @@ def set_applications(
     cleaned: dict[int, int | None] = {}
     for index, item in enumerate(wanted):
         where = f"applications[{index}]"
-        app_id = records.reference(session, "application", item.get("application"), where, errors)
+        app_id = records.reference(session, "application", item.get("application"), where, errors,
+                                   principal=principal)  # fmt: skip
         if app_id is None:
             continue
         app = session.get(Application, app_id)

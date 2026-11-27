@@ -316,6 +316,14 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/reports"): {"manager"},
     ("GET", "/api/v1/reports/{ref}"): {"manager", "auditor", "admin"},
     ("GET", "/api/v1/as-of"): EVERYONE,
+    ("GET", "/api/v1/admin/tokens"): {"admin"},
+    ("POST", "/api/v1/admin/tokens"): {"admin"},
+    ("DELETE", "/api/v1/admin/tokens/{token_id}"): {"admin"},
+    ("GET", "/api/v1/admin/webhooks"): {"admin"},
+    ("POST", "/api/v1/admin/webhooks"): {"admin"},
+    ("PATCH", "/api/v1/admin/webhooks/{webhook_id}"): {"admin"},
+    ("DELETE", "/api/v1/admin/webhooks/{webhook_id}"): {"admin"},
+    ("POST", "/api/v1/admin/webhooks/{webhook_id}/test"): {"admin"},
     ("GET", "/api/v1/scenarios"): EVERYONE,
     ("POST", "/api/v1/scenarios"): ARCHITECTS,
     ("GET", "/api/v1/scenarios/{ref}"): EVERYONE,
@@ -552,6 +560,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{key_id}", "9999").replace("{step}", "users_told")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
             path = path.replace("{name}", "no_such_list").replace("{field}", "users")
+            path = path.replace("{token_id}", "9999").replace("{webhook_id}", "9999")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:
@@ -643,3 +652,43 @@ def test_a_body_that_is_too_large_is_refused_before_it_is_read(
         "/api/v1/imports/units", content=b"x", headers={"Content-Length": str(MAX_BODY + 1)}
     )
     assert response.status_code == 413
+
+
+def test_a_body_sent_in_pieces_is_counted_as_it_arrives(
+    as_role: Callable[[str | None], TestClient], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With no length declared, the limit still holds (review finding 4)."""
+    from appwren.access import middleware
+
+    monkeypatch.setattr(middleware, "MAX_BODY", 4096)
+
+    def pieces():  # type: ignore[no-untyped-def]
+        for _ in range(8):
+            yield b"x" * 1024
+
+    response = as_role(None).post("/api/v1/session", content=pieces(),
+                                  headers={"Content-Type": "application/json"})  # fmt: skip
+    assert response.status_code == 413, response.text
+    small = as_role(None).post("/api/v1/session", content=iter([b'{"email": "a"}']),
+                               headers={"Content-Type": "application/json"})  # fmt: skip
+    assert small.status_code == 422  # read, and refused for what it says
+
+
+def test_nobody_can_lock_someone_else_out(instance: Instance, people: People) -> None:
+    """Wrong passwords from many places stop those places, not the account's owner
+    elsewhere, who still gets a try (review finding 5)."""
+    from appwren.api.app import create_app
+
+    app = create_app(instance.config)
+    guess = {"email": email_of("member"), "password": "guess guess guess"}
+    right = {"email": email_of("member"), "password": PASSWORD}
+    places = sessions.THROTTLE_WIDE // sessions.THROTTLE_LIMIT + 1
+    for place in range(places):
+        with TestClient(app, base_url="http://localhost",
+                        client=(f"203.0.113.{place + 1}", 4000)) as there:  # fmt: skip
+            for _ in range(sessions.THROTTLE_LIMIT):
+                there.post("/api/v1/session", json=guess)
+            assert there.post("/api/v1/session", json=right).status_code == 429
+    with TestClient(app, base_url="http://localhost", client=("198.51.100.7", 4000)) as home:
+        owner = home.post("/api/v1/session", json=right)
+        assert owner.status_code == 200, owner.text

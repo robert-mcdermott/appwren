@@ -443,7 +443,8 @@ def record_history(request: Request, record_type: RecordType, ref: str) -> dict[
         hidden: frozenset[str] = frozenset()
         if record_type is APPLICATION and not access.sees_sensitive(session, principal, record):
             hidden = frozenset(catalog.sensitive_fields(session))
-        return envelope(history.for_record(session, record_type, record, withheld=hidden))
+        return envelope(history.for_record(session, record_type, record, withheld=hidden,
+                                           principal=principal))  # fmt: skip
 
 
 def _filter_parameter(name: str) -> inspect.Parameter:

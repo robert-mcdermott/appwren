@@ -98,6 +98,8 @@ The whole pack is checked before anything is loaded, and nothing is loaded unles
 - Capabilities are only ever added. Rename or retire one in the app.
 - Loading the same pack twice changes nothing.
 
+A starter program can be loaded the same way over a program already in use, by its key: `uv run appwren program import starter-company --dry-run`. Its lists and settings replace yours, and its capabilities are added beside yours. See [Start from a program shaped like yours](getting-started.md#start-from-a-program-shaped-like-yours).
+
 ### Links to other systems
 
 An application can carry its identifier in another system: a configuration item, a ticket queue, a repository. To have each shown as a link, give the system an address pattern in the `external_systems` vocabulary of the pack, with `{id}` where the identifier goes:
@@ -124,6 +126,7 @@ Changing the scoring model changes every application's scores at once, the next 
 - **Signals and engineering maturity.** Version 0.4.0 adds to the default model the [signals](signals.md#signals-in-the-scores) sources supply (incidents, dependency alerts, code activity, engineering maturity, and support load), each counting only where a source supplies it, and the maturity levels beside the cadence. A model nobody has changed since an earlier release is replaced by the new default; no score moves until a source supplies something. A model you have shaped is kept, with no signals, and measures maturity by the default levels.
 - **Stage gates and new lists.** Version 0.5.0 gates the lifecycle stages: an application cannot move to a later stage without what that stage requires. The gates are on after the upgrade too; switch them off on **Admin → Program → Decisions** to keep moving records as before. Two new lists arrive with their defaults: the kinds and the stages of an initiative.
 - **Insight.** Version 0.6.0 adds leadership reports, scenarios, and the record as of a day. Nothing already recorded changes: as of a day reads the history you already have, back to the day AppWren was installed.
+- **Adoption.** Version 0.7.0 adds API tokens and webhooks, both off until an administrator issues or registers one, and the brand kit, which keeps your appearance as it is until you change it. Nothing already recorded changes. A starter program is only for a new installation, or loaded by choice with `program import`.
 - **Nothing is stale on the day of an upgrade.** A record that has never been confirmed is due one period after the upgrade, not one period after it was added.
 - Decisions already recorded keep the snapshot of the scores they were made against, whatever the model becomes.
 
@@ -177,6 +180,7 @@ AppWren does some work by itself, so that nobody has to remember to. **Admin →
 | **Triggers** | Every hour | Raises a task when a contract's notice date is near, a release nears its end of support, a grant nears its end, or an owner leaves; closes tasks whose cause is settled |
 | **Reminders** | Every hour | Reminds people of what is nearly due or late, and tells stewards and leaders what stays late; closes campaign items whose thing has been done |
 | **Email** | Every minute | Sends notices and daily summaries, where email is set up |
+| **Webhooks** | Every minute | Tells each [webhook](api.md#be-told-when-something-happens) an administrator has registered of what it asked for, signed, and tries a failed delivery again later |
 | **Connectors** | Every 15 minutes | Runs each [connector](signals.md#connectors) an administrator has switched on, when it is due |
 | **Monthly snapshot** | Every six hours | Takes the month's portfolio snapshot, once |
 | **Housekeeping** | Every day | Removes records of old runs and sign-ins that were never finished |
@@ -208,7 +212,12 @@ Assessments and decisions are never edited. A new one supersedes the last, and a
 - the product's name and your organization's name;
 - a logo for light and for dark mode, and a tab icon;
 - the default palette (Wren, Slate, or Garnet) and an accent color, which is adjusted for dark mode and refused if text on it could not be read;
-- how scores are colored: an **ordinal** ramp in one hue from pale to deep, which keeps scores apart from the colors of flags, or a **signal** ramp from red through amber to green.
+- how scores are colored: an **ordinal** ramp in one hue from pale to deep, which keeps scores apart from the colors of flags, or a **signal** ramp from red through amber to green;
+- an accent for dark mode, if the one worked out from your accent is not your brand's;
+- a message and a picture on the sign-in page, up to five links at the foot of the sidebar and the sign-in page (your policy, your help desk), and a last line for every email, which also opens with your product's name in your accent;
+- **your own words**: if your organization says *department* where AppWren says *unit*, or *solution* where it says *application*, the menu, page titles, and the kinds of record use your word. Words can be set for application, component, capability, technology, vendor, and unit.
+
+When the look has to be exact (every color by day and after dark, the official logo files, the brand's typefaces) it is set in the configuration file instead: see [`[branding]`](configuration.md#branding). What the file sets is shown here, locked.
 
 Each person chooses light, dark, or system mode and a palette for themselves, from the appearance button at the top right.
 
@@ -216,6 +225,6 @@ Each person chooses light, dark, or system mode and a palette for themselves, fr
 
 ## Back up and recover
 
-- Back up the data home, and the database as well if you use PostgreSQL. Notices, reminders sent, and the email outbox are in the database; nothing about them needs backing up apart.
+- Back up with `uv run appwren backup`, which writes the database and the data home's files to one file, on SQLite or PostgreSQL alike ([Back up and restore](configuration.md#back-up-and-restore)). Notices, reminders sent, and the email outbox are in the database; nothing about them needs backing up apart.
 - `uv run appwren program export` keeps a copy of the program you have shaped.
 - If nobody can sign in, [`appwren users`](cli.md#appwren-users) adds an administrator or resets a password from the server's own command line. Changes made there are recorded in the history as made at the command line.

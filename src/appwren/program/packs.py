@@ -9,6 +9,7 @@ audited writes, and never overwrite what an organization has shaped.
 from __future__ import annotations
 
 import copy
+import json
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -50,6 +51,76 @@ def install(session: Session) -> dict[str, int]:
 
     attestation.begin(session)  # the day this installation began asking for confirmations
     return done
+
+
+# --- Starter programs ------------------------------------------------------------------------
+
+STARTER_PREFIX = "starter-"
+
+
+def starters() -> list[dict[str, str]]:
+    """The starter programs that come with AppWren: the default program as one kind of
+    organization would first change it."""
+    from importlib import resources
+
+    found = []
+    folder = resources.files("appwren.resources").joinpath("packs")
+    for entry in sorted(folder.iterdir(), key=lambda item: item.name):
+        if entry.name.startswith(STARTER_PREFIX) and entry.name.endswith(".json"):
+            header = json.loads(entry.read_text("utf-8"))["pack"]
+            found.append({"key": header["key"], "title": header["title"],
+                          "description": header["description"]})  # fmt: skip
+    return found
+
+
+def starter(key: str) -> dict[str, Any]:
+    from importlib import resources
+
+    from appwren.core.errors import NotFound
+
+    entry = resources.files("appwren.resources").joinpath(f"packs/{key}.json")
+    if not key.startswith(STARTER_PREFIX) or not entry.is_file():
+        known = ", ".join(item["key"] for item in starters())
+        raise NotFound(f"There is no starter program called {key}. There are: {known}.")
+    return json.loads(entry.read_text("utf-8"))  # type: ignore[no-any-return]
+
+
+def start(session: Session, key: str) -> dict[str, Any]:
+    """Begin a new installation from a starter: its lists, its capability map, and its
+    settings, before the default program fills in whatever it leaves out. Refused once an
+    installation has a capability map, since a starter's map replaces the default one."""
+    pack = starter(key)
+    problems = check(pack)
+    if problems:
+        raise Invalid("The starter was not loaded.", {"pack": " ".join(problems)})
+    if session.scalar(select(Capability.id).limit(1)):
+        raise Invalid(
+            "The starter was not loaded.",
+            {"pack": "This installation already has a program. Load a starter over it with "
+                     f"appwren program import {key}, which adds its capabilities and replaces "
+                     "its lists and settings."},
+        )  # fmt: skip
+    setting_keys = {"fields": catalog.FIELDS, "stage_requirements": catalog.STAGES,
+                    "sensitive_fields": catalog.SENSITIVE, "definition": catalog.DEFINITION,
+                    "decision_rules": catalog.DECISION_RULES}  # fmt: skip
+    with audit.operation(session, "program.start"):
+        for name, items in (pack.get("vocabularies") or {}).items():
+            # A value is never removed, only retired: those the starter leaves out are kept,
+            # retired, as an import keeps them.
+            wanted = copy.deepcopy(items)
+            keys = {item["key"] for item in wanted}
+            wanted += [{**old, "retired": True} for old in vocab.get(session, name)
+                       if old["key"] not in keys]  # fmt: skip
+            vocab.put(session, name, wanted)
+        for name, setting in setting_keys.items():
+            if name in pack:
+                settings.put(session, setting, copy.deepcopy(pack[name]))
+        if pack.get("capabilities"):
+            parts.load_map(session, INSTALLER, pack["capabilities"])
+        for name, _check, _export, load_part in PARTS:
+            if name in pack:
+                load_part(session, pack[name], only_missing=False)
+    return pack
 
 
 def _capability_tree(session: Session) -> list[dict[str, Any]]:

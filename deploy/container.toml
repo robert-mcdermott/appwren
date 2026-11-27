@@ -1,0 +1,13 @@
+# The configuration inside the container image. Override any of it from the environment:
+# APPWREN_SERVER_BASE_URL, APPWREN_DATABASE_URL, APPWREN_SERVER_WORKERS, and the rest.
+
+[server]
+host = "0.0.0.0"   # inside the container; publish the port only to your proxy
+port = 8000
+# The proxy reaches the container from another address. Publish the port only to it, and
+# have the proxy replace X-Forwarded-For with the address it saw, as the nginx and Caddy
+# examples do. Better still, name the proxy's address or network here instead of "*".
+trusted_proxies = "*"
+
+[data]
+home = "/data"

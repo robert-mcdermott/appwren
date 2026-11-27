@@ -73,7 +73,7 @@ def record(
         errors.add("review_on", "The review date must be in the future.")
     target_on = records.day(values.get("target_on"), "target_on", errors)
     successor_id = records.reference(
-        session, "application", values.get("successor"), "successor", errors
+        session, "application", values.get("successor"), "successor", errors, principal=principal
     )
     if successor_id == app.id:
         errors.add("successor", "An application cannot succeed itself.")

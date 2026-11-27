@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from appwren.access.principal import Principal
 from appwren.core.clock import utc_now
 from appwren.core.errors import Invalid, PermissionDenied
+from appwren.db.among import among
 from appwren.db.models import FactValue
 from appwren.inventory import access, records
 from appwren.inventory.registry import TYPES
@@ -265,7 +266,7 @@ def of_components(session: Session, principal: Principal, record: Any) -> list[d
         return []
     for row in session.scalars(
         select(FactValue)
-        .where(FactValue.record_type == "component", FactValue.record_id.in_(found))
+        .where(FactValue.record_type == "component", among(FactValue.record_id, found))
         .order_by(FactValue.field)
     ):
         spec = spec_for("component", row.field)
@@ -301,7 +302,7 @@ def of_technology(session: Session, principal: Principal, record: Any) -> list[d
         return []
     for row in session.scalars(
         select(FactValue)
-        .where(FactValue.record_type == "technology_release", FactValue.record_id.in_(found))
+        .where(FactValue.record_type == "technology_release", among(FactValue.record_id, found))
         .order_by(FactValue.field)
     ):
         spec = spec_for("technology_release", row.field)
@@ -326,7 +327,7 @@ def values(
     for row in session.scalars(
         select(FactValue).where(
             FactValue.record_type == record_type,
-            FactValue.record_id.in_(wanted),
+            among(FactValue.record_id, wanted),
             FactValue.field.in_(keys),
         )
     ):
