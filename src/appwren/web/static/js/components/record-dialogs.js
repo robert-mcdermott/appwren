@@ -287,7 +287,9 @@ export function editUse(record, ctx) {
         choice("everyone", "Everyone in the organization.", "Email, sign-in, the intranet."),
         choice("some", `Particular ${UNIT.plural.toLowerCase()} or kinds of people.`, "A lab's own tool, or one for managers wherever they work."));
       const units = new Set(record.used_by ?? []);
+      // Those already named first, so they are seen without scrolling through every unit.
       const unitBoxes = ctx.units.list.filter((unit) => unit.status === "active" || units.has(unit.id))
+        .sort((a, b) => Number(units.has(b.id)) - Number(units.has(a.id)))
         .map((unit) => ({ id: unit.id, box: checkbox(unit.name, { checked: units.has(unit.id) }) }));
       const kinds = new Set(Array.isArray(record.audiences) ? record.audiences : []);
       const kindBoxes = (ctx.vocab.audiences ?? []).filter((item) => !item.retired || kinds.has(item.key))

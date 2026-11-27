@@ -18,6 +18,10 @@ const app = (words, tab = "") => async (page) =>
 const record = (path, words) => async (page) =>
   `/${path}/${await first(`/api/v1/${path}?q=${encodeURIComponent(words)}`)(page)}`;
 
+// A step that brings the card with this heading into view, or presses its button.
+const cardNamed = (title, then) => `(() => { const card = [...document.querySelectorAll(".card")].find((each) => each.querySelector("h2")?.textContent.trim() === ${JSON.stringify(title)});
+  if (!card) { window.__sceneMissed = ${JSON.stringify(`there is no card called "${title}"`)}; return; } ${then} })()`;
+
 // A record past its confirmation that someone still answers for, and that is otherwise known.
 const stale = first("/api/v1/portfolio?in_service=true&quality=not_confirmed",
   "(rows) => `/applications/${(rows.find((row) => !row.quality.includes('no_accountable') && row.confidence >= 60) ?? rows[0]).ref}`");
@@ -62,6 +66,10 @@ export const SCENES = [
   { name: "deployments", as: "architect", path: "/deployments" },
   { name: "deployment", as: "res_steward", path: first("/api/v1/deployments?q=Specimen+Tracker", "(rows) => `/deployments/${rows[0].ref}`") },
   { name: "deployment-add", as: "res_steward", path: app("Specimen Tracker", "components"), step: click("Say where it runs") },
+  { name: "application-who-uses", as: "portfolio", path: app("Applicant Tracking"),
+    step: cardNamed("Who uses it", `card.scrollIntoView({ block: "center" });`) },
+  { name: "who-uses-edit", as: "portfolio", path: app("Applicant Tracking"),
+    step: cardNamed("Who uses it", `card.querySelector("button").click();`) },
   { name: "application-cost", as: "res_steward", path: app("Specimen Tracker", "cost") },
   { name: "application-cost-withheld", as: "rse", path: app("Clinic Scheduler", "cost") },
   { name: "cost-lines-edit", as: "res_steward", path: app("Specimen Tracker", "cost"), step: click("Edit the lines") },

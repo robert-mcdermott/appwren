@@ -66,6 +66,10 @@ An application's **Who uses it** card says who would notice if it stopped. Its *
 - **About how many people** use it. An estimate is fine; it is what the cost for each person is worked out from.
 - Whether **people outside the organization** use it too: patients, students, the public, or partners.
 
+![An application's Who uses it card: everyone in Human Resources, and managers and supervisors wherever they work](img/application-who-uses-light.webp)
+
+![The Who uses it dialog: everyone in the organization, or units and kinds of people, then how many and whether people outside use it](img/who-uses-edit-light.webp)
+
 The kinds of people are a list the program keeps, renamed, extended, and retired under **Admin**, **Program**, **Lists**, **Audiences**. AppWren comes with leadership, managers and supervisors, hourly employees, contractors and temporary staff, researchers, clinicians, students and trainees, administrative staff, and IT staff, and each starter program has its own: faculty and students for a university, customer-facing staff for a company, volunteers for a nonprofit.
 
 The list of applications filters by both: **Who uses it** for everyone or a kind of people, and **Used in a unit** for what everyone in a unit uses, from the whole organization's applications, the unit's own, and those of the units it is part of. What a kind of people uses wherever they work is not counted in a unit's, since which people in a unit are of which kind is not recorded.
