@@ -35,7 +35,7 @@ session_max_days = 7
 url = ""
 
 [data]
-# The data home: evidence files, uploaded logos, exports, logs, and the SQLite database.
+# The data home: uploaded logos, attachments, exports, logs, and the SQLite database.
 home = "var"
 
 [sso]

@@ -285,11 +285,11 @@ class Provider:
 # send for them, and one person AppWren has not met. Map the roles under Admin, Single sign-on.
 PEOPLE = [
     Person("u-tobias", "Tobias Larsen", "tobias.larsen@bramblewood.example", ["appwren-admins"]),
-    Person("u-goran", "Goran Dimitrov", "goran.dimitrov@bramblewood.example", ["security-leaders"]),
-    Person("u-keiko", "Keiko Nakashima", "keiko.nakashima@bramblewood.example", ["assessors"]),
+    Person("u-goran", "Goran Dimitrov", "goran.dimitrov@bramblewood.example", ["it-leaders"]),
+    Person("u-keiko", "Keiko Nakashima", "keiko.nakashima@bramblewood.example", ["architects"]),
     Person("u-greta", "Greta Bergstrom", "greta.bergstrom@bramblewood.example", ["internal-audit"]),
     Person("u-dalia", "Dalia Ferreira", "dalia.ferreira@bramblewood.example", []),
-    Person("u-new", "Noor Valdivia", "noor.valdivia@bramblewood.example", ["assessors"]),
+    Person("u-new", "Noor Valdivia", "noor.valdivia@bramblewood.example", ["architects"]),
 ]
 
 

@@ -89,6 +89,8 @@ export function start() {
     const url = new URL(anchor.href, window.location.origin);
     if (url.origin !== window.location.origin) return;
     if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/branding/")) return;
+    // A link to a place on this page (the skip link) is the browser's to follow: it moves the focus.
+    if (url.hash && url.pathname === window.location.pathname && url.search === window.location.search) return;
     event.preventDefault();
     navigate(url.pathname + url.search + url.hash);
   });

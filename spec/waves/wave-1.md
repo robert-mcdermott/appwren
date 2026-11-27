@@ -2,7 +2,7 @@
 
 **Goal:** prove the core loop. The organization knows what applications it runs and who answers for each; owners describe them and answer a short assessment; AppWren works out four scores with their working, a confidence figure, flags, and a recommendation; and a named person records what to do, on a record that cannot be quietly changed. Everything else in the roadmap builds on this loop being quick, clear, and trustworthy.
 
-**Branch:** `wave-1` · **Target version:** `0.1.0` · **Status:** ◐ in progress
+**Branch:** `wave-1` · **Target version:** `0.1.0` · **Status:** ☑ done
 
 ## Exit criteria
 
@@ -163,13 +163,15 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** `appwren demo` builds Bramblewood in about two seconds: 57 units, 180 people, 107 applications, 120 components, 125 assessments, 70 decisions, four quarterly snapshots, and some 2,000 events over two years, all through the services and under a simulated clock. Ten storylines are written by hand and asserted by the tests, including the worked example to the decimal. A demo marks itself on every page, signs in any of eight sample people with one click from the machine it runs on, and refuses to listen on the network unless told to.
 
-## Slice 9: Release prep ☐
+## Slice 9: Release prep ☑
 
-- [ ] Guides in `docs/`: getting started, configuration, the portfolio (applications, assessment, scores, decisions), running the program, the command-line reference, the API guide
-- [ ] `README.md` with the quickstart; `CHANGELOG.md` for 0.1.0
-- [ ] The automated accessibility audit over every wave 1 screen in every palette and mode
-- [ ] Fresh-clone install and quickstart checked on both databases
-- [ ] Version `0.1.0`; pull request from `wave-1`; tag and release
+- [x] Guides in `docs/`: getting started, configuration, the portfolio (applications, assessment, scores, decisions), running the program, the command-line reference, the API guide
+- [x] `README.md` with the quickstart; `CHANGELOG.md` for 0.1.0
+- [x] The automated accessibility audit over every wave 1 screen in every palette and mode
+- [x] Fresh-clone install and quickstart checked on both databases
+- [x] Version `0.1.0`; pull request from `wave-1`; tag and release
+
+**Done:** five guides and an index, with sixteen screenshots of the demo organization in light and dark taken by `scripts/capture.mjs`; every link and anchor in them resolves, and the API guide's examples were run against a fresh installation. The accessibility audit builds a fresh demo and finds nothing in 38 scenes, three palettes, and two modes; the keyboard check passes its four flows. From a fresh copy, `uv sync`, `init`, `doctor`, `serve`, and a first sign-in take a few seconds on SQLite and on PostgreSQL, and the demo builds and verifies. 294 tests pass on SQLite and 290 on PostgreSQL, where four about the SQLite file are skipped.
 
 ## Notes
 
@@ -196,4 +198,8 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **An import updates by reference.** A row whose reference is on record changes that application, through the same service and checks as an edit by hand, including the refusal of sensitive fields the importer may not see.
 - **The demo found two things to fix.** The person who later leaves was handed applications before some of them existed, so the hand-over ran later; and a fresh sign-in after another needs a fresh browser session, which the test now uses.
 - **Fewer applications than planned, more storylines asserted.** About 110 applications show every screen with data and build in two seconds; the spec's 160 would have added nothing new to see.
-
+- **The chart's points have an equivalent, and say so.** A bubble sized by cost can be smaller than a comfortable target, and ninety of them are ninety stops for the Tab key. The table beneath the chart holds the same applications as links of full size, so the bubbles stay a shortcut for the pointer, out of the Tab order, and the audit exempts a target that names its equivalent.
+- **A record's parts are links, not tabs.** Each part has its own address, so it is a link marked as the current page inside a navigation landmark. The tab pattern promises arrow keys and a panel that the page did not have.
+- **The router leaves in-page links to the browser.** The skip link was being treated as a navigation and redrew the page without moving the focus; the keyboard check found it.
+- **A demo visitor changes sample person without signing out.** The demo's sign-in needs no token from the session it replaces, as a password sign-in does not.
+- **Guides describe the screen, not the specification.** Where the two differed (how the working words a factor's source, who may hand on accountability, where JSON exports come from), the guide was changed to match what was built, and the examples were run.

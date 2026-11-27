@@ -133,7 +133,7 @@
 .chart-axis { font-weight: 600; }
 .chart-threshold { stroke: var(--border-strong); stroke-width: 1.5; stroke-dasharray: 5 4; }
 .chart-zone { fill: var(--accent-soft); opacity: 0.55; }
-.chart-quadrant { fill: var(--text-subtle); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.chart-quadrant { fill: var(--text-subtle); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; pointer-events: none; paint-order: stroke; stroke: var(--surface-1); stroke-width: 4px; stroke-linejoin: round; }
 .bubble { stroke-width: 1.5; fill-opacity: 0.82; }
 .bubble[data-level="0"] { fill: var(--surface-3); stroke: var(--text-subtle); }
 .bubble[data-level="1"], .legend-swatch[data-level="1"] { fill: var(--score-1-fill); stroke: var(--score-1); background: var(--score-1-fill); }

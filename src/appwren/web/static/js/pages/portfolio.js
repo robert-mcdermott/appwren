@@ -58,20 +58,22 @@ function chart(rows, view, thresholds, vocab) {
     const risk = r.scores.risk_exposure;
     const level = risk == null ? 0 : Math.min(5, Math.max(1, Math.round(risk)));
     const words = `${r.name}: value ${r.scores.business_value.toFixed(1)}, ${spec.xLabel.toLowerCase()} ${r.scores[spec.x].toFixed(1)}, risk exposure ${risk == null ? "unknown" : risk.toFixed(1)}, recommended ${r.recommendation ? label(vocab, "dispositions", r.recommendation) : "nothing"}`;
-    return svg("a", { href: hrefOf(r.ref), "aria-label": words },
+    // A shortcut for the pointer; the table below is the way in for the keyboard and screen readers.
+    return svg("a", { href: hrefOf(r.ref), "aria-label": words, tabindex: "-1" },
       svg("title", {}, words),
       svg("circle", { class: "bubble", "data-level": level, "data-mismatch": String(r.mismatch), cx: sx(Math.min(5, Math.max(1, x))), cy: sy(Math.min(5, Math.max(1, y))), r: radius(r.annual_cost) }));
   });
-  return svg("svg", { class: "chart portfolio-chart", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Business value against ${spec.xLabel.toLowerCase()}, ${rows.length} applications` },
+  return svg("svg", { class: "chart portfolio-chart", viewBox: `0 0 ${W} ${H}`, role: "img", "data-equivalent": "portfolio-table", "aria-label": `Business value against ${spec.xLabel.toLowerCase()}, ${rows.length} applications` },
     grid,
     svg("rect", { class: "chart-zone", x: sx(tx), y: sy(5), width: sx(5) - sx(tx), height: sy(ty) - sy(5) }),
     svg("line", { class: "chart-threshold", x1: sx(tx), x2: sx(tx), y1: sy(1), y2: sy(5) }),
     svg("line", { class: "chart-threshold", x1: sx(1), x2: sx(5), y1: sy(ty), y2: sy(ty) }),
-    quadrant(tl, sx(1) + 8, sy(5) + 16, "start"), quadrant(tr, sx(5) - 8, sy(5) + 16, "end"),
-    quadrant(bl, sx(1) + 8, sy(1) - 10, "start"), quadrant(br, sx(5) - 8, sy(1) - 10, "end"),
     svg("text", { class: "chart-axis", x: (sx(1) + sx(5)) / 2, y: H - 14, "text-anchor": "middle" }, spec.xLabel),
     svg("text", { class: "chart-axis", x: 18, y: (sy(1) + sy(5)) / 2, "text-anchor": "middle", transform: `rotate(-90 18 ${(sy(1) + sy(5)) / 2})` }, "Business value"),
-    bubbles);
+    bubbles,
+    // The quarters' names go over the bubbles, so a crowded corner never hides its own name.
+    quadrant(tl, sx(1) + 8, sy(5) + 16, "start"), quadrant(tr, sx(5) - 8, sy(5) + 16, "end"),
+    quadrant(bl, sx(1) + 8, sy(1) - 10, "start"), quadrant(br, sx(5) - 8, sy(1) - 10, "end"));
 }
 
 function legend(withheld) {
@@ -108,7 +110,7 @@ export function portfolioChart(main) {
         filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain"),
         filterSelect("sourcing", options(vocab, "sourcing", { blank: "Any sourcing" }), "Sourcing"),
         filterSelect("lifecycle", options(vocab, "lifecycle", { blank: "Any stage" }), "Lifecycle stage"));
-      const table = h("div", { class: "table-wrap" }, h("table", { class: "table" },
+      const table = h("div", { class: "table-wrap" }, h("table", { class: "table", id: "portfolio-table" },
         h("caption", { class: "sr-only" }, "The applications on the chart"),
         h("thead", {}, h("tr", {}, ["Application", "Value", "Health", "Cost", "Risk", "Confidence", "Recommended", "Decided"].map((t) => h("th", { scope: "col" }, t)))),
         h("tbody", {}, placed.map((r) => h("tr", {},

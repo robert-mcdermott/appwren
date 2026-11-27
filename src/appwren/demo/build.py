@@ -228,6 +228,7 @@ class Builder:
             if offered:
                 self.sample.append(
                     {
+                        "key": key,
                         "email": email_for(name),
                         "name": name,
                         "title": title,

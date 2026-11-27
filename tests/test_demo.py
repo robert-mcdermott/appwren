@@ -132,6 +132,11 @@ def test_a_demo_signs_in_its_sample_people_and_nobody_else(instance: Instance) -
         sample = summary.sample_accounts[1]["email"]
         assert client.post("/api/v1/session/demo", json={"email": sample}).status_code == 200
         assert client.get("/api/v1/session").json()["data"]["account"]["email"] == sample
+        # Signed in already, the sign-in page can switch to another sample person, as it can
+        # sign in again with a password: a new session needs no token from the old one.
+        another = summary.sample_accounts[2]["email"]
+        assert client.post("/api/v1/session/demo", json={"email": another}).status_code == 200
+        assert client.get("/api/v1/session").json()["data"]["account"]["email"] == another
     with TestClient(create_app(instance.config), base_url="http://localhost") as other:
         nobody = other.post("/api/v1/session/demo", json={"email": "someone@bramblewood.example"})
         assert nobody.status_code == 404

@@ -6,6 +6,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+## 0.1.0 (2026-11-26)
+
+Wave 1, *The portfolio*: install, sign in, and keep one record of every application, with
+what it is built on and what it does for the organization; assess it, read four scores with
+their working, see the recommendation and its rule, and record what people decided.
+
 ### Added
 
 - **Foundation.** `appwren init`, `serve`, `db upgrade`, `db current`, `verify`, and `doctor`.
@@ -78,4 +84,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   decisions, with storylines for every screen. It marks itself as a demo, offers one-click
   sign-in as its sample people from the machine it runs on, and refuses to listen beyond it
   unless started with `--demo-on-network`.
-
+- **Guides.** Getting started, the portfolio, running the program, configuration, and the
+  API, with screenshots of the demo organization taken by `scripts/capture.mjs`; the
+  command reference and the OpenAPI document are written from the code, and a test keeps
+  them current.
+- **Accessibility checks.** `scripts/a11y-audit.mjs` builds a fresh demo and checks 38
+  screens in three palettes, light and dark, for names, labels, headings, landmarks, target
+  sizes, and the contrast of every piece of text. `scripts/keyboard-check.mjs` checks the
+  skip link, a record's parts, the working behind a score, and the portfolio chart from the
+  keyboard. Neither needs anything installed beyond Node and Chrome.

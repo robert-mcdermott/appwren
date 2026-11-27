@@ -10,8 +10,8 @@ from appwren.core.errors import DataHomeError
 
 MARKER = ".appwren-home"
 MARKER_TEXT = (
-    "This directory is a AppWren data home.\n"
-    "It holds evidence files, uploaded logos, exports, logs, and, with SQLite, the database.\n"
+    "This directory is an AppWren data home.\n"
+    "It holds uploaded logos, attachments, exports, logs, and, with SQLite, the database.\n"
     "Back it up as a whole. Do not edit its contents by hand.\n"
 )
 
@@ -22,7 +22,7 @@ class DataHome:
 
     @property
     def files(self) -> Path:
-        """Evidence and attachments, stored by their SHA-256."""
+        """Attachments, stored by their SHA-256."""
         return self.root / "files"
 
     @property

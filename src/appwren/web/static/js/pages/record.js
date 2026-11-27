@@ -5,7 +5,7 @@ import { del, get, patch, post, put } from "../core/api.js";
 import { button, h, icon } from "../core/dom.js";
 import { date, dateTime, plural, relative } from "../core/format.js";
 import { catalog, label, units, vocabularies } from "../core/lookups.js";
-import { query, setQuery } from "../core/router.js";
+import { query } from "../core/router.js";
 import { banner, checkbox, field, select, submit } from "../components/form.js";
 import { confirmAction, openOverlay } from "../components/overlay.js";
 import { peoplePicker } from "../components/people-picker.js";
@@ -354,9 +354,17 @@ export function recordHeader(record, { badges = [], actions = null } = {}) {
   ];
 }
 
+/** The parts of a record. Each has its own address, so they are links, and the one shown is current. */
 export function tabBar(tabs, current) {
-  return h("div", { class: "tabs", role: "tablist" }, tabs.map(([key, text]) => h("button", { type: "button", class: "tab", role: "tab",
-    "aria-selected": String(current === key), onclick: () => setQuery({ tab: key === tabs[0][0] ? null : key }, { replace: false }) }, text)));
+  const hrefFor = (key) => {
+    const params = query();
+    params.delete("tab");
+    if (key !== tabs[0][0]) params.set("tab", key);
+    const search = params.toString();
+    return window.location.pathname + (search ? `?${search}` : "");
+  };
+  return h("nav", { class: "tabs", "aria-label": "Parts of this record" }, tabs.map(([key, text]) => h("a", { class: "tab", href: hrefFor(key),
+    "aria-current": current === key ? "page" : null }, text)));
 }
 
 // What a stage requires that is not a field of the application.

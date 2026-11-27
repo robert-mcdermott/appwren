@@ -65,18 +65,18 @@ def test_defaults_and_saving(db: Database) -> None:
         assert branding.load(session) == branding.Branding()
         saved = branding.save(
             session, ME,
-            {"product_name": " Risk Register ", "organization_name": "Bramblewood Institute",
+            {"product_name": " Application Register ", "organization_name": "Bramblewood Institute",
              "palette": "slate", "accent": "#7A1F2B", "show_powered_by": False},
         )  # fmt: skip
     assert (saved.product_name, saved.palette, saved.accent) == (
-        "Risk Register",
+        "Application Register",
         "slate",
         "#7a1f2b",
     )
     with db.read() as session:
         view = branding.public_view(branding.load(session))
         last = session.scalars(select(Event).order_by(Event.id.desc())).first()
-    assert view["product_name"] == "Risk Register" and view["logo_light"] is None
+    assert view["product_name"] == "Application Register" and view["logo_light"] is None
     assert last is not None and last.context == {"op": "branding.save"}
 
 
@@ -190,7 +190,7 @@ def test_branding_through_the_api(as_role: Clients, instance: Instance) -> None:
         admin.post("/api/v1/admin/branding/check", json={"accent": "burgundy"}).status_code == 422
     )
 
-    body = {"product_name": "Risk Register", "organization_name": "Bramblewood Institute",
+    body = {"product_name": "Application Register", "organization_name": "Bramblewood Institute",
             "palette": "garnet", "accent": "#7a1f2b", "show_powered_by": True}  # fmt: skip
     saved = admin.put("/api/v1/admin/branding", json=body)
     assert saved.status_code == 200 and saved.json()["data"]["checks"]
@@ -198,7 +198,10 @@ def test_branding_through_the_api(as_role: Clients, instance: Instance) -> None:
     assert refused.status_code == 422 and refused.json()["errors"][0]["location"] == ["accent"]
 
     meta = nobody.get("/api/v1/meta").json()["data"]  # the sign-in page is branded too
-    assert meta["product"]["name"] == "Risk Register" and meta["branding"]["palette"] == "garnet"
+    assert (
+        meta["product"]["name"] == "Application Register"
+        and meta["branding"]["palette"] == "garnet"
+    )
     assert "--brand-accent: light-dark(#7a1f2b" in nobody.get("/theme.css").text
 
 
