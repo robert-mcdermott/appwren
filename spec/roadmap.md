@@ -143,7 +143,7 @@ Detail: [waves/wave-6.md](waves/wave-6.md)
 | 7 | The program handbook | One guide for a portfolio team; the adopter's guide | ☑ |
 | 8 | Release prep | Guides, changelog, release | ☑ |
 
-## Wave 8: Connected (v0.8.0) ☐
+## Wave 8: Connected (v0.8.0) ◐
 
 **Goal:** fit into the systems around it, all of it optional.
 
