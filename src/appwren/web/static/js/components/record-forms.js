@@ -138,9 +138,10 @@ function ownInput(spec, value) {
 
 /**
  * Add a record of this type, or edit the one given. ``preset`` fills fields of a new record
- * (a component's application). ``only`` limits the form to some sections, for a short edit.
+ * (a component's application). ``only`` limits the form to some sections, for a short edit;
+ * ``skip`` leaves out sections edited in a dialog of their own.
  */
-export async function editRecord(type, { record = null, preset = {}, only = null, onDone, fixed = true } = {}) {
+export async function editRecord(type, { record = null, preset = {}, only = null, skip = [], onDone, fixed = true } = {}) {
   const meta = TYPES[type];
   const [program, vocab, unitIndex] = await Promise.all([catalog(), vocabularies(), loadUnits()]);
   const spec = program.types[type];
@@ -227,7 +228,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
           else navigate(`/${meta.path}/${done.data.ref}`);
         }
       };
-      const wanted = (key) => !only || only.includes(key);
+      const wanted = (key) => (!only || only.includes(key)) && !skip.includes(key);
       // Before an application is added or renamed: those already on record it may be (INV-15).
       const likely = type === "application" ? h("div", { "aria-live": "polite" }) : null;
       if (likely) {

@@ -69,6 +69,58 @@
     "label": "Team"
    }
   ],
+  "audiences": [
+   {
+    "key": "leadership",
+    "label": "Leadership",
+    "description": "Executives and the people who lead its divisions"
+   },
+   {
+    "key": "managers",
+    "label": "Managers and supervisors",
+    "description": "Anyone who manages people"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly employees",
+    "description": "Staff paid by the hour, who record their time"
+   },
+   {
+    "key": "contractors",
+    "label": "Contractors and temporary staff",
+    "description": "People who work for it without being employees"
+   },
+   {
+    "key": "clinicians",
+    "label": "Clinicians",
+    "description": "Physicians, nurses, and others who care for patients"
+   },
+   {
+    "key": "researchers",
+    "label": "Researchers",
+    "description": "Investigators and the staff of their studies and labs"
+   },
+   {
+    "key": "trainees",
+    "label": "Residents, fellows, and students",
+    "description": "People here to learn: in training programs and the medical school"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative staff",
+    "description": "The people who run its business: finance, people, purchasing, and facilities"
+   },
+   {
+    "key": "it_staff",
+    "label": "IT staff",
+    "description": "The people who build and run its technology"
+   },
+   {
+    "key": "volunteers",
+    "label": "Volunteers",
+    "description": "People who give their time to the hospitals and clinics"
+   }
+  ],
   "tiers": [
    {
     "key": "1",

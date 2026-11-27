@@ -145,6 +145,9 @@ export function applicationList(main) {
         filterSelect("tier", options(vocab, "tiers", { blank: "Any tier" }), "Criticality tier"),
         filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain"),
         filterSelect("unit", unitOptions(data.units.tree, { blank: `Any ${UNIT.label.toLowerCase()}` }), UNIT.label),
+        filterSelect("audience", [["", "Used by anyone"], ["everyone", "Everyone in the organization"],
+          ...options(vocab, "audiences")], "Who uses it"),
+        filterSelect("used_in", unitOptions(data.units.tree, { blank: `Used in any ${UNIT.label.toLowerCase()}` }), `Used in a ${UNIT.label.toLowerCase()}`),
         filterSelect("maturity", [["", "Any maturity"], ...[...data.program.maturity_levels].reverse(), ["unmeasured", "Not measured"]], "Engineering maturity"),
         mineToggle());
       const body = rows.length

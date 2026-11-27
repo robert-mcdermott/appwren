@@ -53,6 +53,53 @@
     "label": "Team"
    }
   ],
+  "audiences": [
+   {
+    "key": "leadership",
+    "label": "Leadership",
+    "description": "Executives and the people who lead its divisions"
+   },
+   {
+    "key": "managers",
+    "label": "Managers and supervisors",
+    "description": "Anyone who manages people"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly employees",
+    "description": "Staff paid by the hour, who record their time"
+   },
+   {
+    "key": "contractors",
+    "label": "Contractors and temporary staff",
+    "description": "People who work for it without being employees"
+   },
+   {
+    "key": "program_staff",
+    "label": "Program staff",
+    "description": "The people who deliver its programs"
+   },
+   {
+    "key": "fundraisers",
+    "label": "Fundraising staff",
+    "description": "The people who look after its donors and raise its funds"
+   },
+   {
+    "key": "volunteers",
+    "label": "Volunteers",
+    "description": "People who give their time"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative staff",
+    "description": "The people who run its business: finance, people, purchasing, and facilities"
+   },
+   {
+    "key": "it_staff",
+    "label": "IT staff",
+    "description": "The people who build and run its technology"
+   }
+  ],
   "tiers": [
    {
     "key": "1",

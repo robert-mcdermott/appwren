@@ -51,7 +51,7 @@ An application's **Connections** part begins with what would be touched if it st
 - what depends on it directly, and what depends on those in turn;
 - the interfaces that would stop;
 - the capabilities left with no application at all, and those that would lose their primary provider;
-- the units that use it, and up to how many people use it or anything that depends on it (the same person may use several, so this is an upper bound);
+- who uses it: everyone in the organization, or the units and the kinds of people who do, and up to how many people use it or anything that depends on it (the same person may use several, so this is an upper bound);
 - what its record says must outlive it: that active studies depend on it, that it is a system of record, that its data must be kept.
 
 Read it before recommending a retirement. A *Retire* for the only provider of a capability is already turned into *Replace* by the engine; this page shows what else is at stake.

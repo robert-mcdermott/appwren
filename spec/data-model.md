@@ -87,7 +87,7 @@ Inventory record types share a header: `ref`, `name`, `summary`, `status`, `tags
 
 The unit of the portfolio ([ADR-0013](decisions/0013-applications-components-deployments.md)).
 
-`application(…, aliases, org_unit_id, lifecycle, lifecycle_since, sourcing, purpose, pace, domain, tier, vendor_id?, product, edition, hosting, users, maintainers, annual_cost, sign_in, monitoring, backup, last_restore_test, data_classes, sensitivity, funding, grant_ref, grant_end, research_continuity, regulated_record, records_retention, external_users, go_live, retire_planned, successor_id?, home_url, docs_url, fields)`.
+`application(…, aliases, org_unit_id, lifecycle, lifecycle_since, sourcing, purpose, pace, domain, tier, vendor_id?, product, edition, hosting, users, maintainers, annual_cost, sign_in, monitoring, backup, last_restore_test, data_classes, sensitivity, funding, grant_ref, grant_end, research_continuity, regulated_record, records_retention, external_users, org_wide, audiences, go_live, retire_planned, successor_id?, home_url, docs_url, fields)`.
 
 - `lifecycle`, `sourcing`, `purpose`, `pace`, `domain`, `hosting`, `sign_in`, `monitoring`, `backup`, and `funding` are vocabularies; `tier` is the criticality vocabulary (ordered, 1 to 5); the engine reads them as facts ([engine.md](engine.md#facts)).
 - `lifecycle_since` is the date the application entered its current stage. A change of stage is an event like any other, so the history holds every stage and its date.
@@ -105,7 +105,7 @@ The application's support team is a unit: `support_unit_id` on the application.
 
 ### Units that use it
 
-`application_unit(application_id, org_unit_id)`: the units that use the application, which may be many and may differ from the unit that answers for it.
+`application_unit(application_id, org_unit_id)`: the units where everyone uses the application, which may be many and may differ from the unit that answers for it. Beside them, `application.audiences` names the kinds of people who use it wherever they work (keys of the `audiences` vocabulary), and `application.org_wide` says everyone in the organization does, in which case neither is kept.
 
 ### Component
 

@@ -1,6 +1,7 @@
 // Dialogs on a record's page that few people open: what a component is built on, a
 // technology's releases, what a contract covers, the capabilities an application serves, the
-// people named on it, and what it is called elsewhere. Loaded when someone opens one.
+// people named on it, who uses it, and what it is called elsewhere. Loaded when someone opens
+// one.
 
 import { get, patch, put } from "../core/api.js";
 import { button, h } from "../core/dom.js";
@@ -10,7 +11,7 @@ import { can } from "../core/session.js";
 import { banner, checkbox, field, select, submit } from "./form.js";
 import { openOverlay } from "./overlay.js";
 import { peoplePicker } from "./people-picker.js";
-import { recordChip } from "./record.js";
+import { recordChip, UNIT } from "./record.js";
 import { toast } from "./toast.js";
 import { card } from "./ui.js";
 import { recordFinder } from "../pages/record.js";
@@ -261,6 +262,65 @@ export function editPeople(record, ctx) {
       body.append(h("div", { class: "stack-lg" }, problem,
         h("p", { class: "muted" }, "One person is accountable: they answer for the application and its record. Everyone named here may keep it current."),
         list, picker));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+/** Who uses an application: everyone in the organization, or the units that use it together
+ * with the kinds of people who use it wherever they work; how many; and people outside. */
+export function editUse(record, ctx) {
+  openOverlay({
+    title: "Who uses it",
+    subtitle: `${record.ref} · ${record.name}`,
+    render: (body, footer, close) => {
+      let everyone = record.org_wide === true;
+      const choice = (value, text, hint) => h("label", { class: "check" },
+        h("input", { type: "radio", name: "who-uses", value, checked: (value === "everyone") === everyone,
+          onchange: () => {
+            everyone = value === "everyone";
+            some.hidden = everyone;
+          } }),
+        h("span", {}, h("strong", {}, text), h("span", { class: "hint subtle" }, ` ${hint}`)));
+      const scope = h("fieldset", { class: "stack-sm" }, h("legend", {}, "Who uses it"),
+        choice("everyone", "Everyone in the organization.", "Email, sign-in, the intranet."),
+        choice("some", `Particular ${UNIT.plural.toLowerCase()} or kinds of people.`, "A lab's own tool, or one for managers wherever they work."));
+      const units = new Set(record.used_by ?? []);
+      const unitBoxes = ctx.units.list.filter((unit) => unit.status === "active" || units.has(unit.id))
+        .map((unit) => ({ id: unit.id, box: checkbox(unit.name, { checked: units.has(unit.id) }) }));
+      const kinds = new Set(Array.isArray(record.audiences) ? record.audiences : []);
+      const kindBoxes = (ctx.vocab.audiences ?? []).filter((item) => !item.retired || kinds.has(item.key))
+        .map((item) => ({ key: item.key, box: checkbox(item.label, { checked: kinds.has(item.key), hint: item.description }) }));
+      const some = h("div", { class: "stack" },
+        h("fieldset", { class: "stack-sm" }, h("legend", {}, `${UNIT.plural} where everyone uses it`),
+          h("div", { class: "unit-checks stack-sm" }, unitBoxes.map((b) => b.box.node))),
+        h("fieldset", { class: "stack-sm" }, h("legend", {}, "Kinds of people who use it, wherever they work"),
+          h("p", { class: "hint subtle" }, "Such as managers across the organization, or hourly employees and contractors."),
+          kindBoxes.map((b) => b.box.node)));
+      some.hidden = everyone;
+      const users = field("People who use it", { type: "number", min: 0, step: 1, value: record.users ?? "", hint: "An estimate is fine." });
+      const outside = checkbox("People outside the organization use it too", { checked: record.external_users === true,
+        hint: "Patients, students, the public, or partners." });
+      const problem = banner();
+      const save = button("Save", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem, fields: { users },
+          run: () => put(`/api/v1/applications/${record.ref}/use`, {
+            version: record.version,
+            org_wide: everyone,
+            units: everyone ? [] : unitBoxes.filter((b) => b.box.input.checked).map((b) => b.id),
+            audiences: everyone ? [] : kindBoxes.filter((b) => b.box.input.checked).map((b) => b.key),
+            users: users.input.value === "" ? null : Number(users.input.value),
+            external_users: outside.input.checked,
+          }) });
+        if (done) {
+          close();
+          toast("Saved.");
+          ctx.reload();
+        }
+      });
+      body.append(h("div", { class: "stack-lg" }, problem, scope, some, h("div", { class: "stack" }, users.node, outside.node)));
       footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
       footer.hidden = false;
     },

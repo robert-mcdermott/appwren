@@ -135,6 +135,15 @@ APPLICATION = register(
             F("hosting", "Hosting", "choice", vocab="hosting", section="source"),
             F("home_url", "Address", "url", max_length=300, section="source"),
             F("docs_url", "Documentation", "url", max_length=300, section="source"),
+            F("org_wide", "Everyone in the organization uses it", "bool", section="use"),
+            F(
+                "audiences",
+                "Kinds of people who use it",
+                "many",
+                vocab="audiences",
+                section="use",
+                help="Wherever in the organization they work.",
+            ),
             F("users", "People who use it", "int", section="use", help="An estimate is fine."),
             F("external_users", "Used by people outside the organization", "bool", section="use"),
             F(
@@ -205,7 +214,16 @@ APPLICATION = register(
             "vendor_id",
             "sensitivity",
         ),
-        more_filters=("data_class", "capability", "technology", "release", "version", "maturity"),
+        more_filters=(
+            "data_class",
+            "capability",
+            "technology",
+            "release",
+            "version",
+            "maturity",
+            "audience",
+            "used_in",
+        ),
     )
 )
 COMPONENT = register(

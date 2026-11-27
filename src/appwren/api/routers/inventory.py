@@ -248,6 +248,27 @@ class UnitsBody(BaseModel):
     units: list[int] = Field(description="The ids of the units that use it")
 
 
+class UseBody(BaseModel):
+    org_wide: bool = Field(default=False, description="Everyone in the organization uses it")
+    units: list[int] = Field(
+        default_factory=list,
+        description="The ids of the units that use it, everyone in them; left out when "
+        "everyone in the organization does",
+    )
+    audiences: list[str] = Field(
+        default_factory=list,
+        description="The kinds of people who use it wherever they work, as keys of the "
+        "audiences list; left out when everyone in the organization does",
+    )
+    users: int | None = Field(default=None, ge=0, description="About how many people use it")
+    external_users: bool | None = Field(
+        default=None, description="People outside the organization use it too"
+    )
+    version: int | None = Field(
+        default=None, description="The version of the application the change was made against"
+    )
+
+
 class TechnologyUse(BaseModel):
     technology: str = Field(description="A technology's reference")
     release: str | None = Field(default=None, description="A release's cycle, such as 3.12")
@@ -461,6 +482,10 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "target_id": "The id of the application data goes to",
         "application": "An application's reference: at either end",
         "data_class": "A class of data, by its key",
+        "audience": "A kind of people who use it wherever they work, by its key; everyone for "
+        "those everyone in the organization uses",
+        "used_in": "A unit's id: what everyone in it uses, from the whole organization's, its "
+        "own, and those of the units it is part of",
         "capability": "A capability's reference: the applications that serve it",
         "state": "planned, open, or closed",
         "technology": "A technology's reference: what is built on it (for an application, any "
@@ -469,7 +494,7 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "those that name no release",
         "version": "With technology, the exact version as recorded, or its start, such as 6.0.2",
     }
-    whole = name.endswith("_id") or name in ("sensitivity", "ending_within")
+    whole = name.endswith("_id") or name in ("sensitivity", "ending_within", "used_in")
     annotation: Any = int | None if whole else bool | None if name == "auto_renews" else str | None
     return inspect.Parameter(
         name,
@@ -596,6 +621,17 @@ def set_units(request: Request, ref: str, body: UnitsBody) -> dict[str, Any]:
     with writing(request, principal.actor) as session:
         record = records.load(session, principal, APPLICATION, ref)
         applications.set_units(session, principal, record, body.units)
+        return envelope(records.detail(session, principal, APPLICATION, record))
+
+
+@router.put("/applications/{ref}/use", summary="Say who uses it")
+def set_use(request: Request, ref: str, body: UseBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        record = records.load(session, principal, APPLICATION, ref)
+        applications.set_use(
+            session, principal, record, body.model_dump(exclude={"version"}), version=body.version
+        )
         return envelope(records.detail(session, principal, APPLICATION, record))
 
 

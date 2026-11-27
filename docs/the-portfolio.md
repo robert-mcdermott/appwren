@@ -45,7 +45,7 @@ Besides its name, its summary, and its unit, an application's fields come in sec
 |---|---|
 | **What it is** | Lifecycle stage and since when; sourcing (SaaS, Commercial run here, Built here, Open source run here, Low-code, Research software, or Vendor-hosted custom); purpose (Mission, Operations, Insight, Foundation); pace (Steady, Evolving, Experimental); domain; criticality tier, from 1 (mission critical) to 5 (minimal); other names it goes by |
 | **Where it comes from** | Vendor, product, edition or version, hosting, its address, and its documentation |
-| **Who uses it** | About how many people use it, and whether people outside the organization do |
+| **Who uses it** | Everyone in the organization, or the units that use it and the kinds of people who use it wherever they work; about how many people; and whether people outside the organization do. See [Who uses it](#who-uses-it) |
 | **Who supports it** | How many people can maintain it, and the team that supports it |
 | **Security and data** | How people sign in, and the classes of data it handles, from public to controlled-access |
 | **How it is run** | Monitoring, backup, and the date of the last restore test |
@@ -56,6 +56,19 @@ Besides its name, its summary, and its unit, an application's fields come in sec
 An organization adds its own fields in the program, in any of these sections; the default program adds three (ethics protocols, a data management plan, and accessibility). A record never holds the data an application holds: no patient, participant, or other protected data goes in a description or a note.
 
 Some fields are **sensitive**: by default, annual cost, the sign-in method, backup, and the last restore test. People who may not see them find them marked as withheld. See [Who sees what](running-the-program.md#who-sees-what).
+
+### Who uses it
+
+An application's **Who uses it** card says who would notice if it stopped. Its **Edit** opens one dialog for all of it:
+
+- **Everyone in the organization**, for email, sign-in, the intranet, and the like.
+- Otherwise, the **units** where everyone uses it, such as a lab's own tool or a department's ledger, and the **kinds of people** who use it wherever they work, such as managers and supervisors for performance reviews, or hourly employees and contractors for time tracking. Both may be named at once: applicant tracking is used by everyone in Human Resources, and by managers across the organization.
+- **About how many people** use it. An estimate is fine; it is what the cost for each person is worked out from.
+- Whether **people outside the organization** use it too: patients, students, the public, or partners.
+
+The kinds of people are a list the program keeps, renamed, extended, and retired under **Admin**, **Program**, **Lists**, **Audiences**. AppWren comes with leadership, managers and supervisors, hourly employees, contractors and temporary staff, researchers, clinicians, students and trainees, administrative staff, and IT staff, and each starter program has its own: faculty and students for a university, customer-facing staff for a company, volunteers for a nonprofit.
+
+The list of applications filters by both: **Who uses it** for everyone or a kind of people, and **Used in a unit** for what everyone in a unit uses, from the whole organization's applications, the unit's own, and those of the units it is part of. What a kind of people uses wherever they work is not counted in a unit's, since which people in a unit are of which kind is not recorded.
 
 ### People named on it
 
