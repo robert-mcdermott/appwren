@@ -1,16 +1,17 @@
 # AppWren documentation
 
-These guides describe AppWren 0.1.0. Read them in this order if you are new, or go straight to the one for your part.
+These guides describe AppWren 0.2.0. Read them in this order if you are new, or go straight to the one for your part.
 
 ## The guides
 
 | | Guide | For | Covers |
 |---|---|---|---|
 | 1 | [Getting started](getting-started.md) | Whoever installs AppWren | Installing, `init`, `doctor`, `serve`, first sign-in, units and people, bringing in your applications, the demo organization |
-| 2 | [The portfolio](the-portfolio.md) | Everyone who keeps, assesses, or reads an application | What counts as an application, the record and its stages, components and technologies, capabilities, assessment, the scores and their working, recommendations, flags, decisions, import and export |
-| 3 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields, the program and its versions, the dashboard, Home, data quality, portfolio snapshots, the history, appearance |
-| 4 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, optional single sign-on, PostgreSQL, upgrading, reverse proxies, the demo guard |
-| 5 | [API](api.md) | Anyone connecting another system | Sign-in, the CSRF token, responses, errors, lists, and a table of routes |
+| 2 | [The portfolio](the-portfolio.md) | Everyone who keeps, assesses, or reads an application | What counts as an application, the record and its stages, components and technologies, capabilities, assessment, the scores and their working, recommendations, flags, decisions, cost lines, funding, contracts, import and export |
+| 3 | [The landscape](the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches | Interfaces and data flows, the picture of how a record is connected, what breaks if an application goes, hosting platforms and deployments, overlap, the capability map and its measures, the lifecycle timeline, the radar, support dates from a file, who handles a class of data |
+| 4 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields and contracts, the program and its versions, what an upgrade does, the dashboard, Home, data quality, portfolio snapshots, the history, appearance |
+| 5 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, optional single sign-on, PostgreSQL, upgrading, reverse proxies, the demo guard |
+| 6 | [API](api.md) | Anyone connecting another system | Sign-in, the CSRF token, responses, errors, lists, and a table of routes |
 
 ## Reference
 
@@ -39,12 +40,25 @@ These two are written from the code, so they always match the version they ship 
 | The decision and the recommendation differ. Is that wrong? | [Mismatches](the-portfolio.md#mismatches) |
 | What runs on a technology that is reaching end of support? | [Components and what they are built on](the-portfolio.md#components-and-what-they-are-built-on) |
 | Which applications do the same job? | [Capabilities](the-portfolio.md#capabilities) |
-| Who can see what an application costs? | [Who sees what](running-the-program.md#who-sees-what) |
+| What does this application send, receive, and depend on? | [Interfaces](the-landscape.md#interfaces) |
+| Where does this class of data go? | [Follow a class of data](the-landscape.md#follow-a-class-of-data) |
+| What breaks if we turn this off? | [What breaks if this goes](the-landscape.md#what-breaks-if-this-goes) |
+| What runs in this data center or cloud account? | [Where it runs](the-landscape.md#where-it-runs) |
+| What are we paying for twice? | [Overlap](the-landscape.md#overlap) |
+| Which capability rests on the weakest software? | [The capability map, measured](the-landscape.md#the-capability-map-measured) |
+| What falls out of support next year, and what runs on it? | [Lifecycle](the-landscape.md#lifecycle) |
+| How do I avoid typing support dates? | [Support dates from a file](the-landscape.md#support-dates-from-a-file) |
+| Which applications hold health data, and how well are they looked after? | [Who handles a class of data](the-landscape.md#who-handles-a-class-of-data) |
+| How do I break an application's cost down? | [What it costs](the-portfolio.md#what-it-costs) |
+| Which contracts are about to renew? | [Contracts](the-portfolio.md#contracts) |
+| Who can see what an application costs, or its contract? | [Who sees what](running-the-program.md#who-sees-what) |
+| The upgrade changed some scores. Why? | [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program) |
 | How do I change the questions, the weights, or the rules? | [Shape the program](running-the-program.md#shape-the-program) |
 | What does a dashboard figure count? | [Read the dashboard](running-the-program.md#read-the-dashboard) |
 | Which units' records need the most work? | [Data quality](running-the-program.md#data-quality) |
 | How do I keep a record of the portfolio before a review? | [Portfolio snapshots](running-the-program.md#portfolio-snapshots) |
 | Who changed this, and when? | [The history](running-the-program.md#the-history) |
+| How do I make an identifier in another system a link? | [Links to other systems](running-the-program.md#links-to-other-systems) |
 | How do I let people sign in with Entra ID or another identity provider? | [Single sign-on](configuration.md#single-sign-on) |
 | How do I move to PostgreSQL? | [Use PostgreSQL](configuration.md#use-postgresql) |
 | How do I put it behind a proxy? | [Run behind a reverse proxy](configuration.md#run-behind-a-reverse-proxy) |
@@ -52,7 +66,7 @@ These two are written from the code, so they always match the version they ship 
 
 ## What this release does not do yet
 
-Version 0.1.0 is the portfolio: applications, components, capabilities, technologies, and vendors; assessment, scores with their working, recommendations, flags, and decisions; the dashboard, data quality, import and export. Support dates and costs are entered as figures. Interfaces and data flows, a picture of how applications connect and what breaks if one goes, deployments, costs in lines with contracts and their renewal dates, and end-of-life dates imported from a file arrive in the next release. Notices, reminders, attestation, campaigns, and editing the program in the app follow it, and then read-only connectors to the tools that already know the facts. The [roadmap](../spec/roadmap.md) says what comes next and in what order, and the [changelog](../CHANGELOG.md) lists what is in each release.
+Version 0.2.0 is the portfolio and the landscape around it. Nothing reminds anyone yet: there are no notices, no email, no attestation or campaigns, and the program is still changed as a file. Those arrive in the next release, with search across every kind of record. After that come read-only connectors to the tools that already know the facts, so that fewer of them are typed. The [roadmap](../spec/roadmap.md) says what comes next and in what order, and the [changelog](../CHANGELOG.md) lists what is in each release.
 
 ## More
 

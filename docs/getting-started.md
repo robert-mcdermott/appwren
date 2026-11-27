@@ -28,7 +28,7 @@ uv run appwren init
 1. Writes `appwren.toml`, the deployment settings, in the current directory.
 2. Creates the data home, `./var`, which holds everything that is not in the database.
 3. Creates the database. With no other setting, this is a SQLite file inside the data home.
-4. Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.
+4. Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, interface methods, environments, cost categories, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.
 5. Asks for your email address, your name, and a password, and creates the first administrator.
 
 The password needs at least 12 characters. Length matters more than symbols: a few unrelated words make a good one.
@@ -94,7 +94,7 @@ The administrator account sets the installation up. It does not keep application
 | Role | What it is for |
 |---|---|
 | **Manager** | The portfolio team. Edits any application, records decisions, takes snapshots, and shapes the program. Can be limited to a unit |
-| **Architect** | Keeps the records the whole organization shares (capabilities, technologies, and vendors) and assesses applications. Can be limited to a unit |
+| **Architect** | Keeps the records the whole organization shares (capabilities, technologies, vendors, hosting platforms, and funding sources) and assesses applications. Can be limited to a unit |
 | **Leader** | Leads a unit. Sees it and everything beneath it, and records decisions for its applications |
 | **Steward** | Keeps a unit's applications complete and current: adds, edits, imports, and assesses them |
 | **Auditor** | Reads everything, including the full history, and changes nothing |
@@ -125,7 +125,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, about 125 assessments, 70 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, and a database release reaching end of support next quarter. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 87 deployments on six hosting platforms, 22 contracts, about 125 assessments, 65 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, a database release reaching end of support next quarter, research data flowing into dashboards whose record does not list it, a contract whose notice date is two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
 
 ![Home for the demo's portfolio manager: what is waiting on them, most urgent first, beside their roles](img/home-manager-light.webp)
 
@@ -133,13 +133,13 @@ Its sign-in page offers eight sample people and asks for no password:
 
 | Sign in as | To see |
 |---|---|
-| The portfolio manager | The dashboard, the portfolio chart, mismatches to review, and snapshots |
-| The enterprise architect | The capability map, technologies and their support dates, and vendors |
+| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, and snapshots |
+| The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline and radar, hosting platforms, and the picture of how anything is connected |
 | The chief information officer | Decisions for Information Technology's applications, and the reviews coming due |
 | The clinical research leader | A decision that keeps an application the scores would replace, and why |
-| The research applications steward | Specimen Tracker, its scores and their working, and the gaps in a unit's records |
-| The research software engineer | A member's view: the applications they keep, and costs they may not see elsewhere |
-| The auditor | Everything, read-only, with the full history |
+| The research applications steward | Specimen Tracker: its scores and their working, what would break if it went, where it runs, and what it costs line by line |
+| The research software engineer | A member's view: the applications they keep, and the costs and contracts they may not see elsewhere |
+| The auditor | Everything, read-only, with every change in one place under Reports, History |
 | The administrator | People, units, sign-in, and appearance, and no part in the portfolio's judgments |
 
 `appwren demo --seed 2` builds a different Bramblewood with the same shape, and `--force` rebuilds one that is already there.
@@ -148,5 +148,6 @@ A demo listens only on the machine it runs on. See [Configuration](configuration
 
 ## Next
 
-- To record applications, assess them, and read their scores, read [The portfolio](the-portfolio.md).
+- To record applications, assess them, read their scores, and record what they cost, read [The portfolio](the-portfolio.md).
+- To record what passes between them, where they run, and what falls out of support, read [The landscape](the-landscape.md).
 - To decide who sees what, and to shape the questions and the scoring model, read [Running the program](running-the-program.md).

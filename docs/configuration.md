@@ -249,7 +249,7 @@ uv sync
 uv run appwren db upgrade
 ```
 
-`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Back up first: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
+`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.1.0, that is the tables for interfaces, hosting, cost, and contracts, their vocabularies, and a new version of the default scoring model for installations still running the previous default; see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
 
 ## Run behind a reverse proxy
 

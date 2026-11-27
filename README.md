@@ -40,7 +40,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, about 125 assessments, 70 decisions, and four quarterly portfolio snapshots. Nothing in it is real.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 87 deployments on six hosting platforms, 22 contracts, about 125 assessments, 65 decisions, and four quarterly portfolio snapshots. Nothing in it is real.
 
 ![The portfolio chart in the demo: each application placed by business value and technical health, sized by cost, and colored by risk exposure](docs/img/portfolio-chart-light.webp)
 
@@ -48,10 +48,10 @@ Its sign-in page offers eight sample people and asks for no password. Try a few:
 
 | Sign in as | To see |
 |---|---|
-| The portfolio manager | The dashboard, the portfolio chart, mismatches to review, and snapshots |
-| The research applications steward | Specimen Tracker: recommended *Modernize*, with three flags, and every score's working |
+| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, and overlap |
+| The research applications steward | Specimen Tracker: recommended *Modernize*, with three flags, every score's working, what would break if it went, and what it costs |
 | The clinical research leader | A decision that keeps an application the scores would replace, and why |
-| The enterprise architect | The capability map, and technologies reaching end of support |
+| The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline, and the picture of how anything is connected |
 | The research software engineer | A member's view of the catalog, and the applications they keep |
 | The auditor | Everything, read-only, with every change on record |
 
@@ -59,14 +59,26 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.1.0 is the portfolio.
+Version 0.2.0 adds the landscape around each application.
+
+**The landscape, new in 0.2.0**
+
+- **Interfaces and data flows:** what each application sends and receives, how, how often, and which classes of data pass; and a view that follows a class of data and marks where it arrives unrecorded.
+- **How a record is connected:** a picture around any record that works from the keyboard, with a list that says the same; and, for an application, **what breaks if this goes**.
+- **Hosting platforms and deployments:** where each application and component runs, in which environment, and what would stop with a platform.
+- **Cost, funding, and contracts:** cost in lines by what each is for and what pays for it, adding up to the annual cost; contracts with the applications they cover, licenses, notice dates, and data agreements; cost per user and license use in the scores; and two new flags.
+- **Overlap and the capability map, measured:** capabilities served more than once, side by side; and the map by any score, by confidence, or by its weakest application.
+- **The technology lifecycle:** releases on a timeline to their end of support with what runs on each, a radar by ring, and support dates brought in from a file.
+- **Evidence for other processes:** who handles a class of data and how well it is looked after, as a page and an export; links to records in other systems; and every change in one place for those who may read everything.
+
+**The portfolio, from 0.1.0**
 
 - **An inventory of applications** with a definition of what counts as one, a permanent reference, a unit, one accountable owner and the other people named on it, eight lifecycle stages each with what it requires of the record, and fields of the organization's own.
 - **Components, technologies, and vendors:** each component records the technologies and releases it is built on, and each release its support dates, so technology currency is a fact rather than an opinion.
 - **A capability map** of 43 capabilities to start from, with a primary provider for each, so overlap is found rather than guessed.
 - **Assessment** through nine questions with a written definition for every level, *don't know* always an answer, and the scores worked out on the server as the answers change.
 - **Four scores you can redo by hand:** business value, technical health, cost and burden, and risk exposure, each a weighted average of factors with their sources, coverage, and data confidence. Three profiles judge shared platforms and research software by the right rubric.
-- **Recommendations** from ordered rules, with guardrails and nine kinds of flag, each naming the rule or facts behind it.
+- **Recommendations** from ordered rules, with guardrails and flags, each naming the rule or facts behind it.
 - **Decisions** by named people with the authority, never by an application's own accountable owner, each kept with the snapshot of the scores it was made against, and mismatches with today's recommendation shown side by side.
 - **The portfolio chart, the dashboard, data quality, and Home,** where every figure is a link to the list it counts.
 - **Import from a spreadsheet** with a dry run that reports every problem by row, and **export** of every list as CSV or JSON.
@@ -75,7 +87,7 @@ Version 0.1.0 is the portfolio.
 - **An append-only history** chained by hash, checked with `appwren verify`.
 - **Branding and themes,** a JSON API under `/api/v1`, a command line for setup and recovery, and the program as a file.
 
-The [roadmap](spec/roadmap.md) says what is next, and the [changelog](CHANGELOG.md) lists everything in each release.
+Upgrading from 0.1.0 is `uv sync` and `uv run appwren db upgrade`; see [Upgrade](docs/configuration.md#upgrade). The [roadmap](spec/roadmap.md) says what is next, and the [changelog](CHANGELOG.md) lists everything in each release.
 
 ## Documentation
 
@@ -85,6 +97,7 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 |---|---|
 | [Getting started](docs/getting-started.md) | Whoever installs AppWren and sets it up |
 | [The portfolio](docs/the-portfolio.md) | Everyone who keeps, assesses, or reads an application |
+| [The landscape](docs/the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches |
 | [Running the program](docs/running-the-program.md) | The portfolio team, and administrators |
 | [Configuration](docs/configuration.md) | Whoever runs the server |
 | [API](docs/api.md) | Anyone connecting another system |

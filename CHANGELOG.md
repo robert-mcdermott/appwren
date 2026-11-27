@@ -6,6 +6,15 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+## 0.2.0 (2026-11-26)
+
+Wave 2, *The landscape*: each application in its surroundings. What it sends and receives
+and what data passes, what depends on it and what breaks if it goes, where it runs, what it
+costs and what pays, the contracts behind it, what else does the same job, and what it is
+built on that is falling out of support.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept.
+
 ### Added
 
 - **Interfaces.** Data passing from one application to another is a record of its own, with a
@@ -76,6 +85,9 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   the default program when it chooses.
 - A record's history names the vendor, application, or person a change refers to, where it
   showed a number.
+
+- **Guides.** A new guide, *The landscape*; cost and contracts in *The portfolio*; and what an
+  upgrade does to the program in *Running the program*.
 
 ### Fixed
 

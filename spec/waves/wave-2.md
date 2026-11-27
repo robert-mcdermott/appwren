@@ -2,7 +2,7 @@
 
 **Goal:** see each application in its surroundings: what it talks to and what data passes, where it runs, what it costs and who pays, what else does the same job, and what breaks if it goes. Wave 1 made each application's record trustworthy on its own; this wave connects the records, so that the questions a portfolio review actually asks ("what else touches this data?", "what goes down with it?", "what are we paying twice for?", "what falls out of support next year?") are answered from the screen.
 
-**Branch:** `wave-2` · **Target version:** `0.2.0` · **Status:** ◐ in progress
+**Branch:** `wave-2` · **Target version:** `0.2.0` · **Status:** ☑ done
 
 ## Exit criteria
 
@@ -137,14 +137,16 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** three pieces of evidence, each a view of what was already recorded. Building the history page showed that a record's own history had been telling its assessments, decisions, capabilities, and units as "Added this application" since wave 1; they are now told for what they are.
 
-## Slice 8: Release prep ☐
+## Slice 8: Release prep ☑
 
-- [ ] Guides: a new guide, *The landscape*; cost and contracts added to *The portfolio*; *Running the program*, the API guide, and the index updated; screenshots retaken
-- [ ] `README.md` and `CHANGELOG.md` for 0.2.0
-- [ ] The accessibility audit and keyboard check over every screen, old and new
-- [ ] Upgrade from 0.1.0 checked on both databases: every row and file kept
-- [ ] Fresh-clone install and quickstart checked on both databases
-- [ ] Version `0.2.0`; pull request from `wave-2`; tag and release
+- [x] Guides: a new guide, *The landscape*; cost and contracts added to *The portfolio*; *Running the program*, the API guide, getting started, and the index updated; screenshots retaken
+- [x] `README.md` and `CHANGELOG.md` for 0.2.0
+- [x] The accessibility audit and keyboard check over every screen, old and new
+- [x] Upgrade from 0.1.0 checked on both databases: every row and file kept
+- [x] Fresh-clone install and quickstart checked on both databases
+- [x] Version `0.2.0`; pull request from `wave-2`; tag and release
+
+**Done:** the audit finds nothing in 72 scenes, three palettes, and two modes, and the keyboard check passes its five flows. A 0.1.0 demo organization, built by the 0.1.0 release, was upgraded on SQLite and on PostgreSQL: no table lost a row, the history still verifies, every decision's snapshot still matches its digest, and the scoring model moved to its second version with the worked example at 2.7 for cost and burden. A fresh copy installs, initializes, and serves on both databases. 321 tests pass on SQLite and 317 on PostgreSQL. The guides have 27 screenshots, each in light and dark, and every link and anchor resolves.
 
 ## Notes
 
