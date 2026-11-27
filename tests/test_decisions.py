@@ -267,3 +267,61 @@ def test_deciding_through_the_api(db: Database, people: People, as_role: Clients
     assert [r["ref"] for r in mismatches] == [ref]
     snapshot = leader.get(f"/api/v1/score-snapshots/{done.json()['data']['snapshot_id']}")
     assert snapshot.status_code == 200 and snapshot.json()["data"]["intact"] is True
+
+
+def test_owners_record_their_own_decisions_only_where_the_program_allows_and_it_shows(
+    db: Database, people: People
+) -> None:
+    """Off by default: nobody decides about their own application. A team too small for
+    anyone else to may switch it on; then a manager or leader who is also the accountable
+    owner may decide, and the decision says so everywhere it is shown."""
+    from appwren.inventory import history as record_history
+    from appwren.program import catalog, editing, packs
+    from appwren.reporting import portfolio_list
+
+    mine = add_app(db, people)
+    with db.write(ME.actor) as session:
+        app = records.load(session, ME, APPLICATION, mine)
+        records.set_owners(
+            session, ME, APPLICATION, app,
+            [{"account_id": people.accounts["manager"], "kind": "accountable"}],
+        )  # fmt: skip
+    with pytest.raises(PermissionDenied, match="accountable"):
+        decide(db, people, "manager", mine)
+    with db.write(ME.actor) as session, pytest.raises(PermissionDenied):
+        editing.save_decision_rules(
+            session, who(db, people, "steward"), {"owners_may_decide": True}
+        )
+    manager = who(db, people, "manager")
+    with db.write(manager.actor) as session:
+        assert editing.save_decision_rules(session, manager, {"owners_may_decide": True}) == {
+            "owners_may_decide": True
+        }
+    row = decide(db, people, "manager", mine)
+    assert row.self_recorded is True
+    with db.read() as session:
+        app = records.load(session, ME, APPLICATION, mine)
+        shown = decisions.history(session, app)[0]
+        assert shown["self_recorded"] is True
+        titles = [item["title"] for item in record_history.for_record(session, APPLICATION, app)]
+        assert any(t.endswith("as its own accountable owner") for t in titles)
+        listed = next(r for r in portfolio_list(session, manager, {}) if r["ref"] == mine)
+        assert listed["self_decided"] is True
+        assert packs.export(session)["decision_rules"] == {"owners_may_decide": True}
+        assert catalog.check_decision_rules({"owners_may_decide": "yes"})
+    # Only the exclusion is lifted: an owner without a manager's or leader's role still cannot.
+    member_app = add_app(db, people)
+    with db.write(ME.actor) as session:
+        app = records.load(session, ME, APPLICATION, member_app)
+        records.set_owners(
+            session, ME, APPLICATION, app,
+            [{"account_id": people.accounts["member"], "kind": "accountable"}],
+        )  # fmt: skip
+    with pytest.raises(PermissionDenied, match="manager"):
+        decide(db, people, "member", member_app)
+    other = decide(db, people, "leader", member_app)
+    assert other.self_recorded is False
+    with db.write(manager.actor) as session:
+        editing.save_decision_rules(session, manager, {"owners_may_decide": False})
+    with pytest.raises(PermissionDenied, match="accountable"):
+        decide(db, people, "manager", mine)

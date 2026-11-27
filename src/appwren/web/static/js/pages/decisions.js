@@ -37,6 +37,7 @@ export function decisionList(main) {
           h("td", {}, h("a", { class: "cell-main", href: `${hrefOf(r.ref)}?tab=decisions` }, r.name), h("div", { class: "cell-sub" }, [r.ref, r.accountable.join(", ")].filter(Boolean).join(" · "))),
           h("td", {}, r.recommendation ? dispositionBadge(r.recommendation, label(vocab, "dispositions", r.recommendation)) : "—"),
           h("td", {}, r.decision ? dispositionBadge(r.decision, label(vocab, "dispositions", r.decision), { decided: true }) : h("span", { class: "subtle" }, "None"),
+            r.self_decided ? h("div", { class: "cell-sub" }, "Recorded by its own owner") : null,
             r.mismatch ? h("div", {}, pill("Mismatch", "info")) : null),
           h("td", { class: "nowrap" }, r.review_on ? date(r.review_on) : "—", r.review_on && r.review_on < new Date().toISOString().slice(0, 10) ? h("div", {}, pill("Due", "warn")) : null),
           h("td", { class: "numeric" }, `${r.confidence}%`))))))

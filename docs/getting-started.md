@@ -125,7 +125,7 @@ AppWren does not need the whole organization to begin. A single team that keeps 
 
 SQLite and the one server process `init` sets up are plenty for a team. Move to [PostgreSQL](configuration.md#use-postgresql) when more of the organization joins.
 
-One rule holds however small the team: **nobody records the decision about an application they are accountable for.** In a team of two or three, have the lead name another member accountable for the applications the lead will decide on, or give a second person the manager role to decide on the lead's own.
+One rule needs a thought in a small team: **nobody records the decision about an application they are accountable for.** If the lead is both the owner of the team's applications and its only manager, either name another member accountable for the applications the lead will decide on, or turn on **Admin → Program → Decisions**, which lets an owner who is also a manager or leader decide about their own application. Each such decision is marked *Recorded by its own owner*, so anyone reading it later knows.
 
 ## Bring in your applications
 

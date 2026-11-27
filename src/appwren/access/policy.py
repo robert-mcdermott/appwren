@@ -90,6 +90,7 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("GET", "/api/v1/program"): Needs.CONFIGURE,
     ("PUT", "/api/v1/program/vocabularies/{name}"): Needs.CONFIGURE,
     ("PUT", "/api/v1/program/fields"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/decision-rules"): Needs.CONFIGURE,
     ("PUT", "/api/v1/program/questionnaire"): Needs.CONFIGURE,
     ("POST", "/api/v1/program/scoring/preview"): Needs.CONFIGURE,
     ("PUT", "/api/v1/program/scoring"): Needs.CONFIGURE,

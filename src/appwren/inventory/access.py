@@ -160,13 +160,23 @@ def can_assess(session: Session, principal: Principal, application: Any) -> bool
 
 
 def can_decide(session: Session, principal: Principal, application: Any) -> bool:
-    """A manager, or a leader of its unit, but never its own accountable owner."""
+    """A manager, or a leader of its unit, but not its own accountable owner, unless the
+    program lets owners decide (for a team too small for anyone else to)."""
     if not (
         principal.manages_unit(application.org_unit_id)
         or principal.leads_unit(application.org_unit_id)
     ):
         return False
-    return "accountable" not in roles_on(session, APPLICATION, application.id, principal.account_id)
+    if not decides_own(session, principal, application):
+        return True
+    from appwren.program import catalog
+
+    return catalog.decision_rules(session)["owners_may_decide"]
+
+
+def decides_own(session: Session, principal: Principal, application: Any) -> bool:
+    """Whether this person is the application's accountable owner."""
+    return "accountable" in roles_on(session, APPLICATION, application.id, principal.account_id)
 
 
 def sees_sensitive(

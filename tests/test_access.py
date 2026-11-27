@@ -260,6 +260,7 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("GET", "/api/v1/program"): {"manager", "admin"},
     ("PUT", "/api/v1/program/vocabularies/{name}"): {"manager", "admin"},
     ("PUT", "/api/v1/program/fields"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/decision-rules"): {"manager", "admin"},
     ("PUT", "/api/v1/program/questionnaire"): {"manager", "admin"},
     ("POST", "/api/v1/program/scoring/preview"): {"manager", "admin"},
     ("PUT", "/api/v1/program/scoring"): {"manager", "admin"},
@@ -484,7 +485,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             if template == "/api/v1/accounts" and method == "POST":
                 body = {"email": f"new-{role}@bramblewood.example", "display_name": "New"}
             elif template.startswith("/api/v1/program/"):
-                body = {"items": [], "fields": [], "definition": {}}  # reached, and refused
+                body = {"items": [], "fields": [], "definition": {}, "owners_may_decide": False}
             elif template.endswith("/answer"):
                 body = {"accept": False, "answer": "No."}
             elif template.endswith("/hand-over"):

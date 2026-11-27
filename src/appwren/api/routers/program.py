@@ -28,6 +28,13 @@ class FieldsBody(BaseModel):
     sensitive_fields: list[str] | None = None
 
 
+class DecisionRulesBody(BaseModel):
+    owners_may_decide: bool = Field(
+        description="Whether an application's accountable owner may record its decision, if "
+        "they are also a manager or a leader over it"
+    )
+
+
 class DefinitionBody(BaseModel):
     definition: dict[str, Any]
 
@@ -52,6 +59,13 @@ def put_fields(request: Request, body: FieldsBody) -> dict[str, Any]:
     principal = current(request)
     with writing(request, principal.actor) as session:
         return envelope(editing.save_fields(session, principal, body.fields, body.sensitive_fields))
+
+
+@router.put("/program/decision-rules", summary="Whether owners may decide about their own")
+def put_decision_rules(request: Request, body: DecisionRulesBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        return envelope(editing.save_decision_rules(session, principal, body.model_dump()))
 
 
 @router.put("/program/questionnaire", summary="Publish new wording of the questions")

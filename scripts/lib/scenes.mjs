@@ -122,4 +122,5 @@ export const SCENES = [
   { name: "program-fields", as: "portfolio", path: "/admin/program?tab=fields" },
   { name: "program-questions", as: "portfolio", path: "/admin/program?tab=questions" },
   { name: "program-scoring", as: "portfolio", path: "/admin/program?tab=scoring" },
+  { name: "program-decisions", as: "portfolio", path: "/admin/program?tab=decisions" },
 ];

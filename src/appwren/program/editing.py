@@ -62,6 +62,7 @@ def current(session: Session) -> dict[str, Any]:
         "fixed": sorted(FIXED),
         "fields": exported["fields"],
         "sensitive_fields": exported["sensitive_fields"],
+        "decision_rules": exported["decision_rules"],
         "field_types": list(catalog.FIELD_TYPES),
         "sections": list(catalog.SECTIONS),
         "questionnaire": {"version": bank.version, "definition": bank.definition},
@@ -161,6 +162,25 @@ def save_fields(
         "fields": catalog.fields(session),
         "sensitive_fields": catalog.sensitive_fields(session),
     }
+
+
+# --- Who may decide -----------------------------------------------------------------------
+
+
+def save_decision_rules(
+    session: Session, principal: Principal, values: Mapping[str, Any]
+) -> dict[str, bool]:
+    """Whether an application's own accountable owner may record its decision, where they are
+    also a manager or a leader over it. For a team too small for anyone else to; each such
+    decision is marked as the owner's own."""
+    _require(principal)
+    rules = {"owners_may_decide": values.get("owners_may_decide")}
+    problems = catalog.check_decision_rules(rules)
+    if problems:
+        raise Invalid("The setting was not saved.", {"owners_may_decide": " ".join(problems)})
+    with audit.operation(session, "program.decision_rules"):
+        settings.put(session, catalog.DECISION_RULES, rules)
+    return catalog.decision_rules(session)
 
 
 # --- The question bank --------------------------------------------------------------------

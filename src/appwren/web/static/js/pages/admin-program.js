@@ -14,7 +14,7 @@ import { alert, card, pageHeader } from "../components/ui.js";
 import { show } from "./page.js";
 import { tabBar } from "./record.js";
 
-const TABS = [["lists", "Lists"], ["fields", "Fields"], ["questions", "Questions"], ["scoring", "Scoring and cadence"]];
+const TABS = [["lists", "Lists"], ["fields", "Fields"], ["questions", "Questions"], ["scoring", "Scoring and cadence"], ["decisions", "Decisions"]];
 const words = (key) => titleCase(String(key).replace(/_/g, " "));
 const numberInput = (value, label, attrs = {}) => h("input", { class: "input input-number", type: "number", value: value ?? "", "aria-label": label, ...attrs });
 
@@ -269,6 +269,27 @@ function scoringTab(program, reload) {
     preview);
 }
 
+// --- Who may decide -----------------------------------------------------------------------
+
+function decisionsTab(program, reload) {
+  const allowed = checkbox("Let an application's accountable owner record its decision", {
+    checked: program.decision_rules.owners_may_decide,
+    hint: "Only where they are also a manager, or a leader over its unit. For a team too small for anyone else to decide. Each such decision is marked as recorded by its own owner, on the decision, in the history, and on the Decisions page." });
+  const problem = banner();
+  const save = button("Save", { kind: "btn-primary" });
+  save.addEventListener("click", async () => {
+    const done = await submit({ button: save, banner: problem, fields: {},
+      run: () => put("/api/v1/program/decision-rules", { owners_may_decide: allowed.input.checked }) });
+    if (done) {
+      toast(done.data.owners_may_decide ? "Owners may now record their own applications' decisions." : "Someone other than the owner records each decision.");
+      reload();
+    }
+  });
+  return card({ title: "Who records a decision", footer: h("div", { class: "row" }, save) }, h("div", { class: "stack" }, problem,
+    h("p", {}, "A decision says what the organization will do with an application. A manager records it, or a leader of the application's unit. By default, never the application's own accountable owner: nobody pronounces on their own system."),
+    allowed.node));
+}
+
 export function adminProgram(main) {
   const wanted = query().get("tab");
   const tab = TABS.some(([key]) => key === wanted) ? wanted : "lists";
@@ -281,6 +302,7 @@ export function adminProgram(main) {
       tab === "fields" ? fieldsTab(program, reload)
         : tab === "questions" ? questionsTab(program, reload)
           : tab === "scoring" ? scoringTab(program, reload)
+            : tab === "decisions" ? decisionsTab(program, reload)
             : listsTab(program, reload)),
   });
 }

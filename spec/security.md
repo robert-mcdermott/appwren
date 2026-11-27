@@ -127,7 +127,7 @@ One function per record type decides what a principal may see. Single records, l
 | Edit an application; its components and deployments; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
 | Assess an application | | ✓ | ✓ | | ✓ | ✓ | | |
 | Change who is accountable | | ✓ (the accountable owner) | ✓ | ✓ | | ✓ | | |
-| Record a decision | | | | ✓ (not as its accountable owner) | | ✓ (not as its accountable owner) | | |
+| Record a decision | | | | ✓ (not as its accountable owner, unless the program allows it, when it is marked) | | ✓ (the same) | | |
 | Read and set an application's cost lines | | ✓ | ✓ | read only | ✓ | ✓ | read only | read only |
 | Read a contract that covers an application | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Add a contract; edit one that covers an application they keep | | | ✓ | | ✓ | ✓ | | |

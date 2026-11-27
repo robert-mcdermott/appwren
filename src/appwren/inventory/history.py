@@ -120,7 +120,8 @@ def _decided(lookups: Lookups, now: Any, added: bool) -> str:
     if not added:
         return "Removed a decision"
     disposition = lookups.vocab("dispositions", now("disposition")).lower()
-    return f"Recorded a decision to {disposition} ({now('ref')})"
+    own = ", as its own accountable owner" if now("self_recorded") else ""
+    return f"Recorded a decision to {disposition} ({now('ref')}){own}"
 
 
 def _serves(lookups: Lookups, now: Any, added: bool) -> str:

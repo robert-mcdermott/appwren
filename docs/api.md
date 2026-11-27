@@ -236,6 +236,7 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
 |---|---|
 | `GET /program` | The program as it stands, and which lists may only be renamed (managers for the whole organization, administrators) |
 | `PUT /program/vocabularies/{name}` · `PUT /program/fields` · `PUT /program/questionnaire` | Save a list, the organization's own fields, or new wording of the questions |
+| `PUT /program/decision-rules` | `owners_may_decide`: whether an application's accountable owner, if also a manager or leader over it, may record its decision |
 | `POST /program/scoring/preview` · `PUT /program/scoring` | Every application a changed scoring model would change; publish it as a new version |
 | `GET /jobs` · `POST /jobs/{key}/run` · `PUT /jobs/{key}` | Scheduled work and its recent runs; run a job now; pause or resume one (admin) |
 | `GET /mail` · `POST /mail/test` | How email is set up and doing; send yourself a test message (admin) |

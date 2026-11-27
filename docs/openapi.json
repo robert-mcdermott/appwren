@@ -1454,6 +1454,20 @@
         "title": "DecisionBody",
         "type": "object"
       },
+      "DecisionRulesBody": {
+        "properties": {
+          "owners_may_decide": {
+            "description": "Whether an application's accountable owner may record its decision, if they are also a manager or a leader over it",
+            "title": "Owners May Decide",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "owners_may_decide"
+        ],
+        "title": "DecisionRulesBody",
+        "type": "object"
+      },
       "DefinitionBody": {
         "properties": {
           "definition": {
@@ -10498,6 +10512,49 @@
           }
         },
         "summary": "The program as it stands, and what may be changed",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/decision-rules": {
+      "put": {
+        "operationId": "put_decision_rules_api_v1_program_decision_rules_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRulesBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Decision Rules Api V1 Program Decision Rules Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Whether owners may decide about their own",
         "tags": [
           "program"
         ]

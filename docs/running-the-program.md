@@ -27,7 +27,7 @@ Everyone who can sign in is a **member**. The other six roles are given under **
 
 Two rules hold whatever the role:
 
-- **Nobody decides about their own application.** A manager or a leader who is an application's accountable owner cannot record a decision about it. Someone else decides.
+- **Nobody decides about their own application.** A manager or a leader who is an application's accountable owner cannot record a decision about it. Someone else decides. A team too small for anyone else to may turn this off on **Admin → Program → Decisions**; each decision an owner then records about their own application is marked as such, on the decision, in the history, and on the Decisions page.
 - **Nobody types in a score.** Scores are worked out from the record and the answers, so nobody can raise their own.
 
 ## Who sees what
@@ -74,6 +74,7 @@ The default program described in [The portfolio](the-portfolio.md) is a reasonab
 - **Lists.** Rename a value, describe it, put the values in another order, add one, or retire one. A value in use is retired rather than removed: records keep it, and it is no longer offered. The lists AppWren's own rules read by key, such as the lifecycle stages, the tiers, sourcing, and the dispositions, can be renamed, described, and reordered, but not added to or retired.
 - **Fields.** Add a field of your own to the application's form, in the section it belongs to, or change its label, help, section, and choices; say which fields are sensitive. A field that holds values is never removed.
 - **Questions.** Reword a question, its help, and its five levels. Publishing makes a new version of the question bank; every assessment keeps the version it answered.
+- **Decisions.** Whether an application's accountable owner may record its decision, where they are also a manager or a leader over it. Off unless you turn it on; meant for a team too small for anyone else to decide.
 - **Scoring and cadence.** Change the thresholds, the weights of every profile (each dimension's must add up to 100), and the cadence. Choose **See what it would change**: every application in service whose scores, confidence, recommendation, or flags would differ is listed, with what would move. Nothing changes until you choose **Publish**, which makes a new version of the model and changes exactly the applications listed.
 
 ![Admin, Program: the scoring model's thresholds, weights, and cadence, with what a change would do before it is published](img/program-scoring-light.webp)

@@ -98,6 +98,11 @@ record is stale on the day of the upgrade.
   `--first-unit` when unattended), so an application can be added at once. **Admin →
   Units → Put a unit above the top** puts a new top unit above the existing one, for a team
   that began at the top. *Getting started* has a section on starting with one team.
+- **Owners deciding about their own applications, if switched on.** A program setting, off
+  by default, on **Admin → Program → Decisions**: an application's accountable owner who is
+  also a manager or a leader over it may record its decision, for a team too small for
+  anyone else to. Each such decision is marked *Recorded by its own owner* on the decision,
+  in the application's history, and on the Decisions page.
 - **Guides:** a new guide, *Keeping current*; shaping the program in the app, scheduled work,
   and email in *Running the program* and *Configuration*; what a stale record costs in *The
   portfolio*; the new routes in the API guide; and pictures of the new screens.

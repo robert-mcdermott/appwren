@@ -225,7 +225,7 @@ Flags are raised whatever the recommendation. Each is a separate signal, with it
 
 The engine recommends; a person decides. A **decision** records a disposition for an application by a named person, with a rationale, a date to review it (a year on, unless you choose another), and, if you wish, a target date. A decision to consolidate names the application its users will move to.
 
-Managers record decisions for any application, and leaders for the applications of their units. Nobody records a decision about an application they are accountable for.
+Managers record decisions for any application, and leaders for the applications of their units. Nobody records a decision about an application they are accountable for, unless the program lets owners decide (see [Shape it in the app](running-the-program.md#shape-it-in-the-app)); then each decision a manager or leader records about their own application is marked *Recorded by its own owner*.
 
 To record one, open the application and choose **Record a decision**. The dialog shows the recommendation and its working beside the choice. A decision may be any disposition, whatever the recommendation: people know things the scores cannot.
 
