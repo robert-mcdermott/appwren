@@ -6,6 +6,23 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+### Added
+
+- **Interfaces.** Data passing from one application to another is a record of its own, with a
+  reference (`INT-0007`), a method, how often, the classes of data it carries, and an owner.
+  An application's new **Connections** part shows what it sends and receives. An interface
+  is seen by whoever may see both of its applications and kept by whoever keeps either.
+- **Data flows.** Landscape → Data flows follows a class of data between applications, and
+  marks any interface that delivers a class the receiving application's record does not
+  list.
+
+### Changed
+
+- An application that receives data through an interface now counts among the dependents of
+  the application that sends it, so recording interfaces can raise a source's business value.
+- A record's history names the vendor, application, or person a change refers to, where it
+  showed a number.
+
 ## 0.1.0 (2026-11-26)
 
 Wave 1, *The portfolio*: install, sign in, and keep one record of every application, with

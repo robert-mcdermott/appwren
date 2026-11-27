@@ -168,7 +168,8 @@ def cmd_demo(args: argparse.Namespace) -> int:
     print(
         f"  {counts.get('units', 0)} units, {counts.get('accounts', 0)} people, "
         f"{counts.get('applications', 0)} applications, {counts.get('components', 0)} "
-        f"components, {counts.get('technologies', 0)} technologies"
+        f"components, {counts.get('technologies', 0)} technologies, "
+        f"{counts.get('interfaces', 0)} interfaces"
     )
     print(
         f"  {counts.get('assessments', 0)} assessments, {counts.get('decisions', 0)} decisions, "

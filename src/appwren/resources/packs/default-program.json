@@ -600,6 +600,69 @@
     "description": "Its record in another governance system"
    }
   ],
+  "interface_methods": [
+   {
+    "key": "api",
+    "label": "API call",
+    "description": "One application calls the other as it needs to"
+   },
+   {
+    "key": "file_transfer",
+    "label": "File transfer",
+    "description": "Files are sent or collected on a schedule"
+   },
+   {
+    "key": "extract_load",
+    "label": "Scheduled extract and load",
+    "description": "A job copies data from one database to another"
+   },
+   {
+    "key": "database_link",
+    "label": "Shared database",
+    "description": "One reads or writes the other's database directly"
+   },
+   {
+    "key": "messaging",
+    "label": "Messages or events",
+    "description": "A queue, a stream, or an integration engine carries messages"
+   },
+   {
+    "key": "embedded",
+    "label": "Embedded page or hand-off",
+    "description": "One shows the other's pages, or hands the user across"
+   },
+   {
+    "key": "manual",
+    "label": "By hand",
+    "description": "Someone exports from one and uploads or re-keys into the other"
+   }
+  ],
+  "interface_frequencies": [
+   {
+    "key": "real_time",
+    "label": "As it happens"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly or more often"
+   },
+   {
+    "key": "daily",
+    "label": "Daily"
+   },
+   {
+    "key": "weekly",
+    "label": "Weekly"
+   },
+   {
+    "key": "monthly",
+    "label": "Monthly or less often"
+   },
+   {
+    "key": "on_demand",
+    "label": "When someone asks"
+   }
+  ],
   "unit_kinds": [
    {
     "key": "organization",

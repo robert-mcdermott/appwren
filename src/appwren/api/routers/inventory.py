@@ -125,7 +125,20 @@ class CapabilityBody(RecordBody):
     domain: str | None = None
 
 
+class InterfaceBody(RecordBody):
+    """Data passing from one application (``source_id``) to another (``target_id``), each
+    given by its reference."""
+
+    source_id: str | None = Field(default=None, description="The application data comes from")
+    target_id: str | None = Field(default=None, description="The application it goes to")
+    method: str | None = Field(default=None, description="From the interface_methods vocabulary")
+    frequency: str | None = None
+    data_classes: list[str] | None = None
+    owner_id: int | None = Field(default=None, description="An account's id")
+
+
 BODIES: dict[str, type[RecordBody]] = {
+    "interface": InterfaceBody,
     "application": ApplicationBody,
     "component": ComponentBody,
     "vendor": VendorBody,
@@ -351,6 +364,10 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application_id": "An application's id",
         "parent_id": "A broader capability's id",
         "sensitivity": "The highest sensitivity of its data: 0 public to 3 restricted",
+        "source_id": "The id of the application data comes from",
+        "target_id": "The id of the application data goes to",
+        "application": "An application's reference: at either end",
+        "data_class": "A class of data, by its key",
     }
     annotation: Any = int | None if name.endswith("_id") or name == "sensitivity" else str | None
     return inspect.Parameter(
@@ -385,7 +402,7 @@ def _install(record_type: RecordType) -> None:
             inspect.Parameter(name, inspect.Parameter.KEYWORD_ONLY, annotation=kind, default=dflt)
             for name, kind, dflt in common
         ],
-        *[_filter_parameter(name) for name in record_type.filters],
+        *[_filter_parameter(name) for name in (*record_type.filters, *record_type.more_filters)],
     ]
 
     def find(request: Request, **given: Any) -> dict[str, Any]:

@@ -22,6 +22,9 @@ export const TYPES = {
   capability: { prefix: "CAP", path: "capabilities", label: "Capability", plural: "Capabilities", noun: "capability", nouns: "capabilities",
     article: "a capability", iconName: "capability", section: "Landscape",
     lede: "What the organization does, whatever does it. Each application says which capabilities it serves, and one may be the primary provider." },
+  interface: { prefix: "INT", path: "interfaces", label: "Interface", plural: "Interfaces", noun: "interface", nouns: "interfaces",
+    article: "an interface", iconName: "interface", section: "Landscape", kinds: null,
+    lede: "Data passing from one application to another: how, how often, and of which classes." },
 };
 
 const BY_PREFIX = Object.fromEntries(Object.entries(TYPES).map(([key, type]) => [type.prefix, key]));

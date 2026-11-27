@@ -109,6 +109,8 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 
 **The catalog is open.** Applications, capabilities, technologies, and vendors are visible to everyone signed in, apart from their sensitive fields. A portfolio is useful in proportion to how many people can find what already exists: a researcher looking for an approved tool, an engineer checking who else uses a database, a team about to buy something another department already has. An application can be marked **restricted**, which limits even its existence to the people named on it, stewards and leaders of its unit, architects and managers in scope, auditors, and administrators.
 
+A record that joins applications, such as an interface, is visible only to those who may see every application it joins: a restricted application's interfaces are hidden with it, even from someone who keeps the other end.
+
 One function per record type decides what a principal may see. Single records, lists, counts, charts, searches, and exports all call it, so they always agree.
 
 ### Permissions
@@ -125,6 +127,7 @@ One function per record type decides what a principal may see. Single records, l
 | Assess an application | | ✓ | ✓ | | ✓ | ✓ | | |
 | Change who is accountable | | ✓ (the accountable owner) | ✓ | ✓ | | ✓ | | |
 | Record a decision | | | | ✓ (not as its accountable owner) | | ✓ (not as its accountable owner) | | |
+| Add and edit an interface between two applications | | ✓ (named on either) | ✓ (either in scope) | | ✓ (either in scope) | ✓ | | |
 | Add and edit capabilities, technologies and their releases, and vendors | | | | | ✓ | ✓ | | |
 | Import applications from a spreadsheet, each row as if added by hand | | | ✓ | | ✓ | ✓ | | |
 | Export a list they can see, as CSV or JSON | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

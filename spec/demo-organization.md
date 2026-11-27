@@ -44,6 +44,7 @@ Enough to look like an organization that has used AppWren for a year, and small 
 | Technologies | 24 | Languages, frameworks, databases, operating systems, platforms; each with releases and invented support dates |
 | Applications | 107 | Every sourcing type and tier, most lifecycle stages, and about forty research tools kept by labs |
 | Components | 120 | Most built and commercial applications decomposed; most SaaS with none |
+| Interfaces | 24 | Clinical messages, feeds to the warehouse, files between administrative systems, and one re-keyed by hand |
 | Assessments | 125 | Re-assessments over time; some expired; a dozen applications never assessed |
 | Decisions | 70 | Some superseded; several mismatches with today's recommendation; some due for review |
 | Portfolio snapshots | 4 | Quarterly, for the last year |
@@ -62,4 +63,5 @@ Hand-written situations, each asserted by a test, so that every wave 1 screen ha
 - **The orphan.** Four applications whose accountable owner left, flagged and listed on the steward's home page.
 - **Not enough to say.** A dozen applications recorded from the spreadsheet import with no assessment, recommended *Assess*, each showing what would raise its confidence.
 - **The end of support.** A database release used by a dozen components reaches end of support next quarter.
+- **The data nobody recorded.** The research data warehouse sends enrollment figures, with identifiable research data in them, to the executive dashboards, whose record lists only financial data. The flow view marks it.
 - **Retired properly.** An old reporting tool retired last year, with its decision, its successor, and its history.

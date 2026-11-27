@@ -140,7 +140,13 @@ The application's support team is a unit: `support_unit_id` on the application.
 | `replaces` | Application → Application | replaces / is replaced by |
 | `depends_on` | Component → Component | depends on / is depended on by |
 
-From wave 2, *interfaces* are records of their own, with direction, method, frequency, and the data classes they carry; a `depends_on` link is the lightweight version.
+*Interfaces* are records of their own, with direction, method, frequency, and the data classes they carry; a `depends_on` link is the lightweight version.
+
+### Interface (wave 2)
+
+`interface(…, source_id, target_id, method, frequency, data_classes, owner_id)`. Data passing from one application (the source) to another (the target), with the shared header and a reference of its own (`INT-0007`). `method` and `frequency` are vocabularies; `data_classes` is a list from the data-class vocabulary; `owner_id` is the person to ask about it. An interface belongs to no unit: it is seen by whoever may see both of its applications and kept by whoever keeps either, and it is marked restricted when either application is. The two ends must differ.
+
+An active application that receives data through an active interface counts among the dependents of the application that sends it. Where an interface carries a class its target's record does not list, the interface is shown as *undeclared* for that class: nothing is changed, and somebody is prompted to correct one or the other.
 
 ### Tags and external references
 

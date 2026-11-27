@@ -61,7 +61,7 @@ A fact is named, so rules and factors can refer to it. The default program uses 
 | `age_months` | Computed | Months since its go-live date, or since it was recorded |
 | `currency` | Computed | See *Technology currency* |
 | `uniqueness` | Computed | See *Capability uniqueness* |
-| `dependents` | Computed | How many active applications depend on it |
+| `dependents` | Computed | How many active applications depend on it: by a recorded dependency, or by receiving its data through an interface |
 | `primary_peer` | Computed | The primary provider of a capability it shares, if it is not one itself |
 | `decided_within_year` | Computed | A disposition has been recorded in the last 365 days |
 | `answer.<key>` | Assessment | The answer to a question, if the assessment is current |
@@ -116,7 +116,7 @@ A technology with no support dates recorded counts as supported but makes the fa
 | One of several, where another application is the primary | 2 |
 | No capability recorded | Unknown |
 
-**Dependents.** The number of active applications recorded as depending on it: none is *not applicable* (nothing is known to depend on it, which neither raises nor lowers its value); 1 is level 3; 2 to 4 is level 4; 5 or more is level 5.
+**Dependents.** The number of active applications that depend on it, each counted once: those recorded as depending on it, and those that receive its data through an active interface. Of that number: none is *not applicable* (nothing is known to depend on it, which neither raises nor lowers its value); 1 is level 3; 2 to 4 is level 4; 5 or more is level 5.
 
 **Data exposure.** Sensitivity against the sign-in level (the level of the security factor):
 

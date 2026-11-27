@@ -16,7 +16,14 @@ from sqlalchemy.orm import Session
 
 from appwren.core.errors import NotFound
 from appwren.db.base import Base
-from appwren.db.models import Application, Capability, Component, Technology, Vendor
+from appwren.db.models import (
+    Application,
+    Capability,
+    Component,
+    Interface,
+    Technology,
+    Vendor,
+)
 from appwren.db.refs import parse_ref
 
 
@@ -25,7 +32,8 @@ class Field:
     """One editable fact about a record, beyond what every record has.
 
     ``kind`` is one of: text, long, choice, many (several values of a vocabulary), url, int,
-    date, bool, ref (another record, by reference; stored as its id), unit (an org unit id).
+    date, bool, ref (another record, by reference; stored as its id), unit (an org unit id),
+    person (an account id).
     """
 
     name: str
@@ -55,8 +63,13 @@ class RecordType:
     has_unit: bool = False
     # Whether people are named on it in roles.
     has_people: bool = False
+    # Whether it is kept for the whole organization by architects and managers, and seen by
+    # everyone (vendors, technologies, capabilities).
+    shared: bool = False
     sorts: tuple[str, ...] = ("updated_at", "name", "ref", "status")
     filters: tuple[str, ...] = ("status",)
+    # What else narrows its list, worked out by its own module and not a column of its own.
+    more_filters: tuple[str, ...] = ()
     extra: dict[str, Any] = field(default_factory=dict, hash=False, compare=False)
 
     def field(self, name: str) -> Field | None:
@@ -184,6 +197,7 @@ APPLICATION = register(
             "vendor_id",
             "sensitivity",
         ),
+        more_filters=("data_class",),
     )
 )
 COMPONENT = register(
@@ -223,6 +237,7 @@ VENDOR = register(
             ),
             F("website", "Website", "url", max_length=300),
         ),
+        shared=True,
         filters=("status", "kind"),
         sorts=("updated_at", "name", "ref", "status", "kind"),
     )
@@ -254,6 +269,7 @@ TECHNOLOGY = register(
                 help="Its name in an end-of-life dataset, for importing support dates.",
             ),
         ),
+        shared=True,
         filters=("status", "kind", "radar", "vendor_id"),
         sorts=("updated_at", "name", "ref", "status", "kind", "radar"),
     )
@@ -270,8 +286,42 @@ CAPABILITY = register(
             F("parent_id", "Part of", "ref", target="capability"),
             F("domain", "Domain", "choice", vocab="domains"),
         ),
+        shared=True,
         filters=("status", "domain", "parent_id"),
         sorts=("updated_at", "name", "ref", "status", "position"),
+    )
+)
+
+INTERFACE = register(
+    RecordType(
+        "interface",
+        Interface,
+        "INT",
+        "interfaces",
+        "interface",
+        "interfaces",
+        fields=(
+            F("source_id", "From", "ref", target="application", required=True),
+            F("target_id", "To", "ref", target="application", required=True),
+            F("method", "Method", "choice", vocab="interface_methods", required=True),
+            F("frequency", "How often", "choice", vocab="interface_frequencies"),
+            F(
+                "data_classes",
+                "Data it carries",
+                "many",
+                vocab="data_classes",
+                help="Every class of data that passes, as the receiving application will hold it.",
+            ),
+            F(
+                "owner_id",
+                "Owner",
+                "person",
+                help="Who to ask about it, and who is told if it fails.",
+            ),
+        ),
+        filters=("status", "method", "frequency", "source_id", "target_id"),
+        more_filters=("application", "data_class"),
+        sorts=("updated_at", "name", "ref", "status", "method", "frequency"),
     )
 )
 

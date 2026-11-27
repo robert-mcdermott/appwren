@@ -109,6 +109,14 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("PUT", "/api/v1/components/{ref}/technologies"): Needs.MEMBER,
     ("PUT", "/api/v1/technologies/{ref}/releases"): Needs.ARCHITECT,
     # Assessment and scores. Who may assess a particular application is the service's to check.
+    ("GET", "/api/v1/interfaces"): Needs.MEMBER,
+    ("POST", "/api/v1/interfaces"): Needs.MEMBER,  # the service checks its two applications
+    ("GET", "/api/v1/interfaces/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/interfaces/{ref}"): Needs.MEMBER,  # the service checks the record
+    ("POST", "/api/v1/interfaces/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/interfaces/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/interfaces/{ref}/history"): Needs.MEMBER,
+    ("GET", "/api/v1/data-flows"): Needs.MEMBER,
     ("GET", "/api/v1/questionnaire"): Needs.MEMBER,
     ("GET", "/api/v1/scoring-model"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/scores"): Needs.MEMBER,

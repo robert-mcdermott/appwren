@@ -361,6 +361,14 @@ def _detail(
     }
 
 
+def _conditions(session: Session, principal: Principal, filters: Mapping[str, Any]) -> list[Any]:
+    """What narrows a list of applications beyond its own columns."""
+    found: list[Any] = []
+    if filters.get("data_class"):
+        found.append(records.holds(Application.data_classes, str(filters["data_class"])))
+    return found
+
+
 def _can_add(session: Session, principal: Principal, record: Application) -> bool:
     return access.can_add(principal, APPLICATION, record.org_unit_id)
 
@@ -371,6 +379,7 @@ APPLICATION.extra.update(
     cards=_cards,
     detail=_detail,
     can_add=_can_add,
+    conditions=_conditions,
     add_refusal="Only a steward of the unit, an architect, or a manager can add an application "
     "to it.",
     history_vocabularies={"data_classes": "data_classes"},

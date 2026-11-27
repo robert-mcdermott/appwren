@@ -313,6 +313,36 @@ UNASSESSED = [
     ("Poster Printing Queue", "communications", "COMMS"), ("Shuttle Schedule", "facilities", "FAC"),
 ]  # fmt: skip
 
+# Data passing between applications: from, to, method, how often, the classes carried, and a
+# name where "X to Y" would not say enough. Specimen Tracker sends only to applications that
+# already depend on it, so the worked example keeps its three dependents.
+INTERFACES = [
+    ("Electronic Health Record", "Integration Engine", "messaging", "real_time", ["health"], "Clinical messages out"),
+    ("Integration Engine", "Clinical Lab Information System", "messaging", "real_time", ["health"], "Orders to the lab"),
+    ("Clinical Lab Information System", "Integration Engine", "messaging", "real_time", ["health"], "Results from the lab"),
+    ("Integration Engine", "Research Pharmacy Dispensing", "messaging", "real_time", ["health"], "Orders to the pharmacy"),
+    ("Integration Engine", "Clinical Trials Management", "messaging", "hourly", ["health"], "Visits and results to trials"),
+    ("Electronic Health Record", "Patient Portal", "api", "real_time", ["health"], None),
+    ("Clinic Scheduler", "Electronic Health Record", "manual", "daily", ["health"], "Appointments, re-keyed each morning"),
+    ("Clinic Questionnaires", "Electronic Health Record", "file_transfer", "daily", ["health"], None),
+    ("Clinical Trials Management", "Research Data Warehouse", "extract_load", "daily", ["identifiable_research"], "Trial data to the warehouse"),
+    ("Specimen Tracker", "Research Data Warehouse", "extract_load", "daily", ["identifiable_research"], "Specimens to the warehouse"),
+    ("Specimen Tracker", "Biorepository Request Portal", "api", "real_time", ["deidentified_research"], "What is available to request"),
+    ("Specimen Tracker", "Freezer Watch", "api", "hourly", ["internal"], "Freezer positions"),
+    ("Survey Hub", "Research Data Warehouse", "extract_load", "weekly", ["identifiable_research"], "Survey answers to the warehouse"),
+    ("Research Data Warehouse", "Cohort Analysis Platform", "database_link", "on_demand", ["identifiable_research"], "Cohorts for analysis"),
+    ("Research Data Warehouse", "Executive Dashboards", "extract_load", "daily", ["identifiable_research"], "Enrollment figures"),
+    ("Research Data Warehouse", "Data Sharing Gateway", "manual", "on_demand", ["controlled_access"], "Approved data sets"),
+    ("Sequencing Run Manager", "Genomics Pipeline", "file_transfer", "daily", ["controlled_access"], "Runs to the pipeline"),
+    ("Participant Recruitment Registry", "eConsent", "api", "real_time", ["identifiable_research"], None),
+    ("eConsent", "Clinical Trials Management", "api", "real_time", ["health"], "Signed consents"),
+    ("Human Resources and Payroll", "Identity and Sign-in", "file_transfer", "daily", ["personal"], "Joiners and leavers"),
+    ("Human Resources and Payroll", "Finance and Ledger", "extract_load", "monthly", ["financial"], "Payroll journal"),
+    ("Human Resources and Payroll", "Learning Management", "file_transfer", "weekly", ["personal"], "Staff list"),
+    ("Grant Management System", "Finance and Ledger", "api", "daily", ["financial"], "Awards and budgets"),
+    ("Expense Reports", "Finance and Ledger", "extract_load", "weekly", ["financial"], None),
+]  # fmt: skip
+
 # What an application is for, in a sentence: by storyline, and by the kind of a lab's tool.
 # Every other application says which unit uses it for what.
 STORY_SUMMARIES = {

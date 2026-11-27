@@ -52,6 +52,9 @@ class Lookups:
         }
         self.labels.update(record_type.extra.get("history_labels", {}))
         self.special = record_type.extra.get("history_value")
+        # Fields that hold another record's id, or a person's, are told by name.
+        self.refs = {f.name: f.target for f in record_type.fields if f.kind == "ref" and f.target}
+        self.people = {f.name for f in record_type.fields if f.kind == "person"}
         self._vocab: dict[str, dict[str, str]] = {}
         self._names: dict[str, dict[int, str]] = {}
 
@@ -84,6 +87,10 @@ class Lookups:
             if isinstance(value, list):
                 return ", ".join(self.vocab(self.vocabularies[field], item) for item in value)
             return self.vocab(self.vocabularies[field], value)
+        if field in self.refs:
+            return self.name(self.refs[field], value)
+        if field in self.people:
+            return self.name("account", value)
         if field.endswith("unit_id"):
             return self.name("unit", value)
         if field.endswith("_by") or field == "owner_id":

@@ -40,18 +40,20 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Interfaces and data flows ☐
+## Slice 1: Interfaces and data flows ☑
 
 **Goal:** what each application sends and receives, and where each class of data travels.
 
-- [ ] `interface`: a record of its own with a permanent reference, the application data comes from and the one it goes to, method, frequency, the data classes carried, an owner, a summary, and a status; vocabularies for method and frequency
-- [ ] Visibility and editing follow its two applications; a restricted application's interfaces are hidden with it
-- [ ] The application's page gains an **Interfaces** part: what it sends, what it receives, with the other end, method, frequency, and classes
-- [ ] The engine's *dependents* counts applications that receive its data, with the working saying which
-- [ ] **Landscape → Data flows:** every interface carrying a chosen data class, and a mark where the receiving application's record does not list the class
-- [ ] Export of interfaces; the demo's interfaces; guide and changelog entries
+- [x] `interface`: a record of its own with a permanent reference, the application data comes from and the one it goes to, method, frequency, the data classes carried, an owner, a summary, and a status; vocabularies for method and frequency
+- [x] Visibility and editing follow its two applications; a restricted application's interfaces are hidden with it
+- [x] The application's page gains a **Connections** part: what it sends, what it receives, with the other end, method, frequency, and classes
+- [x] The engine's *dependents* counts applications that receive its data
+- [x] **Landscape → Data flows:** every interface carrying a chosen data class, and a mark where the receiving application's record does not list the class
+- [x] Export of interfaces; the demo's interfaces; changelog entry (the guide is written in slice 8)
 
-**Acceptance:** an interface appears on both applications and in both histories; a member who cannot see a restricted application sees none of its interfaces, in lists, flows, counts, or exports; the worked example still has exactly three dependents; the flow view for a class lists exactly the interfaces that carry it.
+**Acceptance (met):** an interface appears on both applications and has its own history, which names the applications and people by name; a member, and a steward who keeps the other end, see none of a restricted application's interfaces, in lists, flows, counts, or exports, and naming an application one may not see fails exactly as naming one that does not exist; the worked example still has exactly three dependents; the flow view for a class lists exactly the interfaces the list gives for it.
+
+**Done:** interfaces are a record type like any other, so lists, filters, export, history, and optimistic concurrency came with the registry. The access rules now ask a record type which applications it belongs to, where they asked whether it was a component. The demo has 24 interfaces, one of them re-keyed by hand each morning and one delivering identifiable research data to dashboards whose record lists only financial data.
 
 ## Slice 2: Dependency graph and impact ☐
 
@@ -135,3 +137,8 @@ None block the start. These defaults have been taken and can be changed before t
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+
+- **Access asks the record, not its type.** Who may see and keep a record was decided by asking whether it was an application, a component, or shared. An interface has two applications, and deployments, cost lines, and contracts are coming, so a record type now says which applications it belongs to: it is seen by whoever may see all of them and kept by whoever keeps any.
+- **Undeclared data is marked, not fixed.** An interface that carries a class its receiver's record does not list is a disagreement between two records, and AppWren cannot know which is wrong. It marks the interface and the flow, and says what it costs: the receiver's exposure is worked out from what its record lists.
+- **History names what an id points to.** A change to a vendor, a successor, or an owner was told as a number. Fields that hold another record or a person are now told by name, for every record type.
+- **A record's parts are few.** Interfaces, dependencies, and (next) impact share one part of the application's page, Connections, where a part each would have made eleven.

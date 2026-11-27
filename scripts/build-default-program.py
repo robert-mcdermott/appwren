@@ -200,6 +200,37 @@ LINK_KINDS = [
      "between": [["application", "application"]]},
 ]  # fmt: skip
 
+# How data passes between two applications, and how often (wave 2).
+INTERFACE_METHODS = items(
+    ("api", "API call", "One application calls the other as it needs to"),
+    ("file_transfer", "File transfer", "Files are sent or collected on a schedule"),
+    (
+        "extract_load",
+        "Scheduled extract and load",
+        "A job copies data from one database to another",
+    ),
+    ("database_link", "Shared database", "One reads or writes the other's database directly"),
+    (
+        "messaging",
+        "Messages or events",
+        "A queue, a stream, or an integration engine carries messages",
+    ),
+    (
+        "embedded",
+        "Embedded page or hand-off",
+        "One shows the other's pages, or hands the user across",
+    ),
+    ("manual", "By hand", "Someone exports from one and uploads or re-keys into the other"),
+)
+INTERFACE_FREQUENCIES = items(
+    ("real_time", "As it happens"),
+    ("hourly", "Hourly or more often"),
+    ("daily", "Daily"),
+    ("weekly", "Weekly"),
+    ("monthly", "Monthly or less often"),
+    ("on_demand", "When someone asks"),
+)
+
 EXTERNAL_SYSTEMS = items(
     ("configuration_item", "Configuration item", "Its record in the infrastructure inventory"),
     ("ticket_queue", "Ticket queue", "Where its support requests go"),
@@ -890,6 +921,8 @@ def main() -> None:
             "application_roles": APPLICATION_ROLES,
             "link_kinds": LINK_KINDS,
             "external_systems": EXTERNAL_SYSTEMS,
+            "interface_methods": INTERFACE_METHODS,
+            "interface_frequencies": INTERFACE_FREQUENCIES,
             "unit_kinds": UNIT_KINDS,
             "dispositions": DISPOSITIONS,
         },

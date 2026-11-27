@@ -26,6 +26,7 @@ export const NAV = [
     heading: "Landscape",
     items: [
       { href: "/capability-map", label: "Capabilities", iconName: "capability" },
+      { href: "/data-flows", label: "Data flows", iconName: "flow" },
       { href: "/technologies", label: "Technologies", iconName: "technology" },
       { href: "/vendors", label: "Vendors", iconName: "vendor" },
     ],

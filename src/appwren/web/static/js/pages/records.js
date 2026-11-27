@@ -153,6 +153,13 @@ export function applicationList(main) {
 const COLUMNS = {
   component: [["Application", (r) => (r.application ? recordChip(r.application) : "")], ["Kind", (r, v) => label(v, "component_kinds", r.kind)]],
   vendor: [["Kind", (r, v) => label(v, "vendor_kinds", r.kind)]],
+  interface: [
+    ["From", (r) => (r.source ? recordChip(r.source) : "")],
+    ["To", (r) => (r.target ? recordChip(r.target) : "")],
+    ["Method", (r, v) => label(v, "interface_methods", r.method)],
+    ["How often", (r, v) => (r.frequency ? label(v, "interface_frequencies", r.frequency) : h("span", { class: "subtle" }, "Not said"))],
+    ["Data", (r, v) => dataClasses(v, r.data_classes, r.undeclared)],
+  ],
   technology: [
     ["Kind", (r, v) => label(v, "technology_kinds", r.kind)],
     ["Radar", (r, v) => (r.radar ? label(v, "radar", r.radar) : h("span", { class: "subtle" }, "Not said"))],
@@ -166,7 +173,15 @@ const COLUMNS = {
   ],
 };
 
-/** Components, vendors, technologies, and capabilities. */
+/** The classes of data something holds or carries, with a mark on any the receiver's record lacks. */
+export function dataClasses(vocab, keys, undeclared = []) {
+  if (!keys?.length) return h("span", { class: "subtle" }, "Not said");
+  return h("span", { class: "chips" }, keys.map((key) => (undeclared.includes(key)
+    ? h("span", { class: "pill pill-warn", title: "The receiving application's record does not list this class" }, label(vocab, "data_classes", key), " · not on its record")
+    : h("span", { class: "pill" }, label(vocab, "data_classes", key)))));
+}
+
+/** Components, vendors, technologies, capabilities, and interfaces. */
 export function recordList(main, type) {
   const meta = TYPES[type];
   return show(main, {
@@ -185,6 +200,8 @@ export function recordList(main, type) {
       const bar = h("div", { class: "filters" }, h("div", { class: "filter-search" }, search),
         meta.kinds ? filterSelect("kind", options(vocab, meta.kinds, { blank: "Any kind" }), "Kind") : null,
         type === "technology" ? filterSelect("radar", options(vocab, "radar", { blank: "Any ring" }), "Radar") : null,
+        type === "interface" ? filterSelect("method", options(vocab, "interface_methods", { blank: "Any method" }), "Method") : null,
+        type === "interface" ? filterSelect("data_class", options(vocab, "data_classes", { blank: "Any data" }), "Data it carries") : null,
         type === "capability" ? filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain") : null,
         filterSelect("status", statusOptions(["active", "retired"], "Any status"), "Status"));
       const columns = COLUMNS[type] ?? [];
@@ -200,6 +217,7 @@ export function recordList(main, type) {
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
           actions: [type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
+            type === "interface" ? h("a", { class: "btn", href: "/data-flows" }, "Data flows") : null,
             add ? button(`Add ${meta.article}`, { kind: "btn-primary", iconName: "plus", onclick: add }) : null,
             exportLink(meta.path)] }),
         bar,

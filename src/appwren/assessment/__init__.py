@@ -44,6 +44,7 @@ from appwren.engine import evaluate, months_current, problems
 from appwren.events import audit
 from appwren.inventory import access, applications
 from appwren.inventory.registry import APPLICATION
+from appwren.landscape import interfaces
 from appwren.program import catalog, vocab
 
 VENDOR_SOURCED = ("saas", "commercial", "vendor_custom")
@@ -329,9 +330,10 @@ def gather(
             peers[app_id] = primary_of
     primaries = {app_id for app_id, _, is_primary in links if is_primary}
     peers = {app_id: peer for app_id, peer in peers.items() if app_id not in primaries}
-    dependents: dict[int, int] = defaultdict(int)
-    for target in session.scalars(
-        select(RecordLink.to_id)
+    # What depends on it: a recorded dependency, or receiving its data through an interface.
+    relying: dict[int, set[int]] = defaultdict(set)
+    for target, source in session.execute(
+        select(RecordLink.to_id, RecordLink.from_id)
         .join(Application, Application.id == RecordLink.from_id)
         .where(
             RecordLink.from_type == "application",
@@ -341,7 +343,10 @@ def gather(
             Application.status == "active",
         )
     ):
-        dependents[target] += 1
+        relying[target].add(source)
+    for source, receivers in interfaces.consumers(session, ids).items():
+        relying[source] |= receivers
+    dependents = {app_id: len(found - {app_id}) for app_id, found in relying.items()}
     assessments = latest(session, ids)
     extra: dict[int, dict[str, Any]] = defaultdict(dict)
     for gatherer in EXTRA_FACTS:

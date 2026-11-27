@@ -16,6 +16,7 @@ import { decisionsTab, recordDecision } from "../components/decision.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
+import { dataClasses } from "./records.js";
 
 export function facts(pairs) {
   const shown = pairs.filter(([, value]) => value != null && value !== "" && !(Array.isArray(value) && !value.length));
@@ -50,6 +51,7 @@ function shown(spec, record, ctx) {
       const chip = record[spec.name.replace(/_id$/, "")];
       return chip && typeof chip === "object" ? recordChip(chip) : null;
     }
+    case "person": return record[spec.name.replace(/_id$/, "")]?.name ?? null;
     default: return String(value);
   }
 }
@@ -479,6 +481,33 @@ function capabilitiesTab(record, ctx) {
       : h("p", { class: "muted" }, "No capability recorded. Say what the application does for the organization, so overlaps and gaps can be seen."));
 }
 
+function interfaceTable(rows, ctx, { other, heading }) {
+  return h("div", { class: "table-wrap" }, h("table", { class: "table" },
+    h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Interface"), h("th", { scope: "col" }, heading), h("th", { scope: "col" }, "Method"),
+      h("th", { scope: "col" }, "How often"), h("th", { scope: "col" }, "Data"))),
+    h("tbody", {}, rows.map((r) => h("tr", {},
+      h("td", {}, h("a", { class: "cell-main", href: `/interfaces/${r.ref}` }, r.name), h("div", { class: "cell-sub" }, r.ref, r.status === "retired" ? " · retired" : "")),
+      h("td", {}, r[other] ? recordChip(r[other]) : ""),
+      h("td", {}, label(ctx.vocab, "interface_methods", r.method)),
+      h("td", {}, r.frequency ? label(ctx.vocab, "interface_frequencies", r.frequency) : h("span", { class: "subtle" }, "Not said")),
+      h("td", {}, dataClasses(ctx.vocab, r.data_classes, r.undeclared)))))));
+}
+
+function connectionsTab(record, ctx) {
+  const sends = ctx.interfaces.filter((r) => r.source?.ref === record.ref);
+  const receives = ctx.interfaces.filter((r) => r.target?.ref === record.ref);
+  const add = (end, text) => (record.can?.edit ? button(text, { kind: "btn-sm", iconName: "plus", onclick: () =>
+    editRecord("interface", { preset: { [end]: record.ref }, onDone: () => ctx.reload() }) }) : null);
+  return h("div", { class: "stack-lg" },
+    card({ title: `Sends data to ${plural(new Set(sends.map((r) => r.target?.ref)).size, "application")}`, actions: add("source_id", "It sends data"), flush: sends.length > 0 },
+      sends.length ? interfaceTable(sends, ctx, { other: "target", heading: "To" })
+        : h("p", { class: "muted" }, "No interface is recorded from it. An application that receives its data depends on it, and counts toward its value.")),
+    card({ title: `Receives data from ${plural(new Set(receives.map((r) => r.source?.ref)).size, "application")}`, actions: add("target_id", "It receives data"), flush: receives.length > 0 },
+      receives.length ? interfaceTable(receives, ctx, { other: "source", heading: "From" })
+        : h("p", { class: "muted" }, "No interface is recorded into it.")),
+    linksCard(record, ctx));
+}
+
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
   const [record, vocab, unitIndex, entries, program] = await Promise.all([
@@ -519,24 +548,26 @@ function assessmentTab(record, ctx) {
 
 export function applicationPage(main, params, extraTabs = []) {
   const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["decisions", "Decisions"], ["components", "Components"],
-    ["capabilities", "Capabilities"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
+    ["capabilities", "Capabilities"], ["connections", "Connections"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
   const wanted = query().get("tab");
   const tab = tabs.some(([key]) => key === wanted) ? wanted : "overview";
   return show(main, {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
-        tab === "decisions" ? get(`${base}/decisions`, null, { fresh: true }) : null]);
-      return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [] };
+        tab === "decisions" ? get(`${base}/decisions`, null, { fresh: true }) : null,
+        tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null]);
+      return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
+        interfaces: joined?.data ?? [] };
     },
     view: (data, reload) => {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
-      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments };
+      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces };
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord("application", { record, onDone: reload }) }) : null;
       const assessButton = record.can?.assess ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
       const decide = () => recordDecision(record, data.scores, data.vocab, reload);
@@ -548,6 +579,7 @@ export function applicationPage(main, params, extraTabs = []) {
             : tab === "decisions" ? decisionsTab(record, data.decisions, data.vocab, { mayDecide: record.can?.decide, onDecide: decide })
             : tab === "components" ? componentsTab(record, ctx)
               : tab === "capabilities" ? capabilitiesTab(record, ctx)
+                : tab === "connections" ? connectionsTab(record, ctx)
                 : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
       const open = (key) => openWorking(data.scores, key, { ref: record.ref, vocab: data.vocab });
       return h("div", { class: "stack" },
@@ -706,6 +738,18 @@ function sharedOverview(type, record, ctx) {
       : h("p", { class: "muted" }, "No application is recorded as serving it.")));
     if (record.children.length) main.push(card({ title: "Narrower capabilities" }, h("div", { class: "chips" }, record.children.map((r) => recordChip(r)))));
     glance.push(["Part of", record.parent ? recordChip(record.parent) : null]);
+  }
+  if (type === "interface") {
+    const missing = record.undeclared ?? [];
+    main.push(card({ title: "What passes" },
+      h("div", { class: "stack" },
+        h("div", { class: "flow-ends" }, record.source ? recordChip(record.source) : null,
+          h("span", { class: "flow-arrow" }, icon("chevron-right"), h("span", { class: "sr-only" }, "sends to")),
+          record.target ? recordChip(record.target) : null),
+        dataClasses(ctx.vocab, record.data_classes, missing),
+        missing.length && record.target ? alert("warn", h("p", {}, `The record of ${record.target.name} does not say it handles `,
+          missing.map((key) => label(ctx.vocab, "data_classes", key).toLowerCase()).join(", "),
+          ". Either this interface carries less than is recorded here, or that record needs the class added: its exposure is worked out from what it lists.")) : null)));
   }
   if (type === "component") glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
   main.push(linksCard(record, ctx));

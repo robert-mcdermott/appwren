@@ -8,6 +8,7 @@ import { navigate } from "../core/router.js";
 import { can, session } from "../core/session.js";
 import { banner, checkbox, field, select, submit } from "./form.js";
 import { openOverlay } from "./overlay.js";
+import { peoplePicker } from "./people-picker.js";
 import { statusLabel, TYPES } from "./record.js";
 import { toast } from "./toast.js";
 
@@ -93,6 +94,23 @@ function input(spec, value, ctx) {
         { value: ctx.refValue(spec, value) ?? "", hint });
       return { node: f.node, field: f, read: () => f.input.value || null };
     }
+    case "person": {
+      let chosen = ctx.person(spec);
+      const said = h("div", { class: "row-sm" });
+      const draw = () => said.replaceChildren(...(chosen
+        ? [h("span", { class: "cell-main" }, chosen.name), button("Clear", { kind: "btn-ghost btn-sm", onclick: () => {
+          chosen = null;
+          draw();
+        } })]
+        : [h("span", { class: "subtle" }, "Nobody named")]));
+      draw();
+      const picker = peoplePicker({ label: "Find a person", onPick: (account) => {
+        chosen = { id: account.id, name: account.display_name };
+        draw();
+      } });
+      const node = h("fieldset", { class: "stack-sm" }, h("legend", {}, spec.label), hint ? h("p", { class: "hint subtle" }, hint) : null, said, picker);
+      return { node, field: null, read: () => chosen?.id ?? null };
+    }
     default: {
       const f = field(spec.label, { value: value ?? "", hint });
       return { node: f.node, field: f, read: () => f.input.value };
@@ -134,7 +152,9 @@ export async function editRecord(type, { record = null, preset = {}, only = null
     const listed = (refs[f.target] ?? []).find(([ref]) => ref === value);
     return listed ? listed[0] : (record?.[`${f.name}_ref`] ?? null);
   };
-  const ctx = { vocab, units: unitIndex, refs, refValue };
+  // A person arrives as { id, name } beside the field that holds their id.
+  const person = (f) => record?.[f.name.replace(/_id$/, "")] ?? null;
+  const ctx = { vocab, units: unitIndex, refs, refValue, person };
   openOverlay({
     title: record ? `Edit ${meta.noun}` : `Add ${meta.article}`,
     subtitle: record ? `${record.ref} · ${record.name}` : meta.lede,
@@ -159,6 +179,8 @@ export async function editRecord(type, { record = null, preset = {}, only = null
         if (record && f.name === "application_id") continue; // a component stays with its application
         const value = record ? record[f.name] : preset[f.name];
         const made = input(f, value, ctx);
+        // What the form was opened for (a component's application, an interface's near end) is fixed.
+        if (!record && f.name in preset && made.field) made.field.input.disabled = true;
         if (made.field) fields[f.name] = made.field;
         readers[f.name] = made.read;
         (bySection[f.section] ??= []).push(made.node);
@@ -224,6 +246,6 @@ export async function editRecord(type, { record = null, preset = {}, only = null
 
 export function mayAdd(type) {
   if (type === "application") return can("steward") || can("architect");
-  if (type === "component") return true;
+  if (type === "component" || type === "interface") return true; // the server asks who keeps the application
   return can("architect");
 }

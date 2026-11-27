@@ -16,7 +16,8 @@ from appwren.db.models import Application, PortfolioSnapshot, Technology
 from appwren.demo import build
 from appwren.events import chain
 from appwren.inventory import records
-from appwren.inventory.registry import APPLICATION, TECHNOLOGY
+from appwren.inventory.registry import APPLICATION, INTERFACE, TECHNOLOGY
+from appwren.landscape import interfaces
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -100,6 +101,19 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         )
         history = decisions.history(session, retired)
         assert history[-1]["successor"]["name"] == "Executive Dashboards"
+        # What passes between them: the worked example keeps exactly its three dependents,
+        # and one flow delivers research data to dashboards whose record does not list it.
+        tracker_value = tracker["dimensions"]["business_value"]["factors"]
+        depends = next(f for f in tracker_value if f["key"] == "dependents")
+        assert depends["why"] == "3 active applications depend on it"
+        flows = interfaces.flows(session, ME, "identifiable_research")
+        lost = [row["target"]["name"] for row in flows["interfaces"] if row["undeclared"]]
+        assert lost == ["Executive Dashboards"] and flows["total"] >= 20
+        everything, _ = records.search(session, ME, INTERFACE, {}, limit=200)
+        marked = [
+            c["name"] for c in records.cards(session, ME, INTERFACE, everything) if c["undeclared"]
+        ]
+        assert marked == ["Enrollment figures"]
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

@@ -24,6 +24,7 @@ from appwren.db.models.inventory import (
     TechnologyRelease,
     Vendor,
 )
+from appwren.db.models.landscape import Interface
 from appwren.db.models.people import (
     Account,
     Credential,
@@ -56,6 +57,7 @@ __all__ = [
     "ExternalRef",
     "FailedSignIn",
     "Identity",
+    "Interface",
     "Membership",
     "OrgUnit",
     "PortfolioSnapshot",

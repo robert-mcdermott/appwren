@@ -31,7 +31,7 @@ from appwren.db.engine import Database
 from appwren.db.models import Application, Capability
 from appwren.demo import content as c
 from appwren.inventory import applications, links, parts, records
-from appwren.inventory.registry import APPLICATION, COMPONENT, TECHNOLOGY, VENDOR
+from appwren.inventory.registry import APPLICATION, COMPONENT, INTERFACE, TECHNOLOGY, VENDOR
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -616,6 +616,29 @@ class Builder:
 
         self.at(days_ago, run)
 
+    def interface(self, spec: tuple, days_ago: float) -> None:
+        source, target, method, frequency, classes, name = spec
+
+        def run() -> None:
+            with self.db.write(ME.actor) as session:
+                records.create(
+                    session,
+                    ME,
+                    INTERFACE,
+                    {
+                        "name": name or f"{source} to {target}",
+                        "source_id": self.apps[source],
+                        "target_id": self.apps[target],
+                        "method": method,
+                        "frequency": frequency,
+                        "data_classes": classes,
+                        "owner_id": self.accountable.get(self.apps[source]),
+                    },
+                )
+            self.tally("interfaces")
+
+        self.at(days_ago, run)
+
     def change(self, name: str, days_ago: float, values: dict[str, Any]) -> None:
         def run() -> None:
             with self.db.write(ME.actor) as session:
@@ -699,6 +722,9 @@ class Builder:
             self.link(source, "Identity and Sign-in", 510)
         self.link("Cohort Analysis Platform", "Research Data Warehouse", 500)
         self.link("Genomics Pipeline", "High Performance Computing Portal", 500)
+        # What passes between them.
+        for index, spec in enumerate(c.INTERFACES):
+            self.interface(spec, 480 - index * 3)
         # Assessments: a first round, and for most a second within the last year.
         storied = {s[0] for s in catalog if s[10].get("story")}
         everything = [s[0] for s in catalog] + tools
