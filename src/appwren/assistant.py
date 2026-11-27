@@ -35,7 +35,7 @@ from appwren.config import AssistantConfig
 from appwren.core import net
 from appwren.core.clock import utc_now
 from appwren.core.errors import AppWrenError, Invalid, NotFound, PermissionDenied
-from appwren.db.models import Application, AssistantExchange
+from appwren.db.models import Application, ApplicationUnit, AssistantExchange
 from appwren.events import audit
 from appwren.inventory import access, records
 from appwren.inventory.registry import APPLICATION
@@ -50,8 +50,8 @@ IN_SERVICE = ("evaluating", "phase_in", "active", "containment", "phase_out")
 # The fields a draft may fill: what a document can say. The unit, the people, and anything
 # sensitive are the person's to give.
 DRAFTED = ("name", "summary", "sourcing", "purpose", "pace", "domain", "tier", "product",
-           "edition", "hosting", "home_url", "docs_url", "users", "external_users",
-           "data_classes", "sign_in", "monitoring", "backup")  # fmt: skip
+           "edition", "hosting", "home_url", "docs_url", "org_wide", "audiences", "users",
+           "external_users", "data_classes", "sign_in", "monitoring", "backup")  # fmt: skip
 
 # (config, messages) -> the assistant's words
 Ask = Callable[[AssistantConfig, list[dict[str, str]]], str]
@@ -234,10 +234,13 @@ def _portfolio(session: Session, principal: Principal, config: AssistantConfig) 
     rank = {item["key"]: item.get("sensitivity", 0) for item in classes}
     limit = rank.get(config.max_data_class, 0)
     labels = {name: vocab.labels(session, name)
-              for name in ("lifecycle", "dispositions", "tiers")}  # fmt: skip
+              for name in ("lifecycle", "dispositions", "tiers", "audiences")}  # fmt: skip
     from appwren.people import units
 
     names = {unit.id: unit.name for unit in units.all_units(session)}
+    used_by: dict[int, list[int]] = {}
+    for row in session.scalars(select(ApplicationUnit)):
+        used_by.setdefault(row.application_id, []).append(row.org_unit_id)
     sensitive = set(access.sensitive_fields(session))
     out = []
     for app in session.scalars(
@@ -255,12 +258,26 @@ def _portfolio(session: Session, principal: Principal, config: AssistantConfig) 
             "unit": names.get(app.org_unit_id), "stage": labels["lifecycle"].get(app.lifecycle),
             "tier": labels["tiers"].get(app.tier or ""),
             "decision": labels["dispositions"].get(app.disposition or ""),
+            "used_by": _used_by(app, used_by.get(app.id, []), names, labels["audiences"]),
         })  # fmt: skip
         for name, key in (("summary", "summary"), ("org_unit_id", "unit"), ("lifecycle", "stage"),
-                          ("tier", "tier"), ("disposition", "decision")):  # fmt: skip
+                          ("tier", "tier"), ("disposition", "decision"),
+                          ("org_wide", "used_by"), ("audiences", "used_by")):  # fmt: skip
             if name in hidden:  # a field marked sensitive is not told (review, finding B)
                 out[-1].pop(key, None)
     return out
+
+
+def _used_by(
+    app: Application, unit_ids: list[int], names: dict[int, str], kinds: dict[str, str]
+) -> str | None:
+    """Who uses it, in words: everyone, or everyone in some units and kinds of people
+    wherever they work."""
+    if app.org_wide:
+        return "everyone in the organization"
+    said = [f"everyone in {names[unit_id]}" for unit_id in unit_ids if unit_id in names]
+    said += [f"{kinds.get(key, key)}, wherever they work" for key in app.audiences or []]
+    return "; ".join(said) or None
 
 
 def prepare_question(
