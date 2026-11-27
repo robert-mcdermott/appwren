@@ -68,6 +68,37 @@
         "title": "AccountChanges",
         "type": "object"
       },
+      "AddBody": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Its name, if not the source's",
+            "title": "Name"
+          },
+          "org_unit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The unit that answers for it",
+            "title": "Org Unit Id"
+          }
+        },
+        "title": "AddBody",
+        "type": "object"
+      },
       "AnswerBody": {
         "properties": {
           "accept": {
@@ -1724,6 +1755,18 @@
           }
         },
         "title": "DeploymentBody",
+        "type": "object"
+      },
+      "DismissBody": {
+        "properties": {
+          "reason": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "DismissBody",
         "type": "object"
       },
       "ExcuseBody": {
@@ -8404,6 +8447,204 @@
         "summary": "Remove a link",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/discovered": {
+      "get": {
+        "description": "Those listed and waiting (``show=new``, the default), ``dismissed``, ``added``, or\n``all``.",
+        "operationId": "list_discovered_api_v1_discovered_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "show",
+            "required": false,
+            "schema": {
+              "default": "new",
+              "title": "Show",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Discovered Api V1 Discovered Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Applications a source knows that are not on record",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/discovered/{item_id}/add": {
+      "post": {
+        "operationId": "add_discovered_api_v1_discovered__item_id__add_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Add Discovered Api V1 Discovered  Item Id  Add Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add it as an application",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/discovered/{item_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_discovered_api_v1_discovered__item_id__dismiss_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DismissBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Dismiss Discovered Api V1 Discovered  Item Id  Dismiss Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "It is not kept on record, and why",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/discovered/{item_id}/restore": {
+      "post": {
+        "operationId": "restore_discovered_api_v1_discovered__item_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Restore Discovered Api V1 Discovered  Item Id  Restore Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a dismissed one again",
+        "tags": [
+          "connectors"
         ]
       }
     },

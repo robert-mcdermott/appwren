@@ -119,11 +119,22 @@ class Reading:
     ) -> Any:
         """One answer from the source, as JSON, within the run's limits. An answer with a
         status in ``missing`` means there is nothing there, and gives None."""
+        return self._ask(client, "GET", url, missing=missing, params=params or None)
+
+    def post_form(self, client: httpx.Client, url: str, form: dict[str, str]) -> Any:
+        """A form posted to the source, such as a request for a token. Nothing is changed
+        there: a connector only reads."""
+        return self._ask(client, "POST", url, missing=(), data=form)
+
+    def _ask(
+        self, client: httpx.Client, method: str, url: str, *, missing: tuple[int, ...],
+        **sent: Any,
+    ) -> Any:  # fmt: skip
         if time.monotonic() - self.started > DEADLINE.total_seconds():
             raise SourceError("the run took longer than its time limit")
         self.asked += 1
         try:
-            with client.stream("GET", url, params=params or None) as response:
+            with client.stream(method, url, **sent) as response:
                 body = b""
                 for chunk in response.iter_bytes():
                     body += chunk
@@ -319,6 +330,8 @@ def run(db: Database, key: str) -> dict[str, Any]:
                     put(record, spec, value)
             for step in reading.steps:
                 step(session, put)
+        if "discovered" in reading.extra:
+            counts["discovered"] = int(reading.extra["discovered"])
         counts["unmatched"] = len(unmatched)
     except (SourceError, Invalid, NotFound) as exc:
         error = str(exc)[:600]
@@ -354,10 +367,13 @@ def run(db: Database, key: str) -> dict[str, Any]:
 
 
 def _words(counts: dict[str, int]) -> str:
-    return (
+    said = (
         f"Read {counts['read']} values; {counts['changed']} changed, {counts['unchanged']} the "
         f"same, {counts['kept']} kept by a person's override; {counts['unmatched']} not matched"
     )
+    if counts.get("discovered"):
+        said += f"; {counts['discovered']} newly found that are not on record"
+    return said
 
 
 def run_due(db: Database) -> dict[str, int]:

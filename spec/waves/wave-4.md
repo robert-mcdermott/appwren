@@ -74,14 +74,14 @@ None block the start. These defaults have been taken and can be changed before t
 
 Built with slice 1, as the framework's first connector: it needs no credential, so it shows the whole path from switching on to an override without anything to set up.
 
-## Slice 4: Identity provider ☐
+## Slice 4: Identity provider ☑
 
 **Goal:** who signs in, and what is registered that the portfolio does not know.
 
-- [ ] An identity provider connector for Microsoft Entra ID: a tenant, a client, and its secret
-- [ ] Applications registered there are matched to records by their identifier in the provider, kept as an external reference, or by name
-- [ ] Those not on record are listed on Admin → Connectors for a person to add (with the name filled in) or dismiss
-- [ ] Each matched application's active users over 30 days from sign-ins, sourced, into its users
+- [x] An identity provider connector for Microsoft Entra ID: a tenant, a client, and its secret
+- [x] Applications registered there are matched to records by their identifier in the provider, kept as an external reference, or by name
+- [x] Those not on record are listed for a person to add (with the name filled in) or dismiss: on Portfolio → Not on record, for whoever adds applications
+- [x] Each matched application's active users over 30 days from sign-ins, sourced, into its users
 
 **Acceptance:** against a fake provider inside the tests, matched applications get their users with the source; an unmatched one is listed once, and adding it makes a record named for it.
 
@@ -119,3 +119,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **The demo's connector is switched off.** The demo has the end-of-life connector with three weeks of runs, one failed, and one date overridden, then switched off, so that a demo never reaches out to anything.
 - **An application's maintainers are counted only from all of its repositories.** The code-hosting connector sets an application's maintainers only when it read every repository the application's components name; from some of them the count would be too low. Where the host will not say whether a repository has dependency alerts (they are off, or the token may not read them), the alerts are not known, which is not the same as none.
 - **The demo's repositories keep its storylines.** Who changed each demo repository is drawn so that an application's maintainers come out as already recorded; nothing the earlier waves told moves.
+- **The applications not on record are listed for those who add applications, not on Admin → Connectors.** The plan put the list on the administrator's page, but an administrator often may not add an application, and the people who decide what the portfolio keeps (stewards, architects, managers) do not see Admin. The list is on Portfolio → Not on record for them. Adding one keeps the provider's identifier on the new record as its sign-in registration, so the next run matches it however it is renamed; one recorded by hand is matched by the next run and leaves the list; one the provider no longer lists, that nobody decided about, goes.
+- **The demo's sign-ins keep its storylines.** The demo's identity provider gives each bought or rented application its users as already recorded, and lists six registrations on no record and one dismissed.

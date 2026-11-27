@@ -25,6 +25,7 @@ export const NAV = [
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },
       { href: "/contracts", label: "Contracts", iconName: "contract" },
+      { href: "/discovered", label: "Not on record", iconName: "search", when: "keep" },
     ],
   },
   {

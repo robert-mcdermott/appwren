@@ -102,6 +102,11 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/connectors/{key}/check"): Needs.ADMIN,
     ("POST", "/api/v1/connectors/{key}/run"): Needs.ADMIN,
     # What sources supply: read with the record; overridden by whoever keeps it
+    # Applications a source knows that are not on record, for those who add applications
+    ("GET", "/api/v1/discovered"): Needs.KEEP,
+    ("POST", "/api/v1/discovered/{item_id}/add"): Needs.KEEP,
+    ("POST", "/api/v1/discovered/{item_id}/dismiss"): Needs.KEEP,
+    ("POST", "/api/v1/discovered/{item_id}/restore"): Needs.KEEP,
     ("GET", "/api/v1/sourced/{ref}"): Needs.MEMBER,
     ("POST", "/api/v1/sourced/{ref}/{field}/override"): Needs.MEMBER,
     ("DELETE", "/api/v1/sourced/{ref}/{field}/override"): Needs.MEMBER,

@@ -79,6 +79,7 @@ async function boot() {
   route("/decisions", page("decisions", "decisionList"));
   route("/campaigns", page("campaigns", "campaignList"));
   route("/campaigns/:ref", page("campaigns", "campaignPage"));
+  if (can("keep")) route("/discovered", page("discovered", "discoveredList"));
   route("/tasks", page("tasks", "taskList"));
   route("/tasks/:id", page("tasks", "taskPage"));
   route("/people/:id/holdings", page("tasks", "holdingsPage"));

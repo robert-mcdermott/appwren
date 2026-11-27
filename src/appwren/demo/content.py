@@ -232,6 +232,14 @@ CODE_ORG = "bramblewood"
 # A repository the connector's token was never given: every run reports it.
 UNREADABLE = "Space Planning"
 
+# Registered with the identity provider and on no record: (name, days before the build it was
+# first seen). The last was dismissed by the architect.
+UNRECORDED = [
+    ("Room Booking", 9), ("Travel Requests", 9), ("Shared Lab Wiki", 9), ("Poster Printing", 6),
+    ("Badge Photos", 3), ("Sequencing Core Orders", 2), ("Sign-in test (identity team)", 9),
+]  # fmt: skip
+DISMISSED = ("Sign-in test (identity team)", "A test registration the identity team keeps")
+
 # name, capability keys (the first is where it is primary, if any), sourcing, unit, tier,
 # users, maintainers, vendor, technologies [(tech, release)], health (good, fair, poor),
 # and anything else that makes it what it is.

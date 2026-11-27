@@ -30,6 +30,13 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   and a catalog file. An application whose every repository was read gets its maintainers
   from those people. The facts are shown on the component and on its application's
   Components part.
+- **The identity provider.** A connector for Microsoft Entra ID, read through Microsoft
+  Graph, matches each application registered there to a record, by the provider's
+  identifier kept on the record or by name or alias, and gives it its active users: the
+  people who signed in over the last 30 days.
+- **Not on record.** Applications registered with the identity provider that match no
+  record are listed once, on Portfolio → Not on record, for whoever adds applications: add
+  one with its name filled in and its identifier kept, or dismiss it with a reason.
 - The history names the release whose dates changed, and shows the reason given for an
   override.
 

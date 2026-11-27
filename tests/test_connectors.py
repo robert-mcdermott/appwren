@@ -42,7 +42,12 @@ class Source:
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.asked.append(request)
-        answer = self.answers.get(request.url.path)
+        query = request.url.query.decode()
+        answer = self.answers.get(f"{request.url.path}?{query}") if query else None
+        if answer is None:
+            answer = self.answers.get(request.url.path)
+        if callable(answer):
+            answer = answer(request)
         if answer is None:
             return httpx.Response(404)
         if isinstance(answer, httpx.Response):
@@ -489,3 +494,134 @@ def test_a_component_value_has_no_field_of_its_own_to_override_by_hand(
     shown = {v["field"]: v for v in steward.get(f"/api/v1/sourced/{api}").json()["data"]["values"]}
     assert shown["has_tests"]["shown"] is False and shown["has_tests"]["value"] is True
     assert as_role("member").post(url, json={"value": True, "reason": "x"}).status_code == 403
+
+
+# --- The identity provider (slice 4) ------------------------------------------------------------
+
+INTEGRATED = ["WindowsAzureActiveDirectoryIntegratedApp"]
+TRACKER_ID = "11111111-1111-1111-1111-111111111111"
+EXPENSES_ID = "22222222-2222-2222-2222-222222222222"
+WIKI_ID = "33333333-3333-3333-3333-333333333333"
+RENAMED_ID = "44444444-4444-4444-4444-444444444444"
+TEST_ID = "55555555-5555-5555-5555-555555555555"
+SIGN_INS = {TRACKER_ID: ["u1", "u2", "u2", "u3"], EXPENSES_ID: [], WIKI_ID: ["u9"],
+            RENAMED_ID: ["u4", "u5"]}  # fmt: skip
+
+
+def graph(registered: list[tuple[str, str]], *, other_host: bool = False) -> dict[str, Any]:
+    def sign_ins(request: httpx.Request) -> dict[str, Any]:
+        said = request.url.params.get("$filter", "")
+        app_id = said.split("'")[1]
+        return {"value": [{"userId": user} for user in SIGN_INS.get(app_id, [])]}
+
+    first = [{"appId": app_id, "displayName": name, "tags": INTEGRATED}
+             for app_id, name in registered[:2]]  # fmt: skip
+    rest = [{"appId": app_id, "displayName": name, "tags": INTEGRATED}
+            for app_id, name in registered[2:]]  # fmt: skip
+    host = "elsewhere.test" if other_host else "graph.microsoft.com"
+    return {
+        "/lab.example/oauth2/v2.0/token": {"access_token": "graph-token", "expires_in": 3600},
+        "/v1.0/servicePrincipals": {
+            "value": [*first, {"appId": "66666666-6666-6666-6666-666666666666",
+                               "displayName": "Provider's own service", "tags": []}],
+            "@odata.nextLink": f"https://{host}/v1.0/servicePrincipals?$skiptoken=next",
+        },
+        "/v1.0/servicePrincipals?$skiptoken=next": {"value": rest},
+        "/v1.0/auditLogs/signIns": sign_ins,
+        "/v1.0/organization": {"value": [{"displayName": "Bramblewood"}]},
+    }  # fmt: skip
+
+
+def identity(db: Database, people: People, monkeypatch: pytest.MonkeyPatch) -> None:
+    admin = who(db, people, "admin")
+    with db.write(admin.actor) as session:
+        row = connectors.add(session, admin, {
+            "key": "entra", "kind": "identity", "name": "Entra ID",
+            "settings": {"tenant": "lab.example", "client_id": "appwren-reader"},
+        })  # fmt: skip
+        connectors.change(session, admin, row, {"enabled": True})
+    monkeypatch.setenv("APPWREN_ENTRA_SECRET", "client-secret")
+
+
+def test_who_signs_in_and_what_is_not_on_record(
+    as_role: Clients, db: Database, people: People, source: Source,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:  # fmt: skip
+    from appwren.inventory.registry import APPLICATION
+    from tests.test_inventory import add_app
+
+    tracker = add_app(db, people, name="Sample Tracker", users=10)
+    expenses = add_app(db, people, name="Expense Reporting", aliases=["Expenses Online"], users=7)
+    renamed = add_app(db, people, name="Lab Wiki", users=1,
+                      external_refs=[{"system": "identity_app", "value": RENAMED_ID}])  # fmt: skip
+    registered = [(TRACKER_ID, "sample  TRACKER"), (EXPENSES_ID, "Expenses Online"),
+                  (WIKI_ID, "Mystery Wiki"), (RENAMED_ID, "Wiki (new name)"),
+                  (TEST_ID, "Test registration")]  # fmt: skip
+    source.answers.update(graph(registered))
+    identity(db, people, monkeypatch)
+    checked = as_role("admin").post("/api/v1/connectors/entra/check").json()["data"]["said"]
+    assert checked == "Bramblewood answers, and the credential gives a token."
+    done = connectors.run(db, "entra")
+    assert done["status"] == "ok", done
+    assert done["counts"]["discovered"] == 2 and "2 newly found" in done["summary"]
+    token = next(r for r in source.asked if r.url.path.endswith("/token"))
+    assert b"client_secret=client-secret" in token.content and token.method == "POST"
+    graph_asks = [r for r in source.asked if r.url.path.startswith("/v1.0/")]
+    assert all(r.headers["Authorization"] == "Bearer graph-token" for r in graph_asks)
+    with db.read() as session:
+        users = {ref: records.load(session, ME, APPLICATION, ref).users
+                 for ref in (tracker, expenses, renamed)}  # fmt: skip
+    # By name, however it is written; by an alias; and by the identifier kept on the record.
+    assert users == {tracker: 3, expenses: 0, renamed: 2}
+    # What is not on record is listed, once, for those who add applications.
+    steward = as_role("steward")
+    listed = steward.get("/api/v1/discovered").json()["data"]
+    assert [(i["name"], i["source"]) for i in listed["items"]] == [
+        ("Mystery Wiki", "Entra ID"),
+        ("Test registration", "Entra ID"),
+    ]
+    assert connectors.run(db, "entra")["counts"]["discovered"] == 0  # listed once
+    assert len(steward.get("/api/v1/discovered").json()["data"]["items"]) == 2
+    wiki, test = listed["items"]
+    # Dismissed, with a reason; and listed again if someone changes their mind.
+    url = f"/api/v1/discovered/{test['id']}/dismiss"
+    assert steward.post(url, json={"reason": ""}).status_code == 422
+    assert steward.post(url, json={"reason": "A test registration"}).status_code == 200
+    assert [i["name"] for i in steward.get("/api/v1/discovered").json()["data"]["items"]] == [
+        "Mystery Wiki"
+    ]
+    gone = steward.get("/api/v1/discovered", params={"show": "dismissed"}).json()["data"]
+    assert gone["items"][0]["reason"] == "A test registration"
+    assert gone["items"][0]["decided_by"] == "Steward Person"
+    assert steward.post(f"/api/v1/discovered/{test['id']}/restore").status_code == 200
+    # Added: a record named for it, with the provider's identifier, so the next run matches it.
+    no_unit = steward.post(f"/api/v1/discovered/{wiki['id']}/add", json={})
+    assert no_unit.json()["errors"][0]["location"] == ["org_unit_id"]
+    added = steward.post(f"/api/v1/discovered/{wiki['id']}/add",
+                         json={"org_unit_id": people.units["HALE"]})  # fmt: skip
+    assert added.status_code == 201, added.text
+    ref = added.json()["data"]["ref"]
+    assert steward.post(f"/api/v1/discovered/{wiki['id']}/add",
+                        json={"org_unit_id": people.units["HALE"]}).status_code == 409  # fmt: skip
+    page = steward.get(f"/api/v1/applications/{ref}").json()["data"]
+    assert page["name"] == "Mystery Wiki"
+    assert [(e["system"], e["value"]) for e in page["external_refs"]] == [("identity_app", WIKI_ID)]
+    again = connectors.run(db, "entra")
+    assert again["counts"]["discovered"] == 0
+    with db.read() as session:
+        assert records.load(session, ME, APPLICATION, ref).users == 1
+    # A registration that goes from the provider, undecided, leaves the list.
+    source.answers.update(graph(registered[:4]))
+    connectors.run(db, "entra")
+    assert steward.get("/api/v1/discovered").json()["data"]["items"] == []
+
+
+def test_a_next_page_on_another_host_is_not_followed(
+    db: Database, people: People, source: Source, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source.answers.update(graph([(TRACKER_ID, "x"), (EXPENSES_ID, "y"), (WIKI_ID, "z")],
+                                other_host=True))  # fmt: skip
+    identity(db, people, monkeypatch)
+    done = connectors.run(db, "entra")
+    assert done["status"] == "failed" and "pointed elsewhere" in done["error"]
+    assert not any(r.url.host == "elsewhere.test" for r in source.asked)

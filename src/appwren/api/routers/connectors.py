@@ -12,7 +12,7 @@ from sqlalchemy import select
 from appwren import connectors
 from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
-from appwren.connectors import sourced
+from appwren.connectors import discovery, sourced
 from appwren.core.errors import Invalid, NotFound
 from appwren.db.models import TechnologyRelease
 from appwren.inventory import records
@@ -90,6 +90,52 @@ def run_connector(request: Request, key: str) -> dict[str, Any]:
     with reading(request) as session:
         connectors.load(session, key)
     return envelope(connectors.run(request.app.state.db, key))
+
+
+class AddBody(BaseModel):
+    org_unit_id: int | None = Field(default=None, description="The unit that answers for it")
+    name: str | None = Field(
+        default=None, max_length=200, description="Its name, if not the source's"
+    )
+
+
+class DismissBody(BaseModel):
+    reason: str = Field(default="", max_length=300)
+
+
+@router.get("/discovered", summary="Applications a source knows that are not on record")
+def list_discovered(request: Request, show: str = "new") -> dict[str, Any]:
+    """Those listed and waiting (``show=new``, the default), ``dismissed``, ``added``, or
+    ``all``."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(discovery.listing(session, principal, show=show))
+
+
+@router.post("/discovered/{item_id}/add", summary="Add it as an application", status_code=201)
+def add_discovered(request: Request, item_id: int, body: AddBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        row = discovery.load(session, item_id)
+        record = discovery.add(session, principal, row,
+                               {"org_unit_id": body.org_unit_id, "name": body.name})  # fmt: skip
+        return envelope({"ref": record.ref, "name": record.name})
+
+
+@router.post("/discovered/{item_id}/dismiss", summary="It is not kept on record, and why")
+def dismiss_discovered(request: Request, item_id: int, body: DismissBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        row = discovery.dismiss(session, principal, discovery.load(session, item_id), body.reason)
+        return envelope(discovery.view(row, None))
+
+
+@router.post("/discovered/{item_id}/restore", summary="List a dismissed one again")
+def restore_discovered(request: Request, item_id: int) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        row = discovery.restore(session, principal, discovery.load(session, item_id))
+        return envelope(discovery.view(row, None))
 
 
 def _target(

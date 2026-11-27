@@ -93,3 +93,30 @@ class FactValue(Base):
         UniqueConstraint("record_type", "record_id", "field"),
         Index("ix_fact_value_record", "record_type", "record_id"),
     )
+
+
+class Discovered(Base):
+    """An application a source knows that is not on record: listed once, for a person to add
+    (with its name filled in) or dismiss. A connector never makes a record itself."""
+
+    __tablename__ = "discovered"
+    __subject__ = "discovered"
+    __audit_skip__ = frozenset({"last_seen_at", "name"})
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    connector_id: Mapped[int] = mapped_column(ForeignKey("connector.id", ondelete="CASCADE"))
+    external_id: Mapped[str] = mapped_column(String(120))
+    name: Mapped[str] = mapped_column(String(200))
+    first_seen_at: Mapped[datetime] = mapped_column(UtcDateTime)
+    last_seen_at: Mapped[datetime] = mapped_column(UtcDateTime)
+    status: Mapped[str] = mapped_column(String(16), default="new")  # new, dismissed, added
+    decided_by_name: Mapped[str | None] = mapped_column(String(200))
+    decided_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    reason: Mapped[str | None] = mapped_column(String(300))
+    record_ref: Mapped[str | None] = mapped_column(String(24))
+
+    __table_args__ = (
+        UniqueConstraint("connector_id", "external_id"),
+        CheckConstraint("status IN ('new', 'dismissed', 'added')", name="status"),
+        Index("ix_discovered_status", "status"),
+    )

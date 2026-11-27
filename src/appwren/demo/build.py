@@ -1513,15 +1513,81 @@ class Builder:
             connectors.change(session, admin, connectors.load(session, "github"),
                               {"enabled": False})  # fmt: skip
 
+    def signins(self) -> None:
+        """The identity provider: what is bought or rented, matched by name, with its users as
+        recorded; and the registrations on no record, listed as they were found."""
+        import uuid
+
+        from appwren import connectors
+        from appwren.connectors import discovery
+        from appwren.connectors.kinds import identity
+        from appwren.db.models import Application, Discovered
+        from appwren.events.actor import Actor
+
+        admin = self.principal(self.cast["admin"])
+        start = self.end - timedelta(days=10, hours=5)
+        with clock_set_to(lambda: start), self.db.write(admin.actor) as session:
+            row = connectors.add(session, admin, {
+                "key": "entra", "kind": "identity", "name": "Entra ID",
+                "settings": {"tenant": "bramblewood.example", "client_id": str(
+                    uuid.uuid5(uuid.NAMESPACE_DNS, "reader.bramblewood.example"))},
+            })  # fmt: skip
+            connectors.change(session, admin, row, {"enabled": True})
+            connector_id = row.id
+        with self.db.read() as session:
+            signed_in = [
+                (app.id, app.users)
+                for app in session.scalars(
+                    select(Application)
+                    .where(
+                        Application.status == "active",
+                        Application.sourcing.in_(("saas", "commercial", "low_code")),
+                        Application.users.is_not(None),
+                    )
+                    .order_by(Application.ref)
+                )
+            ]
+        ids = {
+            name: str(uuid.uuid5(uuid.NAMESPACE_URL, f"entra:{name}")) for name, _ in c.UNRECORDED
+        }
+        actor = Actor.system("Connector: Entra ID")
+        for days in range(10, 0, -1):
+            at = self.end - timedelta(days=days, hours=5, minutes=50)
+            counts = {"asked": 2 + len(signed_in), "read": 0, "changed": 0, "unchanged": 0,
+                      "kept": 0, "unmatched": 0}  # fmt: skip
+            seen = [(ids[name], name) for name, first in c.UNRECORDED if first >= days]
+            with clock_set_to(lambda at=at: at), self.db.write(actor) as session:
+                for app_id, users in signed_in:
+                    app = session.get(Application, app_id)
+                    self._put(session, counts, app, identity.USERS, users, at,
+                              source=("entra", "Entra ID"))  # fmt: skip
+                counts["discovered"] = discovery.note(session, connector_id, seen, {}, at)
+            self._ran(connector_id, at, "ok", counts, None, [])
+            if days == 8:
+                name, reason = c.DISMISSED
+                architect = self.principal(self.cast["architect"])
+                moment = at + timedelta(hours=3)
+                with (
+                    clock_set_to(lambda moment=moment: moment),
+                    self.db.write(architect.actor) as session,
+                ):
+                    item = session.scalars(
+                        select(Discovered).where(Discovered.external_id == ids[name])
+                    ).one()
+                    discovery.dismiss(session, architect, item, reason)
+        with clock_set_to(lambda: self.end), self.db.write(admin.actor) as session:
+            connectors.change(session, admin, connectors.load(session, "entra"),
+                              {"enabled": False})  # fmt: skip
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
-        at: datetime,
+        at: datetime, *, source: tuple[str, str] = ("github", "GitHub"),
     ) -> None:  # fmt: skip
         from appwren.connectors import sourced
 
-        outcome = sourced.write(session, source="github", source_name="GitHub", record=record,
-                                spec=spec, value=value, read_at=at)  # fmt: skip
+        outcome = sourced.write(session, source=source[0], source_name=source[1],
+                                record=record, spec=spec, value=value, read_at=at)  # fmt: skip
         counts["read"] += 1
         counts[outcome] += 1
 
@@ -1551,6 +1617,7 @@ class Builder:
         self.remind()
         self.sources()
         self.code()
+        self.signins()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

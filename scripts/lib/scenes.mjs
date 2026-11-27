@@ -132,6 +132,9 @@ export const SCENES = [
   { name: "technology-sourced", as: "architect", path: record("technologies", "Ubuntu") },
   { name: "application-code", as: "res_steward", path: app("Freezer Watch", "components") },
   { name: "component-code", as: "res_steward", path: record("components", "Freezer Watch application") },
+  { name: "discovered", as: "portfolio", path: "/discovered" },
+  { name: "discovered-add", as: "portfolio", path: "/discovered", step: press("Add Room Booking") },
+  { name: "application-sourced", as: "portfolio", path: app("Grant Management System") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];
