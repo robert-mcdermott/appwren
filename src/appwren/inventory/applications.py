@@ -9,7 +9,7 @@ adds what applications need through the registry's hooks.
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
 from sqlalchemy import func, inspect, select
@@ -270,8 +270,22 @@ HAS: dict[str, Any] = {}
 
 def missing(session: Session, application: Application) -> dict[str, Any]:
     """What the application's stage requires that it lacks, and what the next stage would."""
-    stages = vocab.keys(session, "lifecycle", active_only=False)
-    rules = catalog.stage_requirements(session)
+    return missing_from(
+        application,
+        lambda name: _has(session, application, name),
+        vocab.keys(session, "lifecycle", active_only=False),
+        catalog.stage_requirements(session),
+    )
+
+
+def missing_from(
+    application: Application,
+    has: Callable[[str], bool],
+    stages: list[str],
+    rules: Mapping[str, list[str]],
+) -> dict[str, Any]:
+    """The same, from an answer to "does it have this?" that the caller already knows, so a
+    whole portfolio can be checked without asking the database about each application."""
     position = stages.index(application.lifecycle) if application.lifecycle in stages else 0
     needed: list[str] = []
     for stage in stages[: position + 1]:
@@ -281,10 +295,18 @@ def missing(session: Session, application: Application) -> dict[str, Any]:
         [name for name in rules.get(following, []) if name not in needed] if following else []
     )
     return {
-        "now": [name for name in needed if not _has(session, application, name)],
+        "now": [name for name in needed if not has(name)],
         "next_stage": following,
-        "next": [name for name in upcoming if not _has(session, application, name)],
+        "next": [name for name in upcoming if not has(name)],
     }
+
+
+def field_present(application: Application, name: str, own: set[str]) -> bool:
+    """Whether a field of the application, or one of the organization's own, has a value."""
+    value = getattr(application, name, None)
+    if value is None and name in own:
+        value = (application.fields or {}).get(name)
+    return value not in (None, "", [])
 
 
 # --- Showing --------------------------------------------------------------------------------

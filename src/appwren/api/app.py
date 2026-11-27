@@ -18,6 +18,7 @@ from appwren.api.routers import (
     decisions,
     inventory,
     people,
+    reporting,
     session,
     sso,
     system,
@@ -29,7 +30,9 @@ from appwren.config import ENV_CONFIG, Config, load_config
 from appwren.db.engine import Database
 from appwren.home import DataHome
 
-ROUTERS = (system, session, sso, people, branding, inventory, assessment, decisions)
+ROUTERS = (
+    system, session, sso, people, branding, inventory, assessment, decisions, reporting,
+)  # fmt: skip
 
 
 def create_app(config: Config) -> FastAPI:

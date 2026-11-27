@@ -63,6 +63,9 @@ async function boot() {
   }
   route("/capability-map", page("capability-map", "capabilityMap"));
   route("/portfolio", page("portfolio", "portfolioChart"));
+  route("/dashboard", page("dashboard", "dashboard"));
+  route("/data-quality", page("quality", "dataQuality"));
+  route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));
   route("/snapshots", page("decisions", "snapshotList"));
   route("/snapshots/:ref", page("decisions", "snapshotPage"));

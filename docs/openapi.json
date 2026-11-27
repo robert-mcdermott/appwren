@@ -4458,6 +4458,181 @@
         ]
       }
     },
+    "/api/v1/dashboard": {
+      "get": {
+        "description": "Each figure carries the filters of the list that produces it, so it can only open\nexactly what it counted (RPT-03).",
+        "operationId": "dashboard_api_v1_dashboard_get",
+        "parameters": [
+          {
+            "description": "A unit, with those beneath it",
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A unit, with those beneath it",
+              "title": "Unit"
+            }
+          },
+          {
+            "in": "query",
+            "name": "domain",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Dashboard Api V1 Dashboard Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Where the portfolio stands",
+        "tags": [
+          "reports, imports, and exports"
+        ]
+      }
+    },
+    "/api/v1/data-quality": {
+      "get": {
+        "operationId": "data_quality_api_v1_data_quality_get",
+        "parameters": [
+          {
+            "description": "A unit, with those beneath it",
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A unit, with those beneath it",
+              "title": "Unit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Data Quality Api V1 Data Quality Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "How much of the portfolio can be trusted",
+        "tags": [
+          "reports, imports, and exports"
+        ]
+      }
+    },
+    "/api/v1/exports/{kind}": {
+      "get": {
+        "description": "``kind`` is ``applications``, ``components``, ``vendors``, ``technologies``,\n``capabilities``, or ``portfolio``. Every other parameter is a filter that list takes.\nWhat comes back is what the asker may see, and taking it is recorded in the history.",
+        "operationId": "export_list_api_v1_exports__kind__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "description": "csv or json",
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "csv",
+              "description": "csv or json",
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {},
+              "text/csv": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A list, as filtered, as CSV or JSON",
+        "tags": [
+          "reports, imports, and exports"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "live_api_v1_health_live_get",
@@ -4498,6 +4673,127 @@
         "summary": "Can the server do its work?",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/home": {
+      "get": {
+        "operationId": "home_api_v1_home_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Home Api V1 Home Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "What the signed-in person owes",
+        "tags": [
+          "reports, imports, and exports"
+        ]
+      }
+    },
+    "/api/v1/imports/applications": {
+      "post": {
+        "description": "Rows with a reference that is on record update that application; others are added. A\ndry run reports every problem by row; nothing is loaded unless every row can be.",
+        "operationId": "import_applications_api_v1_imports_applications_post",
+        "parameters": [
+          {
+            "description": "Check everything and keep nothing",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Check everything and keep nothing",
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "JSON: which column holds each field, where headings differ",
+            "in": "query",
+            "name": "mapping",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JSON: which column holds each field, where headings differ",
+              "title": "Mapping"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Import Applications Api V1 Imports Applications Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bring applications in from a CSV file",
+        "tags": [
+          "reports, imports, and exports"
+        ]
+      }
+    },
+    "/api/v1/imports/applications/fields": {
+      "get": {
+        "operationId": "import_fields_api_v1_imports_applications_fields_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Import Fields Api V1 Imports Applications Fields Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "What a file of applications may hold",
+        "tags": [
+          "reports, imports, and exports"
         ]
       }
     },
@@ -4619,146 +4915,8 @@
     },
     "/api/v1/portfolio": {
       "get": {
-        "description": "What the portfolio chart, the decisions list, and the dashboard are drawn from. Cost\nis withheld from those who may not see it.",
+        "description": "The applications the person may see, each with its scores, recommendation, decision,\nflags, and what its record lacks; cost is withheld from those who may not see it.\nFilters: ``unit``, ``lifecycle``, ``sourcing``, ``domain``, ``tier``; and, worked out from\nthe scores, ``recommendation``, ``decision`` (``none`` for undecided), ``flag``,\n``confidence_min``, ``confidence_max``, ``eol`` (``past`` or ``ending``), ``quality``,\n``unit_only``, ``mismatch``, ``decided``, ``review_due``, and ``in_service``.",
         "operationId": "portfolio_api_v1_portfolio_get",
-        "parameters": [
-          {
-            "description": "A unit, with those beneath it",
-            "in": "query",
-            "name": "unit",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "A unit, with those beneath it",
-              "title": "Unit"
-            }
-          },
-          {
-            "in": "query",
-            "name": "lifecycle",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Lifecycle"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sourcing",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Sourcing"
-            }
-          },
-          {
-            "in": "query",
-            "name": "domain",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Domain"
-            }
-          },
-          {
-            "in": "query",
-            "name": "tier",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Tier"
-            }
-          },
-          {
-            "description": "Only those with a mismatch",
-            "in": "query",
-            "name": "mismatch",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Only those with a mismatch",
-              "title": "Mismatch"
-            }
-          },
-          {
-            "description": "Only decisions past review",
-            "in": "query",
-            "name": "review_due",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Only decisions past review",
-              "title": "Review Due"
-            }
-          },
-          {
-            "description": "Only those with a decision",
-            "in": "query",
-            "name": "decided",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Only those with a decision",
-              "title": "Decided"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "content": {
@@ -4771,21 +4929,11 @@
               }
             },
             "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
           }
         },
         "summary": "Every application with its scores and decision",
         "tags": [
-          "decisions and the portfolio"
+          "reports, imports, and exports"
         ]
       }
     },

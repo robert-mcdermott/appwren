@@ -138,17 +138,17 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance (met):** a decision by the accountable owner, or by a leader outside their unit, is refused in the API and the app; a decision differing from the recommendation shows a mismatch until a new decision or a change in the recommendation removes it; the chart's points equal the list for the same filters, for every role, and no bubble's size reveals a withheld cost. 286 tests pass on SQLite and 282 on PostgreSQL. Checked in the browser: the portfolio chart in both views, recording a decision against the recommendation, the mismatch, and the Decisions tab.
 
-## Slice 7: Home, dashboard, and data quality ☐
+## Slice 7: Home, dashboard, and data quality ☑
 
 **Goal:** one place to see what you owe, and one to see where the portfolio stands.
 
-- [ ] Home: one list of what the person owes, most urgent first: applications they answer for with no assessment or an expired one, low confidence, missing required fields, decisions due for review, flags; for stewards, their unit's applications nobody answers for; for managers and leaders, mismatches and decisions due in scope
-- [ ] The dashboard: counts by recommendation, by decision, by lifecycle, and by sourcing; mismatches; flags; confidence; end-of-life exposure. Each figure carries the filters of the list that produces it
-- [ ] Data quality by unit
-- [ ] Spreadsheet import of applications, with column mapping, a dry run, and updates by reference; CSV and JSON export of every list, with sensitive fields withheld as they are on screen and formula-like values made safe
-- [ ] Print styles
+- [x] Home: one list of what the person owes, most urgent first: applications they answer for with no assessment or an expired one, low confidence, missing required fields, decisions due for review, flags; for stewards, their unit's applications nobody answers for; for managers and leaders, mismatches and decisions due in scope
+- [x] The dashboard: counts by recommendation, by decision, by lifecycle, and by sourcing; mismatches; flags; confidence; end-of-life exposure. Each figure carries the filters of the list that produces it
+- [x] Data quality by unit
+- [x] Spreadsheet import of applications, with column mapping, a dry run, and updates by reference; CSV and JSON export of every list, with sensitive fields withheld as they are on screen and formula-like values made safe
+- [x] Print styles
 
-**Acceptance:** every figure on the dashboard and data-quality pages opens a list whose length equals the figure, for each of the seven roles, for the whole organization and for one division; the parts of each breakdown add up to the whole; an import with one bad row loads nothing and names the row.
+**Acceptance (met):** every figure on the dashboard and data-quality pages opens a list whose length equals the figure, for each of the seven roles, for the whole organization and for one division; the parts of each breakdown add up to the whole; an import with one bad row loads nothing and names the row. 291 tests pass on SQLite and 287 on PostgreSQL. Checked in the browser: home with what is owed, the dashboard, data quality by unit, and a figure's list.
 
 ## Slice 8: Demo organization ☐
 
@@ -189,4 +189,7 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **The decision is a fact the engine reads.** A decision this year quiets the grant-ending flag; a review date that has passed raises its own flag; a decision that differs from today's recommendation raises the mismatch. None of these changes the decision.
 - **The chart is drawn from the same list as everything else.** `/api/v1/portfolio` is the one list of applications with their scores, recommendation, and decision; the chart, the decisions page, and (in slice 7) the dashboard read it, and a test holds it equal to the applications list for every role.
 - **Steady jitter.** Applications with the same scores would hide one another on the chart, so each is nudged by a small amount worked out from its reference: the same every time, and too small to move it across a threshold line by more than a hair. The table beneath gives the exact figures.
+- **One list behind every figure.** The dashboard, data quality, and home page count rows of the same portfolio list that `/api/v1/portfolio` returns, narrowed by the same function, and each figure carries its filters. A test opens every figure's list for every role and compares the lengths.
+- **What a stage requires is checked in bulk.** The facts gathered for scoring already say whether an application has an accountable owner, capabilities, technologies, a current assessment, and a decision, so the whole portfolio's completeness costs no further queries.
+- **An import updates by reference.** A row whose reference is on record changes that application, through the same service and checks as an edit by hand, including the refusal of sensitive fields the importer may not see.
 

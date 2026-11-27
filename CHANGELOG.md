@@ -62,4 +62,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   known about to place.
 - **Portfolio snapshots.** A manager keeps every application's scores together for a review;
   each snapshot reopens unchanged.
+- **Home.** One list of what each person owes, most urgent first: applications to assess,
+  flags, and records missing what their stage requires; for stewards, applications nobody
+  answers for; for managers and leaders, decisions waiting.
+- **The dashboard and data quality.** Where the portfolio stands by recommendation, decision,
+  lifecycle, sourcing, flags, confidence, and technology support; and what is missing, by
+  unit. Every figure opens exactly the list it counts.
+- **Import and export.** Applications come in from CSV with a dry run that names every problem
+  by row, and update by reference; nothing is loaded unless every row is good. Every list
+  exports as CSV or JSON, withholding what the reader may not see, and each export is
+  recorded.
 

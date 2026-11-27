@@ -1,14 +1,31 @@
 // The inventory's list pages. Filters, sort, and page all live in the URL.
 
-import { get } from "../core/api.js";
+import { buildUrl, get } from "../core/api.js";
 import { button, h } from "../core/dom.js";
 import { date, plural, relative } from "../core/format.js";
 import { label, options, unitOptions, units, vocabularies } from "../core/lookups.js";
 import { query, setQuery } from "../core/router.js";
 import { hrefOf, lifecyclePill, recordChip, statusOptions, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
 import { editRecord, mayAdd } from "../components/record-forms.js";
+import { openImport } from "../components/importer.js";
 import { card, emptyState, pageHeader } from "../components/ui.js";
 import { show } from "./page.js";
+
+/** Download the list as it is filtered now. */
+export function exportLink(path) {
+  const params = Object.fromEntries([...query()].filter(([key]) => !["cursor", "sort"].includes(key)));
+  return h("a", { class: "btn", href: buildUrl(`/api/v1/exports/${path}`, { ...params, format: "csv" }), download: "" }, "Export");
+}
+
+function importApplications(onDone) {
+  openImport({
+    kind: "applications",
+    title: "Import applications",
+    intro: "Add applications from a spreadsheet, or update those it names by reference. The file is checked first, and nothing is loaded unless every row is good.",
+    sample: "Reference,Name,Unit,Accountable owner,Sourcing,Tier,Vendor,Users,Data classes",
+    onDone,
+  });
+}
 
 export function filterSelect(name, choices, labelText) {
   const node = h("select", { class: "select", "aria-label": labelText, onchange: () => setQuery({ [name]: node.value, cursor: null }) },
@@ -123,7 +140,9 @@ export function applicationList(main) {
         : nothing(meta, add);
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
-          actions: add ? button("Add an application", { kind: "btn-primary", iconName: "plus", onclick: add }) : null }),
+          actions: [add ? button("Add an application", { kind: "btn-primary", iconName: "plus", onclick: add }) : null,
+            add ? button("Import", { iconName: "upload", onclick: () => importApplications(reload) }) : null,
+            exportLink("applications")] }),
         bar,
         card({ title: plural(data.page.meta.total, meta.noun, meta.nouns), flush: true, footer: pager(data.page.meta, rows.length) }, body));
     },
@@ -181,7 +200,8 @@ export function recordList(main, type) {
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
           actions: [type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
-            add ? button(`Add ${meta.article}`, { kind: "btn-primary", iconName: "plus", onclick: add }) : null] }),
+            add ? button(`Add ${meta.article}`, { kind: "btn-primary", iconName: "plus", onclick: add }) : null,
+            exportLink(meta.path)] }),
         bar,
         card({ title: plural(data.page.meta.total, meta.noun, meta.nouns), flush: true, footer: pager(data.page.meta, rows.length) }, body));
     },

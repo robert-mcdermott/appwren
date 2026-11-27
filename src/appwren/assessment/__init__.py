@@ -436,6 +436,15 @@ def score_all(
         result["model_version"] = model_row.version
         result["model_id"] = model_row.id
         result["assessment"] = f["assessment"]
+        result["has"] = {
+            "accountable": f["accountable"],
+            "capabilities": bool(f["capabilities"]),
+            "components": f["has_components"],
+            "technologies": bool(f["technologies"])
+            or (f["vendor_sourced"] and not f["has_components"]),
+            "assessment": bool(f["assessment"] and f["assessment"]["current"]),
+            "decision": f.get("decision") is not None,
+        }
         out[app_id] = result
     return out
 

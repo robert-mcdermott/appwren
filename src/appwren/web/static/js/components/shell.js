@@ -31,6 +31,13 @@ export const NAV = [
     ],
   },
   {
+    heading: "Reports",
+    items: [
+      { href: "/dashboard", label: "Dashboard", iconName: "dashboard" },
+      { href: "/data-quality", label: "Data quality", iconName: "quality" },
+    ],
+  },
+  {
     heading: "Admin",
     items: [
       { href: "/admin/people", label: "People", iconName: "people", when: "admin" },

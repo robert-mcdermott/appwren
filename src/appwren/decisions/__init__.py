@@ -174,7 +174,7 @@ def _decision_facts(session: Session, apps: list[Application]) -> dict[int, dict
 
 
 def portfolio(
-    session: Session, principal: Principal, filters: Mapping[str, Any]
+    session: Session, principal: Principal, filters: Mapping[str, Any], *, keep: bool = False
 ) -> list[dict[str, Any]]:
     """Every application the person may see that matches the filters, with its scores,
     recommendation, decision, and flags. Cost is given only where they may see it."""
@@ -220,6 +220,7 @@ def portfolio(
                 "flag_texts": {f["key"]: f["text"] for f in result["flags"]},
                 "annual_cost": app.annual_cost if sees else "withheld",
                 "accountable": [p["name"] for p in records.accountable(people)],
+                **({"id": app.id, "_result": result, "_app": app} if keep else {}),
             }
         )  # fmt: skip
     return rows

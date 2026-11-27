@@ -321,6 +321,12 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/applications/{ref}/decisions"): {"leader", "manager"},
     ("GET", "/api/v1/applications/{ref}/decisions"): EVERYONE,
     ("GET", "/api/v1/portfolio"): EVERYONE,
+    ("GET", "/api/v1/home"): EVERYONE,
+    ("GET", "/api/v1/dashboard"): EVERYONE,
+    ("GET", "/api/v1/data-quality"): EVERYONE,
+    ("GET", "/api/v1/exports/{kind}"): EVERYONE,
+    ("GET", "/api/v1/imports/applications/fields"): EVERYONE,
+    ("POST", "/api/v1/imports/applications"): KEEPERS,
     ("GET", "/api/v1/score-snapshots/{snapshot_id}"): EVERYONE,
     ("GET", "/api/v1/portfolio-snapshots"): EVERYONE,
     ("POST", "/api/v1/portfolio-snapshots"): {"manager"},
@@ -367,7 +373,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = template.replace("{account_id}", str(own)).replace(
                 "{unit_id}", str(people.units["HALE"])
             )
-            path = path.replace("{kind}", "favicon")
+            path = path.replace("{kind}", "favicon" if "branding" in template else "vendors")
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             path = path.replace("{snapshot_id}", "9999")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
