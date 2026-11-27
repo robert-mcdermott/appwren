@@ -21,6 +21,8 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren demo`](#appwren-demo) | Build a fictional organization to explore |
 | [`appwren program`](#appwren-program) | Move the program between installations |
 | [`appwren technologies`](#appwren-technologies) | Bring technology support dates in from a file |
+| [`appwren jobs`](#appwren-jobs) | See scheduled work, or run it now |
+| [`appwren mail`](#appwren-mail) | Send waiting email, or test the mail settings |
 | [`appwren doctor`](#appwren-doctor) | Check that this installation is healthy |
 
 ## `appwren init`
@@ -162,6 +164,34 @@ Read a JSON file of end-of-life data: one object whose keys are products and who
 |---|---|
 | `FILE` | the file to read |
 | `--dry-run` | say what would change, and change nothing |
+
+## `appwren jobs`
+
+Scheduled work sends reminders, and sends email where that is set up. The server does this by itself while it runs. These commands are for seeing how it is going, and for running it from a scheduled task where the server's own scheduler is turned off.
+
+### `appwren jobs run`
+
+Run every job that is due. With a job's name, run that one now whether or not it is due. A job another process is running is left to it.
+
+| Option | Meaning |
+|---|---|
+| `JOB` | one job to run now |
+
+## `appwren mail`
+
+Email is optional. Where it is set up, the server sends it by itself while it runs. These commands are for testing the settings and for sending by hand.
+
+### `appwren mail run`
+
+Queue notices and daily summaries, and send what is waiting. Exits with 1 if a message could not be sent.
+
+### `appwren mail test`
+
+Send one message now to the account with this address, and say whether the mail server accepted it.
+
+| Option | Meaning |
+|---|---|
+| `EMAIL` | the account to send it to |
 
 ## `appwren doctor`
 

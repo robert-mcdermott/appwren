@@ -1,6 +1,6 @@
 // The app shell: sidebar, top bar, and the place pages are drawn.
 
-import { del } from "../core/api.js";
+import { del, get } from "../core/api.js";
 import { h, icon, iconButton } from "../core/dom.js";
 import { wren } from "../core/icons.js";
 import { onNavigate } from "../core/router.js";
@@ -51,6 +51,7 @@ export const NAV = [
       { href: "/admin/units", label: "Units", iconName: "units", when: "admin" },
       { href: "/admin/appearance", label: "Appearance", iconName: "appearance", when: "admin" },
       { href: "/admin/sso", label: "Single sign-on", iconName: "key", when: "admin" },
+      { href: "/admin/scheduled-work", label: "Scheduled work", iconName: "clock", when: "admin" },
     ],
   },
 ];
@@ -88,7 +89,8 @@ export function commands(meta) {
   })));
   return [
     ...pages,
-    { label: "Your account", hint: "Page", iconName: "user", href: "/account", keywords: "profile password" },
+    { label: "Your account", hint: "Page", iconName: "user", href: "/account", keywords: "profile password email" },
+    { label: "Notices", hint: "Page", iconName: "bell", href: "/notices", keywords: "reminders bell" },
     { label: "Appearance…", hint: "Action", iconName: "appearance", run: () => openAppearance(meta), keywords: "theme palette colors" },
     { label: mode() === "dark" ? "Switch to light" : "Switch to dark", hint: "Action",
       iconName: mode() === "dark" ? "sun" : "moon", run: () => setMode(mode() === "dark" ? "light" : "dark"), keywords: "theme mode" },
@@ -164,11 +166,29 @@ export function mountShell(root, meta) {
           icon(item.iconName), item.label));
       })))));
   };
+  // How many notices are unread, beside the bell. Asked for again whenever the page changes.
+  const count = h("span", { class: "bell-count", "aria-hidden": "true", hidden: true });
+  const bell = h("a", { class: "icon-button notice-bell", href: "/notices", "aria-label": "Notices" }, icon("bell"), count);
+  const showUnread = (unread) => {
+    count.hidden = !unread;
+    count.textContent = unread > 99 ? "99+" : String(unread);
+    bell.setAttribute("aria-label", unread ? `Notices, ${unread} unread` : "Notices");
+  };
+  const askUnread = async () => {
+    try {
+      showUnread((await get("/api/v1/notices/count", null, { fresh: true })).data.unread);
+    } catch {
+      // The bell is a convenience: if the count cannot be had, it shows none.
+    }
+  };
+  document.addEventListener("notices", (event) => showUnread(event.detail.unread));
   onNavigate(() => {
     drawNav();
     shell.removeAttribute("data-nav");
+    askUnread();
   });
   drawNav();
+  askUnread();
 
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
   const search = h("button", { type: "button", class: "search-button", "aria-label": "Open the command palette",
@@ -189,6 +209,7 @@ export function mountShell(root, meta) {
         search,
         h("div", { class: "spacer row-sm" },
           meta.demo ? h("span", { class: "demo-flag", title: "A fictional organization. Nothing here is real." }, "Demo data") : null,
+          bell,
           iconButton("appearance", "Appearance", { onclick: () => openAppearance(meta) }),
           userMenu(meta))),
       main));

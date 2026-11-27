@@ -1087,10 +1087,31 @@ class Builder:
             accounts.set_status(session, ME, account, "disabled")
         self.departed.add(self.cast["leaver"])
 
+    def remind(self) -> None:
+        """The reminders of the last two months, as the scheduler would have sent them. What
+        is more than a week old has been read."""
+        from sqlalchemy import update
+
+        from appwren import reminders
+        from appwren.db.models import Notice
+
+        for offset in (-56, -42, -28, -21, -14, -7, -3, 0):
+            moment = self.end + timedelta(days=offset)
+            with clock_set_to(lambda moment=moment: moment), self.db.bookkeeping() as session:
+                said = reminders.send(session, on=moment.date())
+                self.tally("notices", sum(said.values()))
+        with self.db.bookkeeping() as session:
+            session.execute(
+                update(Notice)
+                .where(Notice.created_at < self.end - timedelta(days=7))
+                .values(read_at=self.end - timedelta(days=6))
+            )
+
     def build(self) -> Summary:
         self.found()
         self.plan()
         self.run()
+        self.remind()
         with clock_set_to(lambda: self.end), self.db.write(ME.actor) as session:
             settings.put(
                 session,

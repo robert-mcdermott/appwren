@@ -40,17 +40,19 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Schedules and email ☐
+## Slice 1: Schedules and email ☑
 
 **Goal:** the app knows what falls due, and says so.
 
-- [ ] The scheduler: jobs as rows with a lease, so one process runs each, from the server or from `appwren jobs run`; runs that did something, and failures with their reason, kept for ninety days
-- [ ] Admin → Scheduled work: each job, when it last ran and what it did, run now, pause
-- [ ] Notices: in the app, with a count in the top bar and a page of them; each person's choice of email as it happens, a daily digest, or none
-- [ ] Reminders over what has a date: an assessment about to expire, a decision's review and target dates, a contract's notice date; before, after, then the steward and the leader
-- [ ] `[mail]` in the configuration file; an outbox in the database, sent with retries and a limit; nothing written before email was set up is ever sent; `appwren doctor` checks the server
+- [x] The scheduler: jobs as rows with a lease, so one process runs each, from the server or from `appwren jobs run`; runs that did something, and failures with their reason, kept for ninety days
+- [x] Admin → Scheduled work: each job, when it last ran and what it did, run now, pause
+- [x] Notices: in the app, with a count in the top bar and a page of them; each person's choice of email as it happens, a daily digest, or none
+- [x] Reminders over what has a date: an assessment about to expire, a decision's review and target dates, a contract's notice date; before, after, then the steward and the leader
+- [x] `[mail]` in the configuration file; an outbox in the database, sent with retries and a limit; nothing written before email was set up is ever sent; `appwren doctor` checks the server
 
-**Acceptance:** two connections to one database run a job once between them; an overdue review reminds its decider, then the steward, then the leader, each once; with no mail server nothing is attempted and nothing is sent later.
+**Acceptance (met):** two connections to one database run a job once between them; an overdue review reminds its decider, then the steward, then the leader, each once; with no mail server nothing is attempted and nothing is sent later.
+
+**Done:** three jobs run inside the server: reminders, email, and housekeeping. A process claims a job's row before running it, with a lease that lapses if the process dies, so several workers, several servers, and `appwren jobs run` from a scheduled task run each job once between them; what is due comes from the database and the clock, so a restart catches up. Runs that did something, and failures with their reason, are kept for ninety days. Admin → Scheduled work shows each job and can run or pause it; `appwren jobs` does the same. Reminders look at an assessment's end (by tier), a current decision's review and target dates, and a contract's notice date, for applications in service; later slices add their own dates through `reminders.SOURCES`. Whoever a thing waits on is told two weeks ahead and the day after; an assessment and a target that stay late go to the unit's steward after a week and its leader after three; a review stays with whoever decided, or the unit's leaders if they have left; a notice date stays with the contract's owner. Each stage is said once for a given date, moving the date starts again, and something found long overdue is told once at the stage it has reached. The three periods are read from the scoring model's cadence, with these defaults until the model says otherwise. Email is optional: with `[mail]` set, notices go to an outbox in the database and are sent from there, each as it happens or as a daily summary by each person's choice, with retries and a limit, and nothing written before email was set up is ever sent. The bell in the top bar counts unread notices. The demo sends the reminders of its last two months, and what is more than a week old has been read. The acceptance tests are in `tests/test_schedule.py` and `tests/test_mail.py`, which sends over real SMTP to a server inside the test.
 
 ## Slice 2: Attestation ☐
 

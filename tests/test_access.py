@@ -244,6 +244,16 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("DELETE", "/api/v1/session"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/demo"): EVERYONE | {"nobody"},
     ("POST", "/api/v1/session/password"): EVERYONE,
+    ("GET", "/api/v1/jobs"): {"admin"},
+    ("POST", "/api/v1/jobs/{key}/run"): {"admin"},
+    ("PUT", "/api/v1/jobs/{key}"): {"admin"},
+    ("GET", "/api/v1/mail"): {"admin"},
+    ("POST", "/api/v1/mail/test"): {"admin"},
+    ("GET", "/api/v1/notices"): EVERYONE,
+    ("GET", "/api/v1/notices/count"): EVERYONE,
+    ("POST", "/api/v1/notices/read"): EVERYONE,
+    ("GET", "/api/v1/session/preferences"): EVERYONE,
+    ("PUT", "/api/v1/session/preferences"): EVERYONE,
     # Single sign-on. The round trip is open to all, and answers 404 unless it is set up.
     ("GET", "/api/v1/sso/start"): EVERYONE | {"nobody"},
     ("GET", "/api/v1/sso/callback"): EVERYONE | {"nobody"},
@@ -428,7 +438,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             )
             path = path.replace("{kind}", "favicon" if "branding" in template else "vendors")
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
-            path = path.replace("{snapshot_id}", "9999")
+            path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:

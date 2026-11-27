@@ -14,6 +14,21 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   and dark themes. `node scripts/site/build.mjs` builds it from `docs/` with Node 22 and no
   packages, and fails on a broken link, anchor, or picture; `node scripts/site/audit.mjs`
   checks every page in both themes at desk and phone widths.
+- **Scheduled work.** The server runs jobs by itself: reminders, email, and housekeeping. A
+  process claims a job before running it, so several servers, or `appwren jobs run` from a
+  scheduled task, run each one once between them. Admin → Scheduled work shows each job,
+  when it last ran and what it did, and can run or pause it. `[server] scheduler = false`
+  leaves the work to `appwren jobs run`.
+- **Notices and reminders.** A bell in the top bar counts what is new for you, and opens a
+  page of it. Whoever something waits on is reminded two weeks before its date and the day
+  after: an assessment about to expire, a decision's review date and target date, and a
+  contract's notice date. An assessment or a target that stays late goes to the unit's
+  steward after a week and its leader after three. Each is said once for a given date.
+- **Email, optional.** Name an SMTP server under `[mail]` and notices go by email as well,
+  each as it happens or in a daily summary, as each person chooses under Your account. The
+  password comes from the environment. Until email is set up nothing is attempted, and
+  nothing written before then is ever sent. `appwren mail test` sends a test message, and
+  `appwren doctor` checks the server.
 
 ## 0.2.0 (2026-11-26)
 

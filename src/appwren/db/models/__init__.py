@@ -24,6 +24,7 @@ from appwren.db.models.inventory import (
     TechnologyRelease,
     Vendor,
 )
+from appwren.db.models.jobs import Job, JobRun, Notice, OutboxMessage, Reminder
 from appwren.db.models.landscape import (
     Contract,
     ContractApplication,
@@ -72,13 +73,18 @@ __all__ = [
     "HostingPlatform",
     "Identity",
     "Interface",
+    "Job",
+    "JobRun",
     "Membership",
+    "Notice",
     "OrgUnit",
+    "OutboxMessage",
     "PortfolioSnapshot",
     "ProviderMapping",
     "Questionnaire",
     "RecordLink",
     "RecordOwner",
+    "Reminder",
     "RoleGrant",
     "ScoreSnapshot",
     "ScoringModel",

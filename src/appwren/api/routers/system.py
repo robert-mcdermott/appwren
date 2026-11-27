@@ -54,6 +54,8 @@ def meta(request: Request) -> dict[str, Any]:
             "palettes": list(branding.PALETTES),
             # A demo says so, and names the sample people its sign-in page offers.
             "demo": {"built_on": demo["built_on"], "accounts": demo["accounts"]} if demo else None,
+            # Email is optional: without it, notices are read in the app only.
+            "mail": request.app.state.config.mail.enabled,
             # Single sign-on is optional. Nothing about it is said unless it is set up.
             "sso": {"label": sso.label, "local_sign_in": sso.local_sign_in}
             if sso.enabled

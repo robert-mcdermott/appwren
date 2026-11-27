@@ -56,6 +56,9 @@ class Account(Base):
     display_name: Mapped[str] = mapped_column(String(200))
     title: Mapped[str | None] = mapped_column(String(200))
     status: Mapped[str] = mapped_column(String(16), default="invited")
+    # How notices reach this person by email, where email is set up: as they happen, in a
+    # daily summary, or not at all.
+    email_notices: Mapped[str] = mapped_column(String(16), default="immediate")
     time_zone: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(UtcDateTime)
 
