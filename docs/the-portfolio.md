@@ -17,7 +17,7 @@ Holding to one definition is what lets the portfolio compare like with like. The
 
 ## The record
 
-**Portfolio → Applications** lists every application you may see, with its scores, its recommendation, and the decision on record. Filter it by unit, lifecycle stage, sourcing, tier, recommendation, decision, or flag; search by name or reference; and choose **Mine** for those you are named on.
+**Portfolio → Applications** lists every application you may see, with its scores, its recommendation, and the decision on record. Filter it by lifecycle stage, sourcing, tier, domain, or unit; search by name or reference; and choose **Mine** for those you are named on.
 
 ![The applications list, each with its four scores, its recommendation, and its decision](img/applications-light.webp)
 
@@ -192,7 +192,7 @@ Retired and archived applications are no longer scored.
 
 ### The portfolio chart
 
-**Portfolio → Portfolio chart** places every scored application by business value against technical health, or against cost and burden. Each bubble is sized by its cost, where you may see costs, and colored by risk exposure. The threshold lines divide it into the quarters the rules use. A table beneath gives the exact figures for every application on the chart.
+**Portfolio → Portfolio chart** places every scored application by business value against technical health, or against cost and burden. Each bubble is sized by its cost, where you may see costs, and colored by risk exposure. The threshold lines divide it into the quarters the rules use. A table beneath gives the exact figures for every application on the chart, and the applications too little is known about to place are listed after it.
 
 ![The portfolio chart: business value against technical health, bubbles sized by cost and colored by risk exposure](img/portfolio-chart-light.webp)
 
@@ -226,7 +226,7 @@ A decision keeps a **snapshot** of the scores it was made against, so it always 
 
 ### Mismatches
 
-When today's recommendation differs from the decision on record, the application shows a **mismatch**: both dispositions side by side, each with its working. A mismatch changes nothing on its own; it is a prompt for the next portfolio review. **Portfolio → Decisions** lists them, with the decisions whose review date has come.
+When today's recommendation differs from the decision on record, the application shows a **mismatch**: both dispositions side by side, each with its working. A mismatch changes nothing on its own; it is a prompt for the next portfolio review. **Portfolio → Decisions** lists them, beside the decisions whose review date has come and the applications nobody has decided about yet.
 
 ![The decisions page, showing applications whose decision differs from today's recommendation](img/decisions-light.webp)
 
@@ -242,7 +242,7 @@ When today's recommendation differs from the decision on record, the application
 
 A row whose reference is already on record updates that application, through the same checks as an edit by hand. Any other row adds one. The accountable owner is given by email address, and the vendor by name. A row that names nobody accountable is imported, and its application is flagged **No accountable owner**. A value for a sensitive field you may not see is refused.
 
-Stewards import for their units, and architects and managers for any unit. A spreadsheet is read as data, never as formulas.
+Stewards, architects, and managers import, each for the units in their scope. A spreadsheet is read as data, never as formulas.
 
 ### Export
 
