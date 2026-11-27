@@ -41,7 +41,7 @@ Status key: ☐ planned · ◐ in progress · ☑ done
 
 Detail: [waves/wave-1.md](waves/wave-1.md)
 
-## Wave 2: The landscape (v0.2.0) ☐
+## Wave 2: The landscape (v0.2.0) ◐
 
 **Goal:** see each application in its surroundings: what it talks to and what data passes, where it runs, what it costs and who pays, what else does the same job, and what breaks if it goes.
 

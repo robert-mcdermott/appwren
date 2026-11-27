@@ -1,0 +1,137 @@
+# Wave 2: The landscape (v0.2.0)
+
+**Goal:** see each application in its surroundings: what it talks to and what data passes, where it runs, what it costs and who pays, what else does the same job, and what breaks if it goes. Wave 1 made each application's record trustworthy on its own; this wave connects the records, so that the questions a portfolio review actually asks ("what else touches this data?", "what goes down with it?", "what are we paying twice for?", "what falls out of support next year?") are answered from the screen.
+
+**Branch:** `wave-2` · **Target version:** `0.2.0` · **Status:** ◐ in progress
+
+## Exit criteria
+
+The wave is done when, on a fresh checkout and on an installation upgraded from 0.1.0:
+
+1. An owner records an interface between two applications with its direction, method, frequency, owner, and the data classes it carries; each application shows what it sends and receives; and a view shows every flow of a chosen data class, marking any application that receives a class its own record does not list (LND-03).
+2. Any application, component, capability, technology, vendor, or hosting platform opens a focused picture of what it is connected to, usable from the keyboard and matched by a list that says everything the picture does (LND-04).
+3. *What breaks if this goes* lists, for an application: what depends on it directly and beyond, the interfaces that would stop, the capabilities left with no provider, and the people and units affected (LND-04).
+4. An application and its components are recorded as deployments in environments on hosting platforms; a platform shows everything that runs on it (LND-05).
+5. An application's cost is recorded in lines by category and funding source, and the lines add up to its annual cost; contracts record the vendor, the applications covered, the term, renewal and notice dates, auto-renewal, licenses bought and used, and whether a data agreement is in place; renewals whose notice date is near are listed (CST-03, CST-04).
+6. Cost per user and license use are factors of cost and burden, with their working; the worked example in [engine.md](../engine.md#a-worked-example) is updated and still produced exactly (CST-05).
+7. Cost lines, contracts, and funding are withheld exactly as annual cost is: in records, lists, filters, exports, and the working (PLT-14).
+8. Capabilities served by more than one application are listed with their applications' scores, costs, and decisions side by side (LND-06); the capability map can be colored by any score, by confidence, or by how many applications serve each capability (LND-07).
+9. A timeline shows technology releases against their end of support, with the applications on each, and applications against their planned retirement (LND-08); the radar shows technologies by ring and kind with how many components use each (LND-09).
+10. Support dates are imported from a file by an architect, with a dry run that says what would change (LND-08).
+11. An export lists the applications that handle a chosen data class, with owners, versions, hosting, sign-in, and support status, withholding what the reader may not see (RPT-07).
+12. An external reference is shown as a link where the program gives its system an address pattern (INV-16).
+13. Those who may read everything browse every change in one place, narrowed by person, record, kind, and date (INV-18).
+14. Upgrading a 0.1.0 installation keeps every row and file, and adds what is new in the default program without overwriting what the organization shaped.
+15. The demo organization shows every new screen with convincing data, and its storylines still hold. The accessibility audit and keyboard check pass; lint and the private-terms check are clean; the suite passes on both databases.
+
+Requirements delivered: LND-03 to LND-09; CST-03 to CST-05; RPT-07; INV-16, INV-18.
+
+## Decisions needed from the maintainer
+
+None block the start. These defaults have been taken and can be changed before the slice that depends on them:
+
+- **A consumer depends on its source.** An application that receives data through an active interface counts among the dependents of the application that sends it, as a *depends on* link does (slice 1).
+- **Interfaces are open like the catalog.** An interface is visible to whoever may see both of its applications, and kept by whoever may edit either (slice 1).
+- **Environments** are a vocabulary: production, staging, test, development, and disaster recovery (slice 3).
+- **Cost lines win.** Once an application has cost lines, its annual cost is their sum and is no longer typed in (slice 4).
+- **Contracts are sensitive as a whole.** A contract is visible to managers, architects, auditors, and administrators, and to anyone who may see the sensitive fields of an application it covers (slice 4).
+- **New factor weights for cost and burden:** annual cost 30, cost per user 15, license use 10, support effort 25, change effort 20. License use applies only where licenses bought are on record (slice 4).
+- **End-of-life data comes from a file** in this wave, never from the network; the connector is wave 4's ([ADR-0003](../decisions/0003-quiet-by-default.md)) (slice 6).
+
+---
+
+## Slice 1: Interfaces and data flows ☐
+
+**Goal:** what each application sends and receives, and where each class of data travels.
+
+- [ ] `interface`: a record of its own with a permanent reference, the application data comes from and the one it goes to, method, frequency, the data classes carried, an owner, a summary, and a status; vocabularies for method and frequency
+- [ ] Visibility and editing follow its two applications; a restricted application's interfaces are hidden with it
+- [ ] The application's page gains an **Interfaces** part: what it sends, what it receives, with the other end, method, frequency, and classes
+- [ ] The engine's *dependents* counts applications that receive its data, with the working saying which
+- [ ] **Landscape → Data flows:** every interface carrying a chosen data class, and a mark where the receiving application's record does not list the class
+- [ ] Export of interfaces; the demo's interfaces; guide and changelog entries
+
+**Acceptance:** an interface appears on both applications and in both histories; a member who cannot see a restricted application sees none of its interfaces, in lists, flows, counts, or exports; the worked example still has exactly three dependents; the flow view for a class lists exactly the interfaces that carry it.
+
+## Slice 2: Dependency graph and impact ☐
+
+**Goal:** the picture around any record, and an honest answer to *what breaks if this goes*.
+
+- [ ] One function that gathers a record's neighbors: links, interfaces, capabilities, components and their technologies, vendor, and (from slice 3) platforms; filtered by what the reader may see
+- [ ] `/graph/{ref}`: the focused picture, one ring out, with any neighbor opened a ring further; drawn as SVG, reachable and operable from the keyboard, with a list beside it that holds everything the picture does
+- [ ] **Impact** on the application: direct and transitive dependents, interfaces that stop, capabilities left with no active provider, users and units affected, and what it would leave orphaned
+- [ ] The keyboard check covers the picture
+
+**Acceptance:** the list beside the picture always has as many records as the answer; nothing a reader may not see appears as a node, an edge, or a count; impact for the worked example names its three dependents and the capability it alone provides.
+
+## Slice 3: Deployments and hosting ☐
+
+**Goal:** where everything runs.
+
+- [ ] `hosting_platform`: a shared record (a data center, a cloud account, a vendor's service, a cluster), kept by architects, with kind, provider, and location
+- [ ] `deployment`: an application, or one of its components, in an environment on a platform, with an address and a note
+- [ ] The application's page gains a **Where it runs** part; a platform's page lists what runs on it, by environment
+- [ ] Platforms join the graph; "what runs here" answers what a platform's loss would touch
+- [ ] The demo's platforms and deployments; export; guide and changelog entries
+
+**Acceptance:** a deployment is visible exactly when its application is; a platform's page counts only what the reader may see; a test holds the platform's list equal to the deployments list filtered by it, for every role.
+
+## Slice 4: Cost, funding, and contracts ☐
+
+**Goal:** what each application costs, who pays, and what is about to renew.
+
+- [ ] `funding_source`: a shared record (an operating budget, a grant, a chargeback, a capital project) with a code and, for a grant, an end date
+- [ ] `cost_line`: a yearly amount on an application, by category (license or subscription, hosting, support contract, internal effort, other), with its funding source and an optional contract; the application's annual cost is the sum of its lines once it has any
+- [ ] `contract` and `contract_application`: vendor, number, term, renewal date, notice period, auto-renewal, yearly value, licenses bought, a data agreement's standing, and the applications covered with the licenses each uses
+- [ ] Sensitive throughout: one function decides, and records, lists, filters, exports, and the working call it
+- [ ] The engine: *cost per user* and *license use* as factors of cost and burden; a new version of the default scoring model; the worked example updated in the specification and in the test
+- [ ] An upgrade publishes the new default model only where the organization still runs the previous default unchanged
+- [ ] **Portfolio → Contracts:** renewals and notice dates ahead; flags for a notice date within 90 days and for a missing data agreement where restricted data is handled
+- [ ] The dashboard gains cost by category, by funding source, and by domain, for those who may see cost
+- [ ] The demo's funding, lines, and contracts; exports; guide and changelog entries
+
+**Acceptance:** the sum of an application's lines equals its annual cost in the record, the list, the chart, and the working; a member sees no line, contract, or funding figure they could not see as annual cost; the worked example produces the specification's figures to the decimal; an installation with a shaped scoring model keeps it across the upgrade.
+
+## Slice 5: Overlap and the capability heat map ☐
+
+**Goal:** where the organization pays twice, and where it is thin.
+
+- [ ] **Landscape → Overlap:** every capability with more than one active application, its applications side by side with scores, recommendation, decision, users, and cost where visible; the primary named; a total for the capability
+- [ ] The capability map colored by a chosen measure: any of the four scores (the average of its applications), data confidence, the number of applications, or the lowest technical health; with a legend and the figures in words
+- [ ] Each figure opens the list it counts
+
+**Acceptance:** the overlap page's applications for a capability equal the portfolio list filtered by it, for every role; the map says in text everything it says in color; the three survey tools appear together with the hub as primary.
+
+## Slice 6: Technology lifecycle ☐
+
+**Goal:** what falls out of support, and when.
+
+- [ ] **Landscape → Lifecycle:** a timeline of technology releases to their end of support, each with how many components and applications are on it, and of applications to their planned retirement; with a table of the same
+- [ ] **Landscape → Radar:** technologies by ring and kind, each with how many components use it, and those in use with no ring
+- [ ] End-of-life data from a file: `appwren technologies import-eol FILE` and the same from the Technologies page, matched by each technology's key in the file, with a dry run that lists every date that would change; releases added, dates updated, nothing removed
+- [ ] Guide and changelog entries
+
+**Acceptance:** the timeline's counts equal the technology pages'; an import run twice changes nothing the second time; a date a person typed is replaced only when the file disagrees, and the change is in the history with the import named as its source.
+
+## Slice 7: Exports, external references, and the whole history ☐
+
+**Goal:** the evidence other processes ask the portfolio for.
+
+- [ ] **Reports → Data handling:** the applications that handle a chosen data class, with accountable owner, sourcing, hosting and platforms, sign-in, technologies and their support, interfaces carrying the class, and the data agreement's standing; as a page and an export, withholding what the reader may not see
+- [ ] External references shown as links where the program gives the system an address pattern; patterns checked when a pack is loaded
+- [ ] **Reports → History:** every change in one place for managers, auditors, and administrators, narrowed by person, record, kind of record, action, and dates; sensitive values withheld as on a record
+
+**Acceptance:** the data-handling list equals the applications list filtered by the class, for every role; a pattern can only produce an `https` address; the history page shows nothing a record's own history would withhold.
+
+## Slice 8: Release prep ☐
+
+- [ ] Guides: a new guide, *The landscape*; cost and contracts added to *The portfolio*; *Running the program*, the API guide, and the index updated; screenshots retaken
+- [ ] `README.md` and `CHANGELOG.md` for 0.2.0
+- [ ] The accessibility audit and keyboard check over every screen, old and new
+- [ ] Upgrade from 0.1.0 checked on both databases: every row and file kept
+- [ ] Fresh-clone install and quickstart checked on both databases
+- [ ] Version `0.2.0`; pull request from `wave-2`; tag and release
+
+## Notes
+
+Decisions and discoveries made during the wave are logged here, newest last.
