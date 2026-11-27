@@ -713,7 +713,7 @@ function connectionsTab(record, ctx) {
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
   const measuring = type === "component" || (type === "application" && tab === "components");
-  const planning = ["review", "initiative"].includes(type) ? import("../components/planning.js") : null;
+  const planning = ["review", "initiative", "request"].includes(type) ? import("../components/planning.js") : null;
   const [record, vocab, unitIndex, entries, program, fromSources, measured, cards] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
     tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
@@ -900,6 +900,7 @@ function sharedOverview(type, record, ctx) {
   }
   if (type === "review") glance.push(["Chair", record.chair?.name ?? null]);
   if (type === "initiative") main.push(ctx.planning.initiativeApplications(record, ctx));
+  if (type === "request") main.push(...ctx.planning.requestPanel(record, ctx));
   if (type === "interface") {
     const missing = record.undeclared ?? [];
     main.push(card({ title: "What passes" },
@@ -936,7 +937,8 @@ export function recordPage(main, type, params) {
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord(type, { record, onDone: reload }) }) : null;
       const picture = h("a", { class: "btn", href: `/graph/${record.ref}` }, "How it is connected");
       return h("div", { class: "stack" },
-        recordHeader(record, { badges: [type === "review" ? data.planning.reviewState(record.state) : statusPill(record.status)], actions: h("div", { class: "row-sm" }, picture, edit) }),
+        recordHeader(record, { badges: [type === "review" ? data.planning.reviewState(record.state)
+          : type === "request" ? data.planning.requestState(record) : statusPill(record.status)], actions: h("div", { class: "row-sm" }, picture, edit) }),
         tabBar([["overview", "Overview"], ["history", "History"]], tab),
         tab === "history" ? card({ flush: true }, timeline(data.history)) : sharedOverview(type, record, ctx));
     },

@@ -126,6 +126,19 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("GET", "/api/v1/initiatives/{ref}/history"): Needs.MEMBER,
     ("PUT", "/api/v1/initiatives/{ref}/applications"): Needs.MEMBER,
     ("GET", "/api/v1/roadmap"): Needs.MEMBER,
+    # Requests for something new: asked by anyone, weighed and ended by those who add
+    # applications to the unit
+    ("GET", "/api/v1/requests"): Needs.MEMBER,
+    ("POST", "/api/v1/requests"): Needs.MEMBER,
+    ("GET", "/api/v1/requests/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/requests/{ref}"): Needs.MEMBER,
+    ("POST", "/api/v1/requests/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/requests/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/requests/{ref}/history"): Needs.MEMBER,
+    ("PUT", "/api/v1/requests/{ref}/options"): Needs.KEEP,
+    ("POST", "/api/v1/requests/{ref}/approve"): Needs.KEEP,
+    ("POST", "/api/v1/requests/{ref}/meet"): Needs.KEEP,
+    ("POST", "/api/v1/requests/{ref}/decline"): Needs.KEEP,
     # Engineering maturity, for anyone, of what they may see
     ("GET", "/api/v1/maturity"): Needs.MEMBER,
     ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,

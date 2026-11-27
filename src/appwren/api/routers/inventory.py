@@ -198,8 +198,20 @@ class InitiativeBody(RecordBody):
     budget: int | None = Field(default=None, ge=0)
 
 
+class RequestBody(RecordBody):
+    """A request for something new. Its summary is the need; its options and how it ends are
+    set apart, at ``/requests/{ref}/...``."""
+
+    org_unit_id: int | None = Field(default=None, description="The unit that asks")
+    capability_id: str | None = Field(default=None, description="A capability's reference")
+    requested_by_id: int | None = None
+    users_expected: int | None = Field(default=None, ge=0)
+    needed_by: date | None = None
+
+
 BODIES: dict[str, type[RecordBody]] = {
     "review": ReviewBody,
+    "request": RequestBody,
     "initiative": InitiativeBody,
     "funding_source": FundingSourceBody,
     "contract": ContractBody,

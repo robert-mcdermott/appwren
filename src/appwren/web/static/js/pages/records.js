@@ -178,6 +178,11 @@ export function applicationList(main) {
 const REVIEW_STATES = { planned: ["Planned", ""], open: ["Open", "pill-accent"], closed: ["Closed", "pill-ok"] };
 
 const COLUMNS = {
+  request: [
+    ["Capability", (r) => (r.capability ? recordChip(r.capability) : "")],
+    ["State", (r) => r.state_label],
+    ["Needed by", (r) => (r.needed_by ? h("span", { class: "nowrap" }, date(r.needed_by)) : h("span", { class: "subtle" }, "Not said"))],
+  ],
   initiative: [
     ["Kind", (r, v) => label(v, "initiative_kinds", r.kind)],
     ["Stage", (r, v) => label(v, "initiative_stages", r.stage)],

@@ -54,13 +54,13 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** the roadmap shows exactly the initiatives in its filters, and an application's page lists every initiative that names it.
 
-## Slice 3: Intake ☐
+## Slice 3: Intake ☑
 
 **Goal:** a request for something new, checked against what is already there.
 
-- [ ] `request` as a record, with the need, the capability, who asked, and options to build, buy, partner, or reuse
-- [ ] What already serves the capability, and what is named like the request, shown on it
-- [ ] Ending it: approved (an application in the proposed stage, named for it), met by an existing application, or declined; each with a reason
+- [x] `request` as a record, with the need, the capability, who asked, and options to build, buy, partner, or reuse
+- [x] What already serves the capability, and what is named like the request, shown on it
+- [x] Ending it: approved (an application in the proposed stage, named for it), met by an existing application, or declined; each with a reason
 
 **Acceptance:** a request for a capability already served lists every application serving it; approving one adds exactly one proposed application, and ending it twice is refused.
 

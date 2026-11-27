@@ -181,3 +181,136 @@ export function initiativeApplications(record, ctx) {
   record.hidden_applications ? h("p", { class: "card-note subtle" }, `${plural(record.hidden_applications, "other application")} it names ${record.hidden_applications === 1 ? "is" : "are"} not shown to you.`) : null]
     : h("p", { class: "muted" }, "No application is named yet. Say which it changes, retires, or moves work onto."));
 }
+
+// --- Requests ---------------------------------------------------------------------------------
+
+const APPROACHES = [["build", "Build it"], ["buy", "Buy it"], ["partner", "Partner for it"], ["reuse", "Reuse what is on record"]];
+const REQUEST_TONES = { submitted: "", evaluating: "accent", approved: "ok", met: "ok", declined: "warn" };
+
+export function requestState(record) {
+  return pill(record.state_label, REQUEST_TONES[record.state] ?? "");
+}
+
+function editOptions(record, reload) {
+  const rows = record.options.map((o) => ({ approach: o.approach, name: o.name, vendor: o.vendor?.ref ?? "", application: o.application?.ref ?? "",
+    annual_cost: o.annual_cost ?? "", fit: o.fit ?? "", notes: o.notes ?? "" }));
+  openOverlay({
+    title: "Ways to meet it",
+    subtitle: `${record.ref} · ${record.name}`,
+    render: (body, footer, close) => {
+      const list = h("div", { class: "stack" });
+      const problem = banner();
+      const input = (row, key, text, attrs = {}) => h("input", { class: "input", value: row[key], "aria-label": text, placeholder: text, ...attrs,
+        oninput: (event) => { row[key] = event.target.value; } });
+      const draw = () => {
+        list.replaceChildren(...(rows.length ? rows.map((row, index) => h("fieldset", { class: "option-row" },
+          h("legend", { class: "sr-only" }, `Option ${index + 1}`),
+          h("select", { class: "select", "aria-label": `How, option ${index + 1}`, onchange: (event) => { row.approach = event.target.value; } },
+            APPROACHES.map(([key, text]) => h("option", { value: key, selected: key === row.approach }, text))),
+          input(row, "name", `Name, option ${index + 1}`),
+          input(row, "application", `Application on record (APP-…), option ${index + 1}`),
+          input(row, "vendor", `Vendor (VEN-…), option ${index + 1}`),
+          input(row, "annual_cost", `Cost a year, option ${index + 1}`, { type: "number", min: "0" }),
+          input(row, "fit", `Fit, 1 to 5, option ${index + 1}`, { type: "number", min: "1", max: "5" }),
+          input(row, "notes", `Why, option ${index + 1}`),
+          button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
+            rows.splice(index, 1);
+            draw();
+          } }))) : [h("p", { class: "muted" }, "None yet.")]));
+      };
+      draw();
+      const save = button("Save", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const none = (value) => (value === "" ? null : value);
+        const done = await submit({ button: save, banner: problem,
+          run: () => put(`/api/v1/requests/${record.ref}/options`, { options: rows.map((row) => ({ approach: row.approach, name: none(row.name),
+            application: none(row.application), vendor: none(row.vendor), annual_cost: row.annual_cost === "" ? null : Number(row.annual_cost),
+            fit: row.fit === "" ? null : Number(row.fit), notes: none(row.notes) })) }) });
+        if (done) {
+          close();
+          toast("Saved. The request is being weighed.");
+          reload();
+        }
+      });
+      body.append(h("div", { class: "stack" }, problem,
+        h("p", { class: "muted" }, "Each way to meet the need: build it, buy it, partner for it, or reuse an application on record; what it would cost a year, and how well it fits, 1 to 5."),
+        list, button("Add an option", { iconName: "plus", kind: "btn-sm", onclick: () => {
+          rows.push({ approach: "buy", name: "", vendor: "", application: "", annual_cost: "", fit: "", notes: "" });
+          draw();
+        } })));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+function endRequest(record, how, reload) {
+  const words = { approve: ["Approve the request", "Approve", "An application in the proposed stage is added, named for the request, serving its capability. Nothing is built or bought by this."],
+    meet: ["Met by an application on record", "Say it is met", "Name the application that already meets the need."],
+    decline: ["Decline the request", "Decline", "Say why, for whoever asked."] }[how];
+  openOverlay({
+    title: words[0],
+    subtitle: `${record.ref} · ${record.name}`,
+    kind: "dialog",
+    render: (body, footer, close) => {
+      const fields = { reason: field("Why", { type: "textarea", rows: 3, maxlength: 2000 }) };
+      if (how === "approve") fields.name = field("Name of the application", { value: record.name, maxlength: 200 });
+      let chosen = null;
+      const finder = how === "meet" ? recordFinder("application", { onPick: (app) => {
+        chosen = app;
+        picked.replaceChildren(h("p", {}, "Chosen: ", recordChip(app, { link: false })));
+      } }) : null;
+      const picked = h("div", { "aria-live": "polite" });
+      const problem = banner();
+      const save = button(words[1], { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem, fields,
+          run: () => post(`/api/v1/requests/${record.ref}/${how}`, { reason: fields.reason.input.value, name: fields.name?.input.value ?? null, application: chosen?.ref ?? null }) });
+        if (done) {
+          close();
+          toast(how === "approve" ? `Approved. ${done.data.outcome.application.ref} is added, in the proposed stage.` : "The request has ended.");
+          reload();
+        }
+      });
+      body.append(h("div", { class: "stack" }, problem, h("p", { class: "muted" }, words[2]),
+        finder ? h("div", { class: "field" }, h("div", { class: "label" }, "Application"), finder.node) : null, picked,
+        fields.name?.node, fields.reason.node));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+/** A request: what already serves the need, the ways to meet it, and how it ended. */
+export function requestPanel(record, ctx) {
+  const vocab = ctx.vocab;
+  const serving = record.serving;
+  const there = card({ title: serving.length ? `${plural(serving.length, "application")} already serve${serving.length === 1 ? "s" : ""} ${record.capability?.name ?? "this"}` : "What already serves the need", flush: serving.length > 0 },
+    serving.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
+      h("thead", {}, h("tr", {}, ["Application", "Stage", "People who use it", "Decision on record"].map((text) => h("th", { scope: "col" }, text)))),
+      h("tbody", {}, serving.slice(0, 8).map((a) => h("tr", {}, h("td", {}, recordChip(a), a.is_primary ? h("div", { class: "cell-sub" }, "Primary provider") : null),
+        h("td", {}, label(vocab, "lifecycle", a.lifecycle)), h("td", { class: "numeric" }, a.users == null ? "—" : Number(a.users).toLocaleString()),
+        h("td", {}, disposition(vocab, a.disposition, true)))))))
+      : h("p", { class: "muted" }, "Nothing on record serves this capability yet."),
+    serving.length > 8 && record.capability ? h("p", { class: "card-note" }, h("a", { href: `/capabilities/${record.capability.ref}` }, `All ${serving.length}, on the capability's page`)) : null,
+    record.similar.length ? h("p", { class: "card-note muted" }, "Named like it: ", record.similar.map((a, i) => [i ? ", " : "", recordChip(a)])) : null);
+  const options = card({ title: "Ways to meet it", actions: record.may_work ? button(record.options.length ? "Edit" : "Weigh the options", { kind: "btn-sm", onclick: () => editOptions(record, ctx.reload) }) : null, flush: record.options.length > 0 },
+    record.options.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
+      h("thead", {}, h("tr", {}, ["How", "What", "Cost a year", "Fit", "Why"].map((text) => h("th", { scope: "col" }, text)))),
+      h("tbody", {}, record.options.map((o) => h("tr", {}, h("td", {}, o.approach_label),
+        h("td", {}, o.application ? recordChip(o.application) : o.name, o.vendor ? h("div", { class: "cell-sub" }, recordChip(o.vendor)) : null),
+        h("td", { class: "numeric" }, o.annual_cost == null ? "—" : Number(o.annual_cost).toLocaleString()),
+        h("td", { class: "numeric" }, o.fit == null ? "—" : `${o.fit} of 5`),
+        h("td", {}, o.notes ?? ""))))))
+      : h("p", { class: "muted" }, record.may_work ? "Weigh building, buying, partnering, and reusing what is on record." : "Not weighed yet."));
+  const outcome = record.outcome
+    ? card({ title: record.state_label }, h("div", { class: "stack-sm" }, h("p", {}, record.outcome.reason),
+      record.outcome.application ? h("p", {}, "Application: ", recordChip(record.outcome.application)) : null,
+      h("p", { class: "subtle" }, `${record.outcome.by}, ${date(record.outcome.at)}`)))
+    : record.may_work ? card({ title: "End it", actions: h("div", { class: "row-sm wrap" },
+      button("Approve", { kind: "btn-sm btn-primary", onclick: () => endRequest(record, "approve", ctx.reload) }),
+      button("Met by one on record", { kind: "btn-sm", onclick: () => endRequest(record, "meet", ctx.reload) }),
+      button("Decline", { kind: "btn-sm btn-ghost", onclick: () => endRequest(record, "decline", ctx.reload) })) },
+    h("p", { class: "muted" }, "Approving adds an application in the proposed stage, named for the request. A request ends once.")) : null;
+  return record.outcome ? [outcome, there, options] : [there, options, outcome];
+}

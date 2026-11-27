@@ -1,5 +1,5 @@
 """Planning change: portfolio reviews and their agendas (PLN-01), and initiatives and the
-roadmap (PLN-02)."""
+roadmap (PLN-02), and requests for something new (PLN-03)."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field
 from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
-from appwren.inventory.registry import INITIATIVE, REVIEW
-from appwren.planning import initiatives, reviews
+from appwren.inventory.registry import INITIATIVE, REQUEST, REVIEW
+from appwren.planning import initiatives, intake, reviews
 
 router = APIRouter(prefix="/api/v1", tags=["planning"])
 
@@ -113,3 +113,64 @@ def roadmap(
     with reading(request) as session:
         filters = {"unit": unit, "kind": kind, "stage": stage, "closed": closed}
         return envelope(initiatives.roadmap(session, principal, filters))
+
+
+class OptionBody(BaseModel):
+    approach: str = Field(description="build, buy, partner, or reuse")
+    name: str | None = Field(default=None, max_length=200)
+    vendor: str | None = Field(default=None, description="A vendor's reference")
+    application: str | None = Field(default=None, description="For reuse: an application")
+    annual_cost: int | None = Field(default=None, ge=0)
+    fit: int | None = Field(default=None, ge=1, le=5, description="How well it fits, 1 to 5")
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class OptionsBody(BaseModel):
+    options: list[OptionBody]
+
+
+class EndBody(BaseModel):
+    reason: str = Field(default="", max_length=2000)
+    name: str | None = Field(default=None, max_length=200, description="To approve: its name")
+    application: str | None = Field(default=None, description="To say it is met: by which")
+
+
+def _request(session: Any, principal: Any, ref: str) -> Any:
+    return records.load(session, principal, REQUEST, ref)
+
+
+@router.put("/requests/{ref}/options", summary="The ways to meet a request")
+def set_request_options(request: Request, ref: str, body: OptionsBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        record = _request(session, principal, ref)
+        intake.set_options(session, principal, record,
+                           [item.model_dump() for item in body.options])  # fmt: skip
+        return envelope(records.detail(session, principal, REQUEST, record))
+
+
+@router.post("/requests/{ref}/approve", summary="Approve it: add a proposed application")
+def approve_request(request: Request, ref: str, body: EndBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor, context={"reason": body.reason}) as session:
+        record = _request(session, principal, ref)
+        intake.approve(session, principal, record, body.reason, body.name)
+        return envelope(records.detail(session, principal, REQUEST, record))
+
+
+@router.post("/requests/{ref}/meet", summary="Say an application on record meets it")
+def meet_request(request: Request, ref: str, body: EndBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor, context={"reason": body.reason}) as session:
+        record = _request(session, principal, ref)
+        intake.meet(session, principal, record, body.application or "", body.reason)
+        return envelope(records.detail(session, principal, REQUEST, record))
+
+
+@router.post("/requests/{ref}/decline", summary="Decline it, with why")
+def decline_request(request: Request, ref: str, body: EndBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor, context={"reason": body.reason}) as session:
+        record = _request(session, principal, ref)
+        intake.decline(session, principal, record, body.reason)
+        return envelope(records.detail(session, principal, REQUEST, record))

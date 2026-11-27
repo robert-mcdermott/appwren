@@ -93,6 +93,8 @@ summary > .row-sm { display: inline-flex; vertical-align: middle; }
 .check-list [data-state="met"] .check-state { color: var(--ok); }
 .check-list [data-state="not_met"] .check-state { color: var(--danger); }
 .check-list [data-state="unknown"] .check-state { color: var(--warn); }
+.option-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-s); padding: var(--space-3); margin: 0; }
+@media (max-width: 900px) { .option-row { grid-template-columns: 1fr; } }
 .kind-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: start; }
 .code-input { font-family: var(--font-mono); font-size: var(--text-s); }
 .code-block { margin: 0; padding: var(--space-3); border-radius: var(--radius-s); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-s); white-space: pre-wrap; overflow-wrap: anywhere; }

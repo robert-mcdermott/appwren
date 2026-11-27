@@ -26,6 +26,7 @@ from appwren.db.models import (
     HostingPlatform,
     Initiative,
     Interface,
+    Request,
     Review,
     Technology,
     Vendor,
@@ -501,6 +502,33 @@ INITIATIVE = register(
         filters=("status", "kind", "stage", "owner_id"),
         more_filters=("application",),
         sorts=("updated_at", "name", "ref", "status", "starts_on", "ends_on", "stage"),
+    )
+)
+
+REQUEST = register(
+    RecordType(
+        "request",
+        Request,
+        "REQ",
+        "requests",
+        "request",
+        "requests",
+        fields=(
+            F(
+                "capability_id",
+                "Capability",
+                "ref",
+                target="capability",
+                required=True,
+                help="What it is for. What already serves it is shown on the request.",
+            ),
+            F("requested_by_id", "Asked for by", "person"),
+            F("users_expected", "People who would use it", "int"),
+            F("needed_by", "Needed by", "date"),
+        ),
+        has_unit=True,
+        filters=("status", "state", "capability_id"),
+        sorts=("updated_at", "name", "ref", "status", "needed_by"),
     )
 )
 

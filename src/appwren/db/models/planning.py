@@ -113,3 +113,56 @@ class InitiativeApplication(Base):
         CheckConstraint(one_of("action", INITIATIVE_ACTIONS), name="action"),
         Index("ix_initiative_application_application_id", "application_id"),
     )
+
+
+REQUEST_STATES = ("submitted", "evaluating", "approved", "met", "declined")
+APPROACHES = ("build", "buy", "partner", "reuse")
+
+
+class Request(RecordMixin, Base):
+    """A request for something new: the need (its summary), the capability it serves, who
+    asked, and how it ended: approved (an application added for it), met by one already on
+    record, or declined, each with a reason."""
+
+    __tablename__ = "request"
+    __subject__ = "request"
+
+    capability_id: Mapped[int] = mapped_column(ForeignKey("capability.id"))
+    requested_by_id: Mapped[int | None] = mapped_column(ForeignKey("account.id"))
+    users_expected: Mapped[int | None] = mapped_column(Integer)
+    needed_by: Mapped[date | None] = mapped_column(Date)
+    state: Mapped[str] = mapped_column(String(16), default="submitted")
+    outcome_reason: Mapped[str | None] = mapped_column(Text)
+    outcome_by_name: Mapped[str | None] = mapped_column(String(200))
+    outcome_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    application_id: Mapped[int | None] = mapped_column(ForeignKey("application.id"))
+
+    __table_args__ = (
+        CheckConstraint(one_of("status", RECORD_STATUSES), name="status"),
+        CheckConstraint(one_of("state", REQUEST_STATES), name="state"),
+        Index("ix_request_capability_id", "capability_id"),
+    )
+
+
+class RequestOption(Base):
+    """One way to meet a request: build it, buy it, partner for it, or reuse what is on
+    record, with what it would cost a year, how well it fits, and why."""
+
+    __tablename__ = "request_option"
+    __audit_parent__ = ("request", "request_id")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    request_id: Mapped[int] = mapped_column(ForeignKey("request.id", ondelete="CASCADE"))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    approach: Mapped[str] = mapped_column(String(16))
+    name: Mapped[str] = mapped_column(String(200))
+    vendor_id: Mapped[int | None] = mapped_column(ForeignKey("vendor.id"))
+    application_id: Mapped[int | None] = mapped_column(ForeignKey("application.id"))
+    annual_cost: Mapped[int | None] = mapped_column(Integer)
+    fit: Mapped[int | None] = mapped_column(Integer)  # 1 to 5
+    notes: Mapped[str | None] = mapped_column(Text)
+
+    __table_args__ = (
+        CheckConstraint(one_of("approach", APPROACHES), name="approach"),
+        Index("ix_request_option_request_id", "request_id"),
+    )

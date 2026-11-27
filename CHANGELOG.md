@@ -26,6 +26,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   one with its applications filled in. Their kinds and stages are lists the program can
   rename.
 
+- **Requests for something new.** Under Portfolio → Requests, anyone asks for something
+  new: the need, the capability it serves, how many would use it, and when it is needed.
+  The request shows every application that already serves that capability and any named
+  like it. A steward of the unit, an architect, or a manager weighs options to build, buy,
+  partner, or reuse what is on record, and ends it once, with a reason: approved, which
+  adds an application in the proposed stage named for it; met by an application on record;
+  or declined.
+
 ### Changed
 
 - Home gives tasks, campaigns, and reviews icons of their own.

@@ -1797,6 +1797,100 @@ class Builder:
                 "summary": "Proposed at the last review; waiting for the next budget round.",
             })  # fmt: skip
 
+    def requests(self) -> None:
+        """Requests for something new over the last quarter: the lab notebook pilot that one
+        became, a survey tool the survey service already met, one declined, one being weighed,
+        and one just in."""
+        from appwren.core.clock import utc_now
+        from appwren.inventory.registry import REQUEST
+        from appwren.planning import intake
+
+        steward = self.principal(self.cast["res_steward"])
+        manager = self.principal(self.cast["portfolio"])
+        asker = self.cast["rse"]
+        unit = self.units["COMP"]
+        caps = self.capabilities
+
+        def ask(days: float, values: dict[str, Any]) -> str:
+            moment = self.end - timedelta(days=days)
+            with clock_set_to(lambda: moment), self.db.write(steward.actor) as session:
+                made = records.create(session, steward, REQUEST, {
+                    "org_unit_id": unit, "requested_by_id": asker, **values,
+                })  # fmt: skip
+                return made.ref
+
+        def weigh(days: float, ref: str, options: list[dict[str, Any]]) -> None:
+            moment = self.end - timedelta(days=days)
+            with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+                intake.set_options(session, manager, records.load(session, manager, REQUEST, ref),
+                                   options)  # fmt: skip
+
+        pilot = ask(84, {
+            "name": "An electronic lab notebook", "capability_id": caps["lab_data"],
+            "summary": "Paper notebooks cannot be searched, shared, or kept safe. The "
+            "computational labs want one notebook they can all use.",
+            "users_expected": 40, "needed_by": self.day(-30).isoformat(),
+        })  # fmt: skip
+        weigh(80, pilot, [
+            {"approach": "buy", "name": "A hosted notebook", "vendor": self.vendors["meridian"],
+             "annual_cost": 5000, "fit": 4, "notes": "Runs as a service; a pilot first"},
+            {"approach": "build", "name": "Built here", "fit": 2,
+             "notes": "Nobody to keep it after the grant"},
+        ])  # fmt: skip
+        moment = self.end - timedelta(days=76)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            row = records.load(session, manager, REQUEST, pilot)
+            app = records.load(
+                session, manager, APPLICATION, self.apps["Electronic Lab Notebook Pilot"]
+            )
+            row.state, row.application_id = "approved", app.id
+            row.outcome_reason = ("Nothing on record keeps lab notes. A hosted notebook, as a "
+                                  "pilot in Computational Biology first.")  # fmt: skip
+            row.outcome_by_name, row.outcome_at = manager.name, utc_now()
+            records.touch(session, row)
+        survey = ask(32, {
+            "name": "A survey tool for the clinic's patients",
+            "capability_id": caps["surveys"], "users_expected": 15,
+            "summary": "The clinic wants to send patients short questionnaires before visits.",
+        })  # fmt: skip
+        moment = self.end - timedelta(days=29)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            intake.meet(session, manager, records.load(session, manager, REQUEST, survey),
+                        self.apps["Survey Hub"],
+                        "Survey Hub already does this, with consent. The clinic team is to be "
+                        "given access.")  # fmt: skip
+        chat = ask(21, {
+            "name": "A second chat tool for one lab", "capability_id": caps["collaboration"],
+            "summary": "A lab would like the chat tool its collaborators use.",
+        })  # fmt: skip
+        moment = self.end - timedelta(days=19)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            intake.decline(session, manager, records.load(session, manager, REQUEST, chat),
+                           "The institute's collaboration tools can invite outside "
+                           "collaborators; a second one would hold research data where "
+                           "nobody answers for it.")  # fmt: skip
+        weighed = ask(6, {
+            "name": "Instrument booking for the core facilities",
+            "capability_id": caps["facilities"], "users_expected": 300,
+            "needed_by": self.day(90).isoformat(),
+            "summary": "The shared instruments are booked by email and a spreadsheet.",
+        })  # fmt: skip
+        weigh(3, weighed, [
+            {"approach": "reuse", "application": self.apps["Flow Cytometry Scheduler"], "fit": 3,
+             "notes": "Books one instrument well; would need to take the others"},
+            {"approach": "buy", "name": "A core facility booking service", "annual_cost": 18000,
+             "fit": 5},
+        ])  # fmt: skip
+        ask(
+            1,
+            {
+                "name": "A place to share protocols between labs",
+                "capability_id": caps["lab_data"],
+                "users_expected": 120,
+                "summary": "Each lab keeps its protocols in its own folders.",
+            },
+        )
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1840,6 +1934,7 @@ class Builder:
         self.pushes()
         self.reviews()
         self.initiatives()
+        self.requests()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

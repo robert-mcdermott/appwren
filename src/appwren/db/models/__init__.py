@@ -61,7 +61,14 @@ from appwren.db.models.people import (
     SessionToken,
     SignInRequest,
 )
-from appwren.db.models.planning import Initiative, InitiativeApplication, Review, ReviewItem
+from appwren.db.models.planning import (
+    Initiative,
+    InitiativeApplication,
+    Request,
+    RequestOption,
+    Review,
+    ReviewItem,
+)
 from appwren.db.models.program import Setting
 from appwren.db.models.system import ChainHead, Counter, Event
 
@@ -111,6 +118,8 @@ __all__ = [
     "RecordLink",
     "RecordOwner",
     "Reminder",
+    "Request",
+    "RequestOption",
     "Review",
     "ReviewItem",
     "RoleGrant",
