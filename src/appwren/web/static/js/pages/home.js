@@ -29,7 +29,7 @@ function setup(data, meta) {
     h("a", { class: "btn btn-sm", href: step.href }, step.action)))));
 }
 
-const ICONS = { assess: "assess", flag: "flag", complete: "edit", orphan: "people" };
+const ICONS = { assess: "assess", flag: "flag", complete: "edit", orphan: "people", review: "decision", task: "flag", campaign: "bell" };
 
 function owedList(items) {
   if (!items.length) {

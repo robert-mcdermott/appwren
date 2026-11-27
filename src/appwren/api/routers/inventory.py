@@ -176,7 +176,43 @@ class ContractBody(RecordBody):
     owner_id: int | None = None
 
 
+class ReviewBody(RecordBody):
+    """A portfolio review of a unit and everything beneath it."""
+
+    org_unit_id: int | None = Field(default=None, description="The unit it reviews")
+    held_on: date | None = None
+    chair_id: int | None = None
+    tiers: list[str] | None = Field(default=None, description="Only these tiers; empty for all")
+
+
+class InitiativeBody(RecordBody):
+    """A planned change, with the unit that answers for it. Its applications are set apart,
+    at ``/initiatives/{ref}/applications``."""
+
+    org_unit_id: int | None = Field(default=None, description="The unit that answers for it")
+    kind: str | None = Field(default=None, description="From initiative_kinds")
+    stage: str | None = Field(default=None, description="From initiative_stages")
+    owner_id: int | None = None
+    starts_on: date | None = None
+    ends_on: date | None = None
+    budget: int | None = Field(default=None, ge=0)
+
+
+class RequestBody(RecordBody):
+    """A request for something new. Its summary is the need; its options and how it ends are
+    set apart, at ``/requests/{ref}/...``."""
+
+    org_unit_id: int | None = Field(default=None, description="The unit that asks")
+    capability_id: str | None = Field(default=None, description="A capability's reference")
+    requested_by_id: int | None = None
+    users_expected: int | None = Field(default=None, ge=0)
+    needed_by: date | None = None
+
+
 BODIES: dict[str, type[RecordBody]] = {
+    "review": ReviewBody,
+    "request": RequestBody,
+    "initiative": InitiativeBody,
     "funding_source": FundingSourceBody,
     "contract": ContractBody,
     "hosting_platform": HostingPlatformBody,
@@ -424,6 +460,7 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application": "An application's reference: at either end",
         "data_class": "A class of data, by its key",
         "capability": "A capability's reference: the applications that serve it",
+        "state": "planned, open, or closed",
         "technology": "A technology's reference: what is built on it (for an application, any "
         "of its components)",
         "release": "With technology, one of its releases by its cycle, such as 6.0; none for "

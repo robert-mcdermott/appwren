@@ -53,6 +53,8 @@ def _apply(
 ) -> None:
     if "data_classes" in values or creating:
         record.sensitivity = sensitivity_of(session, record.data_classes)
+    if not creating and "lifecycle" in values and _moved(record, "lifecycle"):
+        _gate(session, record, errors)
     if ("lifecycle" in values or creating) and record.lifecycle:
         changed = creating or _moved(record, "lifecycle")
         if changed and "lifecycle_since" not in values:
@@ -75,6 +77,33 @@ def _apply(
                 "annual_cost",
                 "Its annual cost is the sum of its cost lines. Change the lines instead.",
             )
+
+
+REQUIRED = {"accountable": "an accountable owner", "capabilities": "the capabilities it serves",
+            "components": "its components", "technologies": "what its components are built on",
+            "assessment": "a current assessment", "decision": "a decision"}  # fmt: skip
+
+
+def _gate(session: Session, record: Application, errors: Errors) -> None:
+    """A move to a later stage needs what that stage, and those before it, require (DEC-06).
+    A move back, and a retirement, need nothing: what is retired is not kept up."""
+    if not catalog.decision_rules(session)["stage_gates"] or record.lifecycle in RETIRED_STAGES:
+        return
+    stages = vocab.keys(session, "lifecycle", active_only=False)
+    before = inspect(record).attrs["lifecycle"].history.deleted
+    was = before[0] if before else None
+    if record.lifecycle not in stages or (
+        was in stages and stages.index(record.lifecycle) <= stages.index(was)
+    ):
+        return  # fmt: skip
+    lacking = missing(session, record)["now"]
+    if not lacking:
+        return
+    labels = {field.name: field.label.lower() for field in APPLICATION.fields}
+    labels.update({item["key"]: item["label"].lower() for item in catalog.fields(session)})
+    said = ", ".join(REQUIRED.get(name) or labels.get(name, name) for name in lacking)
+    stage = vocab.labels(session, "lifecycle").get(record.lifecycle, record.lifecycle)
+    errors.add("lifecycle", f"Before it moves to {stage}, record {said}.")
 
 
 def _moved(record: Any, name: str) -> bool:

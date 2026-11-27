@@ -703,6 +703,65 @@
     "description": "One is needed and there is none"
    }
   ],
+  "initiative_kinds": [
+   {
+    "key": "modernize",
+    "label": "Modernize",
+    "description": "Bring it up to date where it stands"
+   },
+   {
+    "key": "migrate",
+    "label": "Migrate",
+    "description": "Move it to another platform or host"
+   },
+   {
+    "key": "consolidate",
+    "label": "Consolidate",
+    "description": "Move the work of several onto one"
+   },
+   {
+    "key": "replace",
+    "label": "Replace",
+    "description": "Put something else in its place"
+   },
+   {
+    "key": "retire",
+    "label": "Retire",
+    "description": "Turn it off, keeping what must be kept"
+   },
+   {
+    "key": "other",
+    "label": "Other",
+    "description": "Any other planned change"
+   }
+  ],
+  "initiative_stages": [
+   {
+    "key": "proposed",
+    "label": "Proposed",
+    "description": "Asked for, not yet agreed"
+   },
+   {
+    "key": "approved",
+    "label": "Approved",
+    "description": "Agreed, not yet started"
+   },
+   {
+    "key": "in_progress",
+    "label": "Under way",
+    "description": "Started"
+   },
+   {
+    "key": "done",
+    "label": "Done",
+    "description": "Finished"
+   },
+   {
+    "key": "cancelled",
+    "label": "Cancelled",
+    "description": "Stopped before it was finished"
+   }
+  ],
   "interface_methods": [
    {
     "key": "api",

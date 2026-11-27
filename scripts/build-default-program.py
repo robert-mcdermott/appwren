@@ -260,6 +260,23 @@ COST_CATEGORIES = items(
     ("internal", "Our own people's time", "The effort of those who run and change it, as money"),
     ("other", "Other", "Training, consulting, and anything else"),
 )
+INITIATIVE_KINDS = items(
+    ("modernize", "Modernize", "Bring it up to date where it stands"),
+    ("migrate", "Migrate", "Move it to another platform or host"),
+    ("consolidate", "Consolidate", "Move the work of several onto one"),
+    ("replace", "Replace", "Put something else in its place"),
+    ("retire", "Retire", "Turn it off, keeping what must be kept"),
+    ("other", "Other", "Any other planned change"),
+)
+
+INITIATIVE_STAGES = items(
+    ("proposed", "Proposed", "Asked for, not yet agreed"),
+    ("approved", "Approved", "Agreed, not yet started"),
+    ("in_progress", "Under way", "Started"),
+    ("done", "Done", "Finished"),
+    ("cancelled", "Cancelled", "Stopped before it was finished"),
+)
+
 AGREEMENT_STATES = items(
     ("in_place", "In place", "An agreement covers the data the vendor handles"),
     ("not_needed", "Not needed", "The vendor handles no data that needs one"),
@@ -1082,6 +1099,8 @@ def main() -> None:
             "platform_kinds": PLATFORM_KINDS,
             "cost_categories": COST_CATEGORIES,
             "agreement_states": AGREEMENT_STATES,
+            "initiative_kinds": INITIATIVE_KINDS,
+            "initiative_stages": INITIATIVE_STAGES,
             "interface_methods": INTERFACE_METHODS,
             "interface_frequencies": INTERFACE_FREQUENCIES,
             "unit_kinds": UNIT_KINDS,

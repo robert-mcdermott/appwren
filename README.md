@@ -43,7 +43,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 88 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, four quarterly portfolio snapshots, two campaigns, and tasks raised by what happened. Nothing in it is real.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 88 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, four quarterly portfolio snapshots, two campaigns, tasks raised by what happened, three portfolio reviews, ten initiatives on a roadmap, five requests for something new, and three retirements. Nothing in it is real.
 
 ![The portfolio chart in the demo: each application placed by business value and technical health, sized by cost, and colored by risk exposure](docs/img/portfolio-chart-light.webp)
 
@@ -62,9 +62,17 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.4.0 lets the facts other tools already know arrive by themselves, marked with where they came from, and never over a person.
+Version 0.5.0 carries a decision through to planned, tracked change.
 
-**Signals, new in 0.4.0**
+**Planning change, new in 0.5.0**
+
+- **Portfolio reviews** with an agenda drawn from what needs deciding in a unit: decisions that differ from the recommendation, decisions due for review, and applications with none. A decision recorded during the review is kept on its item, and a closed review is a record of what was decided.
+- **Initiatives and a roadmap:** modernizations, migrations, consolidations, replacements, and retirements, each with the applications it changes, an owner, a stage, and dates, on a timeline by unit and kind; started from a decision in one step.
+- **Requests for something new,** shown every application that already serves the need before anything is bought, weighed as build, buy, partner, or reuse, and ended once: approved, met by one on record, or declined.
+- **Stage gates:** an application moves to a later stage only with what that stage requires, and is told what is missing.
+- **The retirement playbook:** a plan with a date and a checklist, each step by a named person, ending with the application retired and its savings on record, summed by year.
+
+**Signals, from 0.4.0**
 
 - **Connectors,** each switched on by an administrator for one named source, with its credential kept in the environment: support dates from the public end-of-life dataset; languages, last change, contributors, dependency alerts, and engineering practice from GitHub; and active users from Microsoft Entra ID sign-ins. Every run is recorded, and a run that fails changes nothing.
 - **Values from other systems,** shown with their source and when they were read, in the history like any change, and overridden by whoever keeps the record, with a reason, until they remove it.
@@ -120,6 +128,7 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 | [The portfolio](docs/the-portfolio.md) | Everyone who keeps, assesses, or reads an application |
 | [The landscape](docs/the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches |
 | [Keeping current](docs/keeping-current.md) | Everyone who keeps an application, and the portfolio team |
+| [Planning change](docs/planning-change.md) | The people who decide what happens to applications, and those who carry it out |
 | [Facts from other systems](docs/signals.md) | Administrators who connect other tools, and everyone who reads what they supply |
 | [Running the program](docs/running-the-program.md) | The portfolio team, and administrators |
 | [Configuration](docs/configuration.md) | Whoever runs the server |

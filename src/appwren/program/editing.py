@@ -174,7 +174,9 @@ def save_decision_rules(
     also a manager or a leader over it. For a team too small for anyone else to; each such
     decision is marked as the owner's own."""
     _require(principal)
-    rules = {"owners_may_decide": values.get("owners_may_decide")}
+    current = catalog.decision_rules(session)
+    rules = {key: values.get(key, current[key]) if values.get(key) is not None else current[key]
+             for key in ("owners_may_decide", "stage_gates")}  # fmt: skip
     problems = catalog.check_decision_rules(rules)
     if problems:
         raise Invalid("The setting was not saved.", {"owners_may_decide": " ".join(problems)})

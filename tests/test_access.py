@@ -235,6 +235,7 @@ def test_changing_a_password_through_the_api(as_role: Clients) -> None:
 EVERYONE = set(ROLES)
 KEEPERS = {"steward", "architect", "manager"}
 ARCHITECTS = {"architect", "manager"}
+DECIDERS = {"leader", "manager"}
 REACH: dict[tuple[str, str], set[str]] = {
     ("GET", "/api/v1/health/live"): EVERYONE | {"nobody"},
     ("GET", "/api/v1/health/ready"): EVERYONE | {"nobody"},
@@ -270,6 +271,44 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("PATCH", "/api/v1/connectors/{key}"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/check"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/run"): {"admin"},
+    ("GET", "/api/v1/reviews"): EVERYONE,
+    ("POST", "/api/v1/reviews"): DECIDERS,
+    ("GET", "/api/v1/reviews/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/reviews/{ref}"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/reviews/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/reviews/{ref}/history"): EVERYONE,
+    ("POST", "/api/v1/reviews/{ref}/draw"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/items"): DECIDERS,
+    ("DELETE", "/api/v1/reviews/{ref}/items/{item_id}"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/open"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/close"): DECIDERS,
+    ("GET", "/api/v1/initiatives"): EVERYONE,
+    ("POST", "/api/v1/initiatives"): KEEPERS,
+    ("GET", "/api/v1/initiatives/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/initiatives/{ref}"): EVERYONE,
+    ("POST", "/api/v1/initiatives/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/initiatives/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/initiatives/{ref}/history"): EVERYONE,
+    ("PUT", "/api/v1/initiatives/{ref}/applications"): EVERYONE,
+    ("GET", "/api/v1/roadmap"): EVERYONE,
+    ("GET", "/api/v1/requests"): EVERYONE,
+    ("POST", "/api/v1/requests"): EVERYONE,
+    ("GET", "/api/v1/requests/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/requests/{ref}"): EVERYONE,
+    ("POST", "/api/v1/requests/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/requests/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/requests/{ref}/history"): EVERYONE,
+    ("PUT", "/api/v1/requests/{ref}/options"): KEEPERS,
+    ("POST", "/api/v1/requests/{ref}/approve"): KEEPERS,
+    ("POST", "/api/v1/requests/{ref}/meet"): KEEPERS,
+    ("POST", "/api/v1/requests/{ref}/decline"): KEEPERS,
+    ("GET", "/api/v1/applications/{ref}/retirement"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/retirement"): EVERYONE,
+    ("DELETE", "/api/v1/applications/{ref}/retirement"): EVERYONE,
+    ("PUT", "/api/v1/applications/{ref}/retirement/steps/{step}"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/retirement/complete"): EVERYONE,
+    ("GET", "/api/v1/retirements"): EVERYONE,
     ("GET", "/api/v1/maturity"): EVERYONE,
     ("GET", "/api/v1/maturity/{ref}"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,
@@ -493,7 +532,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
             path = path.replace("{item_id}", "9999").replace("{task_id}", "9999")
-            path = path.replace("{key_id}", "9999")
+            path = path.replace("{key_id}", "9999").replace("{step}", "users_told")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
             path = path.replace("{name}", "no_such_list").replace("{field}", "users")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
@@ -514,6 +553,10 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
                 body = {"to": people.accounts["member"]}
             elif template.endswith("/roles"):
                 body = {"roles": [{"role": "admin"}] if role == "admin" else []}
+            elif (
+                template.endswith("/applications") and method == "PUT" and "initiatives" in template
+            ):
+                body = {"applications": []}
             elif template.endswith("/units") and method == "PUT":
                 body = {"unit_ids": []}
             elif template.endswith("/password"):

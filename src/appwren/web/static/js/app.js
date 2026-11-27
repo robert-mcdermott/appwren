@@ -59,7 +59,7 @@ async function boot() {
   route("/applications", page("records", "applicationList"));
   route("/applications/:ref", page("record", "applicationPage"));
   route("/applications/:ref/assess", page("assess", "assess"));
-  for (const type of ["component", "vendor", "technology", "capability", "interface", "hosting_platform", "deployment", "contract", "funding_source"]) {
+  for (const type of ["component", "vendor", "technology", "capability", "interface", "hosting_platform", "deployment", "contract", "funding_source", "review", "initiative", "request"]) {
     const path = TYPES[type].path;
     route(`/${path}`, page("records", "recordList", type));
     route(`/${path}/:ref`, page("record", "recordPage", type));
@@ -68,6 +68,7 @@ async function boot() {
   route("/data-flows", page("data-flows", "dataFlows"));
   route("/overlap", page("overlap", "overlapPage"));
   route("/lifecycle", page("lifecycle", "lifecyclePage"));
+  route("/roadmap", page("roadmap", "roadmapPage"));
   route("/radar", page("lifecycle", "radarPage"));
   route("/graph/:ref", page("graph", "graphPage"));
   route("/portfolio", page("portfolio", "portfolioChart"));
@@ -75,6 +76,7 @@ async function boot() {
   route("/data-quality", page("quality", "dataQuality"));
   route("/data-handling", page("data-handling", "dataHandling"));
   route("/maturity", page("maturity", "maturityReport"));
+  route("/retirements", page("retirements", "retirementReport"));
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));

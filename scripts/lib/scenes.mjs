@@ -148,6 +148,20 @@ export const SCENES = [
       box.value = text.replace(/description: .*/, "description: Follows every specimen from collection to release.")
         + "---\\napiVersion: appwren/v1\\nkind: Component\\nmetadata:\\n  name: specimen-labels\\n  title: Specimen Labels\\nspec:\\n  type: library\\n";
       ${click("Check what would change")}; await new Promise((done) => setTimeout(done, 1200)); })()` },
+  // Planning change (wave 5)
+  { name: "reviews", as: "portfolio", path: "/reviews" },
+  { name: "review", as: "portfolio", path: first("/api/v1/reviews?state=closed", "(rows) => `/reviews/${rows[0].ref}`") },
+  { name: "review-upcoming", as: "portfolio", path: first("/api/v1/reviews?state=planned", "(rows) => `/reviews/${rows[0].ref}`") },
+  { name: "roadmap", as: "portfolio", path: "/roadmap" },
+  { name: "initiative", as: "architect", path: first("/api/v1/initiatives?q=Executive", "(rows) => `/initiatives/${rows[0].ref}`") },
+  { name: "decision-start-initiative", as: "architect", path: app("Intranet", "decisions") },
+  { name: "requests", as: "portfolio", path: "/requests" },
+  { name: "request", as: "portfolio", path: first("/api/v1/requests?state=evaluating", "(rows) => `/requests/${rows[0].ref}`") },
+  { name: "request-ended", as: "portfolio", path: first("/api/v1/requests?state=approved", "(rows) => `/requests/${rows[0].ref}`") },
+  { name: "request-options", as: "portfolio", path: first("/api/v1/requests?state=evaluating", "(rows) => `/requests/${rows[0].ref}`"), step: click("Edit") },
+  { name: "retirement", as: "portfolio", path: app("Old Surveys", "retirement") },
+  { name: "retirements", as: "portfolio", path: "/retirements" },
+  { name: "stage-gate", as: "res_steward", path: app("Specimen Tracker"), step: click("Edit") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

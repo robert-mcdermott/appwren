@@ -247,13 +247,33 @@ See [Facts from other systems](signals.md).
 | `GET` · `POST /applications/{ref}/catalog` | The application and its components as a catalog file (YAML); bring one in, sent as the body, with `dry_run` (the default) saying what would change |
 | `GET /maturity` · `GET /maturity/{ref}` | How many applications are at each engineering maturity level under each unit below `unit`; an application's or a component's level, checks, and what it needs for the next |
 
+### Planning change
+
+See [Planning change](planning-change.md).
+
+| Route | What it does |
+|---|---|
+| `GET` · `POST /reviews` · `GET` · `PATCH /reviews/{ref}` | Portfolio reviews, as records with a unit, `held_on`, a `chair_id`, and `tiers`; one review, with its agenda. Planned and changed by managers and the unit's leaders |
+| `POST /reviews/{ref}/draw` | Add to the agenda what needs deciding in its scope now: a decision that differs from the recommendation, one due for review by its date, or none. `meta.added` says how many |
+| `POST /reviews/{ref}/items` · `DELETE /reviews/{ref}/items/{id}` | Put an `application` on the agenda with a `note`; take one off |
+| `POST /reviews/{ref}/open` · `POST /reviews/{ref}/close` | Open it, from when a decision recorded for an item is shown on it; close it, keeping each item's decision. A closed review changes no more |
+| `GET` · `POST /initiatives` · `GET` · `PATCH /initiatives/{ref}` | Initiatives, as records with a `kind`, a `stage`, an `owner_id`, `starts_on`, `ends_on`, and a `budget`; filtered by `application` too |
+| `PUT /initiatives/{ref}/applications` | The `applications` it changes, each with its `application`, its `action` (`changes`, `retires`, or `receives`), and a `note` |
+| `GET /roadmap` | Initiatives with their dates, for a timeline: by `unit`, `kind`, or `stage`, and `closed` for those done or cancelled |
+| `GET` · `POST /requests` · `GET` · `PATCH /requests/{ref}` | Requests for something new, as records with a `capability_id`, `requested_by_id`, `users_expected`, and `needed_by`; one request, with what already serves its capability and what is named like it. Anyone may ask |
+| `PUT /requests/{ref}/options` | The ways to meet it: each with an `approach` (`build`, `buy`, `partner`, or `reuse`), a `name`, a `vendor` or an `application`, an `annual_cost`, a `fit` of 1 to 5, and `notes` |
+| `POST /requests/{ref}/approve` · `/meet` · `/decline` | End it once, with a `reason`: approved, adding a proposed application (`name` if not the request's); met by an `application` on record; or declined |
+| `GET` · `POST` · `DELETE /applications/{ref}/retirement` | Its retirement plan and checklist; start one with `planned_on` and a `note`; cancel an open one |
+| `PUT /applications/{ref}/retirement/steps/{step}` · `POST /applications/{ref}/retirement/complete` | Mark a step `done`, or not, with a `note`; complete the plan, every step done, retiring the application and keeping its savings |
+| `GET /retirements` | Retirements under way and done, with the savings by year |
+
 ### The program and the installation
 
 | Route | What it does |
 |---|---|
 | `GET /program` | The program as it stands, and which lists may only be renamed (managers for the whole organization, administrators) |
 | `PUT /program/vocabularies/{name}` · `PUT /program/fields` · `PUT /program/questionnaire` | Save a list, the organization's own fields, or new wording of the questions |
-| `PUT /program/decision-rules` | `owners_may_decide`: whether an application's accountable owner, if also a manager or leader over it, may record its decision |
+| `PUT /program/decision-rules` | `owners_may_decide`: whether an application's accountable owner, if also a manager or leader over it, may record its decision; `stage_gates`: whether an application may move to a later stage only with what that stage requires. Send either or both |
 | `POST /program/scoring/preview` · `PUT /program/scoring` | Every application a changed scoring model would change; publish it as a new version |
 | `GET /jobs` · `POST /jobs/{key}/run` · `PUT /jobs/{key}` | Scheduled work and its recent runs; run a job now; pause or resume one (admin) |
 | `GET /mail` · `POST /mail/test` | How email is set up and doing; send yourself a test message (admin) |

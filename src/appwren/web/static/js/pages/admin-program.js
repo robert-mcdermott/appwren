@@ -279,19 +279,24 @@ function decisionsTab(program, reload) {
   const allowed = checkbox("Let an application's accountable owner record its decision", {
     checked: program.decision_rules.owners_may_decide,
     hint: "Only where they are also a manager, or a leader over its unit. For a team too small for anyone else to decide. Each such decision is marked as recorded by its own owner, on the decision, in the history, and on the Decisions page." });
+  const gated = checkbox("An application moves to a later stage only with what that stage requires", {
+    checked: program.decision_rules.stage_gates,
+    hint: "What each stage requires is part of the program, and each application's page lists what its record still needs. A move short of it is refused, and says what is missing. Moving back, and retiring, need nothing. With this off, a record shows what it lacks but may move anyway." });
   const problem = banner();
   const save = button("Save", { kind: "btn-primary" });
   save.addEventListener("click", async () => {
     const done = await submit({ button: save, banner: problem, fields: {},
-      run: () => put("/api/v1/program/decision-rules", { owners_may_decide: allowed.input.checked }) });
+      run: () => put("/api/v1/program/decision-rules", { owners_may_decide: allowed.input.checked, stage_gates: gated.input.checked }) });
     if (done) {
-      toast(done.data.owners_may_decide ? "Owners may now record their own applications' decisions." : "Someone other than the owner records each decision.");
+      toast("Saved.");
       reload();
     }
   });
-  return card({ title: "Who records a decision", footer: h("div", { class: "row" }, save) }, h("div", { class: "stack" }, problem,
+  return card({ title: "Who records a decision, and stage gates", footer: h("div", { class: "row" }, save) }, h("div", { class: "stack" }, problem,
     h("p", {}, "A decision says what the organization will do with an application. A manager records it, or a leader of the application's unit. By default, never the application's own accountable owner: nobody pronounces on their own system."),
-    allowed.node));
+    allowed.node,
+    h("p", {}, "Each lifecycle stage requires some of the record. By default, an application cannot move on without it."),
+    gated.node));
 }
 
 export function adminProgram(main) {

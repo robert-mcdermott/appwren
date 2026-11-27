@@ -24,7 +24,10 @@ from appwren.db.models import (
     Deployment,
     FundingSource,
     HostingPlatform,
+    Initiative,
     Interface,
+    Request,
+    Review,
     Technology,
     Vendor,
 )
@@ -437,6 +440,95 @@ CONTRACT = register(
         filters=("status", "vendor_id", "auto_renews", "data_agreement"),
         more_filters=("application", "ending_within"),
         sorts=("updated_at", "name", "ref", "status", "ends_on", "annual_value"),
+    )
+)
+
+REVIEW = register(
+    RecordType(
+        "review",
+        Review,
+        "REV",
+        "reviews",
+        "review",
+        "reviews",
+        fields=(
+            F("held_on", "Held on", "date", required=True),
+            F("chair_id", "Chair", "person", help="Who runs it."),
+            F(
+                "tiers",
+                "Tiers",
+                "many",
+                vocab="tiers",
+                help="Only applications of these tiers. Leave empty for all.",
+            ),
+        ),
+        has_unit=True,
+        filters=("status", "state"),
+        sorts=("updated_at", "name", "ref", "status", "held_on"),
+    )
+)
+
+INITIATIVE = register(
+    RecordType(
+        "initiative",
+        Initiative,
+        "INI",
+        "initiatives",
+        "initiative",
+        "initiatives",
+        fields=(
+            F(
+                "kind",
+                "Kind",
+                "choice",
+                vocab="initiative_kinds",
+                required=True,
+                default="modernize",
+            ),
+            F(
+                "stage",
+                "Stage",
+                "choice",
+                vocab="initiative_stages",
+                required=True,
+                default="proposed",
+            ),
+            F("owner_id", "Owner", "person", help="Who sees it through."),
+            F("starts_on", "Starts", "date"),
+            F("ends_on", "Ends", "date", help="When the change should be complete."),
+            F("budget", "Budget", "int", help="What it is expected to cost, all told."),
+        ),
+        has_unit=True,
+        filters=("status", "kind", "stage", "owner_id"),
+        more_filters=("application",),
+        sorts=("updated_at", "name", "ref", "status", "starts_on", "ends_on", "stage"),
+    )
+)
+
+REQUEST = register(
+    RecordType(
+        "request",
+        Request,
+        "REQ",
+        "requests",
+        "request",
+        "requests",
+        fields=(
+            F(
+                "capability_id",
+                "Capability",
+                "ref",
+                target="capability",
+                required=True,
+                help="What it is for. What already serves it is shown on the request.",
+            ),
+            F("requested_by_id", "Asked for by", "person"),
+            F("users_expected", "People who would use it", "int"),
+            F("needed_by", "Needed by", "date"),
+        ),
+        has_unit=True,
+        filters=("status", "state", "capability_id"),
+        sorts=("updated_at", "name", "ref", "status", "needed_by"),
     )
 )
 

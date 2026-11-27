@@ -52,7 +52,7 @@ from appwren.inventory.registry import (
 from appwren.landscape import costs
 from appwren.oversight import attestation, campaigns, contests, views
 from appwren.people import accounts, units
-from appwren.program import branding, packs, settings
+from appwren.program import branding, catalog, packs, settings
 from appwren.reporting import exchange
 
 SETTING = "demo"
@@ -181,6 +181,9 @@ class Builder:
                 packs.install(session)
                 branding.save(session, ME, {"organization_name": c.ORGANIZATION})
                 self._units(session)
+                # Stage gates came later (0.5.0): the history before them was kept without.
+                settings.put(session, catalog.DECISION_RULES,
+                             {"owners_may_decide": False, "stage_gates": False})  # fmt: skip
             with self.db.write(ME.actor) as session:
                 self._people(session)
             with self.db.write(ME.actor) as session:
@@ -1515,6 +1518,15 @@ class Builder:
             connectors.change(session, admin, connectors.load(session, "github"),
                               {"enabled": False})  # fmt: skip
 
+    def gates(self) -> None:
+        """The portfolio team switches the stage gates on, the day they arrive."""
+        from appwren.program import editing
+
+        manager = self.principal(self.cast["portfolio"])
+        moment = self.end - timedelta(days=6, hours=3)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            editing.save_decision_rules(session, manager, {"stage_gates": True})
+
     def documents(self) -> None:
         """Where each application's documentation is: kept more often where it is in good
         health. Added when the maturity checks came, as a team would fill them in."""
@@ -1653,6 +1665,293 @@ class Builder:
                     push.take(session, row, facts)
                     row.last_used_at = at
 
+    def reviews(self) -> None:
+        """The quarterly portfolio reviews: the last two rounds of decisions, each held as a
+        review of the whole organization and closed; and the next, a week away, with its
+        agenda drawn."""
+        from appwren.db.models import Decision, OrgUnit, ReviewItem
+        from appwren.inventory.registry import REVIEW
+        from appwren.planning import reviews as rv
+
+        manager = self.principal(self.cast["portfolio"])
+        with self.db.read() as session:
+            root = session.scalars(select(OrgUnit.id).where(OrgUnit.parent_id.is_(None))).first()
+            rows = session.scalars(select(Decision).order_by(Decision.created_at)).all()
+            decided = [(row.created_at, row.decided_on, row.application_id, row.recommendation,
+                        row.id) for row in rows]  # fmt: skip
+        rounds: list[list[tuple[Any, ...]]] = []
+        for item in decided:
+            if rounds and (item[1] - rounds[-1][-1][1]).days <= 5:
+                rounds[-1].append(item)
+            else:
+                rounds.append([item])
+        held = [batch for batch in rounds if len(batch) >= 5][-2:]
+        for batch in held:
+            start = batch[0][0] - timedelta(hours=1)
+            end = batch[-1][0] + timedelta(hours=1)
+            on = batch[0][1]
+            planned = start - timedelta(days=12)
+            with (
+                clock_set_to(lambda planned=planned: planned),
+                self.db.write(manager.actor) as session,
+            ):
+                review = records.create(session, manager, REVIEW, {
+                    "name": f"Portfolio review, {on:%B %Y}", "org_unit_id": root,
+                    "held_on": on.isoformat(), "chair_id": self.cast["portfolio"],
+                    "summary": "The quarter's review of the whole portfolio: decisions that differ "
+                    "from the recommendation, those due for review, and those not yet made.",
+                })  # fmt: skip
+                review_ref = review.ref
+                seen: set[int] = set()
+                for position, (_, _, app_id, recommendation, _) in enumerate(batch):
+                    if app_id in seen:
+                        continue
+                    seen.add(app_id)
+                    before = [d for d in decided if d[2] == app_id and d[0] < start]
+                    previous = session.get(Decision, before[-1][4]) if before else None
+                    session.add(ReviewItem(
+                        review_id=review.id, application_id=app_id, position=position + 1,
+                        reason="review_due" if previous else "undecided",
+                        recommendation=recommendation,
+                        disposition=previous.disposition if previous else None,
+                    ))  # fmt: skip
+            with clock_set_to(lambda start=start: start), self.db.write(manager.actor) as session:
+                rv.open_review(session, manager, rv.load(session, manager, review_ref))
+            with clock_set_to(lambda end=end: end), self.db.write(manager.actor) as session:
+                rv.close_review(session, manager, rv.load(session, manager, review_ref))
+        planned = self.end - timedelta(days=3)
+        with clock_set_to(lambda: planned), self.db.write(manager.actor) as session:
+            review = records.create(session, manager, REVIEW, {
+                "name": f"Portfolio review, {self.day(9):%B %Y}", "org_unit_id": root,
+                "held_on": self.day(9).isoformat(), "chair_id": self.cast["portfolio"],
+                "tiers": ["1", "2"],
+                "summary": "The quarter's review, of the most critical applications this time.",
+            })  # fmt: skip
+            review_ref = review.ref
+        with (
+            clock_set_to(lambda: self.end - timedelta(hours=2)),
+            self.db.write(manager.actor) as session,
+        ):
+            rv.draw(session, manager, rv.load(session, manager, review_ref))
+
+    def initiatives(self) -> None:
+        """An initiative for each decision that commits to a change, started by the portfolio
+        team soon after it, at the stage its dates suggest; and one proposed with no decision
+        behind it yet."""
+        from appwren.db.models import Application, Decision
+        from appwren.inventory.registry import INITIATIVE
+        from appwren.planning import initiatives as ini
+
+        r = random.Random(self.seed * 6151 + 7)  # wave 5's own draws
+        manager = self.principal(self.cast["portfolio"])
+        kinds = {
+            "modernize": ("modernize", "changes"), "replace": ("replace", "retires"),
+            "consolidate": ("consolidate", "retires"), "retire": ("retire", "retires"),
+        }  # fmt: skip
+        with self.db.read() as session:
+            current = [
+                (row, session.get(Application, row.application_id))
+                for row in session.scalars(
+                    select(Decision).where(Decision.superseded_by.is_(None),
+                                           Decision.disposition.in_(list(kinds)))
+                    .order_by(Decision.decided_on)
+                )
+            ]  # fmt: skip
+            plans = [(d.disposition, d.decided_on, d.target_on, app.ref, app.name, app.org_unit_id,
+                      d.successor_id and session.get(Application, d.successor_id).ref,
+                      d.created_at) for d, app in current if app.status == "active"]  # fmt: skip
+        # Consolidations onto the same application are one initiative; any other is its own.
+        groups: dict[tuple[str, str], list[tuple[Any, ...]]] = {}
+        for plan_ in plans:
+            disposition, ref, successor = plan_[0], plan_[3], plan_[6]
+            key = ("onto", successor) if disposition == "consolidate" and successor else (
+                disposition, ref)  # fmt: skip
+            groups.setdefault(key, []).append(plan_)
+        names = {plan_[6]: None for plan_ in plans if plan_[6]}
+        with self.db.read() as session:
+            for successor in names:
+                names[successor] = records.load(session, ME, APPLICATION, successor).name
+        today = self.end.date()
+        for (how, _), batch in groups.items():
+            first = batch[0]
+            disposition, unit, successor = first[0], first[5], first[6]
+            kind, action = kinds[disposition]
+            begins = min(p_[1] for p_ in batch) + timedelta(days=r.randint(20, 60))
+            ends = max(p_[2] or begins + timedelta(days=r.choice([180, 270, 365]))
+                       for p_ in batch)  # fmt: skip
+            stage = "in_progress" if begins <= today else "approved"
+            if how == "onto":
+                title = (f"Move {len(batch)} applications onto {names[successor]}" if len(batch) > 1
+                         else f"Move {first[4]} onto {names[successor]}")  # fmt: skip
+            else:
+                title = f"{disposition.title()} {first[4]}"
+            moment = max(p_[7] for p_ in batch) + timedelta(days=r.randint(2, 9))
+            with (
+                clock_set_to(lambda moment=moment: moment),
+                self.db.write(manager.actor) as session,
+            ):
+                made = records.create(session, manager, INITIATIVE, {
+                    "name": title, "org_unit_id": unit, "kind": kind, "stage": stage,
+                    "owner_id": self.cast["architect"], "starts_on": begins.isoformat(),
+                    "ends_on": ends.isoformat(), "budget": r.choice([None, 15000, 40000, 90000]),
+                })  # fmt: skip
+                wanted = [{"application": p_[3], "action": action} for p_ in batch]
+                if successor:
+                    wanted.append({"application": successor, "action": "receives"})
+                ini.set_applications(session, manager, made, wanted)
+        moment = self.end - timedelta(days=4)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            root = self.units["IT"]
+            made = records.create(session, manager, INITIATIVE, {
+                "name": "Move the last servers to the cloud", "org_unit_id": root,
+                "kind": "migrate", "stage": "proposed", "owner_id": self.cast["architect"],
+                "starts_on": self.day(120).isoformat(), "ends_on": self.day(480).isoformat(),
+                "summary": "Proposed at the last review; waiting for the next budget round.",
+            })  # fmt: skip
+
+    def requests(self) -> None:
+        """Requests for something new over the last quarter: the lab notebook pilot that one
+        became, a survey tool the survey service already met, one declined, one being weighed,
+        and one just in."""
+        from appwren.core.clock import utc_now
+        from appwren.inventory.registry import REQUEST
+        from appwren.planning import intake
+
+        steward = self.principal(self.cast["res_steward"])
+        manager = self.principal(self.cast["portfolio"])
+        asker = self.cast["rse"]
+        unit = self.units["COMP"]
+        caps = self.capabilities
+
+        def ask(days: float, values: dict[str, Any]) -> str:
+            moment = self.end - timedelta(days=days)
+            with clock_set_to(lambda: moment), self.db.write(steward.actor) as session:
+                made = records.create(session, steward, REQUEST, {
+                    "org_unit_id": unit, "requested_by_id": asker, **values,
+                })  # fmt: skip
+                return made.ref
+
+        def weigh(days: float, ref: str, options: list[dict[str, Any]]) -> None:
+            moment = self.end - timedelta(days=days)
+            with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+                intake.set_options(session, manager, records.load(session, manager, REQUEST, ref),
+                                   options)  # fmt: skip
+
+        pilot = ask(84, {
+            "name": "An electronic lab notebook", "capability_id": caps["lab_data"],
+            "summary": "Paper notebooks cannot be searched, shared, or kept safe. The "
+            "computational labs want one notebook they can all use.",
+            "users_expected": 40, "needed_by": self.day(-30).isoformat(),
+        })  # fmt: skip
+        weigh(80, pilot, [
+            {"approach": "buy", "name": "A hosted notebook", "vendor": self.vendors["meridian"],
+             "annual_cost": 5000, "fit": 4, "notes": "Runs as a service; a pilot first"},
+            {"approach": "build", "name": "Built here", "fit": 2,
+             "notes": "Nobody to keep it after the grant"},
+        ])  # fmt: skip
+        moment = self.end - timedelta(days=76)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            row = records.load(session, manager, REQUEST, pilot)
+            app = records.load(
+                session, manager, APPLICATION, self.apps["Electronic Lab Notebook Pilot"]
+            )
+            row.state, row.application_id = "approved", app.id
+            row.outcome_reason = ("Nothing on record keeps lab notes. A hosted notebook, as a "
+                                  "pilot in Computational Biology first.")  # fmt: skip
+            row.outcome_by_name, row.outcome_at = manager.name, utc_now()
+            records.touch(session, row)
+        survey = ask(32, {
+            "name": "A survey tool for the clinic's patients",
+            "capability_id": caps["surveys"], "users_expected": 15,
+            "summary": "The clinic wants to send patients short questionnaires before visits.",
+        })  # fmt: skip
+        moment = self.end - timedelta(days=29)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            intake.meet(session, manager, records.load(session, manager, REQUEST, survey),
+                        self.apps["Survey Hub"],
+                        "Survey Hub already does this, with consent. The clinic team is to be "
+                        "given access.")  # fmt: skip
+        chat = ask(21, {
+            "name": "A second chat tool for one lab", "capability_id": caps["collaboration"],
+            "summary": "A lab would like the chat tool its collaborators use.",
+        })  # fmt: skip
+        moment = self.end - timedelta(days=19)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            intake.decline(session, manager, records.load(session, manager, REQUEST, chat),
+                           "The institute's collaboration tools can invite outside "
+                           "collaborators; a second one would hold research data where "
+                           "nobody answers for it.")  # fmt: skip
+        weighed = ask(6, {
+            "name": "Instrument booking for the core facilities",
+            "capability_id": caps["facilities"], "users_expected": 300,
+            "needed_by": self.day(90).isoformat(),
+            "summary": "The shared instruments are booked by email and a spreadsheet.",
+        })  # fmt: skip
+        weigh(3, weighed, [
+            {"approach": "reuse", "application": self.apps["Flow Cytometry Scheduler"], "fit": 3,
+             "notes": "Books one instrument well; would need to take the others"},
+            {"approach": "buy", "name": "A core facility booking service", "annual_cost": 18000,
+             "fit": 5},
+        ])  # fmt: skip
+        ask(
+            1,
+            {
+                "name": "A place to share protocols between labs",
+                "capability_id": caps["lab_data"],
+                "users_expected": 120,
+                "summary": "Each lab keeps its protocols in its own folders.",
+            },
+        )
+
+    def retirements(self) -> None:
+        """The old reports server's retirement, kept as the plan it was; the intranet's, under
+        way with the move onto the public website; and the old surveys', past its date."""
+        from appwren.db.models import Retirement
+        from appwren.planning import retirements as rt
+
+        manager = self.principal(self.cast["portfolio"])
+        steps = list(rt.STEPS)
+        notes = {"users_told": "Told at the leadership meeting, and by email",
+                 "data_archived": "Exports kept in the records archive for seven years",
+                 "interfaces_removed": "Its feed from the finance system was switched off",
+                 "licenses_ended": "The reporting licenses were not renewed",
+                 "access_removed": "Accounts removed from the directory",
+                 "infrastructure_removed": "The two servers were wiped and recycled"}  # fmt: skip
+        started = self.end - timedelta(days=398)
+        done = self.end - timedelta(days=330)
+        with clock_set_to(lambda: done), self.db.write(manager.actor) as session:
+            app = records.load(session, manager, APPLICATION, self.apps["Old Reports Server"])
+            session.add(Retirement(
+                application_id=app.id, planned_on=done.date(),
+                note="The executive dashboards replace it.",
+                steps={key: {"done_on": (started + timedelta(days=10 + 9 * i)).date().isoformat(),
+                             "by": manager.name, "note": notes[key]}
+                       for i, key in enumerate(steps)},
+                started_by_name=manager.name, started_on=started.date(),
+                completed_on=done.date(), completed_by_name=manager.name,
+                savings=app.annual_cost or 0,
+            ))  # fmt: skip
+        for app_name, days_ago, planned, finished in (
+            ("Intranet", 12, self.day(118), 2),
+            ("Old Surveys", 70, self.day(-6), 4),
+        ):
+            moment = self.end - timedelta(days=days_ago)
+            with (
+                clock_set_to(lambda moment=moment: moment),
+                self.db.write(manager.actor) as session,
+            ):
+                app = records.load(session, manager, APPLICATION, self.apps[app_name])
+                rt.start(session, manager, app, planned.isoformat(),
+                         "Its users move as the initiative for it goes.")  # fmt: skip
+            for index, key in enumerate(steps[:finished]):
+                moment = self.end - timedelta(days=days_ago - 2 - 3 * index)
+                with (
+                    clock_set_to(lambda moment=moment: moment),
+                    self.db.write(manager.actor) as session,
+                ):
+                    app = records.load(session, manager, APPLICATION, self.apps[app_name])
+                    rt.mark(session, manager, app, key, True, notes[key].split(",")[0])
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1690,10 +1989,15 @@ class Builder:
         self.run()
         self.remind()
         self.sources()
+        self.gates()
         self.documents()
         self.code()
         self.signins()
         self.pushes()
+        self.reviews()
+        self.initiatives()
+        self.requests()
+        self.retirements()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

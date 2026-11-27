@@ -4,6 +4,69 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.5.0 (2026-11-27)
+
+Wave 5, *Planning change*: decisions become planned, tracked change. A portfolio review
+draws its agenda from what needs deciding and keeps what it decided; a decision to change
+something becomes an initiative with its applications and dates, on a roadmap; a request for
+something new is checked against what already serves the need before anything is bought; an
+application cannot move to a later stage without what that stage requires; and a retirement
+is a plan with a checklist that ends with the application retired and its savings on record.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept, and no
+score moves. Stage gates are on after the upgrade: see **Changed**.
+
+### Added
+
+- **Portfolio reviews.** Under Portfolio → Reviews, a manager or a unit's leader plans a
+  review of a unit and everything beneath it, narrowed by tier if wished, with a date and a
+  chair. Drawing the agenda adds the applications that need deciding: those whose decision
+  differs from today's recommendation, whose decision is due for review by then, or that have
+  none; more can be added by hand. Each item shows what was recommended and decided before,
+  and a decision recorded while the review is open is shown on its item and kept there when
+  it closes. A closed review changes no more. A review coming up is on Home for the people
+  who run it.
+
+- **Initiatives and the roadmap.** An initiative is a planned change (a modernization, a
+  migration, a consolidation, a replacement, a retirement, or another) with an owner, a
+  stage, dates, and the applications it changes, retires, or moves work onto, each shown
+  with the decision on record for it. Portfolio → Roadmap puts initiatives on a timeline by
+  unit, kind, and stage, each bar a link. An application's page lists the initiatives that
+  change it, and a decision to modernize, replace, consolidate, or retire offers to start
+  one with its applications filled in. Their kinds and stages are lists the program can
+  rename.
+
+- **Requests for something new.** Under Portfolio → Requests, anyone asks for something
+  new: the need, the capability it serves, how many would use it, and when it is needed.
+  The request shows every application that already serves that capability and any named
+  like it. A steward of the unit, an architect, or a manager weighs options to build, buy,
+  partner, or reuse what is on record, and ends it once, with a reason: approved, which
+  adds an application in the proposed stage named for it; met by an application on record;
+  or declined.
+
+- **Stage gates.** An application cannot move to a later stage without what that stage, and
+  those before it, require; the editor, the API, an import, and a catalog file are refused
+  with what is missing. Moving back, and retiring, need nothing. The gates are on by
+  default and can be switched off on Admin → Program → Decisions, where a record still shows
+  what it lacks.
+- **The retirement playbook.** On an application's new Retirement part, whoever keeps it
+  starts a plan with a date (its planned retirement moves with it) and works through a
+  checklist: its users told, its data archived and where, its interfaces removed, its
+  licenses and contracts ended, access removed, and its infrastructure torn down, each step
+  by a named person on a date with a note. With every step done, completing the plan
+  retires the application and keeps its annual cost as the savings. Reports → Retirements
+  lists those under way, those done, and the savings by year.
+- **Planning change,** a new guide, and the API page's routes for it.
+
+### Changed
+
+- Home gives tasks, campaigns, and reviews icons of their own.
+- Three rarely opened dialogs on a record's page (what a component is built on, a
+  technology's releases, and what a contract covers) load when they are opened.
+- **Breaking:** with the gates on by default, an import or an API call that moves an
+  application to a later stage without what that stage requires is now refused. Switch the
+  gates off to keep the old behaviour.
+
 ## 0.4.0 (2026-11-26)
 
 Wave 4, *Signals*: the facts other tools already know arrive by themselves, marked with

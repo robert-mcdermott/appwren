@@ -384,7 +384,7 @@ function missingCard(record, ctx) {
   return card({ title: "What its record still needs" },
     now.length ? h("div", { class: "stack-sm" }, h("p", {}, `For ${label(ctx.vocab, "lifecycle", record.lifecycle)}:`),
       h("ul", { class: "bullets" }, now.map((key) => h("li", {}, name(key))))) : h("p", { class: "muted" }, "Everything its stage requires is recorded."),
-    next.length ? h("p", { class: "subtle" }, `Before ${label(ctx.vocab, "lifecycle", nextStage)}: ${next.map(name).join(", ")}.`) : null);
+    next.length ? h("p", { class: "subtle" }, `Before it can move to ${label(ctx.vocab, "lifecycle", nextStage)}: ${next.map(name).join(", ")}.`) : null);
 }
 
 function applicationOverview(record, ctx) {
@@ -417,6 +417,8 @@ function applicationOverview(record, ctx) {
         ["Replaced by", record.successor ? recordChip(record.successor) : null],
         ["Replaces", record.replaces?.length ? h("div", { class: "chips" }, record.replaces.map((r) => recordChip(r))) : null]])) : null,
       sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
+      record.initiatives?.length ? card({ title: "Initiatives that change it" }, h("ul", { class: "plain-list" },
+        record.initiatives.map((i) => h("li", {}, recordChip(i), h("div", { class: "cell-sub" }, `${i.action_label}${i.ends_on ? `, by ${date(i.ends_on)}` : ""}`))))) : null,
       linksCard(record, ctx),
       externalCard(record, ctx)));
 }
@@ -502,53 +504,6 @@ async function editCostLines(record, ctx) {
           draw();
         } }),
         total));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
-}
-
-function editCovered(record, ctx) {
-  const rows = record.applications.map((a) => ({ ref: a.ref, name: a.name, licenses_used: a.licenses_used ?? "" }));
-  openOverlay({
-    title: "What it covers",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const list = h("div", { class: "stack-sm" });
-      const problem = banner();
-      const draw = () => {
-        list.replaceChildren(...(rows.length ? rows.map((row, index) => {
-          const used = h("input", { class: "input", type: "number", min: 0, step: 1, value: row.licenses_used, placeholder: "Licenses it uses", "aria-label": `Licenses ${row.name} uses` });
-          used.addEventListener("input", () => {
-            row.licenses_used = used.value;
-          });
-          return h("div", { class: "owner-row" }, h("div", { class: "grow" }, recordChip({ ...row, type: "application" }, { link: false })), used,
-            button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
-              rows.splice(index, 1);
-              draw();
-            } }));
-        }) : [h("p", { class: "muted" }, "Nothing yet.")]));
-      };
-      draw();
-      const finder = recordFinder("application", { exclude: (r) => rows.some((row) => row.ref === r.ref), onPick: (r) => {
-        rows.push({ ref: r.ref, name: r.name, licenses_used: "" });
-        draw();
-        finder.refresh();
-      } });
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => put(`/api/v1/contracts/${record.ref}/applications`, { applications: rows.map((row) => ({ application: row.ref,
-            licenses_used: row.licenses_used === "" ? null : Number(row.licenses_used) })) }) });
-        if (done) {
-          close();
-          toast("Saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack-lg" }, problem,
-        h("p", { class: "muted" }, "Each application the contract covers, and how many of its licenses that application uses. Use against what was bought is one of the things an application's cost is judged by."),
-        list, h("div", { class: "field" }, h("div", { class: "label" }, "Add an application"), finder.node)));
       footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
       footer.hidden = false;
     },
@@ -758,6 +713,7 @@ function connectionsTab(record, ctx) {
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
   const measuring = type === "component" || (type === "application" && tab === "components");
+  const planning = ["review", "initiative", "request"].includes(type) ? import("../components/planning.js") : null;
   const [record, vocab, unitIndex, entries, program, fromSources, measured, cards] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
     tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
@@ -765,13 +721,13 @@ async function loadRecord(type, ref, tab) {
     measuring ? get(`/api/v1/maturity/${ref}`, null, { fresh: true }) : null,
     measuring ? import("../components/maturity.js") : null]);
   return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program, sourced: fromSources.data,
-    maturity: measured ? { found: measured.data, cards: cards } : null };
+    maturity: measured ? { found: measured.data, cards: cards } : null, planning: planning ? await planning : null };
 }
 
 function context(data, reload) {
   const fieldLabels = Object.fromEntries(Object.values(data.catalog.types).flatMap((t) => t.fields.map((f) => [f.name, f.label])));
   for (const f of data.catalog.fields ?? []) fieldLabels[f.key] = f.label;
-  return { vocab: data.vocab, units: data.units, catalog: data.catalog, sourced: data.sourced, maturity: data.maturity, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
+  return { vocab: data.vocab, units: data.units, catalog: data.catalog, sourced: data.sourced, maturity: data.maturity, planning: data.planning, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
 }
 
 function assessmentTab(record, ctx) {
@@ -807,14 +763,14 @@ function uniqueApps(uses) {
 
 export function applicationPage(main, params, extraTabs = []) {
   const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["decisions", "Decisions"], ["components", "Components"],
-    ["capabilities", "Capabilities"], ["connections", "Connections"], ["cost", "Cost"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
+    ["capabilities", "Capabilities"], ["connections", "Connections"], ["cost", "Cost"], ["retirement", "Retirement"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
   const wanted = query().get("tab");
   const tab = tabs.some(([key]) => key === wanted) ? wanted : "overview";
   return show(main, {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested, retiring, planning] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
@@ -823,10 +779,12 @@ export function applicationPage(main, params, extraTabs = []) {
         tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null,
         tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null,
         tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null,
-        tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null]);
+        tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null,
+        tab === "retirement" ? get(`${base}/retirement`, null, { fresh: true }) : null,
+        tab === "retirement" ? import("../components/planning.js") : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
         interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null,
-        contests: contested?.data ?? null };
+        contests: contested?.data ?? null, retirement: retiring?.data ?? null, retiring: planning };
     },
     view: (data, reload) => {
       const record = data.record;
@@ -846,6 +804,7 @@ export function applicationPage(main, params, extraTabs = []) {
               : tab === "capabilities" ? capabilitiesTab(record, ctx)
                 : tab === "connections" ? connectionsTab(record, ctx)
                 : tab === "cost" ? costTab(record, ctx)
+                : tab === "retirement" ? data.retiring.retirementPart(record, data.retirement, ctx)
                 : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
       const open = (key) => openWorking(data.scores, key, { ref: record.ref, vocab: data.vocab });
       return h("div", { class: "stack" },
@@ -862,117 +821,13 @@ export function applicationPage(main, params, extraTabs = []) {
 
 // --- Components, technologies, vendors, and capabilities ---------------------------------------
 
-function editTechnologies(record, ctx) {
-  const rows = record.technologies.map((t) => ({ ref: t.ref, name: t.name, release: t.release ?? "", version: t.version ?? "", releases: null }));
-  openOverlay({
-    title: "Built on",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const list = h("div", { class: "stack-sm" });
-      const problem = banner();
-      const releasesOf = async (row) => {
-        if (!row.releases) row.releases = (await get(`/api/v1/technologies/${row.ref}`, null, { fresh: true })).data.releases.map((r) => r.cycle);
-        return row.releases;
-      };
-      const draw = async () => {
-        const nodes = await Promise.all(rows.map(async (row, index) => {
-          const cycles = await releasesOf(row);
-          const release = h("select", { class: "select", "aria-label": `Release of ${row.name}`, onchange: (event) => {
-            row.release = event.target.value;
-          } }, [["", "Release not known"], ...cycles.map((c) => [c, c])].map(([key, text]) => h("option", { value: key, selected: key === row.release }, text)));
-          const version = h("input", { class: "input", value: row.version, placeholder: "Exact version", "aria-label": `Version of ${row.name}`, oninput: (event) => {
-            row.version = event.target.value;
-          } });
-          return h("div", { class: "owner-row" }, h("div", { class: "grow cell-main" }, row.name), release, version,
-            button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
-              rows.splice(index, 1);
-              draw();
-            } }));
-        }));
-        list.replaceChildren(...(nodes.length ? nodes : [h("p", { class: "muted" }, "Nothing yet.")]));
-      };
-      draw();
-      const finder = recordFinder("technology", { exclude: (r) => rows.some((row) => row.ref === r.ref), onPick: (r) => {
-        rows.push({ ref: r.ref, name: r.name, release: "", version: "", releases: null });
-        draw();
-        finder.refresh();
-      } });
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => put(`/api/v1/components/${record.ref}/technologies`,
-            { technologies: rows.map((row) => ({ technology: row.ref, release: row.release || null, version: row.version || null })) }) });
-        if (done) {
-          close();
-          toast("Saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack-lg" }, problem,
-        h("p", { class: "muted" }, "Choose the release where you can: its support dates decide whether the application is on supported technology."),
-        list, h("div", { class: "field" }, h("div", { class: "label" }, "Add a technology"), finder.node)));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
-}
-
-function editReleases(record, ctx) {
-  const rows = record.releases.map((r) => ({ cycle: r.cycle, released_on: r.released_on ?? "", support_ends: r.support_ends ?? "", extended_ends: r.extended_ends ?? "", latest: r.latest ?? "" }));
-  openOverlay({
-    title: "Releases",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const list = h("div", { class: "stack-sm" });
-      const problem = banner();
-      const cell = (row, key, text, type = "text") => h("input", { class: "input", type, value: row[key], "aria-label": text, placeholder: type === "text" ? text : null,
-        oninput: (event) => {
-          row[key] = event.target.value;
-        } });
-      const draw = () => {
-        list.replaceChildren(...(rows.length ? rows.map((row, index) => h("div", { class: "release-row" },
-          cell(row, "cycle", "Release"), cell(row, "released_on", `Released (${row.cycle || "new"})`, "date"),
-          cell(row, "support_ends", `Support ends (${row.cycle || "new"})`, "date"), cell(row, "extended_ends", `Extended support ends (${row.cycle || "new"})`, "date"),
-          button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
-            rows.splice(index, 1);
-            draw();
-          } }))) : [h("p", { class: "muted" }, "No releases yet.")]));
-      };
-      draw();
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => put(`/api/v1/technologies/${record.ref}/releases`, { releases: rows.filter((row) => row.cycle.trim())
-            .map((row) => ({ cycle: row.cycle.trim(), released_on: row.released_on || null, support_ends: row.support_ends || null,
-              extended_ends: row.extended_ends || null, latest: row.latest || null })) }) });
-        if (done) {
-          close();
-          toast("Saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack" }, problem,
-        h("p", { class: "muted" }, "Each release with the date it came out, when its ordinary support ends, and when extended support ends, if there is any."),
-        h("div", { class: "release-row release-head", "aria-hidden": "true" }, h("span", {}, "Release"), h("span", {}, "Released"),
-          h("span", {}, "Support ends"), h("span", {}, "Extended ends"), h("span", {})),
-        list,
-        button("Add a release", { iconName: "plus", kind: "btn-sm", onclick: () => {
-          rows.unshift({ cycle: "", released_on: "", support_ends: "", extended_ends: "", latest: "" });
-          draw();
-        } })));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
-}
-
 function sharedOverview(type, record, ctx) {
   const specs = ctx.catalog.types[type].fields;
   const glance = specs.map((spec) => [spec.label, shown(spec, record, ctx)]);
   if (record.tags?.length) glance.push(["Tags", record.tags.join(", ")]);
   const main = [record.summary ? card({ title: "About" }, prose(record.summary)) : null];
   if (type === "component") {
-    main.push(card({ title: "Built on", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editTechnologies(record, ctx) }) : null,
+    main.push(card({ title: "Built on", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editTechnologies", record, ctx) }) : null,
       flush: record.technologies.length > 0 },
     record.technologies.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Technology"), h("th", { scope: "col" }, "Release"), h("th", { scope: "col" }, "Support"))),
@@ -986,7 +841,7 @@ function sharedOverview(type, record, ctx) {
     const marks = byRelease(ctx.sourced);
     main.push(card({ title: "Releases and support", actions: h("div", { class: "row-sm" },
       record.use_count ? h("a", { class: "btn btn-sm", href: `/applications?technology=${record.ref}` }, "Every application on it") : null,
-      record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editReleases(record, ctx) }) : null),
+      record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editReleases", record, ctx) }) : null),
       flush: record.releases.length > 0 },
     record.releases.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Release"), h("th", { scope: "col" }, "Support"), h("th", { scope: "col" }, "Ends"), h("th", { scope: "col" }, "Used by"))),
@@ -1019,7 +874,7 @@ function sharedOverview(type, record, ctx) {
     const covered = record.applications;
     const use = record.licenses ? `${record.licenses_used == null ? "An unknown number" : Number(record.licenses_used).toLocaleString()} of ${Number(record.licenses).toLocaleString()} licenses in use${record.licenses_used != null ? ` (${Math.round((100 * record.licenses_used) / record.licenses)}%)` : ""}.` : null;
     main.push(card({ title: covered.length ? `Covers ${plural(covered.length, "application")}` : "What it covers",
-      actions: record.can?.edit ? button("Edit what it covers", { kind: "btn-sm", onclick: () => editCovered(record, ctx) }) : null, flush: covered.length > 0 },
+      actions: record.can?.edit ? button("Edit what it covers", { kind: "btn-sm", onclick: () => dialog("editCovered", record, ctx) }) : null, flush: covered.length > 0 },
     covered.length ? [use ? h("p", { class: "card-note muted" }, use) : null,
       h("div", { class: "table-wrap" }, h("table", { class: "table" },
         h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Application"), h("th", { scope: "col", class: "numeric" }, "Licenses it uses"))),
@@ -1046,6 +901,9 @@ function sharedOverview(type, record, ctx) {
         : h("p", { class: "muted" }, "Nothing is recorded as running here. A deployment is added from its application's Components part.")));
     glance.push(["Provider", record.vendor ? recordChip(record.vendor) : "Ourselves"]);
   }
+  if (type === "review") glance.push(["Chair", record.chair?.name ?? null]);
+  if (type === "initiative") main.push(ctx.planning.initiativeApplications(record, ctx));
+  if (type === "request") main.push(...ctx.planning.requestPanel(record, ctx));
   if (type === "interface") {
     const missing = record.undeclared ?? [];
     main.push(card({ title: "What passes" },
@@ -1059,10 +917,16 @@ function sharedOverview(type, record, ctx) {
           ". Either this interface carries less than is recorded here, or that record needs the class added: its exposure is worked out from what it lists.")) : null)));
   }
   main.push(linksCard(record, ctx));
-  return h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
+  const split = h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
     h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)),
-      sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }), externalCard(record, ctx)));
+      sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
+      ["review", "request"].includes(type) ? null : externalCard(record, ctx)));
+  // A review's agenda is the page: it takes the whole width.
+  return type === "review" ? h("div", { class: "stack-lg" }, ctx.planning.reviewAgenda(record, ctx), split) : split;
 }
+
+/** A dialog few people open, loaded when someone does. */
+const dialog = (name, ...args) => import("../components/record-dialogs.js").then((found) => found[name](...args));
 
 export function recordPage(main, type, params) {
   const tab = query().get("tab") === "history" ? "history" : "overview";
@@ -1076,7 +940,8 @@ export function recordPage(main, type, params) {
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord(type, { record, onDone: reload }) }) : null;
       const picture = h("a", { class: "btn", href: `/graph/${record.ref}` }, "How it is connected");
       return h("div", { class: "stack" },
-        recordHeader(record, { badges: [statusPill(record.status)], actions: h("div", { class: "row-sm" }, picture, edit) }),
+        recordHeader(record, { badges: [type === "review" ? data.planning.reviewState(record.state)
+          : type === "request" ? data.planning.requestState(record) : statusPill(record.status)], actions: h("div", { class: "row-sm" }, picture, edit) }),
         tabBar([["overview", "Overview"], ["history", "History"]], tab),
         tab === "history" ? card({ flush: true }, timeline(data.history)) : sharedOverview(type, record, ctx));
     },

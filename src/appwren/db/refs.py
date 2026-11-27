@@ -29,6 +29,7 @@ PREFIXES = {
     "INI": "Initiative",
     "REQ": "Request",
     "SCN": "Scenario",
+    "REV": "Review",
 }
 REF_PATTERN = re.compile(r"^([A-Z]{2,4})-(\d{4,})$")
 
