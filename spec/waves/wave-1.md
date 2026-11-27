@@ -2,7 +2,7 @@
 
 **Goal:** prove the core loop. The organization knows what applications it runs and who answers for each; owners describe them and answer a short assessment; AppWren works out four scores with their working, a confidence figure, flags, and a recommendation; and a named person records what to do, on a record that cannot be quietly changed. Everything else in the roadmap builds on this loop being quick, clear, and trustworthy.
 
-**Branch:** `wave-1` · **Target version:** `0.1.0` · **Status:** ◐ in progress
+**Branch:** `wave-1` · **Target version:** `0.1.0` · **Status:** ☑ done
 
 ## Exit criteria
 
@@ -31,7 +31,7 @@ Requirements delivered: INV-01 to INV-14; LND-01, LND-02; CST-01, CST-02; SCR-01
 None block the start. These defaults have been taken and can be changed before the slice that depends on them:
 
 - **Role names:** admin, manager, architect, leader, steward, auditor, member (slice 2).
-- **Default palette:** Wren, with a moss-green accent (slice 3).
+- **Default palette:** Wren, with a deep spruce accent (slice 3).
 - **Sensitive by default:** annual cost, sign-in method, backup and restore state (slice 4).
 - **Dispositions:** Invest, Maintain, Tolerate, Modernize, Replace, Consolidate, Retire, Incubate, Assess (slice 5).
 - **Thresholds:** 3.0 for value, health, and cost; 70% for confidence (slice 5).
@@ -40,135 +40,167 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Foundation ☐
+## Slice 1: Foundation ☑
 
 **Goal:** a skeleton in which the rules of the architecture are already enforced.
 
-- [ ] Project: `pyproject.toml` with the five runtime dependencies and the optional PostgreSQL driver, `uv.lock`, `.python-version`, `src/appwren` layout, `appwren` entry point, ruff and pytest configuration, Apache 2.0 `LICENSE` and `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`
-- [ ] Configuration: `appwren.toml` read with the standard library into frozen typed settings; unknown keys are errors; all problems reported together; environment overrides; secrets refused in the file
-- [ ] Data home: creation, marker, and checks
-- [ ] Database: engine for SQLite (write-ahead log, foreign keys on) and PostgreSQL; portable JSON and UTC date-time types; a naming convention for constraints; declarative ORM base; one session per request
-- [ ] Migrations: Alembic inside the package with no `alembic.ini`; revision `0001`; `appwren db upgrade | current`; `serve` refuses a schema that is behind
-- [ ] History: the `event` table; sessions that record every change to an audited row, with before and after values, in the same transaction; refusal of writes with no actor and of bulk statements on audited tables; the hash chain; `appwren verify`; triggers on both databases refusing update and delete
-- [ ] References: per-prefix counters that never reuse a number
-- [ ] Command line: `init`, `serve`, `db`, `verify`, `doctor`, with a reference page generated from the parser
-- [ ] API: the app factory, the envelope and problem-document conventions, security headers, health and `meta` endpoints, the static shell with a fallback route, `docs/openapi.json` kept current by a test
-- [ ] Tests on both databases: fixtures, a script to start a local PostgreSQL, `scripts/test-both.sh`
-- [ ] Continuous integration: lint, format check, tests on SQLite and PostgreSQL (the private-terms check runs locally, from git hooks, because its list is never published)
-- [ ] `scripts/check_terms.py` with pre-commit and commit-message hooks
+- [x] Project: `pyproject.toml` with the five runtime dependencies and the optional PostgreSQL driver, `uv.lock`, `.python-version`, `src/appwren` layout, `appwren` entry point, ruff and pytest configuration, Apache 2.0 `LICENSE` and `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`
+- [x] Configuration: `appwren.toml` read with the standard library into frozen typed settings; unknown keys are errors; all problems reported together; environment overrides; secrets refused in the file
+- [x] Data home: creation, marker, and checks
+- [x] Database: engine for SQLite (write-ahead log, foreign keys on) and PostgreSQL; portable JSON and UTC date-time types; a naming convention for constraints; declarative ORM base; one session per request
+- [x] Migrations: Alembic inside the package with no `alembic.ini`; revision `0001`; `appwren db upgrade | current`; `serve` refuses a schema that is behind
+- [x] History: the `event` table; sessions that record every change to an audited row, with before and after values, in the same transaction; refusal of writes with no actor and of bulk statements on audited tables; the hash chain; `appwren verify`; triggers on both databases refusing update and delete
+- [x] References: per-prefix counters that never reuse a number
+- [x] Command line: `init`, `serve`, `db`, `verify`, `doctor`, with a reference page generated from the parser
+- [x] API: the app factory, the envelope and problem-document conventions, security headers, health and `meta` endpoints, the static shell with a fallback route, `docs/openapi.json` kept current by a test
+- [x] Tests on both databases: fixtures, a script to start a local PostgreSQL, `scripts/test-both.sh`
+- [x] Continuous integration: lint, format check, tests on SQLite and PostgreSQL (the private-terms check runs locally, from git hooks, because its list is never published)
+- [x] `scripts/check_terms.py` with pre-commit and commit-message hooks
 
-**Acceptance:** a fresh clone initializes and serves an empty shell; the suite passes on both databases; altering an event row by hand is caught by `appwren verify`; a write that bypasses the service helper fails a test that compares table changes with events.
+**Acceptance (met):** a fresh clone initializes and serves an empty shell; the suite passes on both databases; altering an event row by hand is caught by `appwren verify`; a write that bypasses the service helper fails a test that compares table changes with events.
 
-## Slice 2: Accounts, roles, and units ☐
+## Slice 2: Accounts, roles, and units ☑
 
 **Goal:** people can sign in, and the system knows who may do what, where.
 
-- [ ] `account`, `credential`, `membership`, `role_grant`, `session_token`, `failed_sign_in`; scrypt hashing; password rules; throttling per account and address; `HttpOnly`, `SameSite=Strict` cookies; CSRF token and origin checks
-- [ ] `appwren init` creates the first administrator; `appwren users add | list | disable | enable | reset-password | roles`; `serve` refuses to start with no administrator
-- [ ] `role_grant` with unit scope for the seven roles; the principal, with the units each scoped role covers worked out at sign-in; the policy table as an app-wide dependency; refusal of any route without a policy
-- [ ] `org_unit` tree and `membership`; import of units and people from CSV with a dry run that lists every problem by row
-- [ ] Single sign-on: OpenID Connect with discovery, PKCE, and verified tokens, beside local accounts; accounts created at first sign-in; claims mapped to roles, unit scopes, and memberships in a table kept under Admin
-- [ ] API: session, accounts, roles, units, imports, and sign-on settings
+- [x] `account`, `credential`, `membership`, `role_grant`, `session_token`, `failed_sign_in`; scrypt hashing; password rules; throttling per account and address; `HttpOnly`, `SameSite=Strict` cookies; CSRF token and origin checks
+- [x] `appwren init` creates the first administrator; `appwren users add | list | disable | enable | reset-password | roles`; `serve` refuses to start with no administrator
+- [x] `role_grant` with unit scope for the seven roles; the principal, with the units each scoped role covers worked out at sign-in; the policy table as an app-wide dependency; refusal of any route without a policy
+- [x] `org_unit` tree and `membership`; import of units and people from CSV with a dry run that lists every problem by row
+- [x] Single sign-on: OpenID Connect with discovery, PKCE, and verified tokens, beside local accounts; accounts created at first sign-in; claims mapped to roles, unit scopes, and memberships in a table kept under Admin
+- [x] API: session, accounts, roles, units, imports, and sign-on settings
 
-**Acceptance:** the role-by-route matrix test signs in as each role and exercises every route, and a second test fails when a route has no policy or a policy has no route; a steward of a division covers its labs and no others; the last administrator can be neither demoted nor disabled, in the app, at the command line, or through the identity provider; CSRF, cross-site requests, throttling, idle and absolute expiry, sign-out, and the ending of sessions on disablement and password change are tested; a sign-in against a local test identity provider creates an account with its mapped roles.
+**Acceptance (met):** the role-by-route matrix test signs in as each role and exercises every route, and a second test fails when a route has no policy or a policy has no route; a steward of a division covers its labs and no others; the last administrator can be neither demoted nor disabled, in the app, at the command line, or through the identity provider; CSRF, cross-site requests, throttling, idle and absolute expiry, sign-out, and the ending of sessions on disablement and password change are tested; a sign-in against a local test identity provider creates an account with its mapped roles.
 
-## Slice 3: Web app and design system ☐
+## Slice 3: Web app and design system ☑
 
 **Goal:** a shell that already looks and behaves like a finished product.
 
-- [ ] The sign-in page, user menu, password change, and Admin → People and units (accounts, roles, units, and the import screens); Admin → Single sign-on
-- [ ] `tokens.css`, `palettes.css` (Wren, Slate, Garnet), `base.css`, `components.css`, `pages.css`; light, dark, and system modes; the score ramp; the disposition hues
-- [ ] The wren mark as SVG: mark, mark with wordmark, single color; the default favicon
-- [ ] Core modules: DOM helper, router with URL state, API client with CSRF and caching, session and permissions, preferences
-- [ ] Components: shell, sidebar, top bar, page header, tabs, drawer, dialog, table, record chip, score figure, disposition badge, flag, stat tile, toast, form fields with server errors on their fields, empty and error states, skeletons
-- [ ] Command palette (⌘K, Ctrl-K, or `/`) and Escape to close anything open
-- [ ] Branding: the `setting` table, `/theme.css` generated from it, logo and tab-icon upload with type sniffing and SVG sanitizing, Admin → Appearance with a live preview in both modes and contrast results before saving
-- [ ] Home: for a new installation's administrator, a setup checklist that ticks itself off
-- [ ] Tests: no inline script or style, no third-party origins, no parsing of data as HTML, every import and route resolves, every script parses, size budgets, and contrast for the token pairs in every palette and mode
+- [x] The sign-in page, user menu, password change, and Admin → People and units (accounts, roles, units, and the import screens); Admin → Single sign-on
+- [x] `tokens.css`, `palettes.css` (Wren, Slate, Garnet), `base.css`, `components.css`, `pages.css`; light, dark, and system modes; the score ramp; the disposition hues
+- [x] The wren mark as SVG: mark, mark with wordmark, single color; the default favicon
+- [x] Core modules: DOM helper, router with URL state, API client with CSRF and caching, session and permissions, preferences
+- [x] Components: shell, sidebar, top bar, page header, tabs, drawer, dialog, table, record chip, score figure, disposition badge, flag, stat tile, toast, form fields with server errors on their fields, empty and error states, skeletons
+- [x] Command palette (⌘K, Ctrl-K, or `/`) and Escape to close anything open
+- [x] Branding: the `setting` table, `/theme.css` generated from it, logo and tab-icon upload with type sniffing and SVG sanitizing, Admin → Appearance with a live preview in both modes and contrast results before saving
+- [x] Home: for a new installation's administrator, a setup checklist that ticks itself off
+- [x] Tests: no inline script or style, no third-party origins, no parsing of data as HTML, every import and route resolves, every script parses, size budgets, and contrast for the token pairs in every palette and mode
 
-**Acceptance:** an administrator changes the organization name, palette, and accent in the browser and sees them applied at once, with no file touched; every palette passes AA for text, signal, score, disposition, and control-border tokens in both modes; the shell is within its size budget.
+**Acceptance (met):** an administrator changes the organization name, palette, and accent in the browser and sees them applied at once, with no file touched; every palette passes AA for text, signal, score, disposition, and control-border tokens in both modes; the shell is within its size budget. 229 tests pass on SQLite and 225 on PostgreSQL (four are about the SQLite file). Checked in the browser: sign-in, the shell, and the setup checklist.
 
-## Slice 4: Inventory ☐
+## Slice 4: Inventory ☑
 
 **Goal:** the portfolio's records, done properly.
 
-- [ ] Models and services for applications, components, vendors, technologies with releases, and capabilities, with the shared header
-- [ ] A registry that describes each record type as data, so that adding, editing, finding, links, visibility, and history are written once
-- [ ] People in roles on an application, with exactly one accountable owner past Proposed; the support unit; the units that use it; orphaned applications shown
-- [ ] Components with their technologies, releases, and versions; each release shows the components that use it
-- [ ] Capabilities as a tree; applications mapped to them, with at most one primary provider per capability
-- [ ] Links between applications (depends on, part of, replaces) with forward and reverse labels; tags; external references
-- [ ] Vocabularies and the organization's own fields as settings, with defaults from the default program pack; a value in use can be relabelled or retired, never removed; the definition of an application
-- [ ] Required fields by lifecycle stage, and what is missing shown on the record
-- [ ] Sensitive fields withheld by one function, everywhere
-- [ ] The default program pack as a file, written by `scripts/build-default-program.py`, including the starter capability map; `appwren program export | import` with a dry run, the whole pack checked before any of it is loaded
-- [ ] List pages with search, filters, sort, and paging, all in the URL; detail pages with a shared header and tabs; the History tab as a readable timeline
-- [ ] Visibility: the catalog open to everyone signed in; restricted applications
-- [ ] Optimistic concurrency on edits
+- [x] Models and services for applications, components, vendors, technologies with releases, and capabilities, with the shared header
+- [x] A registry that describes each record type as data, so that adding, editing, finding, links, visibility, and history are written once
+- [x] People in roles on an application, with exactly one accountable owner; the support unit; the units that use it; orphaned applications shown
+- [x] Components with their technologies, releases, and versions; each release shows the components that use it
+- [x] Capabilities as a tree; applications mapped to them, with at most one primary provider per capability
+- [x] Links between applications (depends on, part of, replaces) with forward and reverse labels; tags; external references
+- [x] Vocabularies and the organization's own fields as settings, with defaults from the default program pack; a value in use can be relabelled or retired, never removed; the definition of an application
+- [x] Required fields by lifecycle stage, and what is missing shown on the record
+- [x] Sensitive fields withheld by one function, everywhere
+- [x] The default program pack as a file, written by `scripts/build-default-program.py`, including the starter capability map; `appwren program export | import` with a dry run, the whole pack checked before any of it is loaded
+- [x] List pages with search, filters, sort, and paging, all in the URL; detail pages with a shared header and tabs; the History tab as a readable timeline
+- [x] Visibility: the catalog open to everyone signed in; restricted applications
+- [x] Optimistic concurrency on edits
 
-**Acceptance:** each record type can be created, edited, linked, and found; every edit is in its history under a named operation; a table of what each of the seven roles sees, including sensitive fields, is tested for single records and for lists, which must agree; a stale edit is refused and an invalid one leaves the record as it was; a second accountable owner is refused.
+**Acceptance (met):** each record type can be created, edited, linked, and found; every edit is in its history under a named operation; a table of what each of the seven roles sees, including sensitive fields, is tested for single records and for lists, which must agree; a stale edit is refused and an invalid one leaves the record as it was; a second accountable owner is refused. 244 tests pass on SQLite and 240 on PostgreSQL. Checked in the browser: the applications list, adding an application, its page with what its stage still needs, adding a component, a technology's releases with their support, and the capability map.
 
-## Slice 5: Assessment and the engine ☐
+## Slice 5: Assessment and the engine ☑
 
 **Goal:** scores that explain themselves, from data that says how complete it is.
 
-- [ ] `questionnaire` and `scoring_model` with immutable versions; the default question bank with a definition for every level; the default profiles, rules, guardrails, flags, and cadences
-- [ ] The condition evaluator, with its own tests
-- [ ] The engine as pure functions: facts to factor levels (answer, choice, band, computed), dimensions with floors, coverage, confidence, profile selection, rules, guardrails, flags, and the working
-- [ ] The computed factors: technology currency, capability uniqueness, dependents, data exposure, end-of-life exposure, continuity
-- [ ] A model that cannot be used says everything wrong with it in one pass: weights that do not add up, bands that do not rise, an unknown fact in a condition
-- [ ] Gathering facts for an application, and for the whole portfolio in one pass
-- [ ] Assessments: answers with notes, never edited, superseded by the next; expiry by tier from the cadence table
-- [ ] The assess screen: the level picker with definitions and *Don't know*; the preview beside it
-- [ ] The scorecard strip and the working on the application page; what would raise confidence
-- [ ] Score snapshots, with the whole working, reopening unchanged after the model changes
+- [x] `questionnaire` and `scoring_model` with immutable versions; the default question bank with a definition for every level; the default profiles, rules, guardrails, flags, and cadences
+- [x] The condition evaluator, with its own tests
+- [x] The engine as pure functions: facts to factor levels (answer, choice, band, computed), dimensions with floors, coverage, confidence, profile selection, rules, guardrails, flags, and the working
+- [x] The computed factors: technology currency, capability uniqueness, dependents, data exposure, end-of-life exposure, continuity
+- [x] A model that cannot be used says everything wrong with it in one pass: weights that do not add up, bands that do not rise, an unknown fact in a condition
+- [x] Gathering facts for an application, and for the whole portfolio in one pass
+- [x] Assessments: answers with notes, never edited, superseded by the next; expiry by tier from the cadence table
+- [x] The assess screen: the level picker with definitions and *Don't know*; the preview beside it
+- [x] The scorecard strip and the working on the application page; what would raise confidence
+- [x] Score snapshots, with the whole working, reopening unchanged after the model changes
 
-**Acceptance:** the worked example produces exactly the figures in [engine.md](../engine.md#a-worked-example); every rule, guardrail, and flag has a test that makes it fire and one that keeps it quiet; an expired answer counts as unknown; a not-applicable factor changes neither score nor confidence; a profile in use cannot be changed; the preview and the recorded scores agree.
+**Acceptance (met):** the worked example produces exactly the figures in [engine.md](../engine.md#a-worked-example); every rule, guardrail, and flag has a test that makes it fire and one that keeps it quiet; an expired answer counts as unknown; a not-applicable factor changes neither score nor confidence; a profile in use cannot be changed; the preview and the recorded scores agree. 278 tests pass on SQLite and 274 on PostgreSQL. Checked in the browser: the scorecard on an application, the working behind each score, assessing with the live preview, and the Scores tab.
 
-## Slice 6: Decisions and the portfolio chart ☐
+## Slice 6: Decisions and the portfolio chart ☑
 
 **Goal:** a named person behind every disposition, and the whole portfolio on one picture.
 
-- [ ] Decisions with disposition, rationale, review date, target date, and successor; the authority check and the refusal for the accountable owner; superseding
-- [ ] The snapshot taken with each decision; the current disposition and review date copied to the application for lists
-- [ ] Mismatches, on the application and as a list
-- [ ] Portfolio snapshots, taken by a manager, with a page for each
-- [ ] The portfolio chart: value against health, bubbles sized by cost where the viewer may see it and colored by risk exposure, thresholds and quadrants, filters, the table of the same points, the second view of value against cost and burden, and the applications that cannot be placed
-- [ ] The Decisions list
+- [x] Decisions with disposition, rationale, review date, target date, and successor; the authority check and the refusal for the accountable owner; superseding
+- [x] The snapshot taken with each decision; the current disposition and review date copied to the application for lists
+- [x] Mismatches, on the application and as a list
+- [x] Portfolio snapshots, taken by a manager, with a page for each
+- [x] The portfolio chart: value against health, bubbles sized by cost where the viewer may see it and colored by risk exposure, thresholds and quadrants, filters, the table of the same points, the second view of value against cost and burden, and the applications that cannot be placed
+- [x] The Decisions list
 
-**Acceptance:** a decision by the accountable owner, or by a leader outside their unit, is refused in the API and the app; a decision differing from the recommendation shows a mismatch until a new decision or a change in the recommendation removes it; the chart's points equal the list for the same filters, for every role, and no bubble's size reveals a withheld cost.
+**Acceptance (met):** a decision by the accountable owner, or by a leader outside their unit, is refused in the API and the app; a decision differing from the recommendation shows a mismatch until a new decision or a change in the recommendation removes it; the chart's points equal the list for the same filters, for every role, and no bubble's size reveals a withheld cost. 286 tests pass on SQLite and 282 on PostgreSQL. Checked in the browser: the portfolio chart in both views, recording a decision against the recommendation, the mismatch, and the Decisions tab.
 
-## Slice 7: Home, dashboard, and data quality ☐
+## Slice 7: Home, dashboard, and data quality ☑
 
 **Goal:** one place to see what you owe, and one to see where the portfolio stands.
 
-- [ ] Home: one list of what the person owes, most urgent first: applications they answer for with no assessment or an expired one, low confidence, missing required fields, decisions due for review, flags; for stewards, their unit's applications nobody answers for; for managers and leaders, mismatches and decisions due in scope
-- [ ] The dashboard: counts by recommendation, by decision, by lifecycle, and by sourcing; mismatches; flags; confidence; end-of-life exposure. Each figure carries the filters of the list that produces it
-- [ ] Data quality by unit
-- [ ] Spreadsheet import of applications, with column mapping, a dry run, and updates by reference; CSV and JSON export of every list, with sensitive fields withheld as they are on screen and formula-like values made safe
-- [ ] Print styles
+- [x] Home: one list of what the person owes, most urgent first: applications they answer for with no assessment or an expired one, low confidence, missing required fields, decisions due for review, flags; for stewards, their unit's applications nobody answers for; for managers and leaders, mismatches and decisions due in scope
+- [x] The dashboard: counts by recommendation, by decision, by lifecycle, and by sourcing; mismatches; flags; confidence; end-of-life exposure. Each figure carries the filters of the list that produces it
+- [x] Data quality by unit
+- [x] Spreadsheet import of applications, with column mapping, a dry run, and updates by reference; CSV and JSON export of every list, with sensitive fields withheld as they are on screen and formula-like values made safe
+- [x] Print styles
 
-**Acceptance:** every figure on the dashboard and data-quality pages opens a list whose length equals the figure, for each of the seven roles, for the whole organization and for one division; the parts of each breakdown add up to the whole; an import with one bad row loads nothing and names the row.
+**Acceptance (met):** every figure on the dashboard and data-quality pages opens a list whose length equals the figure, for each of the seven roles, for the whole organization and for one division; the parts of each breakdown add up to the whole; an import with one bad row loads nothing and names the row. 291 tests pass on SQLite and 287 on PostgreSQL. Checked in the browser: home with what is owed, the dashboard, data quality by unit, and a figure's list.
 
-## Slice 8: Demo organization ☐
+## Slice 8: Demo organization ☑
 
 **Goal:** a believable institute that exercises everything in the wave.
 
-- [ ] The generator: units, people, capabilities, vendors, technologies, applications, components, assessments, snapshots, and decisions, built through the services under a simulated clock, deterministic by seed
-- [ ] The storylines in [demo-organization.md](../demo-organization.md), written by hand
-- [ ] The "Demo data" marker, one-click sign-in as each sample person, and the refusal to listen beyond the local machine unless told to
-- [ ] The demo build as an end-to-end test, with its history verified
+- [x] The generator: units, people, capabilities, vendors, technologies, applications, components, assessments, snapshots, and decisions, built through the services under a simulated clock, deterministic by seed
+- [x] The storylines in [demo-organization.md](../demo-organization.md), written by hand
+- [x] The "Demo data" marker, one-click sign-in as each sample person, and the refusal to listen beyond the local machine unless told to
+- [x] The demo build as an end-to-end test, with its history verified
 
 **Acceptance:** `appwren demo` builds in under a minute; the same seed gives the same organization; every wave 1 screen has data worth reading; `appwren verify` passes on the result.
 
-## Slice 9: Release prep ☐
+**Done:** `appwren demo` builds Bramblewood in about two seconds: 57 units, 180 people, 107 applications, 120 components, 125 assessments, 70 decisions, four quarterly snapshots, and some 2,000 events over two years, all through the services and under a simulated clock. Ten storylines are written by hand and asserted by the tests, including the worked example to the decimal. A demo marks itself on every page, signs in any of eight sample people with one click from the machine it runs on, and refuses to listen on the network unless told to.
 
-- [ ] Guides in `docs/`: getting started, configuration, the portfolio (applications, assessment, scores, decisions), running the program, the command-line reference, the API guide
-- [ ] `README.md` with the quickstart; `CHANGELOG.md` for 0.1.0
-- [ ] The automated accessibility audit over every wave 1 screen in every palette and mode
-- [ ] Fresh-clone install and quickstart checked on both databases
-- [ ] Version `0.1.0`; pull request from `wave-1`; tag and release
+## Slice 9: Release prep ☑
+
+- [x] Guides in `docs/`: getting started, configuration, the portfolio (applications, assessment, scores, decisions), running the program, the command-line reference, the API guide
+- [x] `README.md` with the quickstart; `CHANGELOG.md` for 0.1.0
+- [x] The automated accessibility audit over every wave 1 screen in every palette and mode
+- [x] Fresh-clone install and quickstart checked on both databases
+- [x] Version `0.1.0`; pull request from `wave-1`; tag and release
+
+**Done:** five guides and an index, with sixteen screenshots of the demo organization in light and dark taken by `scripts/capture.mjs`; every link and anchor in them resolves, and the API guide's examples were run against a fresh installation. The accessibility audit builds a fresh demo and finds nothing in 38 scenes, three palettes, and two modes; the keyboard check passes its four flows. From a fresh copy, `uv sync`, `init`, `doctor`, `serve`, and a first sign-in take a few seconds on SQLite and on PostgreSQL, and the demo builds and verifies. 294 tests pass on SQLite and 290 on PostgreSQL, where four about the SQLite file are skipped.
 
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+
+- **Single sign-on arrives with accounts.** Organizations that keep an application portfolio almost always have an identity provider, and the people who own applications should not need another password. It is optional and sits beside local accounts.
+- **No limits on roles.** A leader records decisions for every application in their units; there is no ladder of what a leader may decide, because a disposition is advice to a budget process, not an acceptance of harm.
+- **The architect role.** The shared records (capabilities, technologies, vendors) need keepers who are not portfolio managers. Architects keep them and may assess any application in scope; they do not record decisions.
+- **Three signals, three looks.** Scores are on a plum ramp with a bar, dispositions have their own hue and icon (outlined when recommended, filled when decided), and flags use the signal colors with a sentence. A test keeps every disposition hue readable on every surface in every palette.
+- **Every application has an accountable owner from the start.** Whoever adds it is accountable until they hand it on; the spec first said "past Proposed", but an application with nobody answering for it is exactly what the portfolio exists to prevent. One imported with nobody named is orphaned and flagged.
+- **Shared records belong to no unit.** Vendors, technologies, and capabilities are kept by architects and managers for the whole organization. A component belongs to its application and takes its unit and visibility from it.
+- **Sensitive fields are refused, not just hidden.** A person who may not see a sensitive field may not filter or sort a list by it, nor send a value for it; its changes appear in the history as withheld.
+- **The parse check now reads every script as a module.** A missing bracket in a page passed the old check, which read the files as plain scripts, and was found in the browser.
+- **One engine, on the server.** The assessment form asks the server for a preview as answers change, so the preview and the record cannot disagree; a test holds them equal. There is no JavaScript twin of the arithmetic to keep in step.
+- **Thresholds are facts the rules read.** Rules compare literal values only, so the engine works out "value is at least its threshold" as a fact (`high.value`) from the profile's thresholds, and the rules stay plain data while the thresholds stay configurable.
+- **A floor can do a guardrail's work.** A system of record for regulated information has a value floor of 4.0, so it is judged valuable and never reaches *Retire*; the guardrail remains for organizations that remove the floor.
+- **What a sensitive field reveals is withheld from the working too.** A member sees every score, but not the levels that would give away how people sign in or what the application costs.
+- **Snapshots carry a digest instead of an event each.** A portfolio snapshot of thousands of applications would otherwise add thousands of events holding their whole working.
+- **The decision is a fact the engine reads.** A decision this year quiets the grant-ending flag; a review date that has passed raises its own flag; a decision that differs from today's recommendation raises the mismatch. None of these changes the decision.
+- **The chart is drawn from the same list as everything else.** `/api/v1/portfolio` is the one list of applications with their scores, recommendation, and decision; the chart, the decisions page, and (in slice 7) the dashboard read it, and a test holds it equal to the applications list for every role.
+- **Steady jitter.** Applications with the same scores would hide one another on the chart, so each is nudged by a small amount worked out from its reference: the same every time, and too small to move it across a threshold line by more than a hair. The table beneath gives the exact figures.
+- **One list behind every figure.** The dashboard, data quality, and home page count rows of the same portfolio list that `/api/v1/portfolio` returns, narrowed by the same function, and each figure carries its filters. A test opens every figure's list for every role and compares the lengths.
+- **What a stage requires is checked in bulk.** The facts gathered for scoring already say whether an application has an accountable owner, capabilities, technologies, a current assessment, and a decision, so the whole portfolio's completeness costs no further queries.
+- **An import updates by reference.** A row whose reference is on record changes that application, through the same service and checks as an edit by hand, including the refusal of sensitive fields the importer may not see.
+- **The demo found two things to fix.** The person who later leaves was handed applications before some of them existed, so the hand-over ran later; and a fresh sign-in after another needs a fresh browser session, which the test now uses.
+- **Fewer applications than planned, more storylines asserted.** About 110 applications show every screen with data and build in two seconds; the spec's 160 would have added nothing new to see.
+- **The chart's points have an equivalent, and say so.** A bubble sized by cost can be smaller than a comfortable target, and ninety of them are ninety stops for the Tab key. The table beneath the chart holds the same applications as links of full size, so the bubbles stay a shortcut for the pointer, out of the Tab order, and the audit exempts a target that names its equivalent.
+- **A record's parts are links, not tabs.** Each part has its own address, so it is a link marked as the current page inside a navigation landmark. The tab pattern promises arrow keys and a panel that the page did not have.
+- **The router leaves in-page links to the browser.** The skip link was being treated as a navigation and redrew the page without moving the focus; the keyboard check found it.
+- **A demo visitor changes sample person without signing out.** The demo's sign-in needs no token from the session it replaces, as a password sign-in does not.
+- **Guides describe the screen, not the specification.** Where the two differed (how the working words a factor's source, who may hand on accountability, where JSON exports come from), the guide was changed to match what was built, and the examples were run.
+- **A demo's records are mostly complete.** Every demo application lacked a summary and most a support team, so the figure for records missing what their stage requires counted all of them and said nothing. Each now has both, and the gaps that remain are the storylines': the spreadsheet nobody finished, the applications never assessed, and the orphans. A test holds the share under half.

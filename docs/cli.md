@@ -1,0 +1,154 @@
+# Command reference
+
+Every `appwren` command. This page is written from the program itself, so it always matches
+the version it ships with. Run commands with `uv run appwren …` from the project directory.
+
+Options that come before the command apply to all of them:
+
+```text
+appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
+```
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| [`appwren init`](#appwren-init) | Set up a new installation |
+| [`appwren serve`](#appwren-serve) | Run the web server |
+| [`appwren db`](#appwren-db) | Look after the database schema |
+| [`appwren users`](#appwren-users) | Manage accounts from the command line |
+| [`appwren verify`](#appwren-verify) | Check that the history has not been altered |
+| [`appwren demo`](#appwren-demo) | Build a fictional organization to explore |
+| [`appwren program`](#appwren-program) | Move the program between installations |
+| [`appwren doctor`](#appwren-doctor) | Check that this installation is healthy |
+
+## `appwren init`
+
+Write a configuration file if there is none, create the data home, create or upgrade the database, and create the first administrator if there is none. Safe to run again.
+
+| Option | Meaning |
+|---|---|
+| `--force` | overwrite an existing configuration file |
+| `--admin-email` `EMAIL` | create the first administrator with this address |
+| `--admin-name` `NAME` | the first administrator's name |
+| `--password-stdin` | read the password from standard input instead of asking |
+
+## `appwren serve`
+
+Run AppWren's web server. It refuses to start on a database whose schema is behind; run `appwren db upgrade` first.
+
+| Option | Meaning |
+|---|---|
+| `--host` | address to listen on (default: from the configuration) |
+| `--port` `PORT` | port to listen on (default: from the configuration) |
+| `--workers` `WORKERS` | server processes (default: from the configuration) |
+| `--reload` | restart when the code changes (development) |
+| `--demo-on-network` | let a demo organization listen beyond this machine (anyone who reaches it can sign in as its sample people) |
+
+## `appwren db`
+
+Look after the database schema.
+
+### `appwren db upgrade`
+
+Apply any migrations the database has not had. Export first: an upgrade cannot be undone except by restoring.
+
+### `appwren db current`
+
+Show which migration the database is at, and which this version expects. Exits with 1 when they differ.
+
+## `appwren users`
+
+Manage accounts from the command line: for setting up, and for getting back in when nobody can sign in. Everyday account management is in the app, under Admin. Changes made here are recorded in the history as made at the command line.
+
+### `appwren users add`
+
+Add an account. It asks for a password unless --password-stdin or --invite is given.
+
+| Option | Meaning |
+|---|---|
+| `EMAIL` | the email address the person signs in with |
+| `--name` | the person's name |
+| `--title` | their job title |
+| `--role` `ROLE` | a role: admin, manager, architect, auditor, steward=unit:CODE, or leader=unit:CODE; manager and architect may also take unit:CODE (may be repeated) |
+| `--unit` `CODE` | a unit they work in, by code (may be repeated) |
+| `--password-stdin` | read the password from standard input instead of asking |
+| `--invite` | add them without a password: they can be named on records now, and sign in once they are given a password or use single sign-on |
+
+### `appwren users list`
+
+List every account with its status and roles.
+
+### `appwren users disable`
+
+Stop an account signing in and end its sessions. Its records and history are kept. The last active administrator cannot be disabled.
+
+| Option | Meaning |
+|---|---|
+| `EMAIL` | the account's email address |
+
+### `appwren users enable`
+
+Let a disabled account sign in again.
+
+| Option | Meaning |
+|---|---|
+| `EMAIL` | the account's email address |
+
+### `appwren users reset-password`
+
+Give an account a new password and end its sessions.
+
+| Option | Meaning |
+|---|---|
+| `EMAIL` | the account's email address |
+| `--password-stdin` | read the password from standard input instead of asking |
+
+### `appwren users roles`
+
+Show an account's roles, or with --set replace the roles granted in AppWren. Roles mapped from an identity provider are left alone. The last active administrator cannot lose that role.
+
+| Option | Meaning |
+|---|---|
+| `EMAIL` | the account's email address |
+| `--set` `ROLE` | a role: admin, manager, architect, auditor, steward=unit:CODE, or leader=unit:CODE; manager and architect may also take unit:CODE (may be repeated); with none, removes every role |
+
+## `appwren verify`
+
+Recompute the hash chain over every event in the history and report the first one that does not hold. Exits with 1 if the history is broken.
+
+## `appwren demo`
+
+Build the Bramblewood Institute for Health Research, a fictional organization with two years of history, in its own directory. Everything in it is made by the same code the app uses. Start it with the command it prints.
+
+| Option | Meaning |
+|---|---|
+| `PATH` | where to build it (default: ./demo) |
+| `--seed` `SEED` | a different number gives a different Bramblewood |
+| `--port` `PORT` | the port its server will use (default: 8020) |
+| `--force` | rebuild a demo that is already there |
+
+## `appwren program`
+
+The program is everything a portfolio team configures: vocabularies, the organization's own fields, what each lifecycle stage requires, sensitive fields, the capability map, the questions, and the scoring model. It lives in the database and moves as one file.
+
+### `appwren program export`
+
+Write the whole program as one JSON document, to a file or to standard output.
+
+| Option | Meaning |
+|---|---|
+| `--output`, `-o` `FILE` | write to this file |
+
+### `appwren program import`
+
+Load a program pack. The whole pack is checked first, and nothing is loaded unless all of it can be. A vocabulary value in use is retired rather than removed, and capabilities are only ever added.
+
+| Option | Meaning |
+|---|---|
+| `FILE` | the pack to load |
+| `--dry-run` | say what would change, and change nothing |
+
+## `appwren doctor`
+
+Check the configuration, the data home, the database and its schema, and the history. Exits with 1 if anything must be fixed.

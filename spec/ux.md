@@ -100,7 +100,7 @@ Appearance has two independent choices, under **Appearance** in the top bar and 
 
 | Palette | By day | After dark |
 |---|---|---|
-| **Wren** (default) | Warm paper neutrals, ink text, a deep moss-green accent, a thin russet rule | Warm charcoal, soft moss accent |
+| **Wren** (default) | Warm paper neutrals, ink text, a deep spruce accent, a thin russet rule | Warm charcoal, soft spruce accent |
 | **Slate** | Cool white and grey, cobalt accent; the conventional enterprise look | Blue-black surfaces, bright cobalt accent |
 | **Garnet** | Neutral greys with a deep red accent, for the many institutions whose colors are red | Near-black with a softened garnet accent |
 

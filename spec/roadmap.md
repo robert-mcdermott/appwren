@@ -23,21 +23,21 @@ Status key: ☐ planned · ◐ in progress · ☑ done
 
 ---
 
-## Wave 1: The portfolio (v0.1.0) ◐
+## Wave 1: The portfolio (v0.1.0) ☑
 
 **Goal:** prove the core loop. The organization knows what applications it runs and who answers for each; owners describe them and answer a short assessment; the system works out four scores with their working, a confidence figure, flags, and a recommendation; and a named person records what to do, on a record that cannot be quietly changed.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Foundation | Project skeleton, configuration, data home, the ORM model and migrations on SQLite and PostgreSQL, the service layer with the event log and hash chain, command line and API skeletons, tooling and continuous integration | ☐ |
-| 2 | Accounts, roles, and units | Local accounts and sessions, single sign-on, the seven roles with scopes, the route policy table, the unit hierarchy, import of units and people | ☐ |
-| 3 | Web app and design system | Vanilla JS shell, tokens, three palettes in light and dark, the wren mark, branding settings with live preview, command palette, core components | ☐ |
-| 4 | Inventory | Applications, components, vendors, technologies with releases, and capabilities; people in roles; units that use an application; links; the default program's vocabularies and fields; required fields by stage; sensitive fields; program packs | ☐ |
-| 5 | Assessment and the engine | The question bank, assessments, facts, the engine with profiles, bands, rules, guardrails, and flags; the working; the preview; score snapshots | ☐ |
-| 6 | Decisions and the portfolio chart | Decisions with their authority, mismatches, portfolio snapshots, the portfolio chart and its table | ☐ |
-| 7 | Home, dashboard, and data quality | What each person owes; the dashboard and data quality pages with every figure linked to its records; spreadsheet import and export of applications | ☐ |
-| 8 | Demo organization | The fictional institute, built through the services under a simulated clock, with storylines for every wave 1 screen | ☐ |
-| 9 | Release prep | Guides, quickstart, changelog, accessibility check, version, release | ☐ |
+| 1 | Foundation | Project skeleton, configuration, data home, the ORM model and migrations on SQLite and PostgreSQL, the service layer with the event log and hash chain, command line and API skeletons, tooling and continuous integration | ☑ |
+| 2 | Accounts, roles, and units | Local accounts and sessions, single sign-on, the seven roles with scopes, the route policy table, the unit hierarchy, import of units and people | ☑ |
+| 3 | Web app and design system | Vanilla JS shell, tokens, three palettes in light and dark, the wren mark, branding settings with live preview, command palette, core components | ☑ |
+| 4 | Inventory | Applications, components, vendors, technologies with releases, and capabilities; people in roles; units that use an application; links; the default program's vocabularies and fields; required fields by stage; sensitive fields; program packs | ☑ |
+| 5 | Assessment and the engine | The question bank, assessments, facts, the engine with profiles, bands, rules, guardrails, and flags; the working; the preview; score snapshots | ☑ |
+| 6 | Decisions and the portfolio chart | Decisions with their authority, mismatches, portfolio snapshots, the portfolio chart and its table | ☑ |
+| 7 | Home, dashboard, and data quality | What each person owes; the dashboard and data quality pages with every figure linked to its records; spreadsheet import and export of applications | ☑ |
+| 8 | Demo organization | The fictional institute, built through the services under a simulated clock, with storylines for every wave 1 screen | ☑ |
+| 9 | Release prep | Guides, quickstart, changelog, accessibility check, version, release | ☑ |
 
 Detail: [waves/wave-1.md](waves/wave-1.md)
 

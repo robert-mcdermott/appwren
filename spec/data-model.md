@@ -99,7 +99,7 @@ The unit of the portfolio ([ADR-0013](decisions/0013-applications-components-dep
 
 ### People in roles
 
-`application_role(application_id, account_id, role, note)`. `role` is a vocabulary: by default *accountable owner*, *business owner*, *technical owner*, *product manager*, *support contact*, *data steward*, *security contact*, and *executive sponsor*. There is exactly one accountable owner per application once it is past Proposed, enforced in the service and by a partial unique index. A person may hold several roles on one application; a role other than accountable may be held by several people.
+`record_owner(record_type, record_id, account_id, kind)`. On an application, `kind` is a vocabulary: by default *accountable owner*, *business owner*, *technical owner*, *product manager*, *support contact*, *data steward*, *security contact*, and *executive sponsor*. There is exactly one accountable owner, held by the service and by a partial unique index on both databases: whoever adds an application is accountable until they name someone else, and only the accountable owner, or someone with a role over the unit, may hand it on. An application imported with nobody named, or whose accountable owner's account is disabled, is **orphaned**, which is shown on the record, in every list, and as a flag. A person may hold several roles on one application; a role other than accountable may be held by several people.
 
 The application's support team is a unit: `support_unit_id` on the application.
 
@@ -109,7 +109,7 @@ The application's support team is a unit: `support_unit_id` on the application.
 
 ### Component
 
-`component(…, application_id, kind, repo_url, hosting, lifecycle)`. A part of one application. `kind` is a vocabulary (service, web front end, database, batch job, integration, report, module, library, mobile app, infrastructure). `lifecycle` is active or retired.
+`component(…, application_id, kind, repo_url, hosting)`. A part of one application, with the shared header's status (active or retired). It takes its application's unit and restriction, kept in step when the application moves. `kind` is a vocabulary (service, web front end, database, batch job, integration, report, module, library, mobile app, analysis pipeline, infrastructure).
 
 `component_technology(component_id, technology_id, release_id?, version)`: the technologies a component uses, optionally pinned to a release (a version line such as `3.11`) whose support dates apply, and an exact version as text.
 
@@ -162,19 +162,20 @@ Free labels on any record, for whatever the vocabularies do not cover. `external
 
 ### Score snapshot
 
-`score_snapshot(id, application_id, portfolio_snapshot_id?, taken_at, reason, model_id, profile_key, bv, th, cb, re, confidence, recommendation, flags, working)`.
+`score_snapshot(id, application_id, portfolio_snapshot_id?, taken_at, reason, model_id, profile_key, bv, th, cb, re, confidence, recommendation, flags, working, digest)`.
 
 - `reason`: decision, portfolio, or manual.
 - `bv`, `th`, `cb`, `re` (one decimal, or null when no factor was known), `confidence`, `recommendation`, and `flags` are columns so they can be filtered and charted.
 - `working` is the whole explanation: every factor with its level, weight, value, source, and date; coverage; the rule that fired; and the guardrails and flags. It reopens unchanged after the program changes.
+- Snapshots are derived and many, so a snapshot row is not itself an event. Its `digest` (a hash of the working) is recorded in the event of whatever took it, a decision or a portfolio snapshot, so a snapshot altered afterwards is detectable.
 
 Scores between snapshots are computed when they are read, and are never stored except as snapshots.
 
-`portfolio_snapshot(ref, name, taken_at, taken_by, model_id, count)`: a named snapshot of every scored application at once, for a review or the end of a period.
+`portfolio_snapshot(ref, name, taken_at, taken_by, taken_by_name, model_id, count)`: a named snapshot of every scored application at once, for a review or the end of a period.
 
 ### Decision
 
-`decision(ref, application_id, disposition, rationale, target_on, review_on, successor_id?, snapshot_id, recommendation, decided_by, decided_by_name, decided_on, superseded_by)`. `disposition` is a vocabulary (see [engine.md](engine.md#dispositions)). `snapshot_id` is the score snapshot taken at the moment of the decision, and `recommendation` its recommendation, so a mismatch at the time is on the record. Never edited; a new decision supersedes the last. The application keeps a copy of its current disposition and review date for lists and filters.
+`decision(ref, application_id, disposition, rationale, target_on, review_on, successor_id?, snapshot_id, snapshot_digest, recommendation, decided_by, decided_by_name, decided_on, created_at, superseded_by)`. `disposition` is a vocabulary (see [engine.md](engine.md#dispositions)). `snapshot_id` is the score snapshot taken at the moment of the decision, `snapshot_digest` its digest (so the decision's event fixes what it saw), and `recommendation` its recommendation, so a mismatch at the time is on the record. Without a review date, a decision is reviewed a year on; consolidating needs a successor. Never edited; a new decision supersedes the last. The application keeps a copy of its current disposition and review date for lists and filters.
 
 ## Later waves (sketch)
 

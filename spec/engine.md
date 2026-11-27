@@ -209,7 +209,7 @@ Every question has a definition for each of its five levels, shown as the respon
 | 4 | Changes are routine and mostly tested; documented |
 | 5 | Changes are safe and frequent: automated tests, deployment, and current documentation |
 
-The default question bank has ten questions: three for business value, three for technical health, two for cost and burden, one for risk exposure, and one (*Future need*) asked in the same section as business value. Each respondent may add a note to any answer. From wave 3 an organization edits the bank in the app; until then, through the program pack.
+The default question bank has nine questions: three for business value, three for technical health (one of them, *Vendor viability*, asked only of vendor-sourced applications), two for cost and burden, and one for risk exposure. Each respondent may add a note to any answer. From wave 3 an organization edits the bank in the app; until then, through the program pack.
 
 ## Combining
 
@@ -217,7 +217,7 @@ The default question bank has ten questions: three for business value, three for
 - **Floors** apply after the average and are named in the working.
 - **Coverage** is Σ(weight of known factors) ÷ Σ(weight of applicable factors). A dimension with coverage under 50% is *thin*: its score is shown, labelled with its coverage, and it cannot carry a recommendation.
 - **Data confidence** is the average of the four dimensions' coverage, as a whole percentage.
-- **Scores are kept as snapshots** when a decision is recorded (so the decision shows exactly what it saw), when a portfolio manager closes a review period, and, from wave 3, monthly. A snapshot keeps every factor's level and source, the profile version, and the result, so it reopens unchanged after the program changes.
+- **Scores are kept as snapshots** when a decision is recorded (so the decision shows exactly what it saw), when a portfolio manager takes a portfolio snapshot, and, from wave 3, monthly. A snapshot keeps every factor's level and source, the profile, the model version, and the result, so it reopens unchanged after the program changes. Snapshots are many and derived, so each is not an event of its own: its digest is recorded in the event of whatever took it, so a snapshot altered afterwards is detectable.
 
 ## Profiles
 
