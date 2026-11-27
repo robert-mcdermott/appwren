@@ -455,6 +455,18 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 "application": task["about"] or {"ref": "", "name": "", "type": "task"},
             }
         )
+    from appwren.oversight import contests
+
+    for contest in contests.waiting(session, principal):
+        items.append(
+            {
+                "severity": "warning",
+                "kind": "contest",
+                "text": f"{contest['raised_by']} contests {contest['factor_label'].lower()}",
+                "href": f"/applications/{contest['application']['ref']}?tab=scores",
+                "application": contest["application"],
+            }
+        )
     items.sort(key=lambda item: (SEVERITY.get(item["severity"], 3), item["application"]["name"]))
     return {
         "items": items,

@@ -10,6 +10,7 @@ import { editRecord, mayAdd } from "../components/record-forms.js";
 import { openImport } from "../components/importer.js";
 import { card, emptyState, pageHeader } from "../components/ui.js";
 import { importSupportDates } from "./lifecycle.js";
+import { viewsButton } from "../components/views.js";
 import { show } from "./page.js";
 
 /** Download the list as it is filtered now. */
@@ -143,7 +144,7 @@ export function applicationList(main) {
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
           actions: [add ? button("Add an application", { kind: "btn-primary", iconName: "plus", onclick: add }) : null,
             add ? button("Import", { iconName: "upload", onclick: () => importApplications(reload) }) : null,
-            exportLink("applications")] }),
+            viewsButton(), exportLink("applications")] }),
         bar,
         card({ title: plural(data.page.meta.total, meta.noun, meta.nouns), flush: true, footer: pager(data.page.meta, rows.length) }, body));
     },
@@ -263,7 +264,7 @@ export function recordList(main, type) {
         : nothing(meta, add);
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
-          actions: [type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
+          actions: [viewsButton(), type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
             type === "technology" ? h("a", { class: "btn", href: "/lifecycle" }, "Lifecycle") : null,
             type === "technology" ? h("a", { class: "btn", href: "/radar" }, "Radar") : null,
             type === "technology" && mayAdd(type) ? button("Import support dates", { iconName: "upload", onclick: () => importSupportDates(reload) }) : null,

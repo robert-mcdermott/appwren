@@ -74,6 +74,18 @@ POLICIES: dict[tuple[str, str], Needs] = {
     # What a person holds: their own, or anyone's for administrators and managers
     ("GET", "/api/v1/accounts/{account_id}/holdings"): Needs.MEMBER,
     ("POST", "/api/v1/accounts/{account_id}/hand-over"): Needs.MEMBER,
+    # Finding: search and saved views for everyone; sharing a view is checked by the service
+    ("GET", "/api/v1/search"): Needs.MEMBER,
+    ("GET", "/api/v1/views"): Needs.MEMBER,
+    ("POST", "/api/v1/views"): Needs.MEMBER,
+    ("PATCH", "/api/v1/views/{view_id}"): Needs.MEMBER,
+    ("DELETE", "/api/v1/views/{view_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/similar-applications"): Needs.MEMBER,
+    # Contests: raised by whoever keeps the application, answered by the portfolio team
+    ("GET", "/api/v1/applications/{ref}/contests"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/contests"): Needs.MEMBER,
+    ("GET", "/api/v1/contests"): Needs.MEMBER,
+    ("POST", "/api/v1/contests/{contest_id}/answer"): Needs.ARCHITECT,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,

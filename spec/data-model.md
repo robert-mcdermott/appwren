@@ -219,6 +219,10 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 `task(key, kind, title, reason, subject_type, subject_id, application_id, org_unit_id, account_id, due_on, status, raised_on, closed_on, closed_by_name, note)`. Something to be done about a record, for a person, by a date, raised by a trigger: a contract's notice date near (`contract_notice`), a release in use nearing its end of support (`end_of_support`), a grant near its end (`grant_end`), or an accountable owner leaving (`departure`). `key` names the cause, unique, so a cause raises one task and never two. Open until its cause is settled, when the scheduler closes it with the reason, or until a person marks it done or dismisses it with a note.
 
+### Saved view and score contest
+
+`saved_view(account_id, owner_name, path, name, query, shared)`. A list's filters under a name, private or shared; never its rows. `score_contest(application_id, dimension, factor, factor_label, level_shown, level_claimed, note, evidence_url, raised_by, raised_by_name, raised_on, status, answer, answered_by_name, answered_on)`. An owner saying one factor is wrong, and the portfolio team's answer: `open`, `accepted`, or `answered`.
+
 ## Later waves (sketch)
 
 | Wave | Entities |

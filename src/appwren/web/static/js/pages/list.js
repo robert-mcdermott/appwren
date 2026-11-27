@@ -8,6 +8,7 @@ import { label, vocabularies } from "../core/lookups.js";
 import { query } from "../core/router.js";
 import { hrefOf } from "../components/record.js";
 import { card, dispositionBadge, emptyState, pageHeader, pill } from "../components/ui.js";
+import { viewsButton } from "../components/views.js";
 import { show } from "./page.js";
 
 const WORDS = {
@@ -44,7 +45,7 @@ export function portfolioList(main) {
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: "Reports", title: "Applications",
           lede: "The applications a figure counts. The filters are in the address, so this view can be shared.",
-          actions: h("a", { class: "btn", href: exportHref, download: "" }, "Export as CSV") }),
+          actions: [viewsButton(), h("a", { class: "btn", href: exportHref, download: "" }, "Export as CSV")] }),
         chips.length ? h("div", { class: "row-sm wrap" }, chips) : null,
         card({ title: plural(rows.length, "application"), flush: rows.length > 0 }, rows.length
           ? h("div", { class: "table-wrap" }, h("table", { class: "table" },

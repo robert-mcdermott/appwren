@@ -28,7 +28,14 @@ from appwren.access.principal import Grant, Principal
 from appwren.core.clock import clock_set_to
 from appwren.core.errors import AppWrenError, Invalid, PermissionDenied
 from appwren.db.engine import Database
-from appwren.db.models import Application, Campaign, CampaignItem, Capability, Vendor
+from appwren.db.models import (
+    Application,
+    Campaign,
+    CampaignItem,
+    Capability,
+    ScoreContest,
+    Vendor,
+)
 from appwren.demo import content as c
 from appwren.inventory import applications, links, parts, records
 from appwren.inventory.registry import (
@@ -43,7 +50,7 @@ from appwren.inventory.registry import (
     VENDOR,
 )
 from appwren.landscape import costs
-from appwren.oversight import attestation, campaigns
+from appwren.oversight import attestation, campaigns, contests, views
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -713,6 +720,35 @@ class Builder:
         if ends is not None:
             self.at(ends, close)
 
+    def contest(
+        self, name: str, days_ago: float, values: dict[str, Any],
+        answer: tuple[float, bool, str] | None = None,
+    ) -> None:  # fmt: skip
+        """Whoever answers for an application contests a factor; the architect answers."""
+
+        def run() -> None:
+            ref = self.apps[name]
+            by = self.principal(self.accountable[ref])
+            with self.db.write(by.actor) as session:
+                app = records.load(session, by, APPLICATION, ref)
+                contests.raise_contest(session, by, app, values)
+            self.tally("contests")
+
+        def reply(accept: bool, text: str) -> None:
+            architect = self.principal(self.cast["architect"])
+            with self.db.write(architect.actor) as session:
+                app = records.load(session, architect, APPLICATION, self.apps[name])
+                row = session.scalars(
+                    select(ScoreContest).where(ScoreContest.application_id == app.id)
+                ).first()
+                if row is not None:
+                    contests.answer(session, architect, row, accept=accept, text=text)
+
+        self.at(days_ago, run)
+        if answer is not None:
+            later, accept, text = answer
+            self.at(later, lambda: reply(accept, text))
+
     def decider(self, ref: str) -> int:
         """A manager decides, or the leader of the application's area; never its owner."""
         unit = self.unit_of[ref]
@@ -993,6 +1029,24 @@ class Builder:
                  "message": "Ahead of the cores' budget review: is each record still right?"},
             due_in=40, answers=((15, 0.45), (6, 0.25)),
         )  # fmt: skip
+        # Contests: the clinic's scheduler owner says reliability is better than the answers
+        # say, and the architect answers with the ticket queue; the flow cytometry owner's
+        # contest of support effort is waiting.
+        self.contest(
+            "Clinic Scheduler", 60,
+            {"factor": "reliability", "level_claimed": 4,
+             "note": "Since the vendor's upgrade in the spring we have had no outages the clinic "
+                     "noticed.", "evidence_url": "https://status.bramblewood.example/scheduler"},
+            answer=(52, False, "The service desk logged three outages of the scheduler this "
+                               "quarter, two in clinic hours. Reliability stays at 2 until a "
+                               "quarter passes without one."),
+        )  # fmt: skip
+        self.contest(
+            "Flow Cytometry Scheduler", 6,
+            {"factor": "support_effort", "level_claimed": 4,
+             "note": "The core's own staff run it; it takes about an hour a month, not a day a "
+                     "week."},
+        )  # fmt: skip
         # The year of reviews: a snapshot each quarter, and decisions after it.
         for days in (365, 272, 182, 91):
             self.snapshot(days)
@@ -1252,6 +1306,13 @@ class Builder:
         self.plan()
         self.run()
         self.remind()
+        with clock_set_to(lambda: self.end):
+            manager = self.principal(self.cast["portfolio"])
+            with self.db.write(manager.actor) as session:
+                views.create(session, manager, {
+                    "name": "Critical, and not confirmed", "path": "/list",
+                    "query": "in_service=true&quality=not_confirmed&tier=1", "shared": True,
+                })  # fmt: skip
         with clock_set_to(lambda: self.end), self.db.write(ME.actor) as session:
             settings.put(
                 session,

@@ -7,7 +7,7 @@ import { fallback, route, start } from "./core/router.js";
 import { can, setSession } from "./core/session.js";
 import { openPalette } from "./components/cmdk.js";
 import { TYPES } from "./components/record.js";
-import { commands, mountShell } from "./components/shell.js";
+import { commands, mountShell, quickFind } from "./components/shell.js";
 import { emptyState } from "./components/ui.js";
 import { setProduct, setTitle } from "./pages/page.js";
 
@@ -55,6 +55,7 @@ async function boot() {
   route("/", page("home", "home", meta));
   route("/account", page("account", "account"));
   route("/notices", page("notices", "noticeList"));
+  route("/search", page("find", "searchPage"));
   route("/applications", page("records", "applicationList"));
   route("/applications/:ref", page("record", "applicationPage"));
   route("/applications/:ref/assess", page("assess", "assess"));
@@ -106,10 +107,10 @@ async function boot() {
     const typing = event.target.closest?.("input, textarea, select, [contenteditable]");
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
-      openPalette(commands(meta));
+      openPalette(commands(meta), { find: quickFind });
     } else if (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey) {
       event.preventDefault();
-      openPalette(commands(meta));
+      openPalette(commands(meta), { find: quickFind });
     }
   });
   await start();

@@ -55,6 +55,18 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   they are named on and in what role, the contracts and interfaces they own, their open
   tasks, and what campaigns still ask of them. An administrator or a manager passes all of it
   to someone else in one step. Assessments and decisions stay with whoever made them.
+- **One search.** The command palette finds records as well as pages, and Search lists
+  every kind of record that matches, the best answer first: by name, reference, summary, or
+  what something is called elsewhere. It finds only what the searcher may open.
+- **Saved views.** Any list's filters are kept under a name from its **Views** button,
+  privately, or shared with everyone by stewards, architects, and managers. A view keeps the
+  question, so each person who opens it sees only what they may.
+- **Likely duplicates.** Adding or renaming an application shows those already on record
+  whose name or alias is close, or that are the same product from the same vendor.
+- **Contesting a score.** Whoever keeps an application says a factor is wrong, what it should
+  be, and why, with a link to the evidence. A manager or an architect accepts or answers it,
+  and the owner is told. Both stay on the record and in its history. A contest does not move
+  a score; putting the record or the assessment right does.
 
 ### Changed
 

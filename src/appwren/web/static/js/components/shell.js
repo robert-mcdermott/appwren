@@ -10,6 +10,9 @@ import { openAppearance } from "./appearance.js";
 import { openPalette } from "./cmdk.js";
 import { avatar } from "./ui.js";
 
+/** Records found by words, for the command palette. Loaded when first wanted. */
+export const quickFind = async (text) => (await import("../pages/find.js")).quickFind(text);
+
 // Each entry appears only for people who can use it. Sections arrive as the product grows.
 export const NAV = [
   { items: [{ href: "/", label: "Home", iconName: "home", exact: true }, { href: "/tasks", label: "Tasks", iconName: "flag" }] },
@@ -92,6 +95,7 @@ export function commands(meta) {
     ...pages,
     { label: "Your account", hint: "Page", iconName: "user", href: "/account", keywords: "profile password email" },
     { label: "Notices", hint: "Page", iconName: "bell", href: "/notices", keywords: "reminders bell" },
+    { label: "Search everything", hint: "Page", iconName: "search", href: "/search", keywords: "find" },
     { label: "Appearance…", hint: "Action", iconName: "appearance", run: () => openAppearance(meta), keywords: "theme palette colors" },
     { label: mode() === "dark" ? "Switch to light" : "Switch to dark", hint: "Action",
       iconName: mode() === "dark" ? "sun" : "moon", run: () => setMode(mode() === "dark" ? "light" : "dark"), keywords: "theme mode" },
@@ -193,8 +197,8 @@ export function mountShell(root, meta) {
 
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
   const search = h("button", { type: "button", class: "search-button", "aria-label": "Open the command palette",
-    onclick: () => openPalette(commands(meta)) },
-  icon("search", "icon icon-sm"), h("span", {}, "Go to…"), h("kbd", {}, isMac ? "⌘K" : "Ctrl K"));
+    onclick: () => openPalette(commands(meta), { find: quickFind }) },
+  icon("search", "icon icon-sm"), h("span", {}, "Find or go to…"), h("kbd", {}, isMac ? "⌘K" : "Ctrl K"));
 
   const powered = meta.branding.show_powered_by && meta.branding.product_name !== "AppWren"
     ? h("div", { class: "powered" }, "Powered by ", h("a", { href: "https://github.com/robert-mcdermott/appwren", target: "_blank", rel: "noopener" }, "AppWren"))

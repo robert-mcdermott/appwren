@@ -34,7 +34,14 @@ from appwren.db.models.landscape import (
     HostingPlatform,
     Interface,
 )
-from appwren.db.models.oversight import Attestation, Campaign, CampaignItem, Task
+from appwren.db.models.oversight import (
+    Attestation,
+    Campaign,
+    CampaignItem,
+    SavedView,
+    ScoreContest,
+    Task,
+)
 from appwren.db.models.people import (
     Account,
     Credential,
@@ -90,6 +97,8 @@ __all__ = [
     "RecordOwner",
     "Reminder",
     "RoleGrant",
+    "SavedView",
+    "ScoreContest",
     "ScoreSnapshot",
     "ScoringModel",
     "SessionToken",

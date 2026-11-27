@@ -68,6 +68,25 @@
         "title": "AccountChanges",
         "type": "object"
       },
+      "AnswerBody": {
+        "properties": {
+          "accept": {
+            "title": "Accept",
+            "type": "boolean"
+          },
+          "answer": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Answer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accept"
+        ],
+        "title": "AnswerBody",
+        "type": "object"
+      },
       "AnswersBody": {
         "properties": {
           "answers": {
@@ -1018,6 +1037,49 @@
           }
         },
         "title": "ConfirmBody",
+        "type": "object"
+      },
+      "ContestBody": {
+        "properties": {
+          "evidence_url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Url"
+          },
+          "factor": {
+            "default": "",
+            "description": "The factor's key",
+            "maxLength": 60,
+            "title": "Factor",
+            "type": "string"
+          },
+          "level_claimed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What it should be, 1 to 5",
+            "title": "Level Claimed"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "title": "ContestBody",
         "type": "object"
       },
       "ContractBody": {
@@ -2851,6 +2913,61 @@
         },
         "title": "VendorBody",
         "type": "object"
+      },
+      "ViewBody": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The list: /applications",
+            "title": "Path"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Its filters",
+            "title": "Query"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared"
+          }
+        },
+        "title": "ViewBody",
+        "type": "object"
       }
     }
   },
@@ -4272,6 +4389,102 @@
         "summary": "Confirm that the record is right",
         "tags": [
           "assessment and scores"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/contests": {
+      "get": {
+        "operationId": "list_contests_api_v1_applications__ref__contests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Contests Api V1 Applications  Ref  Contests Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Contests of an application's scores",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "post": {
+        "operationId": "raise_contest_api_v1_applications__ref__contests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Raise Contest Api V1 Applications  Ref  Contests Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Say one factor is wrong, and why",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -6296,6 +6509,83 @@
         "summary": "Say what a component is built on",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/contests": {
+      "get": {
+        "operationId": "waiting_contests_api_v1_contests_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Waiting Contests Api V1 Contests Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Contests waiting for your answer",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/contests/{contest_id}/answer": {
+      "post": {
+        "operationId": "answer_contest_api_v1_contests__contest_id__answer_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "contest_id",
+            "required": true,
+            "schema": {
+              "title": "Contest Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Answer Contest Api V1 Contests  Contest Id  Answer Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept a contest, or answer it",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -10149,6 +10439,86 @@
         ]
       }
     },
+    "/api/v1/search": {
+      "get": {
+        "description": "Grouped by kind, the best answer first. It finds only what the searcher may open,\nbecause it asks each kind's own list.",
+        "operationId": "search_api_v1_search_get",
+        "parameters": [
+          {
+            "description": "A name, a reference, or a few words",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "A name, a reference, or a few words",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only this kind of record",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this kind of record",
+              "title": "Type"
+            }
+          },
+          {
+            "description": "How many of each kind",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "description": "How many of each kind",
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Search Api V1 Search Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One search across every kind of record",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
     "/api/v1/session": {
       "delete": {
         "operationId": "sign_out_api_v1_session_delete",
@@ -10372,6 +10742,116 @@
         "summary": "Say how you want to be told",
         "tags": [
           "operations"
+        ]
+      }
+    },
+    "/api/v1/similar-applications": {
+      "get": {
+        "description": "Those already on record whose name or alias is close to this name or its aliases, or\nthat are the same product from the same vendor (INV-15).",
+        "operationId": "similar_applications_api_v1_similar_applications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Name",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Other names it goes by, separated by commas",
+            "in": "query",
+            "name": "aliases",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "Other names it goes by, separated by commas",
+              "title": "Aliases",
+              "type": "string"
+            }
+          },
+          {
+            "description": "A vendor's reference",
+            "in": "query",
+            "name": "vendor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A vendor's reference",
+              "title": "Vendor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "product",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product"
+            }
+          },
+          {
+            "description": "This one's reference",
+            "in": "query",
+            "name": "except",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "This one's reference",
+              "title": "Except"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Similar Applications Api V1 Similar Applications Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Applications a new one may be already",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -11856,6 +12336,194 @@
         "summary": "Remove a link",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/views": {
+      "get": {
+        "operationId": "list_views_api_v1_views_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Views Api V1 Views Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Your saved views, and the shared ones",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "post": {
+        "operationId": "save_view_api_v1_views_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Save View Api V1 Views Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a list's filters under a name",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/views/{view_id}": {
+      "delete": {
+        "operationId": "delete_view_api_v1_views__view_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "view_id",
+            "required": true,
+            "schema": {
+              "title": "View Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Delete View Api V1 Views  View Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a saved view",
+        "tags": [
+          "keeping current"
+        ]
+      },
+      "patch": {
+        "operationId": "change_view_api_v1_views__view_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "view_id",
+            "required": true,
+            "schema": {
+              "title": "View Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Change View Api V1 Views  View Id  Patch",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename, change, or share a saved view",
+        "tags": [
+          "keeping current"
         ]
       }
     },

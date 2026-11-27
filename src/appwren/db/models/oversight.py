@@ -1,11 +1,12 @@
-"""Keeping the portfolio current: confirmations of a record by the people who keep it, and
-campaigns that ask for them."""
+"""Keeping the portfolio current: confirmations of a record, campaigns that ask for them,
+tasks raised by what happens, saved views, and contested scores."""
 
 from __future__ import annotations
 
 from datetime import date, datetime
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Date,
     ForeignKey,
@@ -131,4 +132,61 @@ class Task(Base):
         CheckConstraint("status IN ('open', 'done', 'dismissed')", name="status"),
         Index("ix_task_account_id", "account_id", "status"),
         Index("ix_task_status", "status", "due_on"),
+    )
+
+
+class SavedView(Base):
+    """A list as someone filtered and sorted it, kept under a name (CUR-08). It holds the
+    filters and never the rows, so whoever opens it sees only what they may see."""
+
+    __tablename__ = "saved_view"
+    __audit__ = False  # a convenience of one person's, not part of the record
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("account.id", ondelete="CASCADE"))
+    owner_name: Mapped[str] = mapped_column(String(200))
+    path: Mapped[str] = mapped_column(String(80))  # the list: /applications
+    name: Mapped[str] = mapped_column(String(80))
+    query: Mapped[str] = mapped_column(String(1000))  # its filters, as the address has them
+    shared: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime)
+
+    __table_args__ = (
+        UniqueConstraint("account_id", "path", "name"),
+        Index("ix_saved_view_path", "path"),
+    )
+
+
+CONTEST_STATUSES = ("open", "accepted", "answered")
+
+
+class ScoreContest(Base):
+    """An owner saying one factor of an application's scores is wrong: what it should be, why,
+    and where the evidence is; and the portfolio team's answer (SCR-13). Both stay on the
+    record. The score moves only when the record or an assessment is changed."""
+
+    __tablename__ = "score_contest"
+    __subject__ = "score_contest"
+    __audit_parent__ = ("application", "application_id")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("application.id"))
+    dimension: Mapped[str] = mapped_column(String(40))
+    factor: Mapped[str] = mapped_column(String(60))
+    factor_label: Mapped[str] = mapped_column(String(200))
+    level_shown: Mapped[int | None] = mapped_column(Integer)
+    level_claimed: Mapped[int | None] = mapped_column(Integer)
+    note: Mapped[str] = mapped_column(Text)
+    evidence_url: Mapped[str | None] = mapped_column(String(500))
+    raised_by: Mapped[int | None] = mapped_column(Integer)
+    raised_by_name: Mapped[str] = mapped_column(String(200))
+    raised_on: Mapped[date] = mapped_column(Date)
+    status: Mapped[str] = mapped_column(String(16), default="open")
+    answer: Mapped[str | None] = mapped_column(Text)
+    answered_by_name: Mapped[str | None] = mapped_column(String(200))
+    answered_on: Mapped[date | None] = mapped_column(Date)
+
+    __table_args__ = (
+        CheckConstraint("status IN ('open', 'accepted', 'answered')", name="status"),
+        Index("ix_score_contest_application_id", "application_id", "status"),
     )

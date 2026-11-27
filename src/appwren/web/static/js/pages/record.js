@@ -13,6 +13,7 @@ import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES } 
 import { editRecord, SECTIONS } from "../components/record-forms.js";
 import { openWorking, scorecard, scoresTab, verdict } from "../components/scorecard.js";
 import { confirmationLine, confirmRecord } from "../components/confirmation.js";
+import { contestsCard } from "../components/contests.js";
 import { decisionsTab, recordDecision } from "../components/decision.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
@@ -772,7 +773,7 @@ export function applicationPage(main, params, extraTabs = []) {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact, runs, cost] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
@@ -780,9 +781,11 @@ export function applicationPage(main, params, extraTabs = []) {
         tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null,
         tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null,
         tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null,
-        tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null]);
+        tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null,
+        tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
-        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null };
+        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null,
+        contests: contested?.data ?? null };
     },
     view: (data, reload) => {
       const record = data.record;
@@ -794,7 +797,8 @@ export function applicationPage(main, params, extraTabs = []) {
       const decideButton = record.can?.decide ? button("Record a decision", { onclick: decide }) : null;
       const extra = extraTabs.find(([key]) => key === tab);
       const body = tab === "history" ? card({ flush: true }, timeline(data.history))
-        : tab === "scores" ? scoresTab(data.scores, { ref: record.ref, vocab: data.vocab })
+        : tab === "scores" ? h("div", { class: "stack-lg" }, scoresTab(data.scores, { ref: record.ref, vocab: data.vocab }),
+          contestsCard(record.ref, data.scores, data.contests, reload))
           : tab === "assessment" ? assessmentTab(record, ctx)
             : tab === "decisions" ? decisionsTab(record, data.decisions, data.vocab, { mayDecide: record.can?.decide, onDecide: decide })
             : tab === "components" ? componentsTab(record, ctx)
