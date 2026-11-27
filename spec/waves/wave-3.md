@@ -36,6 +36,7 @@ None block the start. These defaults have been taken and can be changed before t
 - **Reminders:** two weeks before a date and the day after it; a week late goes to the unit's steward, three weeks late to its leader. These are in the cadence too (slice 1).
 - **Email is optional and off** until `[mail]` names a server; its password comes from the environment, as single sign-on's secret does (slice 1).
 - **Triggers are the program's, not code's to time.** How far ahead a contract notice, an end of support, and a grant end raise a task are cadence settings: 60, 180, and 180 days. A signal crossing a threshold waits for signals, in wave 4 (slice 4).
+- **A departure raises tasks; it does not reassign by itself.** The application shows that nobody is accountable, and a steward is asked to name someone. Passing everything on is one deliberate step (slice 4).
 - **Contesting a score is about one factor.** An owner says which factor is wrong, what it should be, and why, with a link to the evidence. The score does not move until the record or an assessment is changed; accepting a contest says so and points the owner to the change (slice 5).
 
 ---
@@ -82,17 +83,19 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** a campaign (`CMG`) is the people asked, one thing (confirm the record, or assess), a unit and everything beneath it narrowed by tier and stage, a date, and a note. Managers and stewards run campaigns over the units they hold their role for; one over the whole organization needs the role over all of it. A preview says how many applications and people it would ask and lists the applications with nobody to ask, before anything is saved. Starting it makes an item for each application in service, asked of its accountable owner or, where they have gone, a steward of its unit, and tells each person once with a count. An item is done when the record is confirmed or the application assessed after the campaign began: confirming and assessing close the items they answer, and the reminders job closes any a change elsewhere did not, under the scheduler's name. Whoever runs it may excuse an item with a reason, remind those still to do it, close it (what was found is kept), or cancel it. Its page gives the progress, coverage by unit with the least covered first (each unit a link to its own list), and every item, which can be narrowed to what was asked of the reader; items are shown only to those who may see their application. Pending items are on Home, said once where a stale record or an expired assessment would say the same, and in the reminders, which go up to the steward and the leader. The demo has a closed spring assessment campaign in Clinical Research, three quarters done, and a record confirmation in Shared Resources under way. The acceptance test is `tests/test_campaigns.py::test_a_campaign_asks_the_owners_and_tracks_who_has_answered`.
 
-## Slice 4: Triggers and reassignment ☐
+## Slice 4: Triggers and reassignment ☑
 
 **Goal:** what happens in the world raises a task for whoever must act.
 
-- [ ] `task`: what is to be done, about which record, for whom, by when, why; closed by itself when its cause is settled, or by a person with a note
-- [ ] Triggers run each day: a contract's notice date near, a release in use reaching end of support, a grant near its end; each raises one task, never two
-- [ ] A departure: disabling an account raises a task for each application left with nobody accountable, and passes on what the person alone answered for
-- [ ] A page of what a person holds, with the means to pass it all on in one step
-- [ ] Tasks on Home and in the reminders
+- [x] `task`: what is to be done, about which record, for whom, by when, why; closed by itself when its cause is settled, or by a person with a note
+- [x] Triggers run each day: a contract's notice date near, a release in use reaching end of support, a grant near its end; each raises one task, never two
+- [x] A departure: disabling an account raises a task at once for each application left with nobody accountable
+- [x] A page of what a person holds, with the means to pass it all on in one step
+- [x] Tasks on Home and in the reminders
 
-**Acceptance:** each trigger raises one task for the right person and closes it when settled; disabling an owner leaves nothing without one.
+**Acceptance (met):** each trigger raises one task for the right person and closes it when settled; disabling an owner leaves nothing without one.
+
+**Done:** a task (`task`) is what is to be done, about which record, for whom, by when, and why, with its cause as a unique key. A fourth job, the triggers, runs hourly: a contract's notice date within the cadence's 60 days raises a task for its owner; a release in use within 180 days of its end of support (or up to 90 days past it) raises one for each application on it, for whoever answers for that application; a grant within 180 days of its end (the application's own grant end, or a grant funding source behind its cost lines) raises one asking for a decision; an accountable owner whose account is disabled raises one for a steward of the unit, or failing one a manager, at once from the disabling and again at every turn if missed. Where nobody answers for an application, its unit's steward is given the task. A task settles itself when its cause is no longer there (the contract's term changed or ended, nothing runs on the release, the grant's date moved, someone is accountable again) or, for a grant, when a decision is recorded after it was raised; the scheduler closes it with the reason under its own name. A person who has the task, or a steward or manager over it, marks it done or dismisses it, with a note. Tasks are on Home, on a page of their own (yours, everything open you may see, those with nobody to do them, closed), and in the reminders, which now carry a contract's notice date as its task's. Every person has a page of what they hold; an administrator or a manager passes all of it on in one step, each role on each record, each contract and interface owned, each open task, and each pending campaign item, telling the person who receives it. Disabling an account does not pass anything on by itself: the departure tasks say who must decide, and the application shows that nobody is accountable until they do. The demo runs the triggers over its last two months: the leaver's four applications, the database release ending next quarter, the grants ending, and the Calendra notice date each have a task with someone to do it. The research software engineer, who was named on nothing in the 0.2.0 demo, now keeps the two pieces of research software in its storylines. The acceptance tests are in `tests/test_tasks.py`.
 
 ## Slice 5: Find and tidy ☐
 

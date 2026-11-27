@@ -189,6 +189,11 @@ def set_status(session: Session, principal: Principal, account: Account, status:
         session.flush()
         _end_sessions(session, account.id)
     account.status = status
+    if status == "disabled":
+        from appwren.oversight import tasks
+
+        session.flush()
+        tasks.departure(session, account.id)  # whoever must name a new owner hears at once
 
 
 def _is_admin(session: Session, account_id: int) -> bool:

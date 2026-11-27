@@ -87,6 +87,9 @@ class Builder:
         self.db = db
         self.seed = seed
         self.rng = random.Random(seed)
+        # What later releases add to the demo draws from its own sequence, so that what was
+        # already there (who owns what, above all) is the same as before.
+        self.later = random.Random(seed * 7919 + 3)
         self.end = datetime(today.year, today.month, today.day, 16, 30, tzinfo=UTC)
         self.start = self.end - timedelta(days=int(MONTHS * 30.4))
         self.now = self.start
@@ -385,8 +388,10 @@ class Builder:
             out["last_restore_test"] = self.day(-r.randint(20, 300)).isoformat()
         return out
 
-    def answers(self, health: str, tier: str, vendor: bool) -> dict[str, int | None]:
-        r = self.rng
+    def answers(
+        self, health: str, tier: str, vendor: bool, rng: random.Random | None = None
+    ) -> dict[str, int | None]:
+        r = rng or self.rng
         high = {"1": (4, 5), "2": (4, 5), "3": (3, 4), "4": (2, 3), "5": (1, 2)}[tier]
         fit = {"good": (4, 5), "fair": (3, 4), "poor": (1, 2)}[health]
         effort = {"good": (4, 5), "fair": (2, 4), "poor": (1, 2)}[health]
@@ -423,6 +428,8 @@ class Builder:
 
         def register() -> None:
             owner = self.cast["res_steward"] if story == "worked_example" else self.owner_for(unit)
+            if story in ("single_maintainer", "grant_ending"):
+                owner = self.cast["rse"]  # the research software engineer keeps these two
             domain = self.cap_domain.get(caps[0]) or "administrative"
             values: dict[str, Any] = {
                 "name": name,
@@ -629,10 +636,11 @@ class Builder:
         has lapsed missed the last."""
         tier, added = self.planned.get(name, ("4", 600))
         period = 182 if tier in ("1", "2") else 365
-        last = period + self.rng.randint(20, 150) if lapsed else self.rng.randint(5, period - 25)
+        r = self.later
+        last = period + r.randint(20, 150) if lapsed else r.randint(5, period - 25)
         while last < added:
             self.confirm(name, last)
-            last += period - self.rng.randint(0, 20)
+            last += period - r.randint(0, 20)
 
     def campaign(
         self,
@@ -673,7 +681,7 @@ class Builder:
                     )
                 ]
             for app_id, account_id in sorted(pending):
-                if self.rng.random() >= share or account_id in self.departed:
+                if self.later.random() >= share or account_id in self.departed:
                     continue
                 by = self.principal(account_id)
                 with self.db.write(by.actor) as session:
@@ -681,7 +689,9 @@ class Builder:
                     try:
                         if values["kind"] == "assess":
                             vendor = app.sourcing in ("saas", "commercial", "vendor_custom")
-                            given = self.answers(self.health[app.ref], self.tier[app.ref], vendor)
+                            given = self.answers(
+                                self.health[app.ref], self.tier[app.ref], vendor, rng=self.later
+                            )
                             assessment.record(session, by, app, given)
                         else:
                             attestation.confirm(session, by, app)
@@ -966,9 +976,11 @@ class Builder:
                     "Contracts Repository"}  # fmt: skip
         for name in everything:
             if name in orphaned:
-                self.confirm(name, r.randint(380, 460))
+                self.confirm(name, self.later.randint(380, 460))
             else:
-                self.confirm_on_cadence(name, lapsed=name not in storied and r.random() < 0.08)
+                self.confirm_on_cadence(
+                    name, lapsed=name not in storied and self.later.random() < 0.08
+                )
         # Campaigns: last spring's assessments in Clinical Research, closed; and the cores
         # asked to confirm their records, under way.
         self.campaign(
@@ -1211,18 +1223,23 @@ class Builder:
         self.departed.add(self.cast["leaver"])
 
     def remind(self) -> None:
-        """The reminders of the last two months, as the scheduler would have sent them. What
-        is more than a week old has been read."""
+        """The triggers and reminders of the last two months, as the scheduler would have run
+        them. What is more than a week old has been read."""
         from sqlalchemy import update
 
         from appwren import reminders
         from appwren.db.models import Notice
+        from appwren.jobs import SCHEDULER
+        from appwren.oversight import tasks
 
         for offset in (-56, -42, -28, -21, -14, -7, -3, 0):
             moment = self.end + timedelta(days=offset)
-            with clock_set_to(lambda moment=moment: moment), self.db.bookkeeping() as session:
-                said = reminders.send(session, on=moment.date())
-                self.tally("notices", sum(said.values()))
+            with clock_set_to(lambda moment=moment: moment):
+                with self.db.write(SCHEDULER, action="job.triggers") as session:
+                    self.tally("tasks", tasks.run(session, on=moment.date())["tasks_raised"])
+                with self.db.bookkeeping() as session:
+                    said = reminders.send(session, on=moment.date())
+                    self.tally("notices", sum(said.values()))
         with self.db.bookkeeping() as session:
             session.execute(
                 update(Notice)

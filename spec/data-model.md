@@ -215,6 +215,10 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 `campaign(ref, name, kind, message, org_unit_id, tiers, stages, due_on, status, started_on, started_by, started_by_name, ended_on)` (`CMG-0004`). The owners of the applications in a unit and beneath it, narrowed by tier and stage, asked to confirm their records (`confirm`) or to assess (`assess`) by a date. `campaign_item(campaign_id, application_id, org_unit_id, account_id, status, done_on, done_by_name, excuse)` is one application and who was asked: pending until the thing is done after the campaign began, or excused with a reason.
 
+### Task
+
+`task(key, kind, title, reason, subject_type, subject_id, application_id, org_unit_id, account_id, due_on, status, raised_on, closed_on, closed_by_name, note)`. Something to be done about a record, for a person, by a date, raised by a trigger: a contract's notice date near (`contract_notice`), a release in use nearing its end of support (`end_of_support`), a grant near its end (`grant_end`), or an accountable owner leaving (`departure`). `key` names the cause, unique, so a cause raises one task and never two. Open until its cause is settled, when the scheduler closes it with the reason, or until a person marks it done or dismisses it with a note.
+
 ## Later waves (sketch)
 
 | Wave | Entities |

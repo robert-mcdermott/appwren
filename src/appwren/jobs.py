@@ -61,6 +61,13 @@ def _reminders(db: Database, _config: Config) -> dict[str, int]:
     return counts
 
 
+def _triggers(db: Database, _config: Config) -> dict[str, int]:
+    from appwren.oversight import tasks
+
+    with db.write(SCHEDULER, action="job.triggers") as session:
+        return tasks.run(session)
+
+
 def _tidy(db: Database, _config: Config) -> dict[str, int]:
     now = utc_now()
     with db.bookkeeping() as session:
@@ -77,6 +84,11 @@ def _tidy(db: Database, _config: Config) -> dict[str, int]:
 JOBS: dict[str, JobSpec] = {
     spec.key: spec
     for spec in (
+        JobSpec("triggers", "Triggers",
+                "Raises a task when a contract's notice date is near, a release in use nears "
+                "its end of support, a grant nears its end, or an owner leaves; closes those "
+                "that are settled",
+                timedelta(hours=1), _triggers),
         JobSpec("reminders", "Reminders",
                 "Reminds people of what is nearly due, and tells stewards and leaders what "
                 "stays late",

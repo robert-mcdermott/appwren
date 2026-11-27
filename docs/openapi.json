@@ -859,6 +859,24 @@
         "title": "CapabilityLink",
         "type": "object"
       },
+      "CloseBody": {
+        "properties": {
+          "how": {
+            "default": "done",
+            "description": "done, or dismissed",
+            "title": "How",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "title": "CloseBody",
+        "type": "object"
+      },
       "ComponentBody": {
         "properties": {
           "application_id": {
@@ -1710,6 +1728,20 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HandOverBody": {
+        "properties": {
+          "to": {
+            "description": "The account to pass everything to",
+            "title": "To",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "to"
+        ],
+        "title": "HandOverBody",
         "type": "object"
       },
       "HostingPlatformBody": {
@@ -3025,6 +3057,106 @@
         "summary": "Change a person's details",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/hand-over": {
+      "post": {
+        "description": "Each role on each record, each contract and interface owned, each open task, and each\npending campaign item goes to one person, in one step.",
+        "operationId": "hand_over_api_v1_accounts__account_id__hand_over_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandOverBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Hand Over Api V1 Accounts  Account Id  Hand Over Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pass everything a person holds on",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/holdings": {
+      "get": {
+        "description": "The records they are named on, the contracts and interfaces they own, their open\ntasks, and what open campaigns still ask of them.",
+        "operationId": "holdings_api_v1_accounts__account_id__holdings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Holdings Api V1 Accounts  Account Id  Holdings Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Everything a person holds",
+        "tags": [
+          "keeping current"
         ]
       }
     },
@@ -10454,6 +10586,198 @@
         "summary": "Begin single sign-on",
         "tags": [
           "single sign-on"
+        ]
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "description": "Each person sees their own tasks; stewards, leaders, and managers those about the\napplications in their units; those who read everything, all of them.",
+        "operationId": "list_tasks_api_v1_tasks_get",
+        "parameters": [
+          {
+            "description": "open, done, dismissed, or all",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "open, done, dismissed, or all",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "Only yours",
+            "in": "query",
+            "name": "mine",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only yours",
+              "title": "Mine",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only those with nobody to do them",
+            "in": "query",
+            "name": "unassigned",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only those with nobody to do them",
+              "title": "Unassigned",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Tasks Api V1 Tasks Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tasks: open ones by default",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}": {
+      "get": {
+        "operationId": "get_task_api_v1_tasks__task_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Task Api V1 Tasks  Task Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One task",
+        "tags": [
+          "keeping current"
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}/close": {
+      "post": {
+        "operationId": "close_task_api_v1_tasks__task_id__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Close Task Api V1 Tasks  Task Id  Close Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a task done, or dismiss it",
+        "tags": [
+          "keeping current"
         ]
       }
     },

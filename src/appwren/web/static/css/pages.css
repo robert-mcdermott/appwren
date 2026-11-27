@@ -195,3 +195,11 @@ a:hover > .bubble, a:focus-visible > .bubble { stroke: var(--focus); stroke-widt
 .text-danger { color: var(--danger); font-weight: 500; }
 .fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
 .fieldset legend { font-weight: 600; font-size: var(--text-s); margin-bottom: var(--space-2); padding: 0; }
+
+/* ---- Tasks ---- */
+.task-list { list-style: none; margin: 0; padding: 0; }
+.task-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 220px) max-content; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); }
+.task-row > :nth-child(2) { justify-self: start; min-width: 0; max-width: 100%; overflow: hidden; }
+@media (max-width: 760px) { .task-row { grid-template-columns: minmax(0, 1fr); } }
+.task-row + .task-row { border-top: 1px solid var(--border); }
+.plain-list { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); }

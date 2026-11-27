@@ -272,8 +272,20 @@ def test_the_review_of_a_decider_who_has_left_goes_to_the_units_leaders(
     ]
 
 
-def test_a_contracts_notice_date_reminds_its_owner(db: Database, people: People) -> None:
+def test_a_contracts_notice_date_raises_a_task_and_reminds_its_owner(
+    db: Database, people: People
+) -> None:
+    """The notice date is carried by a task, raised by the triggers, and reminded of like any
+    other date."""
+    from appwren.oversight import tasks
+
     owner = people.accounts["architect"]
+
+    def turn() -> dict[str, int]:
+        with db.write(ME.actor) as session:
+            tasks.run(session)
+        return remind(db)
+
     with db.write(ME.actor) as session, frozen_at(START):
         vendor = records.create(
             session, ME, VENDOR, {"name": "Larkfield", "kind": "software_vendor"}
@@ -285,21 +297,22 @@ def test_a_contracts_notice_date_reminds_its_owner(db: Database, people: People)
         )  # fmt: skip
         ref = contract.ref
     with frozen_at(at("2026-09-20")):
-        assert remind(db)["reminders"] == 1
+        assert turn()["reminders"] == 1
     assert notices_of(db, owner) == [
-        ("reminder", f"Due in 12 days: notice date of {ref} Larkfield licenses")
+        ("task", f"New task: Decide whether {ref} Larkfield licenses renews"),
+        ("reminder", f"Due in 12 days: Decide whether {ref} Larkfield licenses renews"),
     ]
     with frozen_at(at("2026-10-03")):
-        assert remind(db)["overdue"] == 1
+        assert turn()["overdue"] == 1
     with frozen_at(at("2026-11-20")):
-        assert remind(db) == QUIET  # no escalation: a contract has no unit
+        assert turn() == QUIET  # no escalation: a contract has no unit
     with db.write(ME.actor) as session, frozen_at(at("2026-11-20")):
         row = records.load(session, ME, CONTRACT, ref)
         records.update(session, ME, CONTRACT, row, {"ends_on": "2027-12-31"}, version=row.version)
     with frozen_at(at("2027-09-25")):
-        assert remind(db)["reminders"] == 1  # the renewed term has its own notice date
+        assert turn()["reminders"] == 1  # the renewed term has its own notice date
     with frozen_at(at("2028-02-01")):
-        assert remind(db) == QUIET  # once a contract is over, its notice date is history
+        assert turn() == QUIET  # once a contract is over, its notice date is history
     assert date(2027, 10, 2) == date(2027, 12, 31) - timedelta(days=90)
 
 

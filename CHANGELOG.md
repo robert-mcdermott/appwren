@@ -21,8 +21,7 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   leaves the work to `appwren jobs run`.
 - **Notices and reminders.** A bell in the top bar counts what is new for you, and opens a
   page of it. Whoever something waits on is reminded two weeks before its date and the day
-  after: an assessment about to expire, a decision's review date and target date, and a
-  contract's notice date. An assessment or a target that stays late goes to the unit's
+  after: an assessment about to expire, and a decision's review date and target date. An assessment or a target that stays late goes to the unit's
   steward after a week and its leader after three. Each is said once for a given date.
 - **Email, optional.** Name an SMTP server under `[mail]` and notices go by email as well,
   each as it happens or in a daily summary, as each person chooses under Your account. The
@@ -44,6 +43,18 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   application assessed after the campaign began. The campaign's page shows its progress and
   its coverage by unit, least covered first, and can remind, excuse an application with a
   reason, close, or cancel.
+- **Tasks, raised by what happens.** Each hour the triggers look at the dates and the people
+  on record. A contract's notice date within 60 days, a release in use within 180 days of its
+  end of support, a grant within 180 days of its end, and an accountable owner who has left
+  each raise a task for the person who must act, with a date and the reason, and tell them.
+  A cause raises one task, never two. A task closes by itself when its cause is settled (the
+  contract renewed, nothing on the release, a decision recorded, someone named) or by a person
+  with a note. Tasks are on Home, on a page of their own, and in the reminders; the reminder
+  of a contract's notice date is now its task's.
+- **Passing on what someone holds.** Every person has a page of what they hold: the records
+  they are named on and in what role, the contracts and interfaces they own, their open
+  tasks, and what campaigns still ask of them. An administrator or a manager passes all of it
+  to someone else in one step. Assessments and decisions stay with whoever made them.
 
 ### Changed
 

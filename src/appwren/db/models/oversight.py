@@ -96,3 +96,39 @@ class CampaignItem(Base):
         CheckConstraint("status IN ('pending', 'done', 'excused')", name="status"),
         Index("ix_campaign_item_account_id", "account_id", "status"),
     )
+
+
+TASK_STATUSES = ("open", "done", "dismissed")
+
+
+class Task(Base):
+    """Something to be done about a record, for a person, by a date, raised by what happened:
+    a contract's notice date near, a release reaching end of support, a grant ending, an owner
+    leaving (CUR-06). ``key`` says what raised it, so the same cause never raises it twice. It
+    closes by itself when its cause is settled, or by a person with a note."""
+
+    __tablename__ = "task"
+    __subject__ = "task"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    key: Mapped[str] = mapped_column(String(120), unique=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(String(300))
+    reason: Mapped[str] = mapped_column(Text)
+    subject_type: Mapped[str] = mapped_column(String(24))
+    subject_id: Mapped[int] = mapped_column(Integer)
+    application_id: Mapped[int | None] = mapped_column(ForeignKey("application.id"))
+    org_unit_id: Mapped[int | None] = mapped_column(Integer)
+    account_id: Mapped[int | None] = mapped_column(ForeignKey("account.id"))
+    due_on: Mapped[date] = mapped_column(Date)
+    status: Mapped[str] = mapped_column(String(16), default="open")
+    raised_on: Mapped[date] = mapped_column(Date)
+    closed_on: Mapped[date | None] = mapped_column(Date)
+    closed_by_name: Mapped[str | None] = mapped_column(String(200))
+    note: Mapped[str | None] = mapped_column(Text)
+
+    __table_args__ = (
+        CheckConstraint("status IN ('open', 'done', 'dismissed')", name="status"),
+        Index("ix_task_account_id", "account_id", "status"),
+        Index("ix_task_status", "status", "due_on"),
+    )

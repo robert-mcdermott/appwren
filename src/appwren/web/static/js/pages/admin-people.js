@@ -172,7 +172,8 @@ function editPerson({ account, roles, units, reload }) {
           account.has_password ? null : pill("No password", "warn")),
         name.node, title.node, worksIn.node, editor.node,
         h("div", { class: "stack-sm" }, h("div", { class: "label" }, "Sign-in"),
-          h("div", { class: "row wrap" }, mine ? null : setPassword, mine || account.status === "invited" ? null : toggle),
+          h("div", { class: "row wrap" }, mine ? null : setPassword, mine || account.status === "invited" ? null : toggle,
+            h("a", { class: "btn", href: `/people/${account.id}/holdings` }, "What they hold")),
           mine ? h("p", { class: "subtle" }, "This is you. Change your own password from your account page.") : null)));
       footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
       footer.hidden = false;

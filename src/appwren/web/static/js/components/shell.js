@@ -12,7 +12,7 @@ import { avatar } from "./ui.js";
 
 // Each entry appears only for people who can use it. Sections arrive as the product grows.
 export const NAV = [
-  { items: [{ href: "/", label: "Home", iconName: "home", exact: true }] },
+  { items: [{ href: "/", label: "Home", iconName: "home", exact: true }, { href: "/tasks", label: "Tasks", iconName: "flag" }] },
   {
     heading: "Portfolio",
     items: [

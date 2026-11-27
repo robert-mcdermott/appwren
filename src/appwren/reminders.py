@@ -1,8 +1,9 @@
 """Reminders and escalation: what is nearly due or late, and who is told (CUR-04).
 
-One pass looks at everything with a date on it: an assessment about to expire, a decision's
-review date and its target date, and a contract's notice date. Later parts of the program add
-their own dates through ``SOURCES``. Whoever a thing is waiting on is reminded shortly before
+One pass looks at everything with a date on it: an assessment about to expire, and a
+decision's review date and its target date. Other parts of the program add their own dates
+through ``SOURCES``: a record's confirmation, a campaign's items, and tasks, among them a
+contract's notice date. Whoever a thing is waiting on is reminded shortly before
 its date and again when it passes. If it stays late, the steward of its unit is told, and
 later the unit's leader. Each of those is said once for a given date; moving the date starts
 again.
@@ -23,15 +24,13 @@ from sqlalchemy.orm import Session
 
 from appwren.access import roles
 from appwren.core.clock import add_months, today
-from appwren.db.models import Account, Application, Assessment, Contract, Decision, Reminder
+from appwren.db.models import Account, Application, Assessment, Decision, Reminder
 from appwren.engine.model import months_current
 from appwren.people import notices
 
 DEFAULTS = {"soon_days": 14, "steward_after_days": 7, "leader_after_days": 21}
 STAGES = ("soon", "overdue", "steward", "leader")
 NOT_IN_SERVICE = ("retired", "archived")
-# A contract whose notice date passed this long ago is history, not a reminder.
-CONTRACT_PAST = timedelta(days=30)
 
 
 @dataclass(frozen=True)
@@ -131,27 +130,6 @@ def _decisions(session: Session, horizon: date) -> Iterator[Due]:
             )  # fmt: skip
 
 
-def _contracts(session: Session, on: date, horizon: date) -> Iterator[Due]:
-    from appwren.landscape.costs import notice_by
-
-    for row in session.scalars(
-        select(Contract).where(Contract.status == "active", Contract.ends_on.is_not(None))
-    ):
-        when = notice_by(row)
-        if (
-            when is None
-            or when > horizon
-            or when < on - CONTRACT_PAST
-            or (row.ends_on and row.ends_on < on)
-        ):
-            continue
-        yield Due(
-            "contract_notice", row.id, when, f"notice date of {row.ref} {row.name}",
-            f"/contracts/{row.ref}", (row.owner_id,) if row.owner_id else (), None,
-            escalates=False, late="Notice date passed",
-        )  # fmt: skip
-
-
 def _tier(app: Application) -> int | None:
     try:
         return int(app.tier) if app.tier else None
@@ -167,7 +145,8 @@ SOURCES: list[Callable[[Session, date, date], Iterable[Due]]] = []
 def _sources() -> None:
     """Make sure every module that adds dates of its own has added them."""
     import appwren.oversight.attestation
-    import appwren.oversight.campaigns  # noqa: F401
+    import appwren.oversight.campaigns
+    import appwren.oversight.tasks  # noqa: F401
 
 
 def due_items(session: Session, on: date, horizon: date) -> list[Due]:
@@ -176,7 +155,6 @@ def due_items(session: Session, on: date, horizon: date) -> list[Due]:
     found = [
         *_assessments(session, horizon, model),
         *_decisions(session, horizon),
-        *_contracts(session, on, horizon),
     ]
     for source in SOURCES:
         found.extend(source(session, on, horizon))

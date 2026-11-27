@@ -66,6 +66,14 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/campaigns/{ref}/close"): Needs.STEWARD,
     ("POST", "/api/v1/campaigns/{ref}/cancel"): Needs.STEWARD,
     ("POST", "/api/v1/campaigns/{ref}/items/{item_id}/excuse"): Needs.STEWARD,
+    # Tasks: each person's own, and those in their units; closed by whoever it is for or a
+    # steward or manager over it
+    ("GET", "/api/v1/tasks"): Needs.MEMBER,
+    ("GET", "/api/v1/tasks/{task_id}"): Needs.MEMBER,
+    ("POST", "/api/v1/tasks/{task_id}/close"): Needs.MEMBER,
+    # What a person holds: their own, or anyone's for administrators and managers
+    ("GET", "/api/v1/accounts/{account_id}/holdings"): Needs.MEMBER,
+    ("POST", "/api/v1/accounts/{account_id}/hand-over"): Needs.MEMBER,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,

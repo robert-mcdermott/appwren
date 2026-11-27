@@ -443,6 +443,18 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 "application": asked["application"],
             }
         )
+    from appwren.oversight import tasks
+
+    for task in tasks.owed(session, principal):
+        items.append(
+            {
+                "severity": "danger" if task["late"] else "warning",
+                "kind": "task",
+                "text": f"{task['title']}, by {task['due_on'].isoformat()}",
+                "href": f"/tasks/{task['id']}",
+                "application": task["about"] or {"ref": "", "name": "", "type": "task"},
+            }
+        )
     items.sort(key=lambda item: (SEVERITY.get(item["severity"], 3), item["application"]["name"]))
     return {
         "items": items,
