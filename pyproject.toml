@@ -1,6 +1,6 @@
 [project]
 name = "appwren"
-version = "0.7.0"
+version = "0.8.0"
 description = "An open system of record for application portfolio management: know every application, who answers for it, and what to do with it."
 readme = "README.md"
 license = "Apache-2.0"

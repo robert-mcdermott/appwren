@@ -62,9 +62,17 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.7.0 is for an organization that has never seen AppWren: to install it, make it its own, and run it in production.
+Version 0.8.0 fits AppWren into the systems around it, all of it optional.
 
-**Adoption, new in 0.7.0**
+**Connected, new in 0.8.0**
+
+- **The checkpoint:** another process asks whether an application is approved for new use, or for a class of data, and is told every reason.
+- **Tokens of your own, and suggestions:** a token that acts as you, reads, and proposes changes that wait on the record until someone who keeps it accepts them.
+- **A tool server for AI assistants** that speak the Model Context Protocol, reading and proposing through the API as the person.
+- **An optional assistant,** off until configured, with any compatible model server including one on your own machine: answers with links to the records behind them, and applications drafted from documents.
+- **Standings elsewhere:** a record linked in another system of record shows how it stands there.
+
+**Adoption, from 0.7.0**
 
 - **Backup, restore, and moving** between SQLite and PostgreSQL, each one command, with the history verified at the end; and figures for how it runs at five thousand applications.
 - **The brand kit:** your colors by day and after dark, logo files, typefaces, a sign-in message and picture, footer links, an email line, and your own words for *unit* or *application*.

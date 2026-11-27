@@ -143,17 +143,17 @@ Detail: [waves/wave-6.md](waves/wave-6.md)
 | 7 | The program handbook | One guide for a portfolio team; the adopter's guide | ☑ |
 | 8 | Release prep | Guides, changelog, release | ☑ |
 
-## Wave 8: Connected (v0.8.0) ◐
+## Wave 8: Connected (v0.8.0) ☑
 
 **Goal:** fit into the systems around it, all of it optional.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | A reference others can check | Other processes ask whether an application is approved for a use or a data class | ☐ |
-| 2 | Tool server for assistants | An optional server through which an AI assistant reads the portfolio under a person's permissions and drafts changes they confirm | ☐ |
-| 3 | Optional assistant | Off by default; drafts records from documents and answers questions with links to their records, with any compatible provider including a local one | ☐ |
-| 4 | Other governance records | Links to records in other systems of record, with their standing | ☐ |
-| 5 | Release prep | Guides, changelog, release | ☐ |
+| 1 | A reference others can check | Other processes ask whether an application is approved for a use or a data class | ☑ |
+| 2 | Tool server for assistants | An optional server through which an AI assistant reads the portfolio under a person's permissions and drafts changes they confirm | ☑ |
+| 3 | Optional assistant | Off by default; drafts records from documents and answers questions with links to their records, with any compatible provider including a local one | ☑ |
+| 4 | Other governance records | Links to records in other systems of record, with their standing | ☑ |
+| 5 | Release prep | Guides, changelog, release | ☑ |
 
 ## Wave 9: Stable (v1.0.0) ☐
 

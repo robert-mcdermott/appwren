@@ -2,7 +2,7 @@
 
 **Goal:** fit into the systems around it, all of it optional. Waves 1 to 7 made AppWren a portfolio an organization can adopt and run. This wave lets the processes around it rely on it: a purchasing form or a data request asks whether an application is approved for what it is about to be used for; an AI assistant reads the portfolio under a person's own permissions and drafts changes that person confirms; an optional assistant inside AppWren drafts records and answers questions with links to the records behind each answer; and an application links to its records in other systems of record with their standing. None of it is on until someone turns it on.
 
-**Branch:** `wave-8` · **Target version:** `0.8.0` · **Status:** ◐ in progress
+**Branch:** `wave-8` · **Target version:** `0.8.0` · **Status:** ☑ done
 
 The processes around the portfolio come first here ([roadmap](../roadmap.md)): each answer AppWren gives another system says why, and nothing another system says changes a record until a person accepts it.
 
@@ -50,9 +50,9 @@ None block the start. These defaults have been taken and can be changed before t
 
 - [x] External references with their standing, where the other system offers it
 
-## Slice 5: Release prep ☐
+## Slice 5: Release prep ☑
 
-- [ ] Guides, changelog, upgrade from 0.7.0 on both databases, audits, release, and the site republished
+- [x] Guides, changelog, upgrade from 0.7.0 on both databases, audits, release, and the site republished
 
 ## Notes
 
@@ -60,3 +60,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **A personal token is the person, cut down to reading and proposing.** It is built from their account's own roles, so an assistant sees exactly what they do; the middleware lets it make one kind of change, a proposal. A proposal of a sensitive field the person may not see is refused, since it would say what they think the value is. Accepting is a person's own edit, signed in, never a token's.
 - **The assistant is told a list, not the database.** A question is answered from a compact list of the applications in service the person may see (reference, name, summary, unit, stage, tier, decision), leaving out any that handle data more sensitive than `max_data_class`; references in the answer are linked only if they were in that list. A draft is checked field by field against the form's own choices. The model server is asked with no database session open.
 - **A standing is read like a connector reads, and kept like a change.** The program names the address per system, with the identifier as `{id}`, where to look in the JSON answer, and a key's variable, which may not be the server's own. The job writes the standing with a system actor, so a change appears in the record's history; when it was read and why it failed are bookkeeping, not history.
+- **An independent review of the wave's code found five things.** The most serious, a personal token outliving its owner's password change, and four low or informational ones, are fixed with tests that fail without the fixes; see [the review](../reviews/2026-11-security-and-accessibility.md).

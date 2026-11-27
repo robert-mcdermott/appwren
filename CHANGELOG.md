@@ -4,7 +4,16 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.8.0 (2026-11-27)
+
+Wave 8, *Connected*: AppWren fits into the systems around it, all of it optional. Another
+process asks whether an application is approved for new use, or for a class of data, and
+is told why. A person's own token lets an AI assistant read the portfolio as them and
+propose changes, which wait on the record until someone who keeps it accepts them; a small
+tool server lets an assistant that speaks the Model Context Protocol do so. An optional
+assistant, off until configured, answers questions with links to the records behind the
+answer and drafts an application from a document. And a record linked in another system of
+record shows how it stands there.
 
 ### Added
 
@@ -26,6 +35,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **A tool server for AI assistants.** `appwren tools serve` lets an assistant that speaks
   the Model Context Protocol search and read AppWren, ask the checkpoint, see what waits on
   the person, and propose changes, through the API as that person.
+
+### Security
+
+The code this release adds was reviewed before it shipped; the record is in
+`spec/reviews/`. What it found is fixed, each with a test: a new password now revokes the
+account's own tokens; the checkpoint and the assistant leave out fields the program marks
+sensitive; a proposed value has a size limit; an identifier cannot climb a standing
+address; and a token never administers.
 
 ## 0.7.0 (2026-11-27)
 

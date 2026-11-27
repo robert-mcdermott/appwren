@@ -68,7 +68,7 @@ curl -s -H 'Authorization: Bearer awt_…' -H 'Content-Type: application/json' \
   http://127.0.0.1:8000/api/v1/applications/APP-0024/suggestions
 ```
 
-A personal token stops working when its owner's account is disabled.
+A personal token stops working when its owner's password changes or their account is disabled. Whatever its owner's roles, it never administers.
 
 ## Let an AI assistant read AppWren
 

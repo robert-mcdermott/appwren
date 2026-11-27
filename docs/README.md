@@ -1,6 +1,6 @@
 # AppWren documentation
 
-These guides describe AppWren 0.7.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
+These guides describe AppWren 0.8.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
 
 ## The guides
 
@@ -12,12 +12,12 @@ These guides describe AppWren 0.7.0, and are published with pictures at <https:/
 | 4 | [The landscape](the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches | Interfaces and data flows, the picture of how a record is connected, what breaks if an application goes, hosting platforms and deployments, overlap, the capability map and its measures, the lifecycle timeline, the radar, support dates from a file, who handles a class of data |
 | 5 | [Keeping current](keeping-current.md) | Everyone who keeps an application, and the portfolio team | Home and the bell, reminders, email, confirming a record and what a stale one costs, campaigns, tasks raised by what happens, passing on what someone holds, search and saved views, likely duplicates, contesting a score |
 | 6 | [Planning change](planning-change.md) | The people who decide what happens to applications, and those who carry it out | Portfolio reviews and their agendas, initiatives and the roadmap, requests for something new, stage gates, the retirement playbook and savings |
-| 7 | [Insight](insight.md) | The portfolio team, and leadership | Trends between portfolio snapshots, an application's scores over time, shares of the portfolio, leadership reports, the record as of a day, scenarios |
+| 7 | [Insight](insight.md) | The portfolio team, and leadership | Trends between portfolio snapshots, an application's scores over time, shares of the portfolio, leadership reports, the record as of a day, scenarios, the optional assistant |
 | 8 | [The program handbook](handbook.md) | The portfolio team | The first decisions, the roles as a program uses them, the first ninety days, the yearly rhythm of reviews, campaigns, and reports, measures worth watching, and what goes wrong |
 | 9 | [Facts from other systems](signals.md) | Administrators who connect other tools, and everyone who reads what they supply | Connectors (end-of-life data, source code hosting, the identity provider), values from other systems and overriding them, applications not on record, push keys and the facts API, catalog files, engineering maturity, signals in the scores |
 | 10 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields and contracts, shaping the program in the app or with a pack, its versions, what an upgrade does, the dashboard, Home, data quality, portfolio snapshots, scheduled work and email, the history, appearance |
 | 11 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, scheduled work, connector credentials, optional email and single sign-on, the `[branding]` section, PostgreSQL, backup and restore, moving between databases, how large it runs, deployment recipes, `doctor --production`, upgrading, reverse proxies, the demo guard |
-| 12 | [API](api.md) | Anyone connecting another system | Sign-in, API tokens, webhooks and their signatures, the CSRF token, responses, errors, lists, and a table of routes |
+| 12 | [API](api.md) | Anyone connecting another system | Sign-in, API tokens and tokens of your own, suggestions, the tool server for AI assistants, the checkpoint, webhooks and their signatures, the CSRF token, responses, errors, lists, and a table of routes |
 
 ## Reference
 

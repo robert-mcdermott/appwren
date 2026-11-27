@@ -140,6 +140,7 @@ Changing the scoring model changes every application's scores at once, the next 
 - **Stage gates and new lists.** Version 0.5.0 gates the lifecycle stages: an application cannot move to a later stage without what that stage requires. The gates are on after the upgrade too; switch them off on **Admin → Program → Decisions** to keep moving records as before. Two new lists arrive with their defaults: the kinds and the stages of an initiative.
 - **Insight.** Version 0.6.0 adds leadership reports, scenarios, and the record as of a day. Nothing already recorded changes: as of a day reads the history you already have, back to the day AppWren was installed.
 - **Adoption.** Version 0.7.0 adds API tokens and webhooks, both off until an administrator issues or registers one, and the brand kit, which keeps your appearance as it is until you change it. Nothing already recorded changes. A starter program is only for a new installation, or loaded by choice with `program import`.
+- **Connected.** Version 0.8.0 adds the checkpoint, tokens of your own and suggestions, the tool server, the optional assistant, and standings elsewhere. Each is off, or does nothing, until someone uses it: the assistant until `[assistant]` is configured, and standings until a system is given a `standing_url`.
 - **Nothing is stale on the day of an upgrade.** A record that has never been confirmed is due one period after the upgrade, not one period after it was added.
 - Decisions already recorded keep the snapshot of the scores they were made against, whatever the model becomes.
 
