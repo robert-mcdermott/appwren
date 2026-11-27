@@ -176,7 +176,17 @@ class ContractBody(RecordBody):
     owner_id: int | None = None
 
 
+class ReviewBody(RecordBody):
+    """A portfolio review of a unit and everything beneath it."""
+
+    org_unit_id: int | None = Field(default=None, description="The unit it reviews")
+    held_on: date | None = None
+    chair_id: int | None = None
+    tiers: list[str] | None = Field(default=None, description="Only these tiers; empty for all")
+
+
 BODIES: dict[str, type[RecordBody]] = {
+    "review": ReviewBody,
     "funding_source": FundingSourceBody,
     "contract": ContractBody,
     "hosting_platform": HostingPlatformBody,
@@ -424,6 +434,7 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application": "An application's reference: at either end",
         "data_class": "A class of data, by its key",
         "capability": "A capability's reference: the applications that serve it",
+        "state": "planned, open, or closed",
         "technology": "A technology's reference: what is built on it (for an application, any "
         "of its components)",
         "release": "With technology, one of its releases by its cycle, such as 6.0; none for "

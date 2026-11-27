@@ -235,6 +235,7 @@ def test_changing_a_password_through_the_api(as_role: Clients) -> None:
 EVERYONE = set(ROLES)
 KEEPERS = {"steward", "architect", "manager"}
 ARCHITECTS = {"architect", "manager"}
+DECIDERS = {"leader", "manager"}
 REACH: dict[tuple[str, str], set[str]] = {
     ("GET", "/api/v1/health/live"): EVERYONE | {"nobody"},
     ("GET", "/api/v1/health/ready"): EVERYONE | {"nobody"},
@@ -270,6 +271,18 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("PATCH", "/api/v1/connectors/{key}"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/check"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/run"): {"admin"},
+    ("GET", "/api/v1/reviews"): EVERYONE,
+    ("POST", "/api/v1/reviews"): DECIDERS,
+    ("GET", "/api/v1/reviews/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/reviews/{ref}"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/reviews/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/reviews/{ref}/history"): EVERYONE,
+    ("POST", "/api/v1/reviews/{ref}/draw"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/items"): DECIDERS,
+    ("DELETE", "/api/v1/reviews/{ref}/items/{item_id}"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/open"): DECIDERS,
+    ("POST", "/api/v1/reviews/{ref}/close"): DECIDERS,
     ("GET", "/api/v1/maturity"): EVERYONE,
     ("GET", "/api/v1/maturity/{ref}"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,

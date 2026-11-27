@@ -467,6 +467,20 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 "application": contest["application"],
             }
         )
+    from appwren.planning import reviews
+
+    for review in reviews.owed(session, principal):
+        agenda = f"{review['items']} on the agenda" if review["items"] else "no agenda yet"
+        verb = "Close" if review["late"] else "Hold"
+        items.append(
+            {
+                "severity": "danger" if review["late"] else "warning",
+                "kind": "review",
+                "text": f"{verb} the review on {review['held_on'].isoformat()}: {agenda}",
+                "href": f"/reviews/{review['ref']}",
+                "application": {"ref": review["ref"], "name": review["name"], "type": "review"},
+            }
+        )
     items.sort(key=lambda item: (SEVERITY.get(item["severity"], 3), item["application"]["name"]))
     return {
         "items": items,

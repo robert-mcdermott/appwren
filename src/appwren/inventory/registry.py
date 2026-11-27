@@ -25,6 +25,7 @@ from appwren.db.models import (
     FundingSource,
     HostingPlatform,
     Interface,
+    Review,
     Technology,
     Vendor,
 )
@@ -437,6 +438,31 @@ CONTRACT = register(
         filters=("status", "vendor_id", "auto_renews", "data_agreement"),
         more_filters=("application", "ending_within"),
         sorts=("updated_at", "name", "ref", "status", "ends_on", "annual_value"),
+    )
+)
+
+REVIEW = register(
+    RecordType(
+        "review",
+        Review,
+        "REV",
+        "reviews",
+        "review",
+        "reviews",
+        fields=(
+            F("held_on", "Held on", "date", required=True),
+            F("chair_id", "Chair", "person", help="Who runs it."),
+            F(
+                "tiers",
+                "Tiers",
+                "many",
+                vocab="tiers",
+                help="Only applications of these tiers. Leave empty for all.",
+            ),
+        ),
+        has_unit=True,
+        filters=("status", "state"),
+        sorts=("updated_at", "name", "ref", "status", "held_on"),
     )
 )
 

@@ -175,7 +175,14 @@ export function applicationList(main) {
 }
 
 // What each shared list shows beyond its name.
+const REVIEW_STATES = { planned: ["Planned", ""], open: ["Open", "pill-accent"], closed: ["Closed", "pill-ok"] };
+
 const COLUMNS = {
+  review: [
+    ["Held on", (r) => h("span", { class: "nowrap" }, date(r.held_on))],
+    ["State", (r) => h("span", { class: `pill ${REVIEW_STATES[r.state]?.[1] ?? ""}` }, REVIEW_STATES[r.state]?.[0] ?? r.state)],
+    ["Agenda", (r) => (r.items ? plural(r.items, "application") : h("span", { class: "subtle" }, "Not drawn"))],
+  ],
   component: [["Application", (r) => (r.application ? recordChip(r.application) : "")], ["Kind", (r, v) => label(v, "component_kinds", r.kind)]],
   vendor: [["Kind", (r, v) => label(v, "vendor_kinds", r.kind)]],
   hosting_platform: [

@@ -61,6 +61,7 @@ from appwren.db.models.people import (
     SessionToken,
     SignInRequest,
 )
+from appwren.db.models.planning import Review, ReviewItem
 from appwren.db.models.program import Setting
 from appwren.db.models.system import ChainHead, Counter, Event
 
@@ -108,6 +109,8 @@ __all__ = [
     "RecordLink",
     "RecordOwner",
     "Reminder",
+    "Review",
+    "ReviewItem",
     "RoleGrant",
     "SavedView",
     "ScoreContest",

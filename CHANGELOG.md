@@ -4,6 +4,23 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## Unreleased
+
+### Added
+
+- **Portfolio reviews.** Under Portfolio → Reviews, a manager or a unit's leader plans a
+  review of a unit and everything beneath it, narrowed by tier if wished, with a date and a
+  chair. Drawing the agenda adds the applications that need deciding: those whose decision
+  differs from today's recommendation, whose decision is due for review by then, or that have
+  none; more can be added by hand. Each item shows what was recommended and decided before,
+  and a decision recorded while the review is open is shown on its item and kept there when
+  it closes. A closed review changes no more. A review coming up is on Home for the people
+  who run it.
+
+### Changed
+
+- Home gives tasks, campaigns, and reviews icons of their own.
+
 ## 0.4.0 (2026-11-26)
 
 Wave 4, *Signals*: the facts other tools already know arrive by themselves, marked with

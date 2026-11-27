@@ -29,9 +29,11 @@ export function section(title, ...children) {
 }
 
 /** The units a person may add applications to: those they keep, or all of them. */
-export function ownUnits() {
+export function ownUnits(type = "application") {
   const me = session();
-  const scopes = [me.units?.steward, me.units?.manager, me.units?.architect].filter((scope) => scope !== undefined);
+  // A review is planned by the unit's leaders and managers; anything else by its keepers.
+  const roles = type === "review" ? ["leader", "manager"] : ["steward", "manager", "architect"];
+  const scopes = roles.map((role) => me.units?.[role]).filter((scope) => scope !== undefined);
   if (scopes.some((scope) => scope === null)) return null;
   return new Set(scopes.flat());
 }
@@ -171,7 +173,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
       const readers = { name: () => name.input.value, summary: () => summary.input.value };
       let unit = null;
       if (spec.has_unit) {
-        unit = select("Unit", unitOptions(unitIndex.tree, { only: ownUnits(), blank: record ? null : "Choose…" }),
+        unit = select("Unit", unitOptions(unitIndex.tree, { only: ownUnits(type), blank: record ? null : "Choose…" }),
           { value: record?.org_unit_id ?? "", required: true, hint: "The unit that answers for it." });
         header.push(unit.node);
         fields.org_unit_id = unit;
@@ -195,7 +197,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
         ? (program.fields ?? []).filter((f) => !f.applies_to || !record || f.applies_to.includes(record.sourcing))
           .map((f) => ({ key: f.key, ...ownInput(f, record?.fields?.[f.key]) }))
         : [];
-      const restricted = spec.has_unit ? checkbox("Restricted", { checked: record?.restricted ?? false,
+      const restricted = spec.has_unit && type !== "review" ? checkbox("Restricted", { checked: record?.restricted ?? false,
         hint: "Known only to the people named on it and those with a role over its unit." }) : null;
       const status = record && type !== "application"
         ? select("Status", [["active", statusLabel("active")], ["retired", statusLabel("retired")]], { value: record.status })

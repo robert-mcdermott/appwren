@@ -103,6 +103,19 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/connectors/{key}/check"): Needs.ADMIN,
     ("POST", "/api/v1/connectors/{key}/run"): Needs.ADMIN,
     # What sources supply: read with the record; overridden by whoever keeps it
+    # Portfolio reviews: run by managers and leaders over their units, read by anyone
+    ("GET", "/api/v1/reviews"): Needs.MEMBER,
+    ("POST", "/api/v1/reviews"): Needs.DECIDE,
+    ("GET", "/api/v1/reviews/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/reviews/{ref}"): Needs.DECIDE,
+    ("POST", "/api/v1/reviews/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/reviews/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/reviews/{ref}/history"): Needs.MEMBER,
+    ("POST", "/api/v1/reviews/{ref}/draw"): Needs.DECIDE,
+    ("POST", "/api/v1/reviews/{ref}/items"): Needs.DECIDE,
+    ("DELETE", "/api/v1/reviews/{ref}/items/{item_id}"): Needs.DECIDE,
+    ("POST", "/api/v1/reviews/{ref}/open"): Needs.DECIDE,
+    ("POST", "/api/v1/reviews/{ref}/close"): Needs.DECIDE,
     # Engineering maturity, for anyone, of what they may see
     ("GET", "/api/v1/maturity"): Needs.MEMBER,
     ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,

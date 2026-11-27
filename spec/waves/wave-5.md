@@ -32,14 +32,14 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Review cycles ☐
+## Slice 1: Review cycles ☑
 
 **Goal:** a portfolio review that is quick to prepare and leaves a record of what was decided.
 
-- [ ] `review` and `review_item`: a scope, a date, a chair, a state (planned, open, closed); items with why each is on the agenda, the recommendation and decision at that moment, and the decision taken in the review
-- [ ] Drawing the agenda from the scope; adding and removing items by hand
-- [ ] The review's page: the agenda with each item's recommendation, decision on record, and mismatch; recording a decision from it; closing it
-- [ ] Reviews listed under Portfolio; Home shows a review that is coming up to the people who run it
+- [x] `review` and `review_item`: a scope, a date, a chair, a state (planned, open, closed); items with why each is on the agenda, the recommendation and decision at that moment, and the decision taken in the review
+- [x] Drawing the agenda from the scope; adding and removing items by hand
+- [x] The review's page: the agenda with each item's recommendation, decision on record, and mismatch; recording a decision from it; closing it
+- [x] Reviews listed under Portfolio; Home shows a review that is coming up to the people who run it
 
 **Acceptance:** an agenda drawn from a scope holds exactly the applications that need deciding there; a decision recorded during the review is on its item; a closed review changes no more.
 

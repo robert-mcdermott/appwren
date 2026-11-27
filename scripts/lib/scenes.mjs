@@ -148,6 +148,10 @@ export const SCENES = [
       box.value = text.replace(/description: .*/, "description: Follows every specimen from collection to release.")
         + "---\\napiVersion: appwren/v1\\nkind: Component\\nmetadata:\\n  name: specimen-labels\\n  title: Specimen Labels\\nspec:\\n  type: library\\n";
       ${click("Check what would change")}; await new Promise((done) => setTimeout(done, 1200)); })()` },
+  // Planning change (wave 5)
+  { name: "reviews", as: "portfolio", path: "/reviews" },
+  { name: "review", as: "portfolio", path: first("/api/v1/reviews?state=closed", "(rows) => `/reviews/${rows[0].ref}`") },
+  { name: "review-upcoming", as: "portfolio", path: first("/api/v1/reviews?state=planned", "(rows) => `/reviews/${rows[0].ref}`") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

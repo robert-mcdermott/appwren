@@ -22,6 +22,7 @@ export const NAV = [
       { href: "/applications", label: "Applications", iconName: "application" },
       { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
       { href: "/decisions", label: "Decisions", iconName: "decision" },
+      { href: "/reviews", label: "Reviews", iconName: "list" },
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },
       { href: "/contracts", label: "Contracts", iconName: "contract" },

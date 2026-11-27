@@ -1653,6 +1653,75 @@ class Builder:
                     push.take(session, row, facts)
                     row.last_used_at = at
 
+    def reviews(self) -> None:
+        """The quarterly portfolio reviews: the last two rounds of decisions, each held as a
+        review of the whole organization and closed; and the next, a week away, with its
+        agenda drawn."""
+        from appwren.db.models import Decision, OrgUnit, ReviewItem
+        from appwren.inventory.registry import REVIEW
+        from appwren.planning import reviews as rv
+
+        manager = self.principal(self.cast["portfolio"])
+        with self.db.read() as session:
+            root = session.scalars(select(OrgUnit.id).where(OrgUnit.parent_id.is_(None))).first()
+            rows = session.scalars(select(Decision).order_by(Decision.created_at)).all()
+            decided = [(row.created_at, row.decided_on, row.application_id, row.recommendation,
+                        row.id) for row in rows]  # fmt: skip
+        rounds: list[list[tuple[Any, ...]]] = []
+        for item in decided:
+            if rounds and (item[1] - rounds[-1][-1][1]).days <= 5:
+                rounds[-1].append(item)
+            else:
+                rounds.append([item])
+        held = [batch for batch in rounds if len(batch) >= 5][-2:]
+        for batch in held:
+            start = batch[0][0] - timedelta(hours=1)
+            end = batch[-1][0] + timedelta(hours=1)
+            on = batch[0][1]
+            planned = start - timedelta(days=12)
+            with (
+                clock_set_to(lambda planned=planned: planned),
+                self.db.write(manager.actor) as session,
+            ):
+                review = records.create(session, manager, REVIEW, {
+                    "name": f"Portfolio review, {on:%B %Y}", "org_unit_id": root,
+                    "held_on": on.isoformat(), "chair_id": self.cast["portfolio"],
+                    "summary": "The quarter's review of the whole portfolio: decisions that differ "
+                    "from the recommendation, those due for review, and those not yet made.",
+                })  # fmt: skip
+                review_ref = review.ref
+                seen: set[int] = set()
+                for position, (_, _, app_id, recommendation, _) in enumerate(batch):
+                    if app_id in seen:
+                        continue
+                    seen.add(app_id)
+                    before = [d for d in decided if d[2] == app_id and d[0] < start]
+                    previous = session.get(Decision, before[-1][4]) if before else None
+                    session.add(ReviewItem(
+                        review_id=review.id, application_id=app_id, position=position + 1,
+                        reason="review_due" if previous else "undecided",
+                        recommendation=recommendation,
+                        disposition=previous.disposition if previous else None,
+                    ))  # fmt: skip
+            with clock_set_to(lambda start=start: start), self.db.write(manager.actor) as session:
+                rv.open_review(session, manager, rv.load(session, manager, review_ref))
+            with clock_set_to(lambda end=end: end), self.db.write(manager.actor) as session:
+                rv.close_review(session, manager, rv.load(session, manager, review_ref))
+        planned = self.end - timedelta(days=3)
+        with clock_set_to(lambda: planned), self.db.write(manager.actor) as session:
+            review = records.create(session, manager, REVIEW, {
+                "name": f"Portfolio review, {self.day(9):%B %Y}", "org_unit_id": root,
+                "held_on": self.day(9).isoformat(), "chair_id": self.cast["portfolio"],
+                "tiers": ["1", "2"],
+                "summary": "The quarter's review, of the most critical applications this time.",
+            })  # fmt: skip
+            review_ref = review.ref
+        with (
+            clock_set_to(lambda: self.end - timedelta(hours=2)),
+            self.db.write(manager.actor) as session,
+        ):
+            rv.draw(session, manager, rv.load(session, manager, review_ref))
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1694,6 +1763,7 @@ class Builder:
         self.code()
         self.signins()
         self.pushes()
+        self.reviews()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:
