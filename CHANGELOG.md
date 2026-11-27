@@ -14,6 +14,13 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   does not depend on the kind of database.
 - **Moving between databases.** `appwren db move` copies an installation into another, empty
   database, from SQLite to PostgreSQL or back, and verifies the history there.
+- **The brand kit.** Admin → Appearance adds an accent for dark mode, a message and a
+  picture on the sign-in page, up to five links at the foot of the sidebar and the sign-in
+  page, a last line for every email (which now opens with the product's name in the
+  accent), and the organization's own words for application, component, capability,
+  technology, vendor, and unit, used in the menu, page titles, and lists. A new `[branding]`
+  section of the configuration file sets an exact palette by day and after dark, logo
+  files, typefaces, and any of the above, shown in the app as locked.
 - **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
   50,000 components; the figures are in the configuration guide.
 

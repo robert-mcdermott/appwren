@@ -208,7 +208,12 @@ Assessments and decisions are never edited. A new one supersedes the last, and a
 - the product's name and your organization's name;
 - a logo for light and for dark mode, and a tab icon;
 - the default palette (Wren, Slate, or Garnet) and an accent color, which is adjusted for dark mode and refused if text on it could not be read;
-- how scores are colored: an **ordinal** ramp in one hue from pale to deep, which keeps scores apart from the colors of flags, or a **signal** ramp from red through amber to green.
+- how scores are colored: an **ordinal** ramp in one hue from pale to deep, which keeps scores apart from the colors of flags, or a **signal** ramp from red through amber to green;
+- an accent for dark mode, if the one worked out from your accent is not your brand's;
+- a message and a picture on the sign-in page, up to five links at the foot of the sidebar and the sign-in page (your policy, your help desk), and a last line for every email, which also opens with your product's name in your accent;
+- **your own words**: if your organization says *department* where AppWren says *unit*, or *solution* where it says *application*, the menu, page titles, and the kinds of record use your word. Words can be set for application, component, capability, technology, vendor, and unit.
+
+When the look has to be exact (every color by day and after dark, the official logo files, the brand's typefaces) it is set in the configuration file instead: see [`[branding]`](configuration.md#branding). What the file sets is shown here, locked.
 
 Each person chooses light, dark, or system mode and a palette for themselves, from the appearance button at the top right.
 
@@ -216,6 +221,6 @@ Each person chooses light, dark, or system mode and a palette for themselves, fr
 
 ## Back up and recover
 
-- Back up the data home, and the database as well if you use PostgreSQL. Notices, reminders sent, and the email outbox are in the database; nothing about them needs backing up apart.
+- Back up with `uv run appwren backup`, which writes the database and the data home's files to one file, on SQLite or PostgreSQL alike ([Back up and restore](configuration.md#back-up-and-restore)). Notices, reminders sent, and the email outbox are in the database; nothing about them needs backing up apart.
 - `uv run appwren program export` keeps a copy of the program you have shaped.
 - If nobody can sign in, [`appwren users`](cli.md#appwren-users) adds an administrator or resets a password from the server's own command line. Changes made there are recorded in the history as made at the command line.

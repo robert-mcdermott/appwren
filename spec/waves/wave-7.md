@@ -43,11 +43,11 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** a backup restored into an empty installation verifies and shows the same portfolio; a moved installation's history verifies.
 
-## Slice 2: Brand kit ☐
+## Slice 2: Brand kit ☑
 
-- [ ] A full custom palette
-- [ ] A message and image on the sign-in page; footer links; an email header
-- [ ] The organization's own words for key terms
+- [x] A full custom palette
+- [x] A message and image on the sign-in page; footer links; an email header
+- [x] The organization's own words for key terms
 
 **Acceptance:** every page reads the organization's words; the palette passes the contrast checks.
 
@@ -95,3 +95,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **One backup format serves backup, restore, and moving.** A backup holds each table as lines of JSON with the types that need it named in the manifest, so it does not depend on the database it came from; `db move` is a backup restored into the new database. A restore goes only into an empty database and verifies the history before it reports success.
 - **Several workers needed nothing new.** Sessions, job claims, and the history's lock were already in the database; the guide now says so.
 - **Measuring at size found three things.** A query that passed every component's id as a parameter failed past SQLite's limit of 32,766; ids are now written into such statements as whole numbers (`db/among.py`). The scoring model's profile was deep-copied for every application; it is now resolved once for each model. And figures counted per unit filtered every row of the portfolio for each unit. The pages that score the whole portfolio now take under two seconds at 5,000 applications; everything else stays under a quarter of a second.
+- **The brand kit is the same as the sibling products', with AppWren's words.** The words an organization may replace are application, component, capability, technology, vendor, and unit. The email "header" is the product's name, and the organization's, in a strip of the accent at the top of every HTML email; the organization's own line goes at its foot. An exact palette is set only in the configuration file, where it can be kept in version control; the app shows it, locked.

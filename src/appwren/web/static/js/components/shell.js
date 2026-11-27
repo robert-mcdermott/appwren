@@ -19,7 +19,7 @@ export const NAV = [
   {
     heading: "Portfolio",
     items: [
-      { href: "/applications", label: "Applications", iconName: "application" },
+      { href: "/applications", label: "Applications", term: "application", iconName: "application" },
       { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
       { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/reviews", label: "Reviews", iconName: "list" },
@@ -27,7 +27,7 @@ export const NAV = [
       { href: "/scenarios", label: "Scenarios", iconName: "chart" },
       { href: "/requests", label: "Requests", iconName: "plus" },
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
-      { href: "/components", label: "Components", iconName: "component" },
+      { href: "/components", label: "Components", term: "component", iconName: "component" },
       { href: "/contracts", label: "Contracts", iconName: "contract" },
       { href: "/discovered", label: "Not on record", iconName: "search", when: "keep" },
     ],
@@ -35,13 +35,13 @@ export const NAV = [
   {
     heading: "Landscape",
     items: [
-      { href: "/capability-map", label: "Capabilities", iconName: "capability" },
+      { href: "/capability-map", label: "Capabilities", term: "capability", iconName: "capability" },
       { href: "/overlap", label: "Overlap", iconName: "consolidate" },
       { href: "/data-flows", label: "Data flows", iconName: "flow" },
-      { href: "/technologies", label: "Technologies", iconName: "technology" },
+      { href: "/technologies", label: "Technologies", term: "technology", iconName: "technology" },
       { href: "/lifecycle", label: "Lifecycle", iconName: "lifecycle" },
       { href: "/hosting-platforms", label: "Hosting", iconName: "platform" },
-      { href: "/vendors", label: "Vendors", iconName: "vendor" },
+      { href: "/vendors", label: "Vendors", term: "vendor", iconName: "vendor" },
     ],
   },
   {
@@ -64,7 +64,7 @@ export const NAV = [
     items: [
       { href: "/admin/program", label: "Program", iconName: "quality", when: "configure" },
       { href: "/admin/people", label: "People", iconName: "people", when: "admin" },
-      { href: "/admin/units", label: "Units", iconName: "units", when: "admin" },
+      { href: "/admin/units", label: "Units", term: "unit", iconName: "units", when: "admin" },
       { href: "/admin/appearance", label: "Appearance", iconName: "appearance", when: "admin" },
       { href: "/admin/sso", label: "Single sign-on", iconName: "key", when: "admin" },
       { href: "/admin/connectors", label: "Connectors", iconName: "link", when: "admin" },
@@ -76,6 +76,20 @@ export const NAV = [
 export function visibleNav() {
   return NAV.map((group) => ({ ...group, items: group.items.filter((item) => !item.when || can(item.when)) }))
     .filter((group) => group.items.length);
+}
+
+/** The menu in the organization's own words, where it has them. */
+export function nameMenu(terms = {}) {
+  for (const section of NAV) {
+    for (const item of section.items) if (item.term && terms[item.term]) item.label = terms[item.term].many;
+  }
+}
+
+/** The organization's own links: its policy, its help desk. */
+export function footerLinks(meta) {
+  const links = meta.branding.footer_links ?? [];
+  return links.length ? h("nav", { class: "foot-links", "aria-label": "More from your organization" },
+    links.map((link) => h("a", { href: link.url, target: "_blank", rel: "noopener noreferrer" }, link.label))) : null;
 }
 
 export function brand(meta, { large = false } = {}) {
@@ -218,7 +232,7 @@ export function mountShell(root, meta) {
     : h("div", { class: "powered" }, meta.branding.organization_name || `Version ${meta.version}`);
 
   shell.append(
-    h("aside", { class: "sidebar" }, brandLink, nav, h("div", { class: "sidebar-foot" }, powered)),
+    h("aside", { class: "sidebar" }, brandLink, nav, h("div", { class: "sidebar-foot" }, footerLinks(meta), powered)),
     h("div", { class: "main-column" },
       h("header", { class: "topbar" },
         iconButton("menu", "Menu", { class: "icon-button menu-toggle", onclick: () => {

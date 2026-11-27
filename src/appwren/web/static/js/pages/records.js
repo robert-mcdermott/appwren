@@ -5,7 +5,7 @@ import { button, h, icon } from "../core/dom.js";
 import { date, plural, relative } from "../core/format.js";
 import { catalog, label, options, unitOptions, units, vocabularies } from "../core/lookups.js";
 import { query, setQuery } from "../core/router.js";
-import { hrefOf, lifecyclePill, recordChip, statusOptions, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
+import { hrefOf, lifecyclePill, recordChip, statusOptions, statusPill, supportPill, tierMeter, TYPES, UNIT } from "../components/record.js";
 import { editRecord, mayAdd } from "../components/record-forms.js";
 import { openImport } from "../components/importer.js";
 import { card, emptyState, pageHeader } from "../components/ui.js";
@@ -137,19 +137,19 @@ export function applicationList(main) {
       const { vocab } = data;
       const rows = data.page.data;
       const add = mayAdd("application") ? () => editRecord("application", { onDone: null }) : null;
-      const search = searchBox("Search applications");
+      const search = searchBox(`Search ${TYPES.application.nouns}`);
       keepSearchFocus(search);
       const bar = h("div", { class: "filters" }, h("div", { class: "filter-search" }, search),
         filterSelect("lifecycle", options(vocab, "lifecycle", { blank: "Any stage" }), "Lifecycle stage"),
         filterSelect("sourcing", options(vocab, "sourcing", { blank: "Any sourcing" }), "Sourcing"),
         filterSelect("tier", options(vocab, "tiers", { blank: "Any tier" }), "Criticality tier"),
         filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain"),
-        filterSelect("unit", unitOptions(data.units.tree, { blank: "Any unit" }), "Unit"),
+        filterSelect("unit", unitOptions(data.units.tree, { blank: `Any ${UNIT.label.toLowerCase()}` }), UNIT.label),
         filterSelect("maturity", [["", "Any maturity"], ...[...data.program.maturity_levels].reverse(), ["unmeasured", "Not measured"]], "Engineering maturity"),
         mineToggle());
       const body = rows.length
         ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
-          h("thead", {}, h("tr", {}, sortHeader("Application", "name", "name"), h("th", { scope: "col" }, "Unit"),
+          h("thead", {}, h("tr", {}, sortHeader(TYPES.application.label, "name", "name"), h("th", { scope: "col" }, UNIT.label),
             h("th", { scope: "col" }, "Accountable"), sortHeader("Stage", "lifecycle", "name"),
             sortHeader("Tier", "tier", "name"), sortHeader("Sourcing", "sourcing", "name"), sortHeader("Updated", "updated_at", "name"))),
           h("tbody", {}, rows.map((r) => h("tr", {},
@@ -194,7 +194,7 @@ const COLUMNS = {
     ["State", (r) => h("span", { class: `pill ${REVIEW_STATES[r.state]?.[1] ?? ""}` }, REVIEW_STATES[r.state]?.[0] ?? r.state)],
     ["Agenda", (r) => (r.items ? plural(r.items, "application") : h("span", { class: "subtle" }, "Not drawn"))],
   ],
-  component: [["Application", (r) => (r.application ? recordChip(r.application) : "")], ["Kind", (r, v) => label(v, "component_kinds", r.kind)]],
+  component: [[TYPES.application.label, (r) => (r.application ? recordChip(r.application) : "")], ["Kind", (r, v) => label(v, "component_kinds", r.kind)]],
   vendor: [["Kind", (r, v) => label(v, "vendor_kinds", r.kind)]],
   hosting_platform: [
     ["Kind", (r, v) => label(v, "platform_kinds", r.kind)],

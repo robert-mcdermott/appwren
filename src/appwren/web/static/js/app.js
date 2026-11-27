@@ -6,8 +6,8 @@ import { apply, setOrganizationPalette, setOrganizationRamp } from "./core/prefs
 import { fallback, route, start } from "./core/router.js";
 import { can, setSession } from "./core/session.js";
 import { openPalette } from "./components/cmdk.js";
-import { TYPES } from "./components/record.js";
-import { commands, mountShell, quickFind } from "./components/shell.js";
+import { applyTerms, TYPES } from "./components/record.js";
+import { commands, mountShell, nameMenu, quickFind } from "./components/shell.js";
 import { emptyState } from "./components/ui.js";
 import { setProduct, setTitle } from "./pages/page.js";
 
@@ -16,6 +16,8 @@ const root = document.getElementById("app");
 
 function applyBranding(meta) {
   setProduct(meta.branding.product_name);
+  applyTerms(meta.branding.terms);
+  nameMenu(meta.branding.terms);
   setOrganizationPalette(meta.branding.palette);
   setOrganizationRamp(meta.branding.score_ramp);
   document.getElementById("favicon").href = meta.branding.favicon || "/img/wren-mark.svg";
