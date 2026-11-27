@@ -313,6 +313,30 @@ UNASSESSED = [
     ("Poster Printing Queue", "communications", "COMMS"), ("Shuttle Schedule", "facilities", "FAC"),
 ]  # fmt: skip
 
+# What an application is for, in a sentence: by storyline, and by the kind of a lab's tool.
+# Every other application says which unit uses it for what.
+STORY_SUMMARIES = {
+    "worked_example": "Tracks every biospecimen from collection to storage and release to a study.",
+    "mismatch": "Books clinic appointments and rooms for research visits.",
+    "clinic_surveys": "Questionnaires patients answer on a tablet before a clinic visit.",
+    "survey_primary": "The institute's survey service: consent, participant surveys, and study data capture.",
+    "survey_secondary": "An in-house survey tool from before the survey hub, still used by a few studies.",
+    "freezer": "Watches freezer temperatures and pages whoever is on call when one drifts.",
+    "single_maintainer": "Where cohort studies run their analyses, on a shared environment one engineer keeps.",
+    "incubator": "A pilot of an electronic lab notebook with three labs.",
+    "retired": "Reports for leadership, replaced by the executive dashboards.",
+    "grant_ending": "Turns microscope images into measurements for the lab's imaging studies.",
+}
+LAB_SUMMARIES = {
+    "Sample Tracker": "Where the lab records its samples, boxes, and freezer positions.",
+    "Image Analysis": "Scripts that measure what the lab's microscope images show.",
+    "Analysis Pipeline": "The lab's pipeline from raw sequencing data to results.",
+    "Plate Reader Database": "Readings from the lab's plate reader, kept in a desktop database.",
+    "Variant Browser": "A browser for the variants the lab has called across its samples.",
+    "Cohort Dashboard": "Charts of the lab's cohort for its collaborators.",
+    "Mouse Colony Manager": "Breeding, cages, and genotypes for the lab's mouse colony.",
+}
+
 WORKED_EXAMPLE = {
     "strategic_fit": 4, "functional_fit": 3, "future_need": 4, "reliability": 3,
     "maintainability": 2, "support_effort": 2, "change_effort": 2, "compliance": None,

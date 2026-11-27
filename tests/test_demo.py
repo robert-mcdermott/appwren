@@ -78,6 +78,11 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
             "Space Planning",
             "Contracts Repository",
         } <= orphaned
+        # Most records are complete, so what is missing stands out; the worked example lacks
+        # nothing its stage requires.
+        in_service = [r for r in rows if r["lifecycle"] not in ("retired", "archived")]
+        assert sum(1 for r in in_service if r["missing_now"]) < len(in_service) / 2
+        assert next(r for r in rows if r["name"] == "Specimen Tracker")["missing_now"] == []
         # Not enough to say: the spreadsheet nobody assessed.
         assess = [r for r in rows if r["recommendation"] == "assess"]
         assert len(assess) >= 12

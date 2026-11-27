@@ -93,6 +93,7 @@ class Builder:
         self.techs: dict[str, tuple[str, str]] = {}  # key → (ref, kind)
         self.capabilities: dict[str, str] = {}  # key → ref
         self.cap_domain: dict[str, str | None] = {}
+        self.cap_name: dict[str, str] = {}
         self.apps: dict[str, str] = {}  # name → ref
         self.accountable: dict[str, int] = {}  # ref → account
         self.health: dict[str, str] = {}
@@ -315,6 +316,7 @@ class Builder:
             if row.key:
                 self.capabilities[row.key] = row.ref
                 self.cap_domain[row.key] = row.domain
+                self.cap_name[row.key] = row.name
         self.tally("capabilities", len(self.capabilities))
 
     # --- Applications ---------------------------------------------------------------------
@@ -374,6 +376,15 @@ class Builder:
             out["vendor_viability"] = r.randint(*fit)
         return out
 
+    def summary_for(self, name: str, caps: list[str], unit_code: str, more: dict[str, Any]) -> str:
+        if more.get("story") in c.STORY_SUMMARIES:
+            return c.STORY_SUMMARIES[more["story"]]
+        if more.get("lab_tool"):
+            return c.LAB_SUMMARIES[name.split(" Lab ", 1)[1]]
+        unit = next((title for code, title, *_ in c.UNITS if code == unit_code), "its unit")
+        what = " and ".join(self.cap_name[cap].lower() for cap in caps[:2])
+        return f"What {unit} uses for {what}."
+
     def add_application(self, spec: tuple, days_ago: float) -> None:
         name, caps, sourcing, unit_code, tier, users, maintainers, vendor, techs, health, more = (
             spec
@@ -383,8 +394,10 @@ class Builder:
 
         def register() -> None:
             owner = self.cast["res_steward"] if story == "worked_example" else self.owner_for(unit)
+            domain = self.cap_domain.get(caps[0]) or "administrative"
             values: dict[str, Any] = {
                 "name": name,
+                "summary": self.summary_for(name, caps, unit_code, more),
                 "org_unit_id": unit,
                 "sourcing": sourcing,
                 "tier": tier,
@@ -395,16 +408,18 @@ class Builder:
                 "pace": more.get(
                     "pace", "evolving" if sourcing == "research_software" else "steady"
                 ),
-                "domain": self.cap_domain.get(caps[0]) or "administrative",
+                "domain": domain,
                 "lifecycle": more.get("lifecycle", "active"),
                 "hosting": HOSTING.get(sourcing, self.rng.choice(["on_premises", "our_cloud"])),
                 "data_classes": more.get("data_classes", ["internal"]),
                 "annual_cost": more.get("cost", 10000),
                 "funding": more.get("funding", "operating"),
                 "go_live": self.day(-self.rng.randint(800, 4000)).isoformat(),
-                "support_unit_id": self.units["ITAPP"]
-                if unit_code.startswith(("FIN", "HR", "PA"))
-                else None,
+                # A lab keeps its own tools; research applications have a team; the rest go
+                # to the enterprise applications team.
+                "support_unit_id": unit
+                if sourcing == "research_software"
+                else self.units["ITRES" if domain == "research" else "ITAPP"],
                 **{
                     k: more[k]
                     for k in (
