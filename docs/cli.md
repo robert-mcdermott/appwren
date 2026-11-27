@@ -36,6 +36,7 @@ Write a configuration file if there is none, create the data home, create or upg
 | `--force` | overwrite an existing configuration file |
 | `--admin-email` `EMAIL` | create the first administrator with this address |
 | `--admin-name` `NAME` | the first administrator's name |
+| `--program` `STARTER` | begin from a starter program, such as starter-university (see: appwren program starters) |
 | `--organization` `NAME` | the organization's name, as its top unit, if there are no units yet |
 | `--first-unit` `NAME` | a first unit within the organization, such as the team starting with AppWren |
 | `--password-stdin` | read the password from standard input instead of asking |
@@ -178,8 +179,12 @@ Load a program pack. The whole pack is checked first, and nothing is loaded unle
 
 | Option | Meaning |
 |---|---|
-| `FILE` | the pack to load |
+| `FILE` | the pack to load, or the key of a starter program |
 | `--dry-run` | say what would change, and change nothing |
+
+### `appwren program starters`
+
+List the starter programs: the default program as a research institute, an academic medical center, a university, a nonprofit, or a company would first change it. Begin a new installation from one with init --program, or load one over a program with program import.
 
 ## `appwren technologies`
 

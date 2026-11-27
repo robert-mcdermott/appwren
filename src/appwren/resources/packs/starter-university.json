@@ -1,0 +1,493 @@
+{
+ "pack": {
+  "key": "starter-university",
+  "kind": "program",
+  "title": "Starter: university",
+  "pack_version": "1.0.0",
+  "license": "Apache-2.0",
+  "description": "For a university: colleges, schools, and departments; teaching and student services beside research; and student records as a class of data of their own.",
+  "based_on": "default-program 1.0.0"
+ },
+ "vocabularies": {
+  "domains": [
+   {
+    "key": "education",
+    "label": "Teaching and learning"
+   },
+   {
+    "key": "students",
+    "label": "Student services"
+   },
+   {
+    "key": "research",
+    "label": "Research"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative"
+   },
+   {
+    "key": "it",
+    "label": "IT and infrastructure"
+   }
+  ],
+  "unit_kinds": [
+   {
+    "key": "organization",
+    "label": "University"
+   },
+   {
+    "key": "college",
+    "label": "College"
+   },
+   {
+    "key": "school",
+    "label": "School"
+   },
+   {
+    "key": "department",
+    "label": "Department"
+   },
+   {
+    "key": "institute",
+    "label": "Institute"
+   },
+   {
+    "key": "center",
+    "label": "Center"
+   },
+   {
+    "key": "lab",
+    "label": "Lab"
+   },
+   {
+    "key": "office",
+    "label": "Office"
+   },
+   {
+    "key": "team",
+    "label": "Team"
+   }
+  ],
+  "tiers": [
+   {
+    "key": "1",
+    "label": "1 · Mission critical",
+    "description": "Teaching, research, or student safety stops without it"
+   },
+   {
+    "key": "2",
+    "label": "2 · Business critical",
+    "description": "Important work stops within a day without it"
+   },
+   {
+    "key": "3",
+    "label": "3 · Business operational",
+    "description": "Its loss would be felt within days and worked around"
+   },
+   {
+    "key": "4",
+    "label": "4 · Administrative",
+    "description": "Could be done without for weeks with little effect"
+   },
+   {
+    "key": "5",
+    "label": "5 · Minimal",
+    "description": "Could be switched off with almost no effect"
+   }
+  ],
+  "data_classes": [
+   {
+    "key": "public",
+    "label": "Public",
+    "sensitivity": 0,
+    "description": "May be shared with anyone: published results, public web content."
+   },
+   {
+    "key": "internal",
+    "label": "Internal",
+    "sensitivity": 1,
+    "description": "Meant for the organization's own work: plans, procedures, most email."
+   },
+   {
+    "key": "personal",
+    "label": "Personal information",
+    "sensitivity": 2,
+    "description": "About identifiable staff, students, donors, or the public."
+   },
+   {
+    "key": "financial",
+    "label": "Financial",
+    "sensitivity": 2,
+    "description": "Budgets, payroll, purchasing, and accounts."
+   },
+   {
+    "key": "deidentified_research",
+    "label": "De-identified research data",
+    "sensitivity": 2,
+    "description": "Research data from which participants cannot reasonably be identified."
+   },
+   {
+    "key": "identifiable_research",
+    "label": "Identifiable research data",
+    "sensitivity": 3,
+    "description": "Research data about participants who can be identified."
+   },
+   {
+    "key": "health",
+    "label": "Protected health information",
+    "sensitivity": 3,
+    "description": "Health information about identifiable patients, held under health privacy law."
+   },
+   {
+    "key": "controlled_access",
+    "label": "Controlled-access data",
+    "sensitivity": 3,
+    "description": "Data received under an agreement that limits who may see it and how."
+   },
+   {
+    "key": "payment_card",
+    "label": "Payment card data",
+    "sensitivity": 3,
+    "description": "Card numbers and related data, held under the card industry's rules."
+   },
+   {
+    "key": "student_records",
+    "label": "Student records",
+    "sensitivity": 3,
+    "description": "Records about identifiable students: grades, enrollment, aid, and conduct."
+   }
+  ],
+  "funding": [
+   {
+    "key": "operating",
+    "label": "Operating budget"
+   },
+   {
+    "key": "grant",
+    "label": "Grant or award"
+   },
+   {
+    "key": "tuition",
+    "label": "Tuition and fees"
+   },
+   {
+    "key": "chargeback",
+    "label": "Charged back to its users"
+   },
+   {
+    "key": "capital",
+    "label": "Capital"
+   },
+   {
+    "key": "mixed",
+    "label": "More than one of these"
+   }
+  ]
+ },
+ "capabilities": [
+  {
+   "key": "teaching",
+   "name": "Teaching and learning",
+   "description": "Courses and how they are taught",
+   "domain": "education",
+   "children": [
+    {
+     "key": "catalog",
+     "name": "Course catalog and scheduling",
+     "description": "Courses, sections, and rooms"
+    },
+    {
+     "key": "learning",
+     "name": "Learning management",
+     "description": "Course sites, assignments, and grades"
+    },
+    {
+     "key": "assessment",
+     "name": "Assessment and exams",
+     "description": "Tests, proctoring, and integrity"
+    },
+    {
+     "key": "lecture_capture",
+     "name": "Lecture capture and media",
+     "description": "Recording and sharing teaching"
+    },
+    {
+     "key": "library",
+     "name": "Library",
+     "description": "Collections, discovery, and lending"
+    }
+   ]
+  },
+  {
+   "key": "students",
+   "name": "Students",
+   "description": "From applying to graduating, and after",
+   "domain": "students",
+   "children": [
+    {
+     "key": "admissions",
+     "name": "Admissions and recruitment",
+     "description": "Prospects, applications, and decisions"
+    },
+    {
+     "key": "registration",
+     "name": "Enrollment and registration",
+     "description": "Who takes what, and when"
+    },
+    {
+     "key": "student_records",
+     "name": "Student records",
+     "description": "Grades, transcripts, and degrees"
+    },
+    {
+     "key": "financial_aid",
+     "name": "Financial aid",
+     "description": "Scholarships, grants, and loans"
+    },
+    {
+     "key": "advising",
+     "name": "Advising and success",
+     "description": "Advisors, plans, and early alerts"
+    },
+    {
+     "key": "housing",
+     "name": "Housing and residence",
+     "description": "Rooms, assignments, and residence life"
+    },
+    {
+     "key": "careers",
+     "name": "Careers",
+     "description": "Internships, jobs, and employers"
+    },
+    {
+     "key": "alumni",
+     "name": "Alumni relations",
+     "description": "Graduates and their engagement"
+    }
+   ]
+  },
+  {
+   "key": "research",
+   "name": "Research",
+   "description": "Discovering new knowledge",
+   "domain": "research",
+   "children": [
+    {
+     "key": "study_management",
+     "name": "Study design and protocol management",
+     "description": "Planning studies and keeping their protocols"
+    },
+    {
+     "key": "participants",
+     "name": "Participant recruitment and consent",
+     "description": "Finding, enrolling, and consenting participants"
+    },
+    {
+     "key": "biospecimens",
+     "name": "Biospecimen management",
+     "description": "Collecting, storing, and distributing samples"
+    },
+    {
+     "key": "lab_data",
+     "name": "Laboratory data capture",
+     "description": "Notebooks, sample tracking, and lab information"
+    },
+    {
+     "key": "instrument_data",
+     "name": "Imaging and instrument data",
+     "description": "Acquiring and managing data from instruments"
+    },
+    {
+     "key": "omics",
+     "name": "Genomic and molecular analysis",
+     "description": "Sequencing and other molecular data and its analysis"
+    },
+    {
+     "key": "analysis",
+     "name": "Data analysis and statistics",
+     "description": "Analysis, modelling, and statistics"
+    },
+    {
+     "key": "research_data",
+     "name": "Research data management and sharing",
+     "description": "Keeping, cataloguing, and sharing research data"
+    },
+    {
+     "key": "research_computing",
+     "name": "Research computing",
+     "description": "Compute and storage for research"
+    },
+    {
+     "key": "surveys",
+     "name": "Participant surveys",
+     "description": "Collecting answers from participants and others"
+    },
+    {
+     "key": "awards",
+     "name": "Grant and award management",
+     "description": "Proposals, awards, and their budgets"
+    },
+    {
+     "key": "research_compliance",
+     "name": "Research compliance",
+     "description": "Ethics review, conflicts of interest, and safety"
+    }
+   ]
+  },
+  {
+   "key": "administration",
+   "name": "Administration",
+   "description": "Running the organization",
+   "domain": "administrative",
+   "children": [
+    {
+     "key": "finance",
+     "name": "Finance and accounting",
+     "description": "Budgets, ledgers, and payments"
+    },
+    {
+     "key": "procurement",
+     "name": "Procurement",
+     "description": "Buying goods and services"
+    },
+    {
+     "key": "people",
+     "name": "Human resources and payroll",
+     "description": "Hiring, pay, and people's records"
+    },
+    {
+     "key": "facilities",
+     "name": "Facilities and space",
+     "description": "Buildings, rooms, and maintenance"
+    },
+    {
+     "key": "communications",
+     "name": "Communications and web",
+     "description": "Websites, news, and outreach"
+    },
+    {
+     "key": "philanthropy",
+     "name": "Fundraising and donor relations",
+     "description": "Gifts and the people who give them"
+    },
+    {
+     "key": "legal",
+     "name": "Legal and contracts",
+     "description": "Agreements and legal matters"
+    },
+    {
+     "key": "records",
+     "name": "Document and records management",
+     "description": "Keeping documents and records as required"
+    }
+   ]
+  },
+  {
+   "key": "it",
+   "name": "Information technology",
+   "description": "The shared technology everyone relies on",
+   "domain": "it",
+   "children": [
+    {
+     "key": "identity",
+     "name": "Identity and access",
+     "description": "Accounts, sign-in, and who may do what"
+    },
+    {
+     "key": "collaboration",
+     "name": "Collaboration and email",
+     "description": "Email, chat, meetings, and shared files"
+    },
+    {
+     "key": "service_management",
+     "name": "Service management",
+     "description": "Requests, incidents, and changes"
+    },
+    {
+     "key": "hosting",
+     "name": "Infrastructure and hosting",
+     "description": "Where applications run"
+    },
+    {
+     "key": "security",
+     "name": "Security operations",
+     "description": "Finding and stopping threats"
+    },
+    {
+     "key": "monitoring",
+     "name": "Monitoring and observability",
+     "description": "Knowing whether things are working"
+    },
+    {
+     "key": "software_delivery",
+     "name": "Software delivery",
+     "description": "Building, testing, and deploying software"
+    },
+    {
+     "key": "integration",
+     "name": "Data platform and integration",
+     "description": "Moving and joining data between applications"
+    }
+   ]
+  }
+ ],
+ "fields": [
+  {
+   "key": "ethics_protocols",
+   "label": "Ethics protocols",
+   "type": "text",
+   "section": "research",
+   "help": "The ethics review protocol numbers of the studies that depend on it.",
+   "applies_to": [
+    "research_software",
+    "built_here",
+    "saas",
+    "commercial"
+   ]
+  },
+  {
+   "key": "data_management_plan",
+   "label": "Data management plan",
+   "type": "url",
+   "section": "research",
+   "help": "Where the plan for the data it holds is kept."
+  },
+  {
+   "key": "accessibility",
+   "label": "Accessibility",
+   "type": "choice",
+   "section": "use",
+   "help": "How well people with disabilities can use it, as last checked.",
+   "options": [
+    [
+     "unknown",
+     "Not checked"
+    ],
+    [
+     "partial",
+     "Partly conforms"
+    ],
+    [
+     "conforms",
+     "Conforms to the organization's standard"
+    ]
+   ]
+  }
+ ],
+ "definition": {
+  "text": "An application is software, or a service built from software, that people name, use for a purpose, and could decide to keep, change, or retire as one thing.",
+  "examples": [
+   "The student information system",
+   "The learning management system",
+   "A department's lab booking tool",
+   "The research administration system"
+  ],
+  "not_examples": [
+   "A server or a database on its own: record it as a component of what it serves",
+   "A report or a module of a larger system: a component of that system",
+   "A spreadsheet one person keeps for themselves",
+   "A programming language or a platform: a technology"
+  ]
+ }
+}

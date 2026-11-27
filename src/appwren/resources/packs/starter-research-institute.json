@@ -1,0 +1,386 @@
+{
+ "pack": {
+  "key": "starter-research-institute",
+  "kind": "program",
+  "title": "Starter: research institute",
+  "pack_version": "1.0.0",
+  "license": "Apache-2.0",
+  "description": "For an independent research institute: labs and core facilities, grant-funded software, and research data with rules for identifiable participants. Close to the default program, without the clinical care map.",
+  "based_on": "default-program 1.0.0"
+ },
+ "vocabularies": {
+  "domains": [
+   {
+    "key": "research",
+    "label": "Research"
+   },
+   {
+    "key": "administrative",
+    "label": "Administrative"
+   },
+   {
+    "key": "education",
+    "label": "Training"
+   },
+   {
+    "key": "it",
+    "label": "IT and infrastructure"
+   }
+  ],
+  "unit_kinds": [
+   {
+    "key": "organization",
+    "label": "Organization"
+   },
+   {
+    "key": "division",
+    "label": "Division"
+   },
+   {
+    "key": "program",
+    "label": "Research program"
+   },
+   {
+    "key": "center",
+    "label": "Center"
+   },
+   {
+    "key": "core_facility",
+    "label": "Core facility"
+   },
+   {
+    "key": "lab",
+    "label": "Lab"
+   },
+   {
+    "key": "office",
+    "label": "Office"
+   },
+   {
+    "key": "team",
+    "label": "Team"
+   }
+  ],
+  "data_classes": [
+   {
+    "key": "public",
+    "label": "Public",
+    "sensitivity": 0,
+    "description": "May be shared with anyone: published results, public web content."
+   },
+   {
+    "key": "internal",
+    "label": "Internal",
+    "sensitivity": 1,
+    "description": "Meant for the organization's own work: plans, procedures, most email."
+   },
+   {
+    "key": "personal",
+    "label": "Personal information",
+    "sensitivity": 2,
+    "description": "About identifiable staff, students, donors, or the public."
+   },
+   {
+    "key": "financial",
+    "label": "Financial",
+    "sensitivity": 2,
+    "description": "Budgets, payroll, purchasing, and accounts."
+   },
+   {
+    "key": "deidentified_research",
+    "label": "De-identified research data",
+    "sensitivity": 2,
+    "description": "Research data from which participants cannot reasonably be identified."
+   },
+   {
+    "key": "identifiable_research",
+    "label": "Identifiable research data",
+    "sensitivity": 3,
+    "description": "Research data about participants who can be identified."
+   },
+   {
+    "key": "health",
+    "label": "Protected health information",
+    "sensitivity": 3,
+    "description": "Health information about identifiable patients, held under health privacy law."
+   },
+   {
+    "key": "controlled_access",
+    "label": "Controlled-access data",
+    "sensitivity": 3,
+    "description": "Data received under an agreement that limits who may see it and how."
+   },
+   {
+    "key": "payment_card",
+    "label": "Payment card data",
+    "sensitivity": 3,
+    "description": "Card numbers and related data, held under the card industry's rules."
+   }
+  ]
+ },
+ "capabilities": [
+  {
+   "key": "research",
+   "name": "Research",
+   "description": "Discovering new knowledge",
+   "domain": "research",
+   "children": [
+    {
+     "key": "study_management",
+     "name": "Study design and protocol management",
+     "description": "Planning studies and keeping their protocols"
+    },
+    {
+     "key": "participants",
+     "name": "Participant recruitment and consent",
+     "description": "Finding, enrolling, and consenting participants"
+    },
+    {
+     "key": "biospecimens",
+     "name": "Biospecimen management",
+     "description": "Collecting, storing, and distributing samples"
+    },
+    {
+     "key": "lab_data",
+     "name": "Laboratory data capture",
+     "description": "Notebooks, sample tracking, and lab information"
+    },
+    {
+     "key": "instrument_data",
+     "name": "Imaging and instrument data",
+     "description": "Acquiring and managing data from instruments"
+    },
+    {
+     "key": "omics",
+     "name": "Genomic and molecular analysis",
+     "description": "Sequencing and other molecular data and its analysis"
+    },
+    {
+     "key": "analysis",
+     "name": "Data analysis and statistics",
+     "description": "Analysis, modelling, and statistics"
+    },
+    {
+     "key": "research_data",
+     "name": "Research data management and sharing",
+     "description": "Keeping, cataloguing, and sharing research data"
+    },
+    {
+     "key": "research_computing",
+     "name": "Research computing",
+     "description": "Compute and storage for research"
+    },
+    {
+     "key": "surveys",
+     "name": "Participant surveys",
+     "description": "Collecting answers from participants and others"
+    },
+    {
+     "key": "awards",
+     "name": "Grant and award management",
+     "description": "Proposals, awards, and their budgets"
+    },
+    {
+     "key": "research_compliance",
+     "name": "Research compliance",
+     "description": "Ethics review, conflicts of interest, and safety"
+    }
+   ]
+  },
+  {
+   "key": "cores",
+   "name": "Core facilities",
+   "description": "Shared instruments and services for the labs",
+   "domain": "research",
+   "children": [
+    {
+     "key": "core_scheduling",
+     "name": "Instrument scheduling",
+     "description": "Booking shared instruments and time"
+    },
+    {
+     "key": "core_billing",
+     "name": "Core billing",
+     "description": "Charging labs and grants for core services"
+    },
+    {
+     "key": "core_inventory",
+     "name": "Core inventory",
+     "description": "Reagents, consumables, and their use"
+    }
+   ]
+  },
+  {
+   "key": "training",
+   "name": "Training",
+   "description": "Trainees and their development",
+   "domain": "education",
+   "children": [
+    {
+     "key": "trainee_records",
+     "name": "Trainee records",
+     "description": "Fellows, students, and their progress"
+    },
+    {
+     "key": "learning",
+     "name": "Learning management",
+     "description": "Courses and required training"
+    }
+   ]
+  },
+  {
+   "key": "administration",
+   "name": "Administration",
+   "description": "Running the organization",
+   "domain": "administrative",
+   "children": [
+    {
+     "key": "finance",
+     "name": "Finance and accounting",
+     "description": "Budgets, ledgers, and payments"
+    },
+    {
+     "key": "procurement",
+     "name": "Procurement",
+     "description": "Buying goods and services"
+    },
+    {
+     "key": "people",
+     "name": "Human resources and payroll",
+     "description": "Hiring, pay, and people's records"
+    },
+    {
+     "key": "facilities",
+     "name": "Facilities and space",
+     "description": "Buildings, rooms, and maintenance"
+    },
+    {
+     "key": "communications",
+     "name": "Communications and web",
+     "description": "Websites, news, and outreach"
+    },
+    {
+     "key": "philanthropy",
+     "name": "Fundraising and donor relations",
+     "description": "Gifts and the people who give them"
+    },
+    {
+     "key": "legal",
+     "name": "Legal and contracts",
+     "description": "Agreements and legal matters"
+    },
+    {
+     "key": "records",
+     "name": "Document and records management",
+     "description": "Keeping documents and records as required"
+    }
+   ]
+  },
+  {
+   "key": "it",
+   "name": "Information technology",
+   "description": "The shared technology everyone relies on",
+   "domain": "it",
+   "children": [
+    {
+     "key": "identity",
+     "name": "Identity and access",
+     "description": "Accounts, sign-in, and who may do what"
+    },
+    {
+     "key": "collaboration",
+     "name": "Collaboration and email",
+     "description": "Email, chat, meetings, and shared files"
+    },
+    {
+     "key": "service_management",
+     "name": "Service management",
+     "description": "Requests, incidents, and changes"
+    },
+    {
+     "key": "hosting",
+     "name": "Infrastructure and hosting",
+     "description": "Where applications run"
+    },
+    {
+     "key": "security",
+     "name": "Security operations",
+     "description": "Finding and stopping threats"
+    },
+    {
+     "key": "monitoring",
+     "name": "Monitoring and observability",
+     "description": "Knowing whether things are working"
+    },
+    {
+     "key": "software_delivery",
+     "name": "Software delivery",
+     "description": "Building, testing, and deploying software"
+    },
+    {
+     "key": "integration",
+     "name": "Data platform and integration",
+     "description": "Moving and joining data between applications"
+    }
+   ]
+  }
+ ],
+ "fields": [
+  {
+   "key": "ethics_protocols",
+   "label": "Ethics protocols",
+   "type": "text",
+   "section": "research",
+   "help": "The ethics review protocol numbers of the studies that depend on it.",
+   "applies_to": [
+    "research_software",
+    "built_here",
+    "saas",
+    "commercial"
+   ]
+  },
+  {
+   "key": "data_management_plan",
+   "label": "Data management plan",
+   "type": "url",
+   "section": "research",
+   "help": "Where the plan for the data it holds is kept."
+  },
+  {
+   "key": "accessibility",
+   "label": "Accessibility",
+   "type": "choice",
+   "section": "use",
+   "help": "How well people with disabilities can use it, as last checked.",
+   "options": [
+    [
+     "unknown",
+     "Not checked"
+    ],
+    [
+     "partial",
+     "Partly conforms"
+    ],
+    [
+     "conforms",
+     "Conforms to the organization's standard"
+    ]
+   ]
+  }
+ ],
+ "definition": {
+  "text": "An application is software, or a service built from software, that people name, use for a purpose, and could decide to keep, change, or retire as one thing.",
+  "examples": [
+   "The grants management system",
+   "A core facility's instrument scheduler",
+   "A lab's sample tracker, used by three labs",
+   "The research data warehouse"
+  ],
+  "not_examples": [
+   "A server or a database on its own: record it as a component of what it serves",
+   "A report or a module of a larger system: a component of that system",
+   "A spreadsheet one person keeps for themselves",
+   "A programming language or a platform: a technology"
+  ]
+ }
+}

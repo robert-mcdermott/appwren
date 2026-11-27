@@ -98,6 +98,8 @@ The whole pack is checked before anything is loaded, and nothing is loaded unles
 - Capabilities are only ever added. Rename or retire one in the app.
 - Loading the same pack twice changes nothing.
 
+A starter program can be loaded the same way over a program already in use, by its key: `uv run appwren program import starter-company --dry-run`. Its lists and settings replace yours, and its capabilities are added beside yours. See [Start from a program shaped like yours](getting-started.md#start-from-a-program-shaped-like-yours).
+
 ### Links to other systems
 
 An application can carry its identifier in another system: a configuration item, a ticket queue, a repository. To have each shown as a link, give the system an address pattern in the `external_systems` vocabulary of the pack, with `{id}` where the identifier goes:

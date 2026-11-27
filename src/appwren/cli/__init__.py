@@ -61,13 +61,29 @@ def _database(config: Config, *, current: bool = True) -> Database:
     return db
 
 
-def _install_program(db: Database) -> dict[str, int]:
-    """Load whatever of the default program is missing."""
+def _install_program(db: Database, starter: str | None = None) -> dict[str, int]:
+    """Load whatever of the default program is missing; with a starter, begin from it."""
+    from appwren.core.errors import Invalid
     from appwren.events.actor import Actor
     from appwren.program import packs
 
     with db.write(Actor.command("Setup")) as session:
+        if starter:
+            try:
+                pack = packs.start(session, starter)
+            except Invalid as exc:
+                raise AppWrenError(" ".join(exc.errors.values())) from exc
+            print(f"Program: started from {pack['pack']['title'].removeprefix('Starter: ')}")
         return packs.install(session)
+
+
+def cmd_program_starters(_args: argparse.Namespace) -> int:
+    from appwren.program import packs
+
+    for item in packs.starters():
+        print(f"{item['key']}\n  {item['description']}\n")
+    print("Begin a new installation from one with: appwren init --program KEY")
+    return EXIT_OK
 
 
 def cmd_program_export(args: argparse.Namespace) -> int:
@@ -138,14 +154,20 @@ def cmd_program_import(args: argparse.Namespace) -> int:
     import json
 
     from appwren.access.principal import Principal
-    from appwren.core.errors import Invalid
+    from appwren.core.errors import Invalid, NotFound
     from appwren.program import packs
 
     config, _ = _load(args)
-    try:
-        pack = json.loads(Path(args.file).read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        raise AppWrenError(f"{args.file} could not be read as a pack: {exc}") from exc
+    if args.file.startswith(packs.STARTER_PREFIX) and not Path(args.file).exists():
+        try:
+            pack = packs.starter(args.file)
+        except NotFound as exc:
+            raise AppWrenError(str(exc)) from exc
+    else:
+        try:
+            pack = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise AppWrenError(f"{args.file} could not be read as a pack: {exc}") from exc
     db = _database(config)
     principal = Principal.for_command()
     try:
@@ -255,7 +277,7 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Database: {kind}, now at migration {after}")
     db = Database(config.database_url)
     try:
-        if any(_install_program(db).values()):
+        if any(_install_program(db, args.program).values()) and not args.program:
             print("Program: loaded the default program")
         _first_units(db, args)
         users.first_admin(db, config, args)
@@ -625,6 +647,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     init.add_argument("--admin-name", metavar="NAME", help="the first administrator's name")
     init.add_argument(
+        "--program",
+        metavar="STARTER",
+        help="begin from a starter program, such as starter-university "
+        "(see: appwren program starters)",
+    )
+    init.add_argument(
         "--organization", metavar="NAME",
         help="the organization's name, as its top unit, if there are no units yet",
     )  # fmt: skip
@@ -841,11 +869,22 @@ def build_parser() -> argparse.ArgumentParser:
         "loaded unless all of it can be. A vocabulary value in use is retired rather than "
         "removed, and capabilities are only ever added.",
     )
-    program_import.add_argument("file", metavar="FILE", help="the pack to load")
+    program_import.add_argument(
+        "file", metavar="FILE", help="the pack to load, or the key of a starter program"
+    )
     program_import.add_argument(
         "--dry-run", action="store_true", help="say what would change, and change nothing"
     )
     program_import.set_defaults(handler=cmd_program_import)
+    program_starters = program_commands.add_parser(
+        "starters",
+        help="list the starter programs that come with AppWren",
+        description="List the starter programs: the default program as a research institute, "
+        "an academic medical center, a university, a nonprofit, or a company would first "
+        "change it. Begin a new installation from one with init --program, or load one over "
+        "a program with program import.",
+    )
+    program_starters.set_defaults(handler=cmd_program_starters)
 
     technologies = commands.add_parser(
         "technologies",

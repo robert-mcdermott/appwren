@@ -1,0 +1,392 @@
+{
+ "pack": {
+  "key": "starter-company",
+  "kind": "program",
+  "title": "Starter: company",
+  "pack_version": "1.0.0",
+  "license": "Apache-2.0",
+  "description": "For a company: customers, products, and operations, corporate functions, and data about customers and payments. No research or clinical map.",
+  "based_on": "default-program 1.0.0"
+ },
+ "vocabularies": {
+  "domains": [
+   {
+    "key": "customers",
+    "label": "Customers"
+   },
+   {
+    "key": "product",
+    "label": "Product and delivery"
+   },
+   {
+    "key": "operations",
+    "label": "Operations"
+   },
+   {
+    "key": "administrative",
+    "label": "Corporate"
+   },
+   {
+    "key": "it",
+    "label": "IT and infrastructure"
+   }
+  ],
+  "unit_kinds": [
+   {
+    "key": "organization",
+    "label": "Company"
+   },
+   {
+    "key": "business_unit",
+    "label": "Business unit"
+   },
+   {
+    "key": "division",
+    "label": "Division"
+   },
+   {
+    "key": "department",
+    "label": "Department"
+   },
+   {
+    "key": "office",
+    "label": "Office"
+   },
+   {
+    "key": "team",
+    "label": "Team"
+   }
+  ],
+  "tiers": [
+   {
+    "key": "1",
+    "label": "1 · Mission critical",
+    "description": "Revenue, customers, or safety stop without it"
+   },
+   {
+    "key": "2",
+    "label": "2 · Business critical",
+    "description": "Important work stops within a day without it"
+   },
+   {
+    "key": "3",
+    "label": "3 · Business operational",
+    "description": "Its loss would be felt within days and worked around"
+   },
+   {
+    "key": "4",
+    "label": "4 · Administrative",
+    "description": "Could be done without for weeks with little effect"
+   },
+   {
+    "key": "5",
+    "label": "5 · Minimal",
+    "description": "Could be switched off with almost no effect"
+   }
+  ],
+  "data_classes": [
+   {
+    "key": "public",
+    "label": "Public",
+    "sensitivity": 0,
+    "description": "May be shared with anyone: published results, public web content."
+   },
+   {
+    "key": "internal",
+    "label": "Internal",
+    "sensitivity": 1,
+    "description": "Meant for the organization's own work: plans, procedures, most email."
+   },
+   {
+    "key": "personal",
+    "label": "Personal information",
+    "sensitivity": 2,
+    "description": "About identifiable staff, students, donors, or the public."
+   },
+   {
+    "key": "financial",
+    "label": "Financial",
+    "sensitivity": 2,
+    "description": "Budgets, payroll, purchasing, and accounts."
+   },
+   {
+    "key": "health",
+    "label": "Protected health information",
+    "sensitivity": 3,
+    "description": "Health information about identifiable patients, held under health privacy law."
+   },
+   {
+    "key": "payment_card",
+    "label": "Payment card data",
+    "sensitivity": 3,
+    "description": "Card numbers and related data, held under the card industry's rules."
+   },
+   {
+    "key": "confidential",
+    "label": "Confidential",
+    "sensitivity": 2,
+    "description": "Plans, contracts, and trade secrets that would harm the company if disclosed."
+   },
+   {
+    "key": "customer",
+    "label": "Customer data",
+    "sensitivity": 2,
+    "description": "About customers and their accounts, orders, and use of the product."
+   }
+  ],
+  "funding": [
+   {
+    "key": "operating",
+    "label": "Operating expense"
+   },
+   {
+    "key": "capital",
+    "label": "Capital"
+   },
+   {
+    "key": "chargeback",
+    "label": "Charged back to a business unit"
+   },
+   {
+    "key": "mixed",
+    "label": "More than one of these"
+   }
+  ]
+ },
+ "capabilities": [
+  {
+   "key": "customers",
+   "name": "Customers",
+   "description": "Winning and serving customers",
+   "domain": "customers",
+   "children": [
+    {
+     "key": "marketing",
+     "name": "Marketing",
+     "description": "Campaigns, leads, and the website"
+    },
+    {
+     "key": "sales",
+     "name": "Sales and accounts",
+     "description": "Opportunities, quotes, and accounts"
+    },
+    {
+     "key": "commerce",
+     "name": "Online commerce",
+     "description": "The store, carts, and checkout"
+    },
+    {
+     "key": "service",
+     "name": "Customer service",
+     "description": "Cases, chat, and knowledge"
+    },
+    {
+     "key": "billing",
+     "name": "Billing and subscriptions",
+     "description": "Invoices, plans, and payments"
+    }
+   ]
+  },
+  {
+   "key": "product",
+   "name": "Product and delivery",
+   "description": "What the company makes",
+   "domain": "product",
+   "children": [
+    {
+     "key": "product_management",
+     "name": "Product management",
+     "description": "Roadmaps, requirements, and feedback"
+    },
+    {
+     "key": "engineering",
+     "name": "Engineering",
+     "description": "Designing and building the product"
+    },
+    {
+     "key": "quality",
+     "name": "Quality",
+     "description": "Testing, defects, and compliance of the product"
+    }
+   ]
+  },
+  {
+   "key": "operations",
+   "name": "Operations",
+   "description": "Getting the product to customers",
+   "domain": "operations",
+   "children": [
+    {
+     "key": "orders",
+     "name": "Order management",
+     "description": "Orders from taking to fulfilling"
+    },
+    {
+     "key": "inventory",
+     "name": "Inventory",
+     "description": "Stock and where it is"
+    },
+    {
+     "key": "supply_chain",
+     "name": "Supply chain",
+     "description": "Suppliers, purchasing, and logistics"
+    },
+    {
+     "key": "field_service",
+     "name": "Field service",
+     "description": "Work done at customers' sites"
+    }
+   ]
+  },
+  {
+   "key": "corporate",
+   "name": "Corporate",
+   "description": "Running the company",
+   "domain": "administrative",
+   "children": [
+    {
+     "key": "finance",
+     "name": "Finance and accounting",
+     "description": "The ledger, close, and reporting"
+    },
+    {
+     "key": "people",
+     "name": "Human resources and payroll",
+     "description": "Employees, pay, and benefits"
+    },
+    {
+     "key": "legal",
+     "name": "Legal and contracts",
+     "description": "Contracts, matters, and policies"
+    },
+    {
+     "key": "procurement",
+     "name": "Procurement",
+     "description": "Buying, approvals, and suppliers"
+    },
+    {
+     "key": "facilities",
+     "name": "Facilities",
+     "description": "Offices, space, and assets"
+    },
+    {
+     "key": "communications",
+     "name": "Internal communications",
+     "description": "News and the intranet"
+    },
+    {
+     "key": "analytics",
+     "name": "Business intelligence",
+     "description": "Reports and dashboards"
+    }
+   ]
+  },
+  {
+   "key": "it",
+   "name": "Information technology",
+   "description": "The shared technology everyone relies on",
+   "domain": "it",
+   "children": [
+    {
+     "key": "identity",
+     "name": "Identity and access",
+     "description": "Accounts, sign-in, and who may do what"
+    },
+    {
+     "key": "collaboration",
+     "name": "Collaboration and email",
+     "description": "Email, chat, meetings, and shared files"
+    },
+    {
+     "key": "service_management",
+     "name": "Service management",
+     "description": "Requests, incidents, and changes"
+    },
+    {
+     "key": "hosting",
+     "name": "Infrastructure and hosting",
+     "description": "Where applications run"
+    },
+    {
+     "key": "security",
+     "name": "Security operations",
+     "description": "Finding and stopping threats"
+    },
+    {
+     "key": "monitoring",
+     "name": "Monitoring and observability",
+     "description": "Knowing whether things are working"
+    },
+    {
+     "key": "software_delivery",
+     "name": "Software delivery",
+     "description": "Building, testing, and deploying software"
+    },
+    {
+     "key": "integration",
+     "name": "Data platform and integration",
+     "description": "Moving and joining data between applications"
+    }
+   ]
+  }
+ ],
+ "fields": [
+  {
+   "key": "accessibility",
+   "label": "Accessibility",
+   "type": "choice",
+   "section": "use",
+   "help": "How well people with disabilities can use it, as last checked.",
+   "options": [
+    [
+     "unknown",
+     "Not checked"
+    ],
+    [
+     "partial",
+     "Partly conforms"
+    ],
+    [
+     "conforms",
+     "Conforms to the organization's standard"
+    ]
+   ]
+  },
+  {
+   "key": "financial_reporting",
+   "label": "In scope for financial reporting",
+   "type": "choice",
+   "section": "use",
+   "help": "Whether the financial statements rely on it, so its controls are audited.",
+   "options": [
+    [
+     "unknown",
+     "Not known"
+    ],
+    [
+     "no",
+     "No"
+    ],
+    [
+     "yes",
+     "Yes"
+    ]
+   ]
+  }
+ ],
+ "definition": {
+  "text": "An application is software, or a service built from software, that people name, use for a purpose, and could decide to keep, change, or retire as one thing.",
+  "examples": [
+   "The customer relationship management system",
+   "The online store",
+   "The warehouse management system",
+   "The general ledger"
+  ],
+  "not_examples": [
+   "A server or a database on its own: record it as a component of what it serves",
+   "A report or a module of a larger system: a component of that system",
+   "A spreadsheet one person keeps for themselves",
+   "A programming language or a platform: a technology"
+  ]
+ }
+}

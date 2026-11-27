@@ -21,6 +21,11 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   technology, vendor, and unit, used in the menu, page titles, and lists. A new `[branding]`
   section of the configuration file sets an exact palette by day and after dark, logo
   files, typefaces, and any of the above, shown in the app as locked.
+- **Starter programs.** `appwren init --program` begins a new installation from the default
+  program as a research institute, an academic medical center, a university, a nonprofit,
+  or a company would first change it: its own capability map, domains, kinds of unit, data
+  classes, funding, fields, and examples. `appwren program starters` lists them, and
+  `appwren program import` loads one by its key.
 - **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
   50,000 components; the figures are in the configuration guide.
 
