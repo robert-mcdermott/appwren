@@ -22,6 +22,7 @@ from appwren.access.principal import Principal
 from appwren.core.clock import add_months, utc_now
 from appwren.core.clock import today as today_
 from appwren.core.errors import Invalid, PermissionDenied
+from appwren.db.among import among
 from appwren.db.models import (
     Account,
     Application,
@@ -261,7 +262,7 @@ def gather(
             .join(Account, Account.id == RecordOwner.account_id)
             .where(
                 RecordOwner.record_type == "application",
-                RecordOwner.record_id.in_(ids),
+                among(RecordOwner.record_id, ids),
                 RecordOwner.kind == ACCOUNTABLE,
                 Account.status != "disabled",
             )
@@ -429,9 +430,13 @@ def score_all(
         peer_facts = gather(session, more, model, on)
     else:
         peer_facts = {}
+    # Scored without a peer: those that have none, and those another is compared with. One
+    # that has a peer is scored once, with it.
+    peers = {f.get("peer_id") for f in facts.values()} - {None}
     first = {
         app_id: evaluate({**f, "peer": None}, model, today=on)
         for app_id, f in {**facts, **peer_facts}.items()
+        if f.get("peer_id") is None or app_id in peers or app_id in peer_facts
     }
     out = {}
     for app_id, f in facts.items():

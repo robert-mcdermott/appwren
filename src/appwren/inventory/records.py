@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from appwren.access.principal import Principal
 from appwren.core.clock import utc_now
 from appwren.core.errors import Conflict, Invalid, NotFound, PermissionDenied
+from appwren.db.among import among
 from appwren.db.models import Account, ExternalRef, OrgUnit, RecordOwner
 from appwren.db.models.inventory import ACCOUNTABLE, RECORD_STATUSES
 from appwren.db.refs import claim_ref, next_ref, parse_ref
@@ -487,7 +488,7 @@ def external_refs_of(
         return found
     for row in session.scalars(
         select(ExternalRef)
-        .where(ExternalRef.record_type == record_type.key, ExternalRef.record_id.in_(ids))
+        .where(ExternalRef.record_type == record_type.key, among(ExternalRef.record_id, ids))
         .order_by(ExternalRef.id)
     ):
         system = systems.get(row.system, {})
@@ -519,7 +520,7 @@ def owners_of(
     rows = session.execute(
         select(RecordOwner, Account)
         .join(Account, Account.id == RecordOwner.account_id)
-        .where(RecordOwner.record_type == record_type.key, RecordOwner.record_id.in_(ids))
+        .where(RecordOwner.record_type == record_type.key, among(RecordOwner.record_id, ids))
         .order_by(Account.display_name)
     )
     for owner, account in rows:

@@ -386,6 +386,82 @@ def cmd_db_current(args: argparse.Namespace) -> int:
     return EXIT_OK if current == head else EXIT_ERROR
 
 
+def cmd_backup(args: argparse.Namespace) -> int:
+    from datetime import datetime
+
+    from appwren import backup
+
+    config, home = _load(args)
+    home.require()
+    db = _database(config)
+    out = Path(args.out or f"appwren-backup-{datetime.now():%Y%m%d-%H%M%S}.tar.gz")
+    try:
+        report = backup.create(db.engine, home, out)
+    finally:
+        db.dispose()
+    print(
+        f"Wrote {out}: {report.rows} rows in {report.tables} tables, {report.files} files, "
+        f"{report.events} events of history, at migration {report.revision}."
+    )
+    return EXIT_OK
+
+
+def cmd_restore(args: argparse.Namespace) -> int:
+    from appwren import backup
+
+    config, home = _load(args)
+    home.create()  # a restore may be the first thing done on a new server
+    db = _database(config, current=False)
+    try:
+        report = backup.restore(db.engine, home, Path(args.file))
+        behind = not migrate.is_current(db.engine)
+    finally:
+        db.dispose()
+    print(
+        f"Restored {report.rows} rows in {report.tables} tables and {report.files} files. "
+        f"The history holds: {report.events} events verify."
+    )
+    if behind:
+        print(f"The backup was at migration {report.revision}. Now run: appwren db upgrade")
+    return EXIT_OK
+
+
+def cmd_db_move(args: argparse.Namespace) -> int:
+    """Copy the installation into another, empty database, by way of a backup."""
+    from appwren import backup
+
+    target = args.to or os.environ.get(args.to_env or "", "")
+    if not target:
+        raise AppWrenError(
+            "Say where to move it: --to with the new database's address, or --to-env with the "
+            "name of an environment variable that holds it (better, when it has a password)."
+        )
+    config, home = _load(args)
+    home.require()
+    source = _database(config)
+    out = home.exports / f"move-{os.getpid()}.tar.gz"
+    home.exports.mkdir(parents=True, exist_ok=True)
+    try:
+        backup.create(source.engine, home, out)
+    finally:
+        source.dispose()
+    destination = Database(target)
+    try:
+        report = backup.restore(destination.engine, home, out)
+    finally:
+        destination.dispose()
+        out.unlink(missing_ok=True)
+    print(
+        f"Moved {report.rows} rows in {report.tables} tables; the history holds: "
+        f"{report.events} events verify in the new database."
+    )
+    print(
+        "The old database is untouched. Point the configuration at the new one "
+        "([database] url, or APPWREN_DATABASE_URL), then start the server."
+    )
+    return EXIT_OK
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     config, _ = _load(args)
     db = _database(config)
@@ -598,7 +674,43 @@ def build_parser() -> argparse.ArgumentParser:
         "Exits with 1 when they differ.",
     )
     current.set_defaults(handler=cmd_db_current)
+    move = db_commands.add_parser(
+        "move",
+        help="copy the installation into another, empty database",
+        description="Copy every table into another database that has not been set up, such "
+        "as from SQLite to PostgreSQL or back, by way of a backup. The history is verified in "
+        "the new database. The old one is left as it was.",
+    )
+    move.add_argument("--to", metavar="URL", help="the new database's address")
+    move.add_argument(
+        "--to-env", metavar="NAME",
+        help="the name of an environment variable holding the address, to keep a password "
+        "off the command line",
+    )  # fmt: skip
+    move.set_defaults(handler=cmd_db_move)
     db.set_defaults(handler=lambda _args: db.print_help() or EXIT_OK)
+
+    saving = commands.add_parser(
+        "backup",
+        help="write the whole installation to one file",
+        description="Write every table, every attachment and brand file, and a manifest to one "
+        "gzipped tar. It can be made while the server is running. The file does not depend on "
+        "the kind of database, so it restores into SQLite or PostgreSQL. It holds everything "
+        "in the installation: keep it as carefully as the database itself.",
+    )
+    saving.add_argument(
+        "--out", metavar="FILE", help="where to write it (default: appwren-backup-DATE.tar.gz)"
+    )
+    saving.set_defaults(handler=cmd_backup)
+    loading = commands.add_parser(
+        "restore",
+        help="load a backup into an empty installation",
+        description="Load a backup into the configured database and data home. The database "
+        "must hold no accounts and no history: nothing is ever overwritten. The history is "
+        "verified once it is loaded.",
+    )
+    loading.add_argument("file", help="the backup, a .tar.gz written by appwren backup")
+    loading.set_defaults(handler=cmd_restore)
 
     people = commands.add_parser(
         "users",

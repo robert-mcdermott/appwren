@@ -132,7 +132,7 @@ The data home is created by `init`. With the default settings it is `./var`.
 | `exports/` | Reserved for exports |
 | `.appwren-home` | A marker that says this directory is a data home |
 
-- Back it up as a whole. With PostgreSQL, back up the database as well.
+- Back it up with `appwren backup` ([Back up and restore](#back-up-and-restore)), which takes the database and the files here together.
 - Do not edit its contents by hand.
 - It must be writable by the account that runs the server.
 - Request bodies and tokens are never written to the log.
@@ -295,7 +295,74 @@ SQLite is the default and needs no setup. Use PostgreSQL when many people will u
    uv run appwren doctor
    ```
 
-Moving an existing installation from SQLite to PostgreSQL is not automated in this release. Start new installations on the database you mean to keep.
+An installation already running on SQLite moves with one command: see [Move to another database](#move-to-another-database).
+
+## Back up and restore
+
+```bash
+uv run appwren backup --out appwren-backup.tar.gz
+```
+
+A backup is one gzipped file: every table, as lines of JSON, every file in the data home's `brand/` and `files/`, and a manifest that says which version and migration made it and how many rows each table held. It can be made while the server is running: the tables are read in one transaction, so they agree with each other. The file does not depend on the kind of database, so a backup of SQLite restores into PostgreSQL and the other way round. It holds everything, password hashes included, and is written readable by its owner only: keep it as carefully as the database.
+
+To restore, set up an installation whose database is empty (a new `appwren.toml` and data home, or a new PostgreSQL database), then:
+
+```bash
+uv run appwren restore appwren-backup.tar.gz
+uv run appwren db upgrade     # if the backup came from an earlier version
+```
+
+A restore refuses a database that has accounts or history: nothing is ever overwritten. It checks that every table loaded whole, and verifies the history once it is in, so a damaged backup is found at once and not months later.
+
+## Move to another database
+
+```bash
+export NEW_DATABASE_URL=postgresql+psycopg://appwren:…@db.example.org:5432/appwren
+uv run appwren db move --to-env NEW_DATABASE_URL
+```
+
+`db move` makes a backup and restores it into the new database, which must be empty, then verifies the history there. The old database is left as it was. Point the configuration at the new one (`[database] url`, or `APPWREN_DATABASE_URL`) and start the server. `--to` takes the address itself; `--to-env` names an environment variable that holds it, which keeps a password off the command line and out of the shell's history.
+
+## How many server processes
+
+One process serves a small team well, and is all SQLite should be given: SQLite allows one writer at a time, and `serve` warns when several workers share one SQLite file. With PostgreSQL, add processes when many people work at once:
+
+```toml
+[server]
+workers = 4
+```
+
+Each process is a whole server. They share nothing but the database and the data home:
+
+- **Sign-in sessions** are kept in the database, so a person stays signed in whichever process answers.
+- **Scheduled work** is claimed in the database before it runs, so a job runs once however many processes there are.
+- **The history** is appended under a lock on its last entry, so it stays a single line.
+
+## How large it runs
+
+AppWren is measured with the demo organization copied up to **5,029 applications and 52,029 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
+
+| Request | SQLite | PostgreSQL |
+|---|---|---|
+| A page of applications, searched, filtered, or sorted | 19–55 ms | 52–92 ms |
+| One application, its history, its scores over time | 3–10 ms | 7–29 ms |
+| A page of components | 48 ms | 19 ms |
+| Search everything | 157 ms | 124 ms |
+| The capability map, the lifecycle | 90–116 ms | 56–165 ms |
+| Shares of the portfolio | 110 ms | 106 ms |
+| Engineering maturity | 1.1 s | 1.1 s |
+| Home, the portfolio list, the dashboard, data quality, overlap | 1.7–1.9 s | 1.7–2.0 s |
+
+The pages in the last row score every application in service each time they are opened, so their time grows with the portfolio: at 500 applications each takes about a fifth of a second. Everything that opens one record, or a page of a list, stays fast at any size.
+
+You can repeat the measurement on your own hardware. It builds a throwaway installation in a temporary directory and touches nothing else:
+
+```bash
+uv run python scripts/perf.py                                     # 5,000 applications on SQLite
+uv run python scripts/perf.py --applications 1000 --components 10000
+```
+
+To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. The script exits with 1 if a median is over its budget, which is two and a half seconds unless you give `--budget`.
 
 ## Upgrade
 
@@ -306,7 +373,7 @@ uv sync
 uv run appwren db upgrade
 ```
 
-`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
+`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first, with `uv run appwren backup`: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
 
 ## Run behind a reverse proxy
 

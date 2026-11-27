@@ -4,6 +4,26 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## Unreleased
+
+### Added
+
+- **Backup and restore.** `appwren backup` writes the whole installation (every table, the
+  brand and attachment files, and a manifest) to one file, even while the server runs;
+  `appwren restore` loads it into an empty installation and verifies the history. The file
+  does not depend on the kind of database.
+- **Moving between databases.** `appwren db move` copies an installation into another, empty
+  database, from SQLite to PostgreSQL or back, and verifies the history there.
+- **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
+  50,000 components; the figures are in the configuration guide.
+
+### Fixed
+
+- Pages that read every application failed on SQLite past about 32,000 components, from the
+  database's limit on query parameters.
+- The dashboard, data quality, overlap, the portfolio list, Home, and shares of the
+  portfolio are two to twenty times faster on a large portfolio.
+
 ## 0.6.0 (2026-11-27)
 
 Wave 6, *Insight*: the record read back as a whole, for leadership. Two portfolio snapshots

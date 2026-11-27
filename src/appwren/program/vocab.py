@@ -6,6 +6,7 @@ history. Until an organization edits a vocabulary, the default program pack's ar
 
 from __future__ import annotations
 
+import functools
 import json
 from importlib import resources
 from typing import Any
@@ -19,9 +20,15 @@ DEFAULT_PACK = "default-program.json"
 
 
 def default_pack() -> dict[str, Any]:
-    """The built-in program pack, as shipped."""
+    """The built-in program pack, as shipped: a fresh copy, which the caller may change."""
     text = resources.files("appwren.resources").joinpath("packs", DEFAULT_PACK).read_text("utf-8")
     return json.loads(text)
+
+
+@functools.cache
+def shipped() -> dict[str, Any]:
+    """The built-in program pack, read once. Never change it: copy what you take from it."""
+    return default_pack()
 
 
 DEFAULTS: dict[str, list[dict[str, Any]]] = default_pack()["vocabularies"]

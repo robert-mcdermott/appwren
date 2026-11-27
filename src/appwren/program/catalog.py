@@ -8,6 +8,7 @@ changes it.
 
 from __future__ import annotations
 
+import copy
 import re
 from collections.abc import Mapping
 from typing import Any
@@ -32,7 +33,7 @@ KEY = re.compile(r"[a-z][a-z0-9_]{0,39}")
 
 def _get(session: Session, key: str, name: str) -> Any:
     stored = settings.get(session, key, None)
-    return stored if stored is not None else vocab.default_pack()[name]
+    return stored if stored is not None else copy.deepcopy(vocab.shipped()[name])
 
 
 def fields(session: Session) -> list[dict[str, Any]]:

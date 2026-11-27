@@ -16,6 +16,8 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren init`](#appwren-init) | Set up a new installation |
 | [`appwren serve`](#appwren-serve) | Run the web server |
 | [`appwren db`](#appwren-db) | Look after the database schema |
+| [`appwren backup`](#appwren-backup) | Write the whole installation to one file |
+| [`appwren restore`](#appwren-restore) | Load a backup into an empty installation |
 | [`appwren users`](#appwren-users) | Manage accounts from the command line |
 | [`appwren verify`](#appwren-verify) | Check that the history has not been altered |
 | [`appwren demo`](#appwren-demo) | Build a fictional organization to explore |
@@ -61,6 +63,31 @@ Apply any migrations the database has not had. Export first: an upgrade cannot b
 ### `appwren db current`
 
 Show which migration the database is at, and which this version expects. Exits with 1 when they differ.
+
+### `appwren db move`
+
+Copy every table into another database that has not been set up, such as from SQLite to PostgreSQL or back, by way of a backup. The history is verified in the new database. The old one is left as it was.
+
+| Option | Meaning |
+|---|---|
+| `--to` `URL` | the new database's address |
+| `--to-env` `NAME` | the name of an environment variable holding the address, to keep a password off the command line |
+
+## `appwren backup`
+
+Write every table, every attachment and brand file, and a manifest to one gzipped tar. It can be made while the server is running. The file does not depend on the kind of database, so it restores into SQLite or PostgreSQL. It holds everything in the installation: keep it as carefully as the database itself.
+
+| Option | Meaning |
+|---|---|
+| `--out` `FILE` | where to write it (default: appwren-backup-DATE.tar.gz) |
+
+## `appwren restore`
+
+Load a backup into the configured database and data home. The database must hold no accounts and no history: nothing is ever overwritten. The history is verified once it is loaded.
+
+| Option | Meaning |
+|---|---|
+| `FILE` | the backup, a .tar.gz written by appwren backup |
 
 ## `appwren users`
 
