@@ -2,7 +2,7 @@
 
 **Goal:** a portfolio that stays true without a central team chasing it. Waves 1 and 2 made a record worth keeping and connected it. This wave makes it keep itself: the app knows what falls due and says so, in the app and by email; owners confirm their records on a cadence in proportion to what is at stake, and a record nobody has confirmed lowers confidence where everyone can see it; departures, renewals, end of support, and grant ends raise tasks for the person who must act; anything on record can be found; and the program is shaped in the app, with a preview of what a change would do.
 
-**Branch:** `wave-3` · **Target version:** `0.3.0` · **Status:** ◐ in progress
+**Branch:** `wave-3` · **Target version:** `0.3.0` · **Status:** ☑ done
 
 Owners come first here as everywhere ([roadmap](../roadmap.md)). In this wave that means: one list of what is theirs, reminders before anything is late rather than after, confirming a record in one step, and a way to say a score is wrong.
 
@@ -126,10 +126,16 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Not done in the app:** the recommendation rules, guardrails, and flags, and adding or removing a question. Each names other parts of the model by key, and they are changed together with a program pack.
 
-## Slice 7: Release prep ☐
+## Slice 7: Release prep ☑
 
-- [ ] Guides, changelog, upgrade from 0.2.0 on both databases, audits, release, and the site republished
+- [x] Guides, changelog, upgrade from 0.2.0 on both databases, audits, release, and the site republished
+
+**Done:** a new guide, *Keeping current*; shaping the program in the app, scheduled work, and email in *Running the program* and *Configuration*; what a stale record costs in *The portfolio*; the new routes in the API guide; the README, the guide index, *Getting started*, and the site's home page describe 0.3.0, with eleven new pictures, each in light and dark. The accessibility audit finds nothing in 93 scenes, three palettes, and two modes, 21 of the scenes new; the keyboard check passes; the built site passes its own audit. A 0.2.0 demo organization, built by the 0.2.0 release, was upgraded by this code on SQLite and on PostgreSQL: migrations 0011 to 0015 applied, no table lost a row, the history verifies, every decision's snapshot still matches its digest, the scoring model moved to its third version with the cadence, no record was stale, every job ran, and the new screens answered over the upgraded data, a preview of a changed model included. A fresh copy installs, initializes, and passes `doctor` on both databases. 383 tests pass on SQLite and 379 on PostgreSQL. The tests now turn the server's scheduler off and run jobs themselves, after eight test servers running jobs at once exhausted PostgreSQL's connections.
 
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+- **Confirmation lowers confidence after the average, not inside it.** A stale record could have been made one more unknown factor, but which factor, and with what weight in each profile? A fixed number of points, said in the working and in the model's cadence, is a rule a person can check by hand.
+- **Contract notice reminders became a task.** A notice date is something to decide, so it raises a task with the reason; the reminder is the task's, and an owner is told once, not twice.
+- **What the demo adds draws from its own random sequence.** Confirmations and campaign answers drew from the demo's one sequence and moved who owned what, which left the research software engineer with nothing to keep. That was already so in 0.2.0, by chance; they now keep two named storylines, and later additions cannot move earlier ones.
+- **The tests run scheduled work themselves.** A scheduler in every test server ran jobs behind the tests' backs and held connections of its own.

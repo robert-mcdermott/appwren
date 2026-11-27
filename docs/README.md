@@ -1,6 +1,6 @@
 # AppWren documentation
 
-These guides describe AppWren 0.2.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
+These guides describe AppWren 0.3.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
 
 ## The guides
 
@@ -9,9 +9,10 @@ These guides describe AppWren 0.2.0, and are published with pictures at <https:/
 | 1 | [Getting started](getting-started.md) | Whoever installs AppWren | Installing, `init`, `doctor`, `serve`, first sign-in, units and people, bringing in your applications, the demo organization |
 | 2 | [The portfolio](the-portfolio.md) | Everyone who keeps, assesses, or reads an application | What counts as an application, the record and its stages, components and technologies, capabilities, assessment, the scores and their working, recommendations, flags, decisions, cost lines, funding, contracts, import and export |
 | 3 | [The landscape](the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches | Interfaces and data flows, the picture of how a record is connected, what breaks if an application goes, hosting platforms and deployments, overlap, the capability map and its measures, the lifecycle timeline, the radar, support dates from a file, who handles a class of data |
-| 4 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields and contracts, the program and its versions, what an upgrade does, the dashboard, Home, data quality, portfolio snapshots, the history, appearance |
-| 5 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, optional single sign-on, PostgreSQL, upgrading, reverse proxies, the demo guard |
-| 6 | [API](api.md) | Anyone connecting another system | Sign-in, the CSRF token, responses, errors, lists, and a table of routes |
+| 4 | [Keeping current](keeping-current.md) | Everyone who keeps an application, and the portfolio team | Home and the bell, reminders, email, confirming a record and what a stale one costs, campaigns, tasks raised by what happens, passing on what someone holds, search and saved views, likely duplicates, contesting a score |
+| 5 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields and contracts, shaping the program in the app or with a pack, its versions, what an upgrade does, the dashboard, Home, data quality, portfolio snapshots, scheduled work and email, the history, appearance |
+| 6 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, scheduled work, optional email and single sign-on, PostgreSQL, upgrading, reverse proxies, the demo guard |
+| 7 | [API](api.md) | Anyone connecting another system | Sign-in, the CSRF token, responses, errors, lists, and a table of routes |
 
 ## Reference
 
@@ -53,12 +54,20 @@ These two are written from the code, so they always match the version they ship 
 | Which contracts are about to renew? | [Contracts](the-portfolio.md#contracts) |
 | Who can see what an application costs, or its contract? | [Who sees what](running-the-program.md#who-sees-what) |
 | The upgrade changed some scores. Why? | [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program) |
-| How do I change the questions, the weights, or the rules? | [Shape the program](running-the-program.md#shape-the-program) |
+| What is waiting on me, and how will I hear? | [What is waiting on you](keeping-current.md#what-is-waiting-on-you) |
+| Why has this application's confidence dropped? | [Confirm the record](keeping-current.md#confirm-the-record) |
+| How do I ask every owner in a unit to check their records? | [Campaigns](keeping-current.md#campaigns) |
+| Where did this task come from? | [Tasks](keeping-current.md#tasks) |
+| Someone is leaving. What do they hold? | [When someone leaves](keeping-current.md#when-someone-leaves) |
+| How do I find a record, or keep a list as I filtered it? | [Find anything](keeping-current.md#find-anything) |
+| This score is wrong. What can I do? | [Contest a score](keeping-current.md#contest-a-score) |
+| How do I change the questions, the weights, or the cadence? | [Shape it in the app](running-the-program.md#shape-it-in-the-app) |
 | What does a dashboard figure count? | [Read the dashboard](running-the-program.md#read-the-dashboard) |
 | Which units' records need the most work? | [Data quality](running-the-program.md#data-quality) |
 | How do I keep a record of the portfolio before a review? | [Portfolio snapshots](running-the-program.md#portfolio-snapshots) |
 | Who changed this, and when? | [The history](running-the-program.md#the-history) |
 | How do I make an identifier in another system a link? | [Links to other systems](running-the-program.md#links-to-other-systems) |
+| How do I send notices by email? | [Email](configuration.md#email) |
 | How do I let people sign in with Entra ID or another identity provider? | [Single sign-on](configuration.md#single-sign-on) |
 | How do I move to PostgreSQL? | [Use PostgreSQL](configuration.md#use-postgresql) |
 | How do I put it behind a proxy? | [Run behind a reverse proxy](configuration.md#run-behind-a-reverse-proxy) |
@@ -66,7 +75,7 @@ These two are written from the code, so they always match the version they ship 
 
 ## What this release does not do yet
 
-Version 0.2.0 is the portfolio and the landscape around it. Nothing reminds anyone yet: there are no notices, no email, no attestation or campaigns, and the program is still changed as a file. Those arrive in the next release, with search across every kind of record. After that come read-only connectors to the tools that already know the facts, so that fewer of them are typed. The [roadmap](../spec/roadmap.md) says what comes next and in what order, and the [changelog](../CHANGELOG.md) lists what is in each release.
+Version 0.3.0 is the portfolio, the landscape around it, and the means of keeping both current. Every fact in it is still typed or imported by a person. Read-only connectors to the tools that already know the facts (code hosting, public end-of-life data, the identity provider, and catalog files kept in repositories) come next, each turned on by an administrator, with each fact's source shown beside it, so that fewer are typed. After that come review cycles, initiatives, intake of new requests, and the retirement playbook. The [roadmap](../spec/roadmap.md) says what comes next and in what order, and the [changelog](../CHANGELOG.md) lists what is in each release.
 
 ## More
 

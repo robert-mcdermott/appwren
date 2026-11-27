@@ -174,11 +174,10 @@ def state(
 
 def _due(session: Session, on: date, horizon: date) -> list[Any]:
     """Reminders: each record in service whose confirmation is nearly due, or late."""
-    from appwren.assessment import current_model
     from appwren.people import notices
-    from appwren.reminders import NOT_IN_SERVICE, Due
+    from appwren.reminders import NOT_IN_SERVICE, Due, _model
 
-    model = current_model(session).definition
+    model = _model(session)  # the defaults, before a model is installed
     apps = list(
         session.scalars(select(Application).where(Application.lifecycle.not_in(NOT_IN_SERVICE)))
     )

@@ -1,6 +1,6 @@
 # Configuration
 
-This guide is for whoever runs the server. It covers `appwren.toml`, environment overrides, the data home, single sign-on, PostgreSQL, upgrading, running behind a reverse proxy, and the guard on demo installations.
+This guide is for whoever runs the server. It covers `appwren.toml`, environment overrides, the data home, scheduled work, email, single sign-on, PostgreSQL, upgrading, running behind a reverse proxy, and the guard on demo installations.
 
 ## What is configured where
 
@@ -29,7 +29,7 @@ Relative paths in the file are resolved against the file's own directory, not th
 
 ## Every section and key
 
-The file has four sections. Only the first three matter for a new installation; `[sso]` is optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
+The file has five sections. Only the first three matter for a new installation; `[sso]` and `[mail]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
 
 ### `[server]`
 
@@ -38,9 +38,10 @@ The file has four sections. Only the first three matter for a new installation; 
 | `host` | `"127.0.0.1"` | The address the web server listens on. Keep `127.0.0.1` when a reverse proxy on the same machine terminates TLS. Use `0.0.0.0` only behind one |
 | `port` | `8000` | The port |
 | `workers` | `1` | How many server processes to run. One is enough for SQLite and small teams |
-| `base_url` | `""` | The public address people use to reach AppWren, such as `"https://appwren.example.org"`. Used for the single sign-on redirect address. Set it when you use single sign-on |
+| `base_url` | `""` | The public address people use to reach AppWren, such as `"https://appwren.example.org"`. Used for the single sign-on redirect address and for links in email. Set it when you use either |
 | `session_idle_hours` | `12` | A sign-in ends after this long without activity |
 | `session_max_days` | `7` | A sign-in ends after this long in any case |
+| `scheduler` | `true` | Run scheduled work (triggers, reminders, email, the monthly snapshot) inside this server. See [Scheduled work](#scheduled-work) |
 
 `host`, `port`, and `workers` can also be given to `uv run appwren serve` as `--host`, `--port`, and `--workers`, which take precedence for that run.
 
@@ -72,7 +73,22 @@ Single sign-on is optional and off until both `issuer` and `client_id` are set. 
 | `create_accounts` | `true` | Make an account the first time someone signs in. With `false`, only people who already have an account can sign in |
 | `local_sign_in` | `true` | Keep the password form for everyone who has a password. With `false`, only administrators may sign in with a password |
 
-AppWren also gives advice that does not stop it running. `serve` and `doctor` warn when several workers share one SQLite file, and when `base_url` is `http://` on a host other than localhost.
+### `[mail]`
+
+Email is optional and off until both `host` and `from_address` are set. See [Email](#email).
+
+| Key | Default | Meaning |
+|---|---|---|
+| `host` | `""` | The SMTP server |
+| `port` | `587` | Its port |
+| `security` | `"starttls"` | `"starttls"` (usual on port 587), `"tls"` (port 465), or `"none"` |
+| `username` | `""` | The account to sign in to the mail server with, if it needs one |
+| `password_env` | `"APPWREN_MAIL_PASSWORD"` | The name of the environment variable that holds that account's password. The password itself is refused in the file |
+| `from_address` | `""` | The address messages come from |
+| `from_name` | `""` | The name they come from. Empty means the product's name |
+| `digest_hour` | `7` | The hour of the day, in UTC, after which daily summaries are sent |
+
+AppWren also gives advice that does not stop it running. `serve` and `doctor` warn when several workers share one SQLite file, when `base_url` is `http://` on a host other than localhost, and when email is set up but `base_url` is empty, so messages cannot link back.
 
 ## Environment overrides
 
@@ -86,8 +102,10 @@ Any value can be overridden by an environment variable named `APPWREN_<SECTION>_
 | `APPWREN_SERVER_BASE_URL` | `[server] base_url` |
 | `APPWREN_SERVER_SESSION_IDLE_HOURS` | `[server] session_idle_hours` |
 | `APPWREN_SERVER_SESSION_MAX_DAYS` | `[server] session_max_days` |
+| `APPWREN_SERVER_SCHEDULER` | `[server] scheduler` |
 | `APPWREN_DATABASE_URL` | `[database] url` |
 | `APPWREN_DATA_HOME` | `[data] home` |
+| `APPWREN_MAIL_HOST`, `APPWREN_MAIL_PORT`, and so on | `[mail]` and its keys |
 
 ```bash
 APPWREN_SERVER_PORT=8080 uv run appwren serve
@@ -99,7 +117,7 @@ APPWREN_SERVER_PORT=8080 uv run appwren serve
 
 `appwren.toml` is meant to be safe to read, copy, and keep under version control. AppWren refuses to start if the file holds a secret: a key that looks like a password, secret, token, or key, or a database address with a password in it.
 
-Put secrets in the environment instead. For the database, set the password in `PGPASSWORD`, or put the whole address, password and all, in `APPWREN_DATABASE_URL`.
+Put secrets in the environment instead. For the database, set the password in `PGPASSWORD`, or put the whole address, password and all, in `APPWREN_DATABASE_URL`. The mail server's password goes in the variable `[mail] password_env` names, and single sign-on's client secret in the one `[sso] client_secret_env` names.
 
 ## The data home
 
@@ -118,6 +136,36 @@ The data home is created by `init`. With the default settings it is `./var`.
 - Do not edit its contents by hand.
 - It must be writable by the account that runs the server.
 - Request bodies and tokens are never written to the log.
+
+## Scheduled work
+
+The server runs AppWren's scheduled work by itself while it is up: it raises tasks, sends reminders and email, takes the monthly snapshot, and tidies up. **Admin → Scheduled work** shows how it is going; see [Running the program](running-the-program.md#scheduled-work-and-email).
+
+Each job is claimed by one process before it runs, so any number of workers or servers on one database run it once between them. If you would rather run it from a scheduled task (cron, a systemd timer, a Kubernetes CronJob), set `scheduler = false` and run every few minutes:
+
+```bash
+uv run appwren jobs run
+```
+
+`uv run appwren jobs` lists the jobs, when each last ran, and what it did; `uv run appwren jobs run reminders` runs one now. `doctor` warns when the scheduler is off and nothing has run for two days.
+
+## Email
+
+**You do not need this to use AppWren.** Without email, each person finds what is nearly due for them under the bell and on Home.
+
+To send notices by email as well:
+
+1. Under `[mail]`, give `host` and `from_address`, and `port`, `security`, and `username` as your mail server needs.
+2. If the server needs a password, put it in the environment variable `password_env` names (by default `APPWREN_MAIL_PASSWORD`).
+3. Set `[server] base_url`, so that each message links back to what it is about.
+4. Restart, then check it:
+
+```bash
+uv run appwren doctor
+uv run appwren mail test you@example.org
+```
+
+Each person then chooses, under **Your account**, to have each notice as it happens, one summary a day, or none. Messages wait in the database and are sent from there, so a restart loses nothing and a mail server that is down is tried again, up to six times. Nothing written before email was set up is ever sent.
 
 ## Single sign-on
 
@@ -249,7 +297,7 @@ uv sync
 uv run appwren db upgrade
 ```
 
-`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.1.0, that is the tables for interfaces, hosting, cost, and contracts, their vocabularies, and a new version of the default scoring model for installations still running the previous default; see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
+`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and `uv run appwren db current` shows where the database is.
 
 ## Run behind a reverse proxy
 

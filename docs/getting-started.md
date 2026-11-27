@@ -125,7 +125,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 87 deployments on six hosting platforms, 22 contracts, about 125 assessments, 65 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, a database release reaching end of support next quarter, research data flowing into dashboards whose record does not list it, a contract whose notice date is two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 88 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, a database release reaching end of support next quarter, research data flowing into dashboards whose record does not list it, a contract whose notice date is two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used. And keeping it current: a score of records nobody has confirmed in time, a campaign under way in the shared resources and one closed in the clinic, tasks for a notice date, a release ending, grants ending, and the four applications left without an owner, and a score contested and answered. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
 
 ![Home for the demo's portfolio manager: what is waiting on them, most urgent first, beside their roles](img/home-manager-light.webp)
 
@@ -133,14 +133,14 @@ Its sign-in page offers eight sample people and asks for no password:
 
 | Sign in as | To see |
 |---|---|
-| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, and snapshots |
-| The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline and radar, hosting platforms, and the picture of how anything is connected |
+| The portfolio manager | The dashboard with what everything costs, the portfolio chart, mismatches to review, contracts and their notice dates, overlap, snapshots, campaigns and tasks, and the program to shape |
+| The enterprise architect | The capability map and its measures, data flows, the lifecycle timeline and radar, hosting platforms, the picture of how anything is connected, and a contest waiting for an answer |
 | The chief information officer | Decisions for Information Technology's applications, and the reviews coming due |
 | The clinical research leader | A decision that keeps an application the scores would replace, and why |
-| The research applications steward | Specimen Tracker: its scores and their working, what would break if it went, where it runs, and what it costs line by line |
+| The research applications steward | Specimen Tracker: its scores and their working, what would break if it went, where it runs, and what it costs line by line; and what a campaign asks of them |
 | The research software engineer | A member's view: the applications they keep, and the costs and contracts they may not see elsewhere |
 | The auditor | Everything, read-only, with every change in one place under Reports, History |
-| The administrator | People, units, sign-in, and appearance, and no part in the portfolio's judgments |
+| The administrator | People, units, sign-in, appearance, and scheduled work, and no part in the portfolio's judgments |
 
 `appwren demo --seed 2` builds a different Bramblewood with the same shape, and `--force` rebuilds one that is already there.
 
@@ -150,4 +150,5 @@ A demo listens only on the machine it runs on. See [Configuration](configuration
 
 - To record applications, assess them, read their scores, and record what they cost, read [The portfolio](the-portfolio.md).
 - To record what passes between them, where they run, and what falls out of support, read [The landscape](the-landscape.md).
+- To keep the record current, with reminders, confirmations, campaigns, and tasks, read [Keeping current](keeping-current.md).
 - To decide who sees what, and to shape the questions and the scoring model, read [Running the program](running-the-program.md).

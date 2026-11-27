@@ -15,6 +15,10 @@ const app = (words, tab = "") => async (page) =>
 const record = (path, words) => async (page) =>
   `/${path}/${await first(`/api/v1/${path}?q=${encodeURIComponent(words)}`)(page)}`;
 
+// A record past its confirmation that someone still answers for, and that is otherwise known.
+const stale = first("/api/v1/portfolio?in_service=true&quality=not_confirmed",
+  "(rows) => `/applications/${(rows.find((row) => !row.quality.includes('no_accountable') && row.confidence >= 60) ?? rows[0]).ref}`");
+
 export const SCENES = [
   { name: "home-manager", as: "portfolio", path: "/" },
   { name: "home-steward", as: "res_steward", path: "/" },
@@ -90,4 +94,31 @@ export const SCENES = [
   { name: "history", as: "auditor", path: "/history" },
   { name: "history-everything", as: "auditor", path: "/history?kind=all" },
   { name: "auditor", as: "auditor", path: "/applications" },
+  // Keeping current (wave 3)
+  { name: "notices", as: "portfolio", path: "/notices" },
+  { name: "scheduled-work", as: "admin", path: "/admin/scheduled-work" },
+  { name: "application-stale", as: "portfolio", path: stale },
+  { name: "confirm", as: "portfolio", path: stale, step: click("Confirm the record") },
+  { name: "campaigns", as: "portfolio", path: "/campaigns" },
+  { name: "campaign", as: "portfolio", path: first("/api/v1/campaigns", "(rows) => `/campaigns/${rows.find((row) => row.status === 'open').ref}`") },
+  { name: "campaign-start", as: "portfolio", path: "/campaigns", step: click("Start a campaign") },
+  { name: "campaign-mine", as: "res_steward", path: first("/api/v1/campaigns", "(rows) => `/campaigns/${rows.find((row) => row.status === 'open').ref}?mine=1`") },
+  { name: "tasks", as: "portfolio", path: "/tasks?show=open" },
+  { name: "tasks-mine", as: "res_steward", path: "/tasks" },
+  { name: "task", as: "portfolio", path: first("/api/v1/tasks?mine=true", "(rows) => `/tasks/${rows[0].id}`") },
+  { name: "holdings", as: "admin", path: first("/api/v1/accounts?q=Orrin", "(rows) => `/people/${rows.find((row) => row.status === 'disabled')?.id ?? rows[0].id}/holdings`") },
+  { name: "search", as: "architect", path: "/search?q=sample%20tracker" },
+  { name: "palette", as: "architect", path: "/", step: `document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true, metaKey: true, bubbles: true }))` },
+  { name: "views", as: "portfolio", path: "/list?in_service=true&quality=not_confirmed&tier=1", step: click("Views") },
+  { name: "add-duplicate", as: "portfolio", path: "/applications",
+    step: `(async () => { ${click("Add an application")}; await new Promise((done) => setTimeout(done, 700));
+      const box = [...document.querySelectorAll(".drawer input")].find((el) => el.closest(".field")?.querySelector("label")?.textContent.trim() === "Name");
+      if (!box) { window.__sceneMissed = "the name field"; return; }
+      box.value = "Expense reporting"; box.dispatchEvent(new Event("input", { bubbles: true }));
+      await new Promise((done) => setTimeout(done, 1200)); })()` },
+  { name: "contests", as: "architect", path: app("Flow Cytometry Scheduler", "scores") },
+  { name: "program", as: "portfolio", path: "/admin/program?list=platform_kinds" },
+  { name: "program-fields", as: "portfolio", path: "/admin/program?tab=fields" },
+  { name: "program-questions", as: "portfolio", path: "/admin/program?tab=questions" },
+  { name: "program-scoring", as: "portfolio", path: "/admin/program?tab=scoring" },
 ];

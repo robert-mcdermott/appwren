@@ -6,6 +6,18 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+## 0.3.0 (2026-11-26)
+
+Wave 3, *Keeping current*: a portfolio that stays true without a central team chasing it.
+The app knows what falls due and says so, in the app and by email; owners confirm their
+records on a cadence, and a record nobody confirms lowers confidence where everyone can see
+it; campaigns ask the owners in a unit, by a date; departures, renewals, end of support, and
+grant ends raise tasks for whoever must act; anything on record can be found; and the
+program is shaped in the app, with a preview of what a change would do.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept, and no
+record is stale on the day of the upgrade.
+
 ### Added
 
 - **The documentation site.** The guides, with their pictures of the demo organization, are
@@ -14,7 +26,8 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   and dark themes. `node scripts/site/build.mjs` builds it from `docs/` with Node 22 and no
   packages, and fails on a broken link, anchor, or picture; `node scripts/site/audit.mjs`
   checks every page in both themes at desk and phone widths.
-- **Scheduled work.** The server runs jobs by itself: reminders, email, and housekeeping. A
+- **Scheduled work.** The server runs jobs by itself: triggers, reminders, email, a monthly
+  snapshot, and housekeeping. A
   process claims a job before running it, so several servers, or `appwren jobs run` from a
   scheduled task, run each one once between them. Admin → Scheduled work shows each job,
   when it last ran and what it did, and can run or pause it. `[server] scheduler = false`
@@ -76,6 +89,9 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   recommendation, or flags would differ, and publishing it changes exactly those. Each change
   publishes a new version or is kept in the history.
 - **A portfolio snapshot each month,** kept by the scheduler on the first turn of the month.
+- **Guides:** a new guide, *Keeping current*; shaping the program in the app, scheduled work,
+  and email in *Running the program* and *Configuration*; what a stale record costs in *The
+  portfolio*; the new routes in the API guide; and pictures of the new screens.
 
 ### Changed
 
@@ -83,6 +99,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   confirmed and what a stale one costs, when reminders go, and how far ahead tasks are
   raised. An upgrade brings it to a model that nobody has changed since 0.1.0 or 0.2.0; one
   the organization has shaped is left alone and uses the same values until it says otherwise.
+
+### Fixed
+
+- **The demo's research software engineer** was named on no application, though the guides
+  sent people to see the applications they keep. They now keep the two pieces of research
+  software in the demo's storylines.
 
 ## 0.2.0 (2026-11-26)
 

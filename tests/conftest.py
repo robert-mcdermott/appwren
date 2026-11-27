@@ -87,6 +87,9 @@ def config_file(tmp_path: Path, database_url: str, monkeypatch: pytest.MonkeyPat
     path.write_text(example_config_text(), encoding="utf-8")
     if database_url:
         monkeypatch.setenv("APPWREN_DATABASE_URL", database_url)
+    # The tests run scheduled work themselves, when they mean to. A scheduler in each test
+    # server would run it behind their backs, and hold connections of its own.
+    monkeypatch.setenv("APPWREN_SERVER_SCHEDULER", "false")
     return path
 
 

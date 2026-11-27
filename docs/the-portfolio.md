@@ -156,6 +156,8 @@ A factor with no data is left out of its score, never assumed. The score is work
 
 A factor can also be **not applicable**: vendor viability for software built here, or technology currency for a SaaS product. It is left out of the score and of the weight confidence is measured against, so it does not count against the application.
 
+**A record nobody has confirmed is trusted less.** The people who keep an application confirm its record on a cadence by tier. Past that date the record is *stale*: data confidence loses 15 points, *Confirm the record* heads what would raise it, and the *Nobody has confirmed its record in time* flag is raised. Confirming it gives the points back. See [Confirm the record](keeping-current.md#confirm-the-record).
+
 ### The working
 
 Choose any score to see how it was worked out: each factor, its level, its weight, and why it has that level (*Answered in the assessment*; *380 people: bands 10, 50, 250, 1,000*; *The only active application for Biospecimen management*), with any factor that is unknown or not applicable and the reason, and the sum. The Scores part shows the same for all four at once, with the assessment the answers came from and who gave it. Every figure can be redone by hand from what the screen shows.
@@ -215,6 +217,7 @@ Flags are raised whatever the recommendation. Each is a separate signal, with it
 | **Archive before retiring** | It is to be retired, replaced, or consolidated, and its data must be kept |
 | **No data agreement** | It handles confidential or restricted data, and a contract that covers it needs a data agreement and has none |
 | **Contract notice** | A contract that covers it has a notice date within 90 days |
+| **Nobody has confirmed its record in time** | Its record is past its confirmation date; its data confidence is 15 points lower |
 | **Cost review** | Valuable and healthy, but costly to keep |
 | **Mismatch** | The decision on record differs from today's recommendation |
 

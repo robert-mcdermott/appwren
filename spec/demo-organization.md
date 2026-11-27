@@ -33,7 +33,7 @@ About 180 accounts: a portfolio manager and two architects; IT leaders and divis
 
 ### Scale
 
-Enough to look like an organization that has used AppWren for a year, and small enough to build in under a minute. Figures as of wave 2:
+Enough to look like an organization that has used AppWren for a year, and small enough to build in under a minute. Figures as of wave 3:
 
 | Records | About | Notes |
 |---|---|---|
@@ -46,14 +46,19 @@ Enough to look like an organization that has used AppWren for a year, and small 
 | Components | 120 | Most built and commercial applications decomposed; most SaaS with none |
 | Interfaces | 24 | Clinical messages, feeds to the warehouse, files between administrative systems, and one re-keyed by hand |
 | Hosting platforms | 6 | A data center, a standby site, two cloud accounts, a research cluster, and lab workstations |
-| Deployments | 87 | Production for everything the institute runs itself; staging for tiers 1 and 2; a standby for tier 1 in the data center |
+| Deployments | 88 | Production for everything the institute runs itself; staging for tiers 1 and 2; a standby for tier 1 in the data center |
 | Funding sources | about 25 | Four operating budgets, a recharge, a capital project, and a grant for each grant-funded tool |
 | Cost lines | about 200 | Five applications in six have their cost broken down; the lines add up to the cost on record |
 | Contracts | 22 | One for each vendor, with renewals spread over three years |
-| Assessments | 125 | Re-assessments over time; some expired; a dozen applications never assessed |
+| Assessments | 140 | Re-assessments over time; some expired; a dozen applications never assessed |
 | Decisions | 65 | Some superseded; several mismatches with today's recommendation; some due for review |
-| Portfolio snapshots | 4 | Quarterly, for the last year |
-| Events | about 2,300 | All verified by `appwren verify` |
+| Portfolio snapshots | 4 | Quarterly, for the last year; the running demo's scheduler adds the month's |
+| Confirmations | about 210 | Each record confirmed on its cadence since it was added; about one in twelve has lapsed |
+| Campaigns | 2 | One closed, one under way |
+| Tasks | about 30 | Raised over the last two months by the triggers, each with someone to do it |
+| Contests | 2 | One answered, one waiting |
+| Notices | about 130 | The reminders, tasks, and campaigns of the last two months; what is more than a week old has been read |
+| Events | about 2,650 | All verified by `appwren verify` |
 
 ### Storylines
 
@@ -73,3 +78,9 @@ Hand-written situations, each asserted by a test, so that every wave 1 screen ha
 - **No data agreement.** The clinic's questionnaires hold health information under a subscription with no data agreement.
 - **Shelfware.** Five thousand licenses of the learning system were bought, and fourteen hundred are in use.
 - **Retired properly.** An old reporting tool retired last year, with its decision, its successor, and its history.
+- **Gone stale.** About a fifth of the records in service are past their confirmation: the leaver's four, last confirmed by them over a year ago; the spreadsheet nobody kept up, never confirmed; and a few that lapsed. Each says so, and is fifteen points lower in confidence.
+- **Two campaigns.** Last spring's assessments of the clinical research applications, closed three quarters done; and the shared resources asked to confirm their records ahead of a budget review, under way with about half done.
+- **What happened raised tasks.** The Calendra notice date, the database release ending next quarter for each application on it, grants ending for the lab tools they pay for, and a steward asked to name an owner for each of the leaver's four.
+- **A score contested.** The clinic scheduler's owner says its reliability is better than the answers say; the architect answers with the service desk's record of outages. The flow cytometry core's owner contests its support effort, and that is waiting.
+- **The research software engineer** keeps the analysis platform and the imaging pipeline, so a member's view has something in it.
+- **A shared view.** The portfolio manager has shared a view of the critical records nobody has confirmed.

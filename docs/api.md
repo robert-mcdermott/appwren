@@ -212,6 +212,33 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
 | `GET /imports/applications/fields` | The fields a file of applications may hold, and the headings each is known by |
 | `POST /imports/applications` | A CSV file as the body (`text/csv`). `dry_run` is `true` unless you say otherwise; `mapping` says which column holds each field where the headings differ |
 
+### Keeping current
+
+| Route | What it does |
+|---|---|
+| `GET /notices` · `GET /notices/count` · `POST /notices/read` | Your notices, newest first; how many are unread; mark some read (`ids`), or all |
+| `GET` · `PUT /session/preferences` | How notices reach you by email: `immediate`, `digest`, or `none` |
+| `GET` · `POST /applications/{ref}/confirmations` | When its record was last confirmed and is next due, and every confirmation; confirm it, with an optional `note` (whoever is named on it, its unit's stewards, managers) |
+| `GET /campaigns` · `POST /campaigns` · `POST /campaigns/preview` | Campaigns with their progress; start one; what one would ask, and of whom, saving nothing (stewards and managers, for their units) |
+| `GET /campaigns/{ref}` | A campaign, its coverage by unit, and its items. Takes `unit`, `status`, and `mine` |
+| `POST /campaigns/{ref}/remind` · `/close` · `/cancel` · `/items/{id}/excuse` | Remind those still to do it; close it; cancel it; excuse one application with a `reason` |
+| `GET /tasks` · `GET /tasks/{id}` · `POST /tasks/{id}/close` | Open tasks you may see (`mine`, `status`, `kind`, `unassigned`); one task; mark it `done` or `dismissed` with a `note` |
+| `GET /accounts/{id}/holdings` · `POST /accounts/{id}/hand-over` | What a person holds; pass all of it `to` another (administrators and managers) |
+| `GET /search` | One search across every kind of record: `q`, and `type` for one kind |
+| `GET` · `POST /views` · `PATCH` · `DELETE /views/{id}` | Your saved views of a list (`path`), and the shared ones; save, change, or delete one |
+| `GET /similar-applications` | Applications a new one may be already: `name`, `aliases`, `vendor`, `product`, and `except` for its own reference |
+| `GET` · `POST /applications/{ref}/contests` · `GET /contests` · `POST /contests/{id}/answer` | Contests of its scores; contest a factor; those waiting for your answer; accept or answer one (a manager or architect) |
+
+### The program and the installation
+
+| Route | What it does |
+|---|---|
+| `GET /program` | The program as it stands, and which lists may only be renamed (managers for the whole organization, administrators) |
+| `PUT /program/vocabularies/{name}` · `PUT /program/fields` · `PUT /program/questionnaire` | Save a list, the organization's own fields, or new wording of the questions |
+| `POST /program/scoring/preview` · `PUT /program/scoring` | Every application a changed scoring model would change; publish it as a new version |
+| `GET /jobs` · `POST /jobs/{key}/run` · `PUT /jobs/{key}` | Scheduled work and its recent runs; run a job now; pause or resume one (admin) |
+| `GET /mail` · `POST /mail/test` | How email is set up and doing; send yourself a test message (admin) |
+
 ## What the API will not do
 
 - It never returns a record you may not see, and never counts one.
@@ -220,5 +247,5 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
 - It never fetches anything: support dates arrive only in a file someone sends.
 - It never edits an assessment or a decision. Each is superseded by a new one.
 - It never lets a person record a decision about an application they are accountable for.
-- It never takes a score. Scores are worked out from the record and the answers.
+- It never takes a score. Scores are worked out from the record and the answers; a contest says one is wrong, and moves nothing.
 - It never changes the history. There is no route that does.

@@ -43,7 +43,7 @@ function listsTab(program, reload) {
           [rows[index], rows[to]] = [rows[to], rows[index]];
           paint();
         };
-        const retired = fixed ? null : h("input", { type: "checkbox", checked: Boolean(item.retired), "aria-label": `Retire ${item.label}`,
+        const retired = fixed ? null : h("input", { type: "checkbox", class: "table-check", checked: Boolean(item.retired), "aria-label": `Retire ${item.label}`,
           onchange: (event) => { item.retired = event.target.checked || undefined; } });
         return h("tr", {},
           h("td", { class: "mono subtle" }, item.key || "new"),
