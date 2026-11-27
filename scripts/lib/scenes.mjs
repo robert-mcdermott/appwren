@@ -10,6 +10,9 @@ const first = (api, pick = "(rows) => rows[0].ref") => async (page) => page.eval
 // reports it, so that a renamed button fails and is not passed over in silence.
 const click = (text) => `(() => { const el = [...document.querySelectorAll("button, a")].find((each) => each.textContent.trim() === ${JSON.stringify(text)});
   if (el) el.click(); else window.__sceneMissed = ${JSON.stringify(`there is no button called "${text}"`)}; })()`;
+// The same, for a button known by its accessible name, where several share the same words.
+const press = (name) => `(() => { const el = [...document.querySelectorAll("button[aria-label]")].find((each) => each.getAttribute("aria-label") === ${JSON.stringify(name)});
+  if (el) el.click(); else window.__sceneMissed = ${JSON.stringify(`there is no button called "${name}"`)}; })()`;
 const app = (words, tab = "") => async (page) =>
   `/applications/${await first(`/api/v1/applications?q=${encodeURIComponent(words)}`)(page)}${tab ? `?tab=${tab}` : ""}`;
 const record = (path, words) => async (page) =>
@@ -123,4 +126,28 @@ export const SCENES = [
   { name: "program-questions", as: "portfolio", path: "/admin/program?tab=questions" },
   { name: "program-scoring", as: "portfolio", path: "/admin/program?tab=scoring" },
   { name: "program-decisions", as: "portfolio", path: "/admin/program?tab=decisions" },
+  // Signals (wave 4)
+  { name: "connectors", as: "admin", path: "/admin/connectors" },
+  { name: "connector-add", as: "admin", path: "/admin/connectors", step: press("Add a connector: End-of-life data") },
+  { name: "technology-sourced", as: "architect", path: record("technologies", "Ubuntu") },
+  { name: "application-code", as: "res_steward", path: app("Freezer Watch", "components") },
+  { name: "component-code", as: "res_steward", path: record("components", "Freezer Watch application") },
+  { name: "discovered", as: "portfolio", path: "/discovered" },
+  { name: "discovered-add", as: "portfolio", path: "/discovered", step: press("Add Room Booking") },
+  { name: "application-sourced", as: "portfolio", path: app("Grant Management System") },
+  { name: "maturity", as: "portfolio", path: "/maturity" },
+  { name: "applications-maturity", as: "portfolio", path: "/applications?maturity=none" },
+  { name: "application-working-signals", as: "portfolio", path: app("Freezer Watch", "scores") },
+  { name: "push-key", as: "admin", path: "/admin/connectors", step: click("Issue a key") },
+  { name: "catalog-import", as: "res_steward", path: app("Specimen Tracker", "components"),
+    step: `(async () => { const ref = location.pathname.split("/")[2];
+      const text = await (await fetch(\`/api/v1/applications/\${ref}/catalog\`)).text();
+      ${click("Import one")}; await new Promise((done) => setTimeout(done, 700));
+      const box = document.querySelector("[role=dialog] textarea");
+      if (!box) { window.__sceneMissed = "the catalog file box"; return; }
+      box.value = text.replace(/description: .*/, "description: Follows every specimen from collection to release.")
+        + "---\\napiVersion: appwren/v1\\nkind: Component\\nmetadata:\\n  name: specimen-labels\\n  title: Specimen Labels\\nspec:\\n  type: library\\n";
+      ${click("Check what would change")}; await new Promise((done) => setTimeout(done, 1200)); })()` },
+  { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
+    step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

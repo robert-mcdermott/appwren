@@ -414,6 +414,7 @@ def score_all(
     """Each application's scores, recommendation, flags, and working. The primary providers
     an application overlaps with are scored too, since consolidation compares with them.
     ``definition`` scores them under a model that is not (yet) the current one."""
+    import appwren.connectors.signals
     import appwren.decisions  # noqa: F401  (the decision on record is a fact too)
 
     on = on or today_()

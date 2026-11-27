@@ -25,6 +25,7 @@ export const NAV = [
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },
       { href: "/contracts", label: "Contracts", iconName: "contract" },
+      { href: "/discovered", label: "Not on record", iconName: "search", when: "keep" },
     ],
   },
   {
@@ -45,6 +46,7 @@ export const NAV = [
       { href: "/dashboard", label: "Dashboard", iconName: "dashboard" },
       { href: "/data-quality", label: "Data quality", iconName: "quality" },
       { href: "/data-handling", label: "Data handling", iconName: "shield" },
+      { href: "/maturity", label: "Engineering maturity", iconName: "check" },
       { href: "/history", label: "History", iconName: "history", when: "read_all" },
     ],
   },
@@ -56,6 +58,7 @@ export const NAV = [
       { href: "/admin/units", label: "Units", iconName: "units", when: "admin" },
       { href: "/admin/appearance", label: "Appearance", iconName: "appearance", when: "admin" },
       { href: "/admin/sso", label: "Single sign-on", iconName: "key", when: "admin" },
+      { href: "/admin/connectors", label: "Connectors", iconName: "link", when: "admin" },
       { href: "/admin/scheduled-work", label: "Scheduled work", iconName: "clock", when: "admin" },
     ],
   },

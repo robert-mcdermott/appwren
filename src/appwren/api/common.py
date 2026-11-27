@@ -36,10 +36,13 @@ def reading(request: Request) -> Iterator[Session]:
 
 
 @contextmanager
-def writing(request: Request, actor: Actor) -> Iterator[Session]:
+def writing(
+    request: Request, actor: Actor, *, context: dict[str, Any] | None = None
+) -> Iterator[Session]:
     """A session for a request that changes things. It commits when the block ends, before
-    the answer is sent, and every change in it is recorded against ``actor``."""
-    with database(request).write(actor) as session:
+    the answer is sent, and every change in it is recorded against ``actor``, with
+    ``context`` (such as a reason) on each event."""
+    with database(request).write(actor, context=context) as session:
         yield session
 
 

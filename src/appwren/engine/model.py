@@ -14,7 +14,15 @@ from typing import Any
 
 from appwren.core import conditions
 
-KINDS = ("answer", "choice", "band", "computed")
+KINDS = ("answer", "choice", "band", "computed", "signal")
+# What sources may supply as signals: each is a factor only where a source supplies it.
+SIGNALS = {
+    "incidents_90d": "incidents over 90 days",
+    "tickets_90d": "support tickets over 90 days",
+    "open_alerts": "open critical and high dependency alerts",
+    "days_since_change": "days since its code last changed",
+    "maturity": "engineering maturity",
+}
 COMPUTED = (
     "technology_currency",
     "capability_uniqueness",
@@ -109,6 +117,19 @@ def _check_factor(factor: Any, where: str, questions: set[str]) -> list[str]:
             found.append(f"{where}: the boundaries of a band must rise")
         if factor.get("direction") not in ("rising", "falling"):
             found.append(f"{where}: a band is rising or falling")
+    if kind == "signal":
+        if factor.get("signal") not in SIGNALS:
+            found.append(f"{where}: a signal is one of {', '.join(SIGNALS)}")
+        mapping, bands = factor.get("map"), factor.get("bands")
+        if isinstance(mapping, Mapping):
+            if not mapping or not all(isinstance(v, int) and 1 <= v <= 5 for v in mapping.values()):
+                found.append(f"{where}: every level in the map must be 1 to 5")
+        elif not isinstance(bands, list) or len(bands) != 4:
+            found.append(f"{where}: a signal needs four boundaries, or a map to levels")
+        elif any(not isinstance(b, int | float) for b in bands) or bands != sorted(set(bands)):
+            found.append(f"{where}: the boundaries of a signal must rise")
+        elif factor.get("direction") not in ("rising", "falling"):
+            found.append(f"{where}: a signal's bands are rising or falling")
     if kind == "computed" and factor.get("compute") not in COMPUTED:
         found.append(f"{where}: there is no computed factor called {factor.get('compute')}")
     if "applies" in factor:
@@ -123,6 +144,9 @@ def problems(model: Any, questions: set[str]) -> list[str]:
         return ["The scoring model is not a set of definitions."]
     found: list[str] = []
     found += _check_cadence(model.get("cadence"))
+    from appwren.engine import maturity
+
+    found += maturity.problems(model.get("maturity"))
     thresholds = model.get("thresholds") or {}
     for name in THRESHOLDS:
         if not isinstance(thresholds.get(name), int | float):
@@ -164,11 +188,17 @@ def problems(model: Any, questions: set[str]) -> list[str]:
                 found.append(f"{where}: a factor appears twice in {dimension}.")
             for factor in factors:
                 found += _check_factor(factor, f"{where} {dimension}", questions)
+            # Signals come on top: each counts only where a source supplies it.
             total = sum(
-                factor.get("weight", 0) for factor in factors if isinstance(factor, Mapping)
+                factor.get("weight", 0)
+                for factor in factors
+                if isinstance(factor, Mapping) and factor.get("kind") != "signal"
             )
             if total != 100:
-                found.append(f"{where}: the weights of {dimension} add up to {total}, not 100.")
+                found.append(
+                    f"{where}: the weights of {dimension}, without its signals, add up to "
+                    f"{total}, not 100."
+                )
         for dimension, floors in (resolved.get("floors") or {}).items():
             for index, floor in enumerate(floors):
                 found += _check_conditions(

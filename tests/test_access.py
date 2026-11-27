@@ -264,6 +264,27 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("PUT", "/api/v1/program/questionnaire"): {"manager", "admin"},
     ("POST", "/api/v1/program/scoring/preview"): {"manager", "admin"},
     ("PUT", "/api/v1/program/scoring"): {"manager", "admin"},
+    ("GET", "/api/v1/connectors"): {"admin"},
+    ("POST", "/api/v1/connectors"): {"admin"},
+    ("GET", "/api/v1/connectors/{key}"): {"admin"},
+    ("PATCH", "/api/v1/connectors/{key}"): {"admin"},
+    ("POST", "/api/v1/connectors/{key}/check"): {"admin"},
+    ("POST", "/api/v1/connectors/{key}/run"): {"admin"},
+    ("GET", "/api/v1/maturity"): EVERYONE,
+    ("GET", "/api/v1/maturity/{ref}"): EVERYONE,
+    ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/catalog"): KEEPERS,
+    ("GET", "/api/v1/push-keys"): {"admin"},
+    ("POST", "/api/v1/push-keys"): {"admin"},
+    ("DELETE", "/api/v1/push-keys/{key_id}"): {"admin"},
+    ("POST", "/api/v1/facts"): set(),  # a push key only: see test_connectors
+    ("GET", "/api/v1/discovered"): KEEPERS,
+    ("POST", "/api/v1/discovered/{item_id}/add"): KEEPERS,
+    ("POST", "/api/v1/discovered/{item_id}/dismiss"): KEEPERS,
+    ("POST", "/api/v1/discovered/{item_id}/restore"): KEEPERS,
+    ("GET", "/api/v1/sourced/{ref}"): EVERYONE,
+    ("POST", "/api/v1/sourced/{ref}/{field}/override"): EVERYONE,
+    ("DELETE", "/api/v1/sourced/{ref}/{field}/override"): EVERYONE,
     ("GET", "/api/v1/search"): EVERYONE,
     ("GET", "/api/v1/views"): EVERYONE,
     ("POST", "/api/v1/views"): EVERYONE,
@@ -472,8 +493,9 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
             path = path.replace("{item_id}", "9999").replace("{task_id}", "9999")
+            path = path.replace("{key_id}", "9999")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
-            path = path.replace("{name}", "no_such_list")
+            path = path.replace("{name}", "no_such_list").replace("{field}", "users")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:

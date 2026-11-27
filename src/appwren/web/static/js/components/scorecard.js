@@ -59,7 +59,9 @@ function factorRow(factor) {
     h("th", { scope: "row" }, factor.label),
     h("td", { class: "numeric" }, state ? h("span", { class: "subtle" }, state) : String(level)),
     h("td", { class: "numeric" }, String(factor.weight)),
-    h("td", {}, factor.why ?? ""));
+    h("td", {}, factor.why ?? "",
+      // A value a source supplied names it; a signal says so in its why.
+      factor.from && factor.source !== "signal" ? h("div", { class: "cell-sub" }, `From ${factor.from}`) : null));
 }
 
 /** One dimension's working: each factor, its level, its weight, and why, then the sum. */

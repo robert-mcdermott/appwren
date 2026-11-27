@@ -141,6 +141,7 @@ class Principal:
             "edit_all": self.edits_all,
             "architect": self.architects or self.manages_somewhere,
             "steward": self.stewards or self.manages_somewhere,
+            "keep": self.stewards or self.architects or self.manages_somewhere,
             "lead": self.leads,
         }
 

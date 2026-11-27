@@ -26,6 +26,7 @@ class Needs(StrEnum):
     CONFIGURE = "configure"  # those managers, and administrators: shaping the program
     READ_ALL = "read_all"  # those managers, auditors, and administrators
     ADMIN = "admin"  # administrators
+    PUSH = "push"  # a push key, and no one signed in: the route checks the key itself
 
 
 POLICIES: dict[tuple[str, str], Needs] = {
@@ -94,6 +95,33 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("PUT", "/api/v1/program/questionnaire"): Needs.CONFIGURE,
     ("POST", "/api/v1/program/scoring/preview"): Needs.CONFIGURE,
     ("PUT", "/api/v1/program/scoring"): Needs.CONFIGURE,
+    # Connectors: set up and run by administrators
+    ("GET", "/api/v1/connectors"): Needs.ADMIN,
+    ("POST", "/api/v1/connectors"): Needs.ADMIN,
+    ("GET", "/api/v1/connectors/{key}"): Needs.ADMIN,
+    ("PATCH", "/api/v1/connectors/{key}"): Needs.ADMIN,
+    ("POST", "/api/v1/connectors/{key}/check"): Needs.ADMIN,
+    ("POST", "/api/v1/connectors/{key}/run"): Needs.ADMIN,
+    # What sources supply: read with the record; overridden by whoever keeps it
+    # Engineering maturity, for anyone, of what they may see
+    ("GET", "/api/v1/maturity"): Needs.MEMBER,
+    ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,
+    # Catalog files: exported by anyone who may see the application, imported by its keepers
+    ("GET", "/api/v1/applications/{ref}/catalog"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/catalog"): Needs.KEEP,
+    # Push keys, issued by an administrator; and the one route a key may use
+    ("GET", "/api/v1/push-keys"): Needs.ADMIN,
+    ("POST", "/api/v1/push-keys"): Needs.ADMIN,
+    ("DELETE", "/api/v1/push-keys/{key_id}"): Needs.ADMIN,
+    ("POST", "/api/v1/facts"): Needs.PUSH,
+    # Applications a source knows that are not on record, for those who add applications
+    ("GET", "/api/v1/discovered"): Needs.KEEP,
+    ("POST", "/api/v1/discovered/{item_id}/add"): Needs.KEEP,
+    ("POST", "/api/v1/discovered/{item_id}/dismiss"): Needs.KEEP,
+    ("POST", "/api/v1/discovered/{item_id}/restore"): Needs.KEEP,
+    ("GET", "/api/v1/sourced/{ref}"): Needs.MEMBER,
+    ("POST", "/api/v1/sourced/{ref}/{field}/override"): Needs.MEMBER,
+    ("DELETE", "/api/v1/sourced/{ref}/{field}/override"): Needs.MEMBER,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,
@@ -238,6 +266,8 @@ POLICIES: dict[tuple[str, str], Needs] = {
 def allowed(principal: Principal | None, needs: Needs) -> bool:
     if needs is Needs.PUBLIC:
         return True
+    if needs is Needs.PUSH:
+        return principal is None  # a person signed in does not post facts; a key does
     if principal is None:
         return False
     return {

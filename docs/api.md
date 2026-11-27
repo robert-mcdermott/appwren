@@ -2,7 +2,7 @@
 
 Everything the web app does, it does through a JSON API under `/api/v1`. This guide covers how to sign in, how answers and errors are shaped, how lists page, and what routes there are. The exact shape of every request and answer is in the OpenAPI document: [openapi.json](openapi.json) in this directory, or `/api/openapi.json` on a running server.
 
-This release has no API tokens. A program signs in as an account, with that account's password, and holds a session as a browser does. Tokens scoped to a role arrive with integrations in a later release; see the [roadmap](../spec/roadmap.md).
+A program signs in as an account, with that account's password, and holds a session as a browser does. The one exception is posting facts: a tool holding a **push key** an administrator issued posts to `POST /api/v1/facts` with the key and no session, and can do nothing else with it (see [Facts from other systems](signals.md#push-sources)).
 
 Until 1.0, routes may change between releases. Changes are listed in the [changelog](../CHANGELOG.md).
 
@@ -230,6 +230,23 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
 | `GET /similar-applications` | Applications a new one may be already: `name`, `aliases`, `vendor`, `product`, and `except` for its own reference |
 | `GET` · `POST /applications/{ref}/contests` · `GET /contests` · `POST /contests/{id}/answer` | Contests of its scores; contest a factor; those waiting for your answer; accept or answer one (a manager or architect) |
 
+### Facts from other systems
+
+See [Facts from other systems](signals.md).
+
+| Route | What it does |
+|---|---|
+| `GET /connectors` · `POST /connectors` | The kinds of source and the connectors set up; add one, switched off, with its `kind`, `key`, `name`, `settings`, and the `credential_env` that holds its credential (admin) |
+| `GET` · `PATCH /connectors/{key}` | A connector and its recent runs; change it, or switch it on or off with `enabled` (admin) |
+| `POST /connectors/{key}/check` · `POST /connectors/{key}/run` | Whether it reaches its source, writing nothing; run it now (admin) |
+| `GET /sourced/{ref}` | What sources supply for a record you may see, each value with its source, when it was read, and any override; for a technology, its releases' too; for an application, its components' |
+| `POST` · `DELETE /sourced/{ref}/{field}/override` | Override a value with a `value` and a `reason`, and a technology's `release` where it is one of a release's; remove the override (whoever keeps the record) |
+| `GET /discovered` · `POST /discovered/{id}/add` · `/dismiss` · `/restore` | Applications registered with the identity provider that are not on record (`show`: `new`, `dismissed`, `added`, `all`); add one in an `org_unit_id`; dismiss one with a `reason`; list it again (stewards, architects, managers) |
+| `GET` · `POST /push-keys` · `DELETE /push-keys/{id}` | Push keys; issue one, shown in the answer this once; revoke one (admin) |
+| `POST /facts` | Facts from a push source, with its key as `Authorization: Bearer <key>` and no session: `facts`, each with `record`, `field`, `value`, and optionally `observed_at` and `release`. Checked whole: one bad fact writes nothing |
+| `GET` · `POST /applications/{ref}/catalog` | The application and its components as a catalog file (YAML); bring one in, sent as the body, with `dry_run` (the default) saying what would change |
+| `GET /maturity` · `GET /maturity/{ref}` | How many applications are at each engineering maturity level under each unit below `unit`; an application's or a component's level, checks, and what it needs for the next |
+
 ### The program and the installation
 
 | Route | What it does |
@@ -246,7 +263,7 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
 - It never returns a record you may not see, and never counts one.
 - It never returns a sensitive field, a cost line, or a contract you may not see, and refuses to filter or sort by a sensitive field, or to take a value for one.
 - It never gives a total of cost that includes a part you may not see.
-- It never fetches anything: support dates arrive only in a file someone sends.
+- It never reaches out to anything an administrator has not switched on: until a connector is on, support dates arrive only in a file someone sends. A connector only reads.
 - It never edits an assessment or a decision. Each is superseded by a new one.
 - It never lets a person record a decision about an application they are accountable for.
 - It never takes a score. Scores are worked out from the record and the answers; a contest says one is wrong, and moves nothing.

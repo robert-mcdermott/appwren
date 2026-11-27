@@ -15,6 +15,7 @@ import { openWorking, scorecard, scoresTab, verdict } from "../components/scorec
 import { confirmationLine, confirmRecord } from "../components/confirmation.js";
 import { contestsCard } from "../components/contests.js";
 import { decisionsTab, recordDecision } from "../components/decision.js";
+import { byRelease, sourcedCard, sourcedMark, sourcedValue } from "../components/sourced.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
@@ -336,7 +337,8 @@ export function timeline(entries) {
         h("dd", {}, line.before != null ? h("del", {}, String(line.before)) : h("span", { class: "subtle" }, "empty"),
           h("span", { "aria-hidden": "true" }, " → "), h("span", { class: "sr-only" }, " became "),
           line.after != null ? h("ins", {}, String(line.after)) : h("span", { class: "subtle" }, "empty")),
-      ])) : null))));
+      ])) : null,
+      entry.reason ? h("p", { class: "muted" }, `Why: ${entry.reason}`) : null))));
 }
 
 // --- The page --------------------------------------------------------------------------------
@@ -414,6 +416,7 @@ function applicationOverview(record, ctx) {
       record.successor || record.replaces?.length ? card({ title: "Succession" }, facts([
         ["Replaced by", record.successor ? recordChip(record.successor) : null],
         ["Replaces", record.replaces?.length ? h("div", { class: "chips" }, record.replaces.map((r) => recordChip(r))) : null]])) : null,
+      sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
       linksCard(record, ctx),
       externalCard(record, ctx)));
 }
@@ -604,13 +607,39 @@ function runsCard(record, ctx) {
 function componentsTab(record, ctx) {
   const add = record.can?.edit ? button("Add a component", { kind: "btn-sm", iconName: "plus", onclick: () =>
     editRecord("component", { preset: { application_id: record.ref }, onDone: () => ctx.reload() }) }) : null;
+  const catalogActions = h("div", { class: "row-sm" },
+    h("a", { class: "btn btn-sm", href: `/api/v1/applications/${record.ref}/catalog`, download: "" }, "Export a catalog file"),
+    record.can?.edit ? button("Import one", { kind: "btn-sm", onclick: async () => (await import("../components/catalog-file.js")).importCatalog(record, ctx) }) : null);
+  const code = Object.fromEntries((ctx.sourced?.components ?? []).map((c) => [c.ref, Object.fromEntries(c.values.map((v) => [v.field, v]))]));
+  const anyCode = Object.keys(code).length > 0;
+  const alerts = (v) => {
+    if (!v) return h("span", { class: "subtle" }, "Not known");
+    const counts = v.shown ?? {};
+    const open = Object.values(counts).reduce((sum, n) => sum + n, 0);
+    if (!open) return h("span", { class: "subtle" }, "None open");
+    return h("div", { class: "row-sm wrap" }, ["critical", "high"].filter((key) => counts[key]).map((key) => pill(`${counts[key]} ${key}`, key === "critical" ? "danger" : "warn")),
+      counts.medium || counts.low ? h("span", { class: "subtle" }, `${(counts.medium ?? 0) + (counts.low ?? 0)} lower`) : null);
+  };
+  const codeCell = (c) => {
+    const facts = code[c.ref];
+    if (!facts) return h("span", { class: "subtle" }, c.repo_url ? "Not read" : "No repository");
+    return h("div", { class: "stack-sm" }, h("span", {}, facts.languages ? sourcedValue(facts.languages) : "—"),
+      facts.last_change ? h("span", { class: "cell-sub" }, `Changed ${date(facts.last_change.shown)}`) : null,
+      facts.contributors ? h("span", { class: "cell-sub" }, `${plural(facts.contributors.shown, "person", "people")} in 90 days`) : null);
+  };
   return h("div", { class: "stack-lg" }, card({ title: plural(record.components.length, "component"), actions: add, flush: record.components.length > 0 },
     record.components.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
-      h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Component"), h("th", { scope: "col" }, "Kind"), h("th", { scope: "col" }, "Status"))),
+      h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Component"), h("th", { scope: "col" }, "Kind"),
+        anyCode ? [h("th", { scope: "col" }, "Code"), h("th", { scope: "col" }, "Dependency alerts")] : null, h("th", { scope: "col" }, "Status"))),
       h("tbody", {}, record.components.map((c) => h("tr", {},
-        h("td", {}, recordChip(c)), h("td", {}, label(ctx.vocab, "component_kinds", c.kind)), h("td", {}, statusPill(c.status)))))))
+        h("td", {}, recordChip(c)), h("td", {}, label(ctx.vocab, "component_kinds", c.kind)),
+        anyCode ? [h("td", {}, codeCell(c)), h("td", {}, code[c.ref] ? alerts(code[c.ref].dependency_alerts) : h("span", { class: "subtle" }, "—"))] : null,
+        h("td", {}, statusPill(c.status)))))))
       : h("p", { class: "muted" }, "No components recorded. A service, a database, a batch job, or a report that is built, bought, or kept on its own is a component; its technologies are recorded on it.")),
-  runsCard(record, ctx));
+  ctx.maturity?.cards.applicationMaturity(ctx.maturity.found),
+  runsCard(record, ctx),
+  card({ title: "Catalog file", actions: catalogActions },
+    h("p", { class: "muted" }, "The application and its components as a catalog-info.yaml, to keep beside the code. Imported again, it updates what it describes and adds any component it names; nothing it leaves out is removed.")));
 }
 
 function editCapabilities(record, ctx) {
@@ -728,16 +757,21 @@ function connectionsTab(record, ctx) {
 
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
-  const [record, vocab, unitIndex, entries, program] = await Promise.all([
+  const measuring = type === "component" || (type === "application" && tab === "components");
+  const [record, vocab, unitIndex, entries, program, fromSources, measured, cards] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
-    tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog()]);
-  return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program };
+    tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
+    get(`/api/v1/sourced/${ref}`, null, { fresh: true }),
+    measuring ? get(`/api/v1/maturity/${ref}`, null, { fresh: true }) : null,
+    measuring ? import("../components/maturity.js") : null]);
+  return { record: record.data, vocab, units: unitIndex, history: entries?.data ?? [], catalog: program, sourced: fromSources.data,
+    maturity: measured ? { found: measured.data, cards: cards } : null };
 }
 
 function context(data, reload) {
   const fieldLabels = Object.fromEntries(Object.values(data.catalog.types).flatMap((t) => t.fields.map((f) => [f.name, f.label])));
   for (const f of data.catalog.fields ?? []) fieldLabels[f.key] = f.label;
-  return { vocab: data.vocab, units: data.units, catalog: data.catalog, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
+  return { vocab: data.vocab, units: data.units, catalog: data.catalog, sourced: data.sourced, maturity: data.maturity, reload, fieldLabels: { ...fieldLabels, summary: "A summary" } };
 }
 
 function assessmentTab(record, ctx) {
@@ -946,8 +980,10 @@ function sharedOverview(type, record, ctx) {
         h("td", {}, [t.release, t.version].filter(Boolean).join(" · ") || h("span", { class: "subtle" }, "Not known")),
         h("td", {}, h("div", { class: "row-sm" }, supportPill(t.support), t.support_ends ? h("span", { class: "subtle" }, date(t.support_ends)) : null)))))))
       : h("p", { class: "muted" }, "Nothing recorded. Say what it is built on: its language, framework, database, and platform.")));
+    main.push(ctx.maturity?.cards.componentMaturity(ctx.maturity.found));
   }
   if (type === "technology") {
+    const marks = byRelease(ctx.sourced);
     main.push(card({ title: "Releases and support", actions: h("div", { class: "row-sm" },
       record.use_count ? h("a", { class: "btn btn-sm", href: `/applications?technology=${record.ref}` }, "Every application on it") : null,
       record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editReleases(record, ctx) }) : null),
@@ -955,7 +991,8 @@ function sharedOverview(type, record, ctx) {
     record.releases.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Release"), h("th", { scope: "col" }, "Support"), h("th", { scope: "col" }, "Ends"), h("th", { scope: "col" }, "Used by"))),
       h("tbody", {}, record.releases.map((r) => h("tr", {}, h("td", { class: "cell-main" }, r.cycle), h("td", {}, supportPill(r.support)),
-        h("td", { class: "nowrap" }, r.support_ends ? date(r.support_ends) : "—", r.extended_ends ? h("div", { class: "cell-sub" }, `Extended to ${date(r.extended_ends)}`) : null),
+        h("td", { class: "nowrap" }, r.support_ends ? date(r.support_ends) : "—", r.extended_ends ? h("div", { class: "cell-sub" }, `Extended to ${date(r.extended_ends)}`) : null,
+          sourcedMark(marks[r.cycle]?.support_ends)),
         h("td", {}, r.used_by.length ? h("div", { class: "stack-sm" }, h("div", { class: "chips" }, uniqueApps(r.used_by).map((u) => recordChip(u))),
           h("a", { class: "cell-sub", href: `/applications?technology=${record.ref}&release=${encodeURIComponent(r.cycle)}` }, `As a list of ${plural(uniqueApps(r.used_by).length, "application")}, to export`))
           : h("span", { class: "subtle" }, "None")))))))
@@ -1009,9 +1046,6 @@ function sharedOverview(type, record, ctx) {
         : h("p", { class: "muted" }, "Nothing is recorded as running here. A deployment is added from its application's Components part.")));
     glance.push(["Provider", record.vendor ? recordChip(record.vendor) : "Ourselves"]);
   }
-  if (type === "deployment") {
-    glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
-  }
   if (type === "interface") {
     const missing = record.undeclared ?? [];
     main.push(card({ title: "What passes" },
@@ -1024,10 +1058,10 @@ function sharedOverview(type, record, ctx) {
           missing.map((key) => label(ctx.vocab, "data_classes", key).toLowerCase()).join(", "),
           ". Either this interface carries less than is recorded here, or that record needs the class added: its exposure is worked out from what it lists.")) : null)));
   }
-  if (type === "component") glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
   main.push(linksCard(record, ctx));
   return h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
-    h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)), externalCard(record, ctx)));
+    h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)),
+      sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }), externalCard(record, ctx)));
 }
 
 export function recordPage(main, type, params) {

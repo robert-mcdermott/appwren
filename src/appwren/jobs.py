@@ -68,6 +68,12 @@ def _triggers(db: Database, _config: Config) -> dict[str, int]:
         return tasks.run(session)
 
 
+def _connectors(db: Database, _config: Config) -> dict[str, int]:
+    from appwren import connectors
+
+    return connectors.run_due(db)
+
+
 def _snapshots(db: Database, _config: Config) -> dict[str, int]:
     from appwren import decisions
 
@@ -104,6 +110,9 @@ JOBS: dict[str, JobSpec] = {
                 "Queues notices and daily summaries and sends what is waiting, where email is "
                 "set up",
                 timedelta(minutes=1), _mail),
+        JobSpec("connectors", "Connectors",
+                "Runs each connector an administrator has switched on, when it is due",
+                timedelta(minutes=15), _connectors),
         JobSpec("snapshots", "Monthly snapshot",
                 "Keeps the portfolio's scores as they stand, once a month",
                 timedelta(hours=6), _snapshots),

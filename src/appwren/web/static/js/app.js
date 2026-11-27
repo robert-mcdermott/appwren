@@ -74,11 +74,13 @@ async function boot() {
   route("/dashboard", page("dashboard", "dashboard"));
   route("/data-quality", page("quality", "dataQuality"));
   route("/data-handling", page("data-handling", "dataHandling"));
+  route("/maturity", page("maturity", "maturityReport"));
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));
   route("/campaigns", page("campaigns", "campaignList"));
   route("/campaigns/:ref", page("campaigns", "campaignPage"));
+  if (can("keep")) route("/discovered", page("discovered", "discoveredList"));
   route("/tasks", page("tasks", "taskList"));
   route("/tasks/:id", page("tasks", "taskPage"));
   route("/people/:id/holdings", page("tasks", "holdingsPage"));
@@ -89,6 +91,7 @@ async function boot() {
     route("/admin/units", page("admin-units", "adminUnits"));
     route("/admin/appearance", page("admin-appearance", "adminAppearance"));
     route("/admin/sso", page("admin-sso", "adminSso"));
+    route("/admin/connectors", page("admin-connectors", "adminConnectors"));
     route("/admin/scheduled-work", page("admin-operations", "adminOperations"));
   }
   if (can("configure")) route("/admin/program", page("admin-program", "adminProgram"));

@@ -4,7 +4,87 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.4.0 (2026-11-26)
+
+Wave 4, *Signals*: the facts other tools already know arrive by themselves, marked with
+where they came from, and never over a person. Connectors, each switched on by an
+administrator for one named source, read support dates, what the repositories know, and who
+signs in; the organization's own tools post the rest with a key that can do nothing else; a
+catalog file kept beside the code describes an application and its components. Engineering
+maturity is measured from checks rather than claims, and what sources supply joins the
+scores only where they supply it. A new installation still makes no connection to anything.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept, no
+connector is switched on, and no score moves until a source supplies something.
+
+### Added
+
+- **Connectors.** Admin → Connectors lists the tools AppWren can read facts from. Each
+  connector is added switched off, for one named source; it only reads; its credential
+  stays in an environment variable named on the connector and is never stored. It can be
+  checked before it is switched on, runs daily on the scheduler or when asked, and every run
+  is recorded: what it read, what it changed, what it could not match, and why it failed. A
+  run reads everything first, under a time limit and a size limit, and writes only if all of
+  that succeeded, so a failed run changes nothing.
+- **Values from other systems.** A value a connector supplies is written to the record's own
+  field, kept with its source and when it was read, marked as such on the record, and
+  recorded in the history. A person who keeps the record can override it with a reason; the
+  override wins until it is removed. Changing such a field by hand counts as an override.
+- **End-of-life data.** The first connector reads support dates for technology releases from
+  the public endoflife.date dataset, for each technology with an end-of-life key, by the same
+  rules as the import from a file: releases are added and dates updated, and nothing is
+  removed.
+- **Source code hosting.** A connector for GitHub or a GitHub Enterprise server reads, for
+  each component whose repository is in one organization: its languages, when its code last
+  changed, how many people changed it over 90 days, its open dependency alerts by severity,
+  and whether it has a README, tests, continuous integration, automated dependency updates,
+  and a catalog file. An application whose every repository was read gets its maintainers
+  from those people. The facts are shown on the component and on its application's
+  Components part.
+- **The identity provider.** A connector for Microsoft Entra ID, read through Microsoft
+  Graph, matches each application registered there to a record, by the provider's
+  identifier kept on the record or by name or alias, and gives it its active users: the
+  people who signed in over the last 30 days.
+- **Not on record.** Applications registered with the identity provider that match no
+  record are listed once, on Portfolio → Not on record, for whoever adds applications: add
+  one with its name filled in and its identifier kept, or dismiss it with a reason.
+- **Push sources.** An administrator issues a push key for one of the organization's own
+  tools, shown once and kept only as a hash. The tool posts facts to `POST /api/v1/facts` in
+  one format (a record, a field, a value, when it was observed), and can do nothing else. A
+  batch is checked whole first, so one bad fact writes nothing. Incidents and support tickets
+  over 90 days are fields that pushes fill.
+- **Catalog files.** An application and its components can be exported as a
+  `catalog-info.yaml` to keep beside the code, and a file can be imported into an
+  application, with a dry run first: it updates what it describes and adds any component it
+  names, and removes nothing, so the same file twice changes nothing. Files are read with a
+  safe loader; PyYAML is the sixth runtime dependency.
+- **Engineering maturity.** Automated checks for each component (monitoring, backups,
+  documentation, tests, continuous integration, automated dependency updates, and no open
+  critical dependency alert) give it bronze, silver, or gold, and its application the level
+  of its least mature component, with what is missing for the next. They are shown on the
+  component and on its application's Components part, as a filter of the applications list,
+  and on Reports → Engineering maturity, by unit. The levels and their checks are in the
+  scoring model, beside the cadence. Only what is built here, or has a repository, is
+  measured.
+- **Signals as factors.** What sources supply joins the scores: incidents, open critical and
+  high dependency alerts, code activity, and engineering maturity in technical health, and
+  support tickets in cost and burden. Each counts only where a source supplies it, so an
+  application without one scores as before, and the working names where each came from.
+  An installation running an earlier default model unchanged gets them on upgrade.
+- **Facts from other systems,** a new guide, and a section on connector credentials in
+  Configuration.
+- The history names the release whose dates changed, and shows the reason given for an
+  override.
+
+### Changed
+
+- A scoring model's dimension adds up to 100 without its signals; a signal comes on top.
+- The API fetches nothing an administrator has not switched on. A push key is the one
+  credential besides a session, and it only posts facts.
+
+### Fixed
+
+- A component's and a deployment's page named their application twice.
 
 ## 0.3.0 (2026-11-26)
 

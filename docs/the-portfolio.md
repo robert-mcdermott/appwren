@@ -160,7 +160,7 @@ A factor can also be **not applicable**: vendor viability for software built her
 
 ### The working
 
-Choose any score to see how it was worked out: each factor, its level, its weight, and why it has that level (*Answered in the assessment*; *380 people: bands 10, 50, 250, 1,000*; *The only active application for Biospecimen management*), with any factor that is unknown or not applicable and the reason, and the sum. The Scores part shows the same for all four at once, with the assessment the answers came from and who gave it. Every figure can be redone by hand from what the screen shows.
+Choose any score to see how it was worked out: each factor, its level, its weight, and why it has that level (*Answered in the assessment*; *380 people: bands 10, 50, 250, 1,000*; *The only active application for Biospecimen management*), with any factor that is unknown or not applicable and the reason, and the sum. The Scores part shows the same for all four at once, with the assessment the answers came from and who gave it. Every figure can be redone by hand from what the screen shows. A value a connector or a push source supplied names its source, and the signals other tools supply, such as incidents or dependency alerts, count only where a source supplies them: see [Facts from other systems](signals.md#signals-in-the-scores).
 
 ![The working behind a score: each factor's level, weight, and source, and the sum](img/application-working-light.webp)
 

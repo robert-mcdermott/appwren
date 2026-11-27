@@ -354,7 +354,11 @@ def _detail(
         "aliases": record.aliases or [],
         "lifecycle_since": record.lifecycle_since,
         "components": [
-            {**records.chip(COMPONENT, component), "kind": component.kind}
+            {
+                **records.chip(COMPONENT, component),
+                "kind": component.kind,
+                "repo_url": component.repo_url,
+            }
             for component in components
         ],
         "capabilities": capabilities_of(session, [record.id]).get(record.id, []),
@@ -385,6 +389,12 @@ def _conditions(session: Session, principal: Principal, filters: Mapping[str, An
                     ApplicationCapability.capability_id == capability.id
                 )
             )
+        )
+    if filters.get("maturity"):
+        from appwren.inventory import maturity
+
+        found.append(
+            Application.id.in_(maturity.applications_at(session, str(filters["maturity"])))
         )
     from appwren.inventory.parts import built_on
 

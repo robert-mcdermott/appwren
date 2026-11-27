@@ -149,6 +149,15 @@ uv run appwren jobs run
 
 `uv run appwren jobs` lists the jobs, when each last ran, and what it did; `uv run appwren jobs run reminders` runs one now. `doctor` warns when the scheduler is off and nothing has run for two days.
 
+## Connectors and push keys
+
+Connectors are set up in the app, on **Admin → Connectors**, not in this file; see [Facts from other systems](signals.md). Two things about them belong to whoever runs the server:
+
+- **Credentials live in the environment.** A connector that needs one names an environment variable, such as `APPWREN_GITHUB_TOKEN` or `APPWREN_ENTRA_SECRET`. Set it where the server runs (and where `appwren jobs run` runs, if you use that) and restart. The value is read when the connector runs and is never written to the database, the history, or this file.
+- **The server reaches out only for a connector that is on**, over HTTPS, to the address on the connector. If it must go through a proxy, set `HTTPS_PROXY` in its environment.
+
+A push key is issued on the same page and held by the tool that posts with it. AppWren keeps only its hash.
+
 ## Email
 
 **You do not need this to use AppWren.** Without email, each person finds what is nearly due for them under the bell and on Home.

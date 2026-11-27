@@ -90,7 +90,7 @@ CAST = [
 ]  # fmt: skip
 
 ABOUT = {
-    "admin": "Runs the installation: people, units, appearance.",
+    "admin": "Runs the installation: people, units, appearance, connectors.",
     "portfolio": "Runs the portfolio: decisions, snapshots, the program.",
     "architect": "Keeps capabilities, technologies, and vendors; assesses applications.",
     "cio": "Leads Information Technology and decides for its applications.",
@@ -204,6 +204,41 @@ TECHNOLOGIES = [
     ("matlab", "MATLAB", "product", "hold", [("R2019b", -300), ("R2023b", 500)]),
     ("access", "Desktop database", "product", "hold", [("2013", -1000)]),
 ]  # fmt: skip
+
+# Technologies the end-of-life connector matched, by their key in its dataset, and the latest
+# version it read for some releases. The dates it read are the demo's own invented ones.
+EOL_KEYS = {
+    "python": "python", "node": "nodejs", "java": "oracle-jdk", "php": "php", "dotnet": "dotnet",
+    "django": "django", "spring": "spring-boot", "angularjs": "angularjs",
+    "postgres": "postgresql", "mysql": "mysql", "mongodb": "mongodb", "redis": "redis",
+    "ubuntu": "ubuntu", "rhel": "rhel", "winserver": "windows-server",
+    "kubernetes": "kubernetes", "tomcat": "tomcat", "matlab": "matlab",
+}  # fmt: skip
+EOL_MISSING = {"matlab"}  # keyed, but the dataset has no such product
+EOL_LATEST = {
+    ("python", "3.11"): "3.11.11", ("python", "3.12"): "3.12.8", ("python", "3.13"): "3.13.1",
+    ("node", "20"): "20.18.1", ("node", "22"): "22.12.0", ("postgres", "15"): "15.10",
+    ("postgres", "16"): "16.6", ("django", "4.2"): "4.2.17", ("django", "5.2"): "5.2.1",
+}  # fmt: skip
+
+# What a repository is written in, by the technologies its component is built on.
+LANGUAGE_OF = {
+    "python": ["Python"], "django": ["Python", "HTML"], "node": ["TypeScript", "JavaScript"],
+    "react": ["TypeScript", "CSS"], "angularjs": ["JavaScript", "HTML"], "java": ["Java"],
+    "spring": ["Java"], "php": ["PHP"], "dotnet": ["C#"], "r": ["R"], "shiny": ["R", "CSS"],
+    "matlab": ["MATLAB"], "nextflow": ["Nextflow"], "snakemake": ["Python"],
+}  # fmt: skip
+CODE_ORG = "bramblewood"
+# A repository the connector's token was never given: every run reports it.
+UNREADABLE = "Space Planning"
+
+# Registered with the identity provider and on no record: (name, days before the build it was
+# first seen). The last was dismissed by the architect.
+UNRECORDED = [
+    ("Room Booking", 9), ("Travel Requests", 9), ("Shared Lab Wiki", 9), ("Poster Printing", 6),
+    ("Badge Photos", 3), ("Sequencing Core Orders", 2), ("Sign-in test (identity team)", 9),
+]  # fmt: skip
+DISMISSED = ("Sign-in test (identity team)", "A test registration the identity team keeps")
 
 # name, capability keys (the first is where it is primary, if any), sourcing, unit, tier,
 # users, maintainers, vendor, technologies [(tech, release)], health (good, fair, poor),

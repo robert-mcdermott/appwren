@@ -81,7 +81,8 @@ def test_the_default_model_is_sound() -> None:
     for profile in MODEL["profiles"]:
         resolved = resolve(MODEL, profile["key"])
         for dimension, factors in resolved["factors"].items():
-            assert sum(f["weight"] for f in factors) == 100, (profile["key"], dimension)
+            weights = [f["weight"] for f in factors if f["kind"] != "signal"]
+            assert sum(weights) == 100, (profile["key"], dimension)
 
 
 def test_the_worked_example_gives_exactly_the_figures_in_the_spec() -> None:

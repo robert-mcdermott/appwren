@@ -1301,11 +1301,399 @@ class Builder:
                 .values(read_at=self.end - timedelta(days=6))
             )
 
+    def sources(self) -> None:
+        """The end-of-life connector: added three weeks ago, run daily since, once failing,
+        with one date overridden by the architect. It is switched off at the end, so that the
+        demo itself never reaches out to anything."""
+        from appwren import connectors
+        from appwren.connectors import sourced
+        from appwren.connectors.kinds import endoflife
+        from appwren.db.models import ConnectorRun, TechnologyRelease
+        from appwren.events.actor import Actor
+
+        admin = self.principal(self.cast["admin"])
+        architect = self.principal(self.cast["architect"])
+        first = self.end - timedelta(days=21, hours=5)
+        with clock_set_to(lambda: first), self.db.write(architect.actor) as session:
+            for key, eol in c.EOL_KEYS.items():
+                tech = records.load(session, architect, TECHNOLOGY, self.techs[key][0])
+                records.update(session, architect, TECHNOLOGY, tech, {"eol_key": eol},
+                               version=tech.version)  # fmt: skip
+        with clock_set_to(lambda: first), self.db.write(admin.actor) as session:
+            row = connectors.add(session, admin, {"key": "end-of-life", "kind": "endoflife",
+                                                  "name": "End-of-life data"})  # fmt: skip
+            connectors.change(session, admin, row, {"enabled": True})
+            connector_id = row.id
+        name = "End-of-life data"
+        actor = Actor.system(f"Connector: {name}")
+
+        def reading(at: datetime) -> None:
+            counts = {"asked": len(c.EOL_KEYS), "read": 0, "changed": 0, "unchanged": 0,
+                      "kept": 0, "unmatched": 0}  # fmt: skip
+            called = {spec[0]: spec[1] for spec in c.TECHNOLOGIES}
+            missed = [
+                {
+                    "what": f"{called[key]} ({c.EOL_KEYS[key]})",
+                    "why": "the dataset has no product by that key",
+                }
+                for key in c.EOL_MISSING
+            ]
+            counts["unmatched"] = len(missed)
+            with clock_set_to(lambda: at), self.db.write(actor, action="connector.run") as session:
+                for key in c.EOL_KEYS.keys() - c.EOL_MISSING:
+                    tech = records.load(session, ME, TECHNOLOGY, self.techs[key][0])
+                    for release in session.scalars(
+                        select(TechnologyRelease).where(TechnologyRelease.technology_id == tech.id)
+                    ):
+                        found: list[tuple[Any, Any]] = [(endoflife.ENDS, release.support_ends)]
+                        if (key, release.cycle) in c.EOL_LATEST:
+                            found.append((endoflife.LATEST, c.EOL_LATEST[(key, release.cycle)]))
+                        for spec, value in found:
+                            if value is None:
+                                continue
+                            outcome = sourced.write(
+                                session, source="end-of-life", source_name=name, record=release,
+                                spec=spec, value=value, read_at=at,
+                            )  # fmt: skip
+                            counts["read"] += 1
+                            counts[outcome] += 1
+            self._ran(connector_id, at, "ok", counts, None, missed)
+
+        for days in (21, 20, 19, 18, 15, 14, 13, 12, 11):
+            if days == 21:
+                reading(first + timedelta(minutes=10))
+            elif days == 12:
+                at = self.end - timedelta(days=days, hours=7)
+                self._ran(connector_id, at, "failed", {}, "the source could not be reached: "
+                          "ConnectTimeout", [])  # fmt: skip
+            else:
+                reading(self.end - timedelta(days=days, hours=7))
+        moment = self.end - timedelta(days=9, hours=3)
+        with (
+            clock_set_to(lambda: moment),
+            self.db.write(
+                architect.actor, context={"reason": "Ubuntu Pro covers 24.04 for twelve years"}
+            ) as session,
+        ):
+            tech = records.load(session, architect, TECHNOLOGY, self.techs["ubuntu"][0])
+            release = session.scalars(
+                select(TechnologyRelease).where(
+                    TechnologyRelease.technology_id == tech.id, TechnologyRelease.cycle == "24.04"
+                )
+            ).one()
+            sourced.override(session, architect, release, endoflife.ENDS,
+                             self.day(1600 + 7 * 365).isoformat(),
+                             "Ubuntu Pro covers 24.04 for twelve years")  # fmt: skip
+        for days in range(8, 0, -1):
+            reading(self.end - timedelta(days=days, hours=7))
+        with clock_set_to(lambda: self.end), self.db.write(admin.actor) as session:
+            connectors.change(session, admin, connectors.load(session, "end-of-life"),
+                              {"enabled": False})  # fmt: skip
+        with self.db.read() as session:
+            self.tally("connector runs", len(session.scalars(select(ConnectorRun.id)).all()))
+
+    def code(self) -> None:
+        """The code-hosting connector: the repositories of what is built here, read daily for
+        two weeks. Who changed each repository is drawn so that an application's maintainers
+        come out as already recorded, and its storyline stays as it was."""
+        from appwren import connectors
+        from appwren.connectors.kinds import codehost as gh
+        from appwren.db.models import Application, Component, ComponentTechnology, Technology
+        from appwren.events.actor import Actor
+
+        r = random.Random(self.seed * 104729 + 4)  # wave 4's own draws
+        admin = self.principal(self.cast["admin"])
+        keys = {ref: key for key, (ref, _) in self.techs.items()}
+        stories = {spec[0]: spec[10].get("story") for spec in c.APPLICATIONS}
+        start = self.end - timedelta(days=14, hours=6)
+        plan: list[tuple[int, str, dict[str, Any]]] = []  # component id, its repository, facts
+        apps: dict[int, int] = {}
+        with clock_set_to(lambda: start), self.db.write(ME.actor) as session:
+            rows = session.scalars(
+                select(Application)
+                .where(
+                    Application.status == "active",
+                    Application.sourcing.in_(("built_here", "research_software")),
+                    Application.lifecycle.not_in(("retired", "retiring")),
+                    Application.maintainers > 0,
+                )
+                .order_by(Application.ref)
+            ).all()
+            for app in rows:
+                health = self.health.get(app.ref, "fair")
+                story = stories.get(app.name)
+                if story == "worked_example":
+                    continue  # spec/engine.md works its scores through without signals
+                pool = [f"{app.ref.lower()}-dev{n}" for n in range(app.maintainers or 1)]
+                parts_of = session.scalars(
+                    select(Component)
+                    .where(Component.application_id == app.id, Component.kind == "service")
+                    .order_by(Component.ref)
+                ).all()
+                built: list[tuple[Any, list[str]]] = []
+                for part in parts_of:
+                    techs = session.scalars(
+                        select(Technology.ref)
+                        .join(
+                            ComponentTechnology, ComponentTechnology.technology_id == Technology.id
+                        )
+                        .where(ComponentTechnology.component_id == part.id)
+                    ).all()
+                    languages: list[str] = []
+                    for ref in techs:
+                        for word in c.LANGUAGE_OF.get(keys.get(ref, ""), []):
+                            if word not in languages:
+                                languages.append(word)
+                    if languages:  # a desktop database has no repository
+                        built.append((part, languages))
+                if not built:
+                    continue
+                apps[app.id] = len(pool)
+                for index, (part, languages) in enumerate(built):
+                    slug = "-".join(_ascii(part.name).lower().replace("'", "").split())
+                    repo = f"https://github.com/{c.CODE_ORG}/{slug}"
+                    records.update(session, ME, COMPONENT, part, {"repo_url": repo},
+                                   version=part.version)  # fmt: skip
+                    # Every maintainer changed one repository or another; the first takes
+                    # whoever is left over, so that together they are the recorded count.
+                    who = pool if index == 0 else r.sample(pool, r.randint(1, len(pool)))
+                    ago = {"good": (1, 12), "fair": (15, 60), "poor": (60, 85)}[health]
+                    alerts = _alerts(r, health)
+                    chance = {"good": 0.9, "fair": 0.5, "poor": 0.15}[health]
+                    facts = {
+                        gh.LANGUAGES: languages,
+                        gh.LAST_CHANGE: self.day(-r.randint(*ago)).isoformat(),
+                        gh.CONTRIBUTORS: len(who),
+                        gh.ALERTS: alerts,
+                        gh.README: health != "poor" or r.random() < 0.5,
+                        gh.TESTS: r.random() < chance,
+                        gh.CI: r.random() < chance + 0.05,
+                        gh.UPDATES: r.random() < chance - 0.2,
+                        gh.CATALOG: health == "good" and r.random() < 0.4,
+                    }
+                    if story == "single_maintainer":
+                        facts[gh.TESTS] = facts[gh.CI] = facts[gh.UPDATES] = False
+                    plan.append((part.id, repo, {"who": set(who), "facts": facts,
+                                                 "app": app.id, "name": part.name}))  # fmt: skip
+        hidden = {item[0] for item in plan if item[2]["name"].startswith(c.UNREADABLE)}
+        with clock_set_to(lambda: start), self.db.write(admin.actor) as session:
+            row = connectors.add(session, admin, {
+                "key": "github", "kind": "codehost", "name": "GitHub",
+                "settings": {"host_url": "https://github.com", "organization": c.CODE_ORG},
+            })  # fmt: skip
+            connectors.change(session, admin, row, {"enabled": True})
+            connector_id = row.id
+        actor = Actor.system("Connector: GitHub")
+        missed = [
+            {"what": f"{item[2]['name']} ({item[1].split('github.com/')[1]})",
+             "why": "the token cannot read this repository, or it does not exist"}
+            for item in plan if item[0] in hidden
+        ]  # fmt: skip
+        for days in range(14, 0, -1):
+            at = self.end - timedelta(days=days, hours=6, minutes=30)
+            counts = {"asked": 0, "read": 0, "changed": 0, "unchanged": 0, "kept": 0,
+                      "unmatched": len(missed)}  # fmt: skip
+            with clock_set_to(lambda at=at: at), self.db.write(actor) as session:
+                people: dict[int, set[str]] = {}
+                broken: set[int] = set()
+                for component_id, _, item in plan:
+                    counts["asked"] += 1
+                    if component_id in hidden:
+                        broken.add(item["app"])
+                        continue
+                    counts["asked"] += 5
+                    part = session.get(Component, component_id)
+                    for spec, value in item["facts"].items():
+                        self._put(session, counts, part, spec, value, at)
+                    people.setdefault(item["app"], set()).update(item["who"])
+                for app_id, count in apps.items():
+                    if app_id not in broken and app_id in people:
+                        app = session.get(Application, app_id)
+                        self._put(session, counts, app, gh.MAINTAINERS, count, at)
+            self._ran(connector_id, at, "ok", counts, None, missed)
+        with clock_set_to(lambda: self.end), self.db.write(admin.actor) as session:
+            connectors.change(session, admin, connectors.load(session, "github"),
+                              {"enabled": False})  # fmt: skip
+
+    def documents(self) -> None:
+        """Where each application's documentation is: kept more often where it is in good
+        health. Added when the maturity checks came, as a team would fill them in."""
+        from appwren.db.models import Application
+
+        r = random.Random(self.seed * 7907 + 6)  # wave 4's own draws
+        worked = {spec[0] for spec in c.APPLICATIONS if spec[10].get("story") == "worked_example"}
+        moment = self.end - timedelta(days=5, hours=2)
+        with self.db.read() as session:
+            apps = session.scalars(
+                select(Application).where(Application.status == "active").order_by(Application.ref)
+            ).all()
+            chance = {"good": 0.8, "fair": 0.55, "poor": 0.2}
+            wanted = [
+                (app.ref, app.name) for app in apps
+                if app.name not in worked
+                and r.random() < chance[self.health.get(app.ref, "fair")]
+            ]  # fmt: skip
+        with clock_set_to(lambda: moment), self.db.write(ME.actor) as session:
+            for ref, name in wanted:
+                app = records.load(session, ME, APPLICATION, ref)
+                slug = "-".join(_ascii(name).lower().replace("'", "").split())
+                records.update(session, ME, APPLICATION, app,
+                               {"docs_url": f"https://docs.{c.DOMAIN}/{slug}"},
+                               version=app.version)  # fmt: skip
+
+    def signins(self) -> None:
+        """The identity provider: what is bought or rented, matched by name, with its users as
+        recorded; and the registrations on no record, listed as they were found."""
+        import uuid
+
+        from appwren import connectors
+        from appwren.connectors import discovery
+        from appwren.connectors.kinds import identity
+        from appwren.db.models import Application, Discovered
+        from appwren.events.actor import Actor
+
+        admin = self.principal(self.cast["admin"])
+        start = self.end - timedelta(days=10, hours=5)
+        with clock_set_to(lambda: start), self.db.write(admin.actor) as session:
+            row = connectors.add(session, admin, {
+                "key": "entra", "kind": "identity", "name": "Entra ID",
+                "settings": {"tenant": "bramblewood.example", "client_id": str(
+                    uuid.uuid5(uuid.NAMESPACE_DNS, "reader.bramblewood.example"))},
+            })  # fmt: skip
+            connectors.change(session, admin, row, {"enabled": True})
+            connector_id = row.id
+        with self.db.read() as session:
+            signed_in = [
+                (app.id, app.users)
+                for app in session.scalars(
+                    select(Application)
+                    .where(
+                        Application.status == "active",
+                        Application.sourcing.in_(("saas", "commercial", "low_code")),
+                        Application.users.is_not(None),
+                    )
+                    .order_by(Application.ref)
+                )
+            ]
+        ids = {
+            name: str(uuid.uuid5(uuid.NAMESPACE_URL, f"entra:{name}")) for name, _ in c.UNRECORDED
+        }
+        actor = Actor.system("Connector: Entra ID")
+        for days in range(10, 0, -1):
+            at = self.end - timedelta(days=days, hours=5, minutes=50)
+            counts = {"asked": 2 + len(signed_in), "read": 0, "changed": 0, "unchanged": 0,
+                      "kept": 0, "unmatched": 0}  # fmt: skip
+            seen = [(ids[name], name) for name, first in c.UNRECORDED if first >= days]
+            with clock_set_to(lambda at=at: at), self.db.write(actor) as session:
+                for app_id, users in signed_in:
+                    app = session.get(Application, app_id)
+                    self._put(session, counts, app, identity.USERS, users, at,
+                              source=("entra", "Entra ID"))  # fmt: skip
+                counts["discovered"] = discovery.note(session, connector_id, seen, {}, at)
+            self._ran(connector_id, at, "ok", counts, None, [])
+            if days == 8:
+                name, reason = c.DISMISSED
+                architect = self.principal(self.cast["architect"])
+                moment = at + timedelta(hours=3)
+                with (
+                    clock_set_to(lambda moment=moment: moment),
+                    self.db.write(architect.actor) as session,
+                ):
+                    item = session.scalars(
+                        select(Discovered).where(Discovered.external_id == ids[name])
+                    ).one()
+                    discovery.dismiss(session, architect, item, reason)
+        with clock_set_to(lambda: self.end), self.db.write(admin.actor) as session:
+            connectors.change(session, admin, connectors.load(session, "entra"),
+                              {"enabled": False})  # fmt: skip
+
+    def pushes(self) -> None:
+        """The service desk's nightly push: incidents and tickets over 90 days for what is in
+        service, more where an application is in poor health. Its key was issued a week ago."""
+        from appwren.connectors import push
+        from appwren.db.models import Application, PushKey
+
+        r = random.Random(self.seed * 15485863 + 5)  # wave 4's push draws
+        admin = self.principal(self.cast["admin"])
+        issued = self.end - timedelta(days=7, hours=4)
+        with clock_set_to(lambda: issued), self.db.write(admin.actor) as session:
+            key, _ = push.issue(session, admin, "Service desk")
+            key_id = key.id
+        with self.db.read() as session:
+            apps = session.scalars(
+                select(Application).where(
+                    Application.status == "active", Application.lifecycle == "active",
+                    Application.tier.in_(("1", "2", "3")),
+                ).order_by(Application.ref)
+            ).all()  # fmt: skip
+            facts = []
+            worked = {
+                spec[0] for spec in c.APPLICATIONS if spec[10].get("story") == "worked_example"
+            }
+            for app in apps:
+                if app.name in worked:
+                    continue  # spec/engine.md works its scores through without signals
+                health = self.health.get(app.ref, "fair")
+                low, high = {"good": (0, 1), "fair": (1, 3), "poor": (4, 12)}[health]
+                tickets = {"good": (2, 15), "fair": (10, 40), "poor": (30, 90)}[health]
+                facts.append({"record": app.ref, "field": "incidents_90d",
+                              "value": r.randint(low, high)})  # fmt: skip
+                facts.append({"record": app.ref, "field": "tickets_90d",
+                              "value": r.randint(*tickets)})  # fmt: skip
+        for days in range(7, 0, -1):
+            at = self.end - timedelta(days=days, hours=7, minutes=10)
+            with clock_set_to(lambda at=at: at):
+                with self.db.read() as session:
+                    row = session.get(PushKey, key_id)
+                    assert row is not None
+                    actor = push.actor(row)
+                with self.db.write(actor, action="facts.push") as session:
+                    row = session.get(PushKey, key_id)
+                    assert row is not None
+                    push.take(session, row, facts)
+                    row.last_used_at = at
+
+    @staticmethod
+    def _put(
+        session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
+        at: datetime, *, source: tuple[str, str] = ("github", "GitHub"),
+    ) -> None:  # fmt: skip
+        from appwren.connectors import sourced
+
+        outcome = sourced.write(session, source=source[0], source_name=source[1],
+                                record=record, spec=spec, value=value, read_at=at)  # fmt: skip
+        counts["read"] += 1
+        counts[outcome] += 1
+
+    def _ran(
+        self, connector_id: int, at: datetime, status: str, counts: dict[str, int],
+        error: str | None, unmatched: list[dict[str, str]],
+    ) -> None:  # fmt: skip
+        from appwren.connectors import _words
+        from appwren.db.models import Connector, ConnectorRun
+        from appwren.events.actor import Actor
+
+        finished = at + timedelta(seconds=14)
+        with clock_set_to(lambda: finished), self.db.write(Actor.system("Connector")) as session:
+            session.add(ConnectorRun(connector_id=connector_id, started_at=at,
+                                     finished_at=finished, status=status, counts=counts,
+                                     unmatched=unmatched, error=error))  # fmt: skip
+            row = session.get(Connector, connector_id)
+            assert row is not None
+            row.last_run_at, row.last_status = finished, status
+            row.last_summary = (error or _words(counts))[:300]
+            row.next_run_at = at + timedelta(hours=row.every_hours)
+
     def build(self) -> Summary:
         self.found()
         self.plan()
         self.run()
         self.remind()
+        self.sources()
+        self.documents()
+        self.code()
+        self.signins()
+        self.pushes()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:
@@ -1324,6 +1712,17 @@ class Builder:
                 },
             )
         return Summary(self.seed, self.end.date(), dict(sorted(self.counts.items())), self.sample)
+
+
+def _alerts(r: random.Random, health: str) -> dict[str, int]:
+    """Open dependency alerts by severity: few where the code is kept, many where it is not."""
+    if health == "good":
+        return {"critical": 0, "high": 0, "medium": r.randint(0, 1), "low": r.randint(0, 2)}
+    if health == "fair":
+        return {"critical": 0, "high": r.randint(0, 2), "medium": r.randint(1, 4),
+                "low": r.randint(0, 3)}  # fmt: skip
+    return {"critical": r.randint(1, 3), "high": r.randint(2, 6), "medium": r.randint(2, 6),
+            "low": r.randint(1, 4)}  # fmt: skip
 
 
 def build(db: Database, *, seed: int = 1, today: date | None = None) -> Summary:

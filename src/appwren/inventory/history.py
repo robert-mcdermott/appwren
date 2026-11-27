@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from appwren.db.models import Account, Event, OrgUnit
+from appwren.db.models import Account, Event, OrgUnit, TechnologyRelease
 from appwren.inventory import links
 from appwren.inventory.registry import TYPES, RecordType
 from appwren.program import vocab
@@ -243,6 +243,12 @@ def entry(
             if len(lines) == 1
             else OPERATIONS.get(operation, "Edited")
         )
+        if event.subject_type == "technology_release" and lines:
+            release = lookups.session.get(TechnologyRelease, event.subject_id)
+            cycle = release.cycle if release is not None else "a release"
+            title = (
+                f"{lines[0]['label']} of {cycle} changed" if len(lines) == 1 else f"Edited {cycle}"
+            )
     else:
         title = words(event.action)
     return {
@@ -255,6 +261,7 @@ def entry(
         "title": title,
         "lines": lines,
         "told": bool(describe and title and not lines and event.action == "updated"),
+        "reason": (event.context or {}).get("reason") or None,
     }
 
 

@@ -62,9 +62,18 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.3.0 keeps the portfolio current without a central team chasing it.
+Version 0.4.0 lets the facts other tools already know arrive by themselves, marked with where they came from, and never over a person.
 
-**Keeping current, new in 0.3.0**
+**Signals, new in 0.4.0**
+
+- **Connectors,** each switched on by an administrator for one named source, with its credential kept in the environment: support dates from the public end-of-life dataset; languages, last change, contributors, dependency alerts, and engineering practice from GitHub; and active users from Microsoft Entra ID sign-ins. Every run is recorded, and a run that fails changes nothing.
+- **Values from other systems,** shown with their source and when they were read, in the history like any change, and overridden by whoever keeps the record, with a reason, until they remove it.
+- **Not on record:** applications people sign in to that the portfolio does not know, listed once to add or dismiss.
+- **Push sources and catalog files:** your own tools post facts with a key that does nothing else, and an application and its components can be kept as a catalog file beside their code, imported with a dry run and exported.
+- **Engineering maturity:** bronze, silver, or gold for each component and its application, from automated checks, with what is missing for the next level and a report by unit.
+- **Signals in the scores,** each counting only where a source supplies it, so an application without one scores as before.
+
+**Keeping current, from 0.3.0**
 
 - **What is waiting on you:** Home, a bell of notices, reminders before things fall due and after, escalated to the steward and the leader, and email as it happens or in a daily summary, if you set it up.
 - **Confirming a record** on a cadence by tier, in one step; a record nobody confirms in time is stale, flagged, counted, and 15 points lower in confidence until someone does.
@@ -111,6 +120,7 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 | [The portfolio](docs/the-portfolio.md) | Everyone who keeps, assesses, or reads an application |
 | [The landscape](docs/the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches |
 | [Keeping current](docs/keeping-current.md) | Everyone who keeps an application, and the portfolio team |
+| [Facts from other systems](docs/signals.md) | Administrators who connect other tools, and everyone who reads what they supply |
 | [Running the program](docs/running-the-program.md) | The portfolio team, and administrators |
 | [Configuration](docs/configuration.md) | Whoever runs the server |
 | [API](docs/api.md) | Anyone connecting another system |

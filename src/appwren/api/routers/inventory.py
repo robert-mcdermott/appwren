@@ -248,6 +248,13 @@ def vocabularies(request: Request) -> dict[str, Any]:
         return envelope(vocab.all_(session))
 
 
+def _maturity_levels(session: Any) -> list[tuple[str, str]]:
+    from appwren.assessment import current_model
+    from appwren.engine import maturity
+
+    return maturity.ranks(current_model(session).definition)
+
+
 @router.get("/catalog", summary="What the program says about applications")
 def show_catalog(request: Request) -> dict[str, Any]:
     """The organization's own fields, what each lifecycle stage requires, the sensitive
@@ -259,6 +266,7 @@ def show_catalog(request: Request) -> dict[str, Any]:
                 "stage_requirements": catalog.stage_requirements(session),
                 "sensitive_fields": catalog.sensitive_fields(session),
                 "definition": catalog.definition(session),
+                "maturity_levels": _maturity_levels(session),
                 "types": {
                     key: {
                         "prefix": record_type.prefix,

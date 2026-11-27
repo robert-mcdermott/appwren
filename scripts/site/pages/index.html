@@ -185,6 +185,28 @@
 
 <section class="feature">
   <div class="feature-text">
+    <p class="eyebrow">Facts from other systems</p>
+    <h2 id="facts-that-arrive-by-themselves">Facts that arrive by themselves, and never over a person</h2>
+    <p>Connectors an administrator switches on, one at a time, read what other tools already know: support dates from the public end-of-life dataset, what each repository says about its component, and who signs in to what. Your own tools post the rest with a key that can do nothing else.</p>
+    <p>Each value is marked with where it came from and when, is in the history like any change, and can be overridden by whoever keeps the record, with a reason. Nothing is connected until someone connects it.</p>
+    <p><a class="more" href="signals.html">Facts from other systems</a></p>
+  </div>
+  {{shot:application-code|An application's components with what their repositories say: languages, last change, people, and dependency alerts, and each component's engineering maturity}}
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Engineering maturity</p>
+    <h2 id="bronze-silver-gold">Bronze, silver, or gold, from checks rather than claims</h2>
+    <p>Monitoring, backups, and documentation from the record; tests, continuous integration, dependency updates, and open alerts from the repository. Each component reaches the level its checks give, and its application the level of its least mature part, with what is missing for the next.</p>
+    <p>By unit, each count is a link to the list behind it. Where a source supplies them, these signals join the scores, and an application without one scores as before.</p>
+    <p><a class="more" href="signals.html#engineering-maturity">Engineering maturity</a></p>
+  </div>
+  {{shot:maturity|Engineering maturity by unit: how many applications are at each level, each count a link to the list behind it}}
+</section>
+
+<section class="feature">
+  <div class="feature-text">
     <p class="eyebrow">The program</p>
     <h2 id="see-what-a-change-would-do">See what a change would do before you make it</h2>
     <p>The lists, the organization's own fields, the wording of the questions, and the scoring model's weights, thresholds, and cadence are shaped in the app.</p>
@@ -289,8 +311,9 @@ uv run appwren --config demo/appwren.toml serve</code></pre></div>
     <a href="the-portfolio.html"><strong>The portfolio</strong><span>The record, assessment, scores and their working, recommendations, decisions, cost and contracts</span></a>
     <a href="the-landscape.html"><strong>The landscape</strong><span>Interfaces and data flows, impact, hosting, overlap, the capability map, lifecycle</span></a>
     <a href="keeping-current.html"><strong>Keeping current</strong><span>Reminders, confirming a record, campaigns, tasks, search, contesting a score</span></a>
+    <a href="signals.html"><strong>Facts from other systems</strong><span>Connectors, values and overrides, applications not on record, push keys, catalog files, engineering maturity</span></a>
     <a href="running-the-program.html"><strong>Running the program</strong><span>Roles, who sees what, shaping the program, scheduled work, snapshots, the history</span></a>
-    <a href="configuration.html"><strong>Configuration</strong><span>The settings file, email, single sign-on, PostgreSQL, upgrading, reverse proxies</span></a>
+    <a href="configuration.html"><strong>Configuration</strong><span>The settings file, connector credentials, email, single sign-on, PostgreSQL, upgrading, reverse proxies</span></a>
     <a href="api.html"><strong>API</strong><span>Sign-in, the CSRF token, responses, errors, and lists</span></a>
     <a href="api-reference.html"><strong>API reference</strong><span>Every route of the JSON API, from the OpenAPI document</span></a>
     <a href="cli.html"><strong>Command reference</strong><span>Every <code>appwren</code> command and option</span></a>

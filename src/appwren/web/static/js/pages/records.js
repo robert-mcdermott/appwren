@@ -3,7 +3,7 @@
 import { buildUrl, get } from "../core/api.js";
 import { button, h, icon } from "../core/dom.js";
 import { date, plural, relative } from "../core/format.js";
-import { label, options, unitOptions, units, vocabularies } from "../core/lookups.js";
+import { catalog, label, options, unitOptions, units, vocabularies } from "../core/lookups.js";
 import { query, setQuery } from "../core/router.js";
 import { hrefOf, lifecyclePill, recordChip, statusOptions, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
 import { editRecord, mayAdd } from "../components/record-forms.js";
@@ -129,9 +129,9 @@ export function applicationList(main) {
     title: meta.plural,
     load: async () => {
       const params = Object.fromEntries(query());
-      const [page, vocab, unitIndex, built] = await Promise.all([
-        get("/api/v1/applications", { sort: "name", ...params }, { fresh: true }), vocabularies(), units(), builtOn(params)]);
-      return { page, vocab, units: unitIndex, built };
+      const [page, vocab, unitIndex, built, program] = await Promise.all([
+        get("/api/v1/applications", { sort: "name", ...params }, { fresh: true }), vocabularies(), units(), builtOn(params), catalog()]);
+      return { page, vocab, units: unitIndex, built, program };
     },
     view: (data, reload) => {
       const { vocab } = data;
@@ -145,6 +145,7 @@ export function applicationList(main) {
         filterSelect("tier", options(vocab, "tiers", { blank: "Any tier" }), "Criticality tier"),
         filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain"),
         filterSelect("unit", unitOptions(data.units.tree, { blank: "Any unit" }), "Unit"),
+        filterSelect("maturity", [["", "Any maturity"], ...[...data.program.maturity_levels].reverse(), ["unmeasured", "Not measured"]], "Engineering maturity"),
         mineToggle());
       const body = rows.length
         ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
