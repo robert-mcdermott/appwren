@@ -127,7 +127,7 @@ uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.
 
 The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, about 125 assessments, 70 decisions, and four quarterly portfolio snapshots. There is an application to modernize with three flags, three survey tools doing one job, a grant about to end, software kept by one person, a pilot, a decision that differs from its recommendation, four applications whose owner left, a dozen never assessed, and a database release reaching end of support next quarter. Nothing in it is real, and every record was made by the same code the app uses, so its history verifies like any other.
 
-![Home for the demo's portfolio manager: figures for what needs attention, then the list of what is waiting on them](img/home-manager-light.webp)
+![Home for the demo's portfolio manager: what is waiting on them, most urgent first, beside their roles](img/home-manager-light.webp)
 
 Its sign-in page offers eight sample people and asks for no password:
 
