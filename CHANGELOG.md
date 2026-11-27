@@ -42,8 +42,29 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **`appwren doctor --production`** checks what matters once people depend on an
   installation: an https address, not a demo, PostgreSQL, two administrators, single
   sign-on, email, scheduled work, a recent backup, and who can read the data home.
+- **Two new guides.** *The program handbook* is for the portfolio team: the decisions to
+  make first, the first ninety days, the yearly rhythm of reviews, campaigns, and reports,
+  measures worth watching, and what goes wrong. *Adopting AppWren* is for an organization
+  deciding whether, and how, to take it up.
 - **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
   50,000 components; the figures are in the configuration guide.
+
+### Security
+
+A review against the OWASP Application Security Verification Standard, level 1, is recorded
+in `spec/reviews/`. What it found is fixed, each with a test:
+
+- An API token was taken for the maker of records made at the command line, so a member's
+  token could list restricted applications and read contract values.
+- A restricted application could be named through a reference to it: as another's
+  successor, by trying references one by one, in a message about a capability's primary
+  provider, in a scenario, or in the history. It is now *an application you may not see*.
+- A connector could be given one of the server's own secret variables, and send it to a
+  host of an administrator's choosing.
+- A request with no declared length was read in full before the size limit applied.
+- Wrong passwords from many addresses could lock an account's owner out; a clean address
+  now gets one try.
+- A webhook could be pointed at the server's own machine.
 
 ### Fixed
 

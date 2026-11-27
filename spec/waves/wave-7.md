@@ -74,15 +74,15 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** the compose file starts a working installation from nothing; `doctor --production` fails on the demo and passes on a production setup.
 
-## Slice 6: Security and accessibility review ☐
+## Slice 6: Security and accessibility review ☑
 
-- [ ] OWASP ASVS level 1, with findings and their resolution in `spec/reviews/`
-- [ ] The full accessibility audit and keyboard check
+- [x] OWASP ASVS level 1, with findings and their resolution in `spec/reviews/`
+- [x] The full accessibility audit and keyboard check
 
-## Slice 7: The program handbook ☐
+## Slice 7: The program handbook ☑
 
-- [ ] One guide for a portfolio team, from first decisions to the yearly rhythm of reviews
-- [ ] The adopter's guide
+- [x] One guide for a portfolio team, from first decisions to the yearly rhythm of reviews
+- [x] The adopter's guide
 
 ## Slice 8: Release prep ☐
 
@@ -100,3 +100,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **Tokens act as a role; webhooks come from the history and the reminders.** A token's principal holds its one role and unit and no account, and its actor is a `token` in the history. Lapses are not events, so the webhook job also reads the reminders job's *overdue* records. The demo issues a reading token and registers no webhook, so it never sends anything out.
 - **The contract is the last release's OpenAPI document.** `tests/fixtures/openapi-X.Y.Z.json` is copied from each release's tag; the check fails if a route or method is gone or a request needs a field or query parameter it did not.
 - **Each recipe was run.** The image was built with podman and run read-only with every capability dropped, restarted, and checked with `doctor --production` inside; the compose file was brought up from nothing with PostgreSQL, a starter program, and the first administrator. `init` with a starter is safe on every start: once a program exists it says so and loads nothing over it.
+- **The review found six things, two of them medium.** A token, having no account, was taken for the maker of records with none; and a restricted application could be named through a reference to it. Both, and four low findings, are fixed with tests that fail without the fixes; see [the review](../reviews/2026-11-security-and-accessibility.md). The screen-reader session needs a person, and is left for the maintainer.

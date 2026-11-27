@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from appwren.access.principal import Principal
 from appwren.api.problems import problem
@@ -89,7 +90,35 @@ def _prepare(request: Request) -> None:
             raise HTTPException(403, "The request is missing its CSRF token. Reload the page.")
 
 
+class BodyLimit:
+    """Counts what a request sends, as it arrives, and stops at ``MAX_BODY``. A request that
+    declares its length is refused before it is read; this catches one that does not, sent in
+    pieces, which would otherwise be read whole."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        seen = 0
+
+        async def counted() -> Message:
+            nonlocal seen
+            message = await receive()
+            if message["type"] == "http.request":
+                seen += len(message.get("body", b""))
+                if seen > MAX_BODY:
+                    raise HTTPException(413, "That is too large to send.")
+            return message
+
+        await self.app(scope, counted, send)
+
+
 def install_access(app: FastAPI) -> None:
+    app.add_middleware(BodyLimit)
+
     @app.middleware("http")
     async def access(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]

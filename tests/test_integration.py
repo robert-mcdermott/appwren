@@ -102,8 +102,13 @@ def test_tokens_expire(db: Database, people: People) -> None:
 
 
 def test_a_webhook_goes_only_to_the_public_internet_and_follows_no_redirect() -> None:
-    for inside in ("http://10.0.0.5/hook", "https://169.254.169.254/latest",
-                   "https://192.168.1.1/"):  # fmt: skip
+    for inside in (
+        "http://10.0.0.5/hook",
+        "https://169.254.169.254/latest",
+        "https://192.168.1.1/",
+        "https://localhost/hook",
+        "https://127.0.0.1:8000/api",
+    ):  # fmt: skip  (finding 6: not even this machine)
         with pytest.raises(ValueError, match="public internet"):
             webhooks._post(inside, b"{}", {})
     assert webhooks._public("127.0.0.1") is False
@@ -137,6 +142,10 @@ def test_webhooks_are_told_signed_and_tried_again(
             ({"name": "x", "url": "ftp://example.org", "topics": ["decision.recorded"]}, "url"),
             ({"name": "x", "url": "http://example.org/h", "topics": ["decision.recorded"]}, "url"),
             ({"name": "x", "url": "https://u:p@example.org/", "topics": ["decision.recorded"]},
+             "url"),
+            ({"name": "x", "url": "https://localhost/hook", "topics": ["decision.recorded"]},
+             "url"),
+            ({"name": "x", "url": "https://10.1.2.3/hook", "topics": ["decision.recorded"]},
              "url"),
             ({"name": "x", "url": "https://example.org/hook", "topics": []}, "topics"),
             ({"name": "x", "url": "https://example.org/hook", "topics": ["weather"]}, "topics"),
@@ -208,3 +217,70 @@ def test_webhooks_over_the_api(as_role: Clients) -> None:
     assert admin.patch(f"/api/v1/admin/webhooks/{hook}", json={"active": False}
                        ).json()["data"]["active"] is False  # fmt: skip
     assert admin.delete(f"/api/v1/admin/webhooks/{hook}").json()["data"]["webhooks"] == []
+
+
+def test_a_token_matches_nothing_by_its_missing_account(
+    as_role: Clients, db: Database, people: People
+) -> None:
+    """Records the command line made, and contracts nobody owns, have no account on them. A
+    token has none either, and must not be taken for their maker (review finding 1)."""
+    from tests.test_costs import contract
+
+    secret = add_app(db, people, name="Secret", restricted=True, unit="CANCER")
+    shown = add_app(db, people, name="Open")
+    deal = contract(db, [(secret, None)], name="Secret licenses", annual_value=123_456)
+    issued = as_role("admin").post(
+        "/api/v1/admin/tokens", json={"name": "Reader", "role": "member"}
+    )
+    script = as_role(None)
+    head = _bearer(script, issued.json()["data"]["token"])
+    listed = script.get("/api/v1/applications", headers=head).json()["data"]
+    assert [row["ref"] for row in listed] == [shown]
+    exported = script.get("/api/v1/exports/applications", headers=head)
+    assert exported.status_code == 200 and "Secret" not in exported.text
+    contracts = script.get("/api/v1/contracts", headers=head).json()["data"]
+    assert deal not in [row["ref"] for row in contracts] and "123456" not in str(contracts)
+
+
+def test_a_hidden_application_is_named_nowhere(
+    as_role: Clients, db: Database, people: People
+) -> None:
+    """A restricted application is not named through a reference, a message, a scenario, or
+    the history of one that points at it (review finding 2)."""
+    from tests.test_intake import capability, serves
+
+    with db.write(ME.actor) as session:  # owned by someone the steward is not
+        secret = records.create(session, ME, APPLICATION, {
+            "name": "Hidden Ledger", "org_unit_id": people.units["CANCER"], "restricted": True,
+        }, accountable=people.accounts["admin"]).ref  # fmt: skip
+    shown = add_app(db, people, name="Open Ledger")
+    with db.write(ME.actor) as session:
+        hidden = records.load(session, ME, APPLICATION, secret)
+        hidden.successor_id = records.load(session, ME, APPLICATION, shown).id
+        hidden_id = hidden.id
+        app = records.load(session, ME, APPLICATION, shown)
+        records.update(session, ME, APPLICATION, app, {"successor_id": secret},
+                       version=app.version)  # fmt: skip
+    member, steward = as_role("member"), as_role("steward")
+    page = member.get(f"/api/v1/applications/{shown}").json()["data"]
+    assert page["replaces"] == [] and page["successor"] is None
+    told = member.get(f"/api/v1/applications/{shown}/history").text
+    assert "Hidden Ledger" not in told and "may not see" in told
+    # Trying ids one by one names nothing.
+    current = steward.get(f"/api/v1/applications/{shown}").json()["data"]
+    change = {"successor_id": str(hidden_id), "version": current["version"]}
+    tried = steward.patch(f"/api/v1/applications/{shown}", json=change)
+    assert tried.status_code == 422 and "Hidden Ledger" not in tried.text
+    # A capability's primary provider is not named either.
+    cap = capability(db, "Ledgers")
+    serves(db, secret, cap, primary=True)
+    wanted = {"capabilities": [{"capability": cap, "is_primary": True}]}
+    refused = steward.put(f"/api/v1/applications/{shown}/capabilities", json=wanted)
+    assert refused.status_code == 422 and "Hidden Ledger" not in refused.text
+    # Nor the application a scenario would move work into.
+    architect = as_role("manager")
+    made = architect.post("/api/v1/scenarios", json={"name": "Fold the ledgers"}).json()["data"]
+    architect.put(f"/api/v1/scenarios/{made['ref']}/changes", json={"changes": [
+        {"application": shown, "action": "consolidate", "into": secret}]})  # fmt: skip
+    seen = member.get(f"/api/v1/scenarios/{made['ref']}").text
+    assert "Hidden Ledger" not in seen and "may not see" in seen

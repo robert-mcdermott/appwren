@@ -92,7 +92,8 @@ def set_options(
             continue
         name = " ".join(str(item.get("name") or "").split())[:200]
         vendor_id = records.reference(session, "vendor", item.get("vendor"), where, errors)
-        app_id = records.reference(session, "application", item.get("application"), where, errors)
+        app_id = records.reference(session, "application", item.get("application"), where, errors,
+                                   principal=principal)  # fmt: skip
         if approach == "reuse" and app_id is None:
             errors.add(where, "Name the application on record it would reuse.")
             continue

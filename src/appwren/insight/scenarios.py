@@ -235,10 +235,13 @@ def _detail(
         if not access.sees_application(session, principal, app):
             continue
         target = session.get(Application, change.into_id) if change.into_id else None
+        hidden = target is not None and not access.sees_application(session, principal, target)
+        label = ACTIONS[change.action] + (" an application you may not see" if hidden else "")
         changes.append({
             **records.chip(APPLICATION, app), "lifecycle": app.lifecycle,
-            "action": change.action, "action_label": ACTIONS[change.action],
-            "into": records.chip(APPLICATION, target) if target else None, "note": change.note,
+            "action": change.action, "action_label": label,
+            "into": records.chip(APPLICATION, target) if target and not hidden else None,
+            "note": change.note,
         })  # fmt: skip
     initiative = session.get(Initiative, record.initiative_id) if record.initiative_id else None
     return {

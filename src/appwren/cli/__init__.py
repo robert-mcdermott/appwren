@@ -39,10 +39,12 @@ EXIT_ERROR = 1
 
 
 def _load(args: argparse.Namespace) -> tuple[Config, DataHome]:
+    from appwren import connectors
     from appwren.program import branding
 
     config = load_config(args.config)
     branding.pin(config.branding)
+    connectors.reserve(config.sso.client_secret_env, config.mail.password_env)
     home = DataHome(config.data.home)
     if home.is_initialized():
         logs.configure(args.verbose, quiet=args.quiet, log_dir=home.logs)
@@ -63,13 +65,12 @@ def _database(config: Config, *, current: bool = True) -> Database:
 
 def _install_program(db: Database, starter: str | None = None) -> dict[str, int]:
     """Load whatever of the default program is missing; with a starter, begin from it."""
-    from appwren.core.errors import Invalid
-    from appwren.events.actor import Actor
-    from appwren.program import packs
-
     from sqlalchemy import select
 
+    from appwren.core.errors import Invalid
     from appwren.db.models import Capability
+    from appwren.events.actor import Actor
+    from appwren.program import packs
 
     with db.write(Actor.command("Setup")) as session:
         if starter and session.scalar(select(Capability.id).limit(1)):

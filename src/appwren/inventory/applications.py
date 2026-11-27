@@ -149,8 +149,8 @@ def set_capabilities(
     for capability_id, (primary, _) in chosen.items():
         if not primary:
             continue
-        other = session.execute(
-            select(Application.ref, Application.name)
+        other = session.scalars(
+            select(Application)
             .join(ApplicationCapability, ApplicationCapability.application_id == Application.id)
             .where(
                 ApplicationCapability.capability_id == capability_id,
@@ -161,10 +161,11 @@ def set_capabilities(
         ).first()
         if other is not None:
             name = session.get(Capability, capability_id).name  # type: ignore[union-attr]
+            seen = access.sees_application(session, principal, other)
+            who = f"{other.name} ({other.ref})" if seen else "An application you may not see"
             errors.add(
                 "capabilities",
-                f"{other[1]} ({other[0]}) is already the primary provider of {name}. "
-                "Change that first.",
+                f"{who} is already the primary provider of {name}. Change that first.",
             )
     if errors:
         raise Invalid("The capabilities were not saved.", errors)
@@ -393,8 +394,15 @@ def _detail(
         "capabilities": capabilities_of(session, [record.id]).get(record.id, []),
         "used_by": units_of(session, [record.id]).get(record.id, []),
         "support_unit": {"id": support.id, "name": support.name} if support else None,
-        "successor": records.chip(APPLICATION, successor) if successor else None,
-        "replaces": [records.chip(APPLICATION, other) for other in replaces],
+        # An application the reader may not see is not named, here or anywhere.
+        "successor": records.chip(APPLICATION, successor)
+        if successor and access.sees_application(session, principal, successor)
+        else None,
+        "replaces": [
+            records.chip(APPLICATION, other)
+            for other in replaces
+            if access.sees_application(session, principal, other)
+        ],
         "fields": {key: value for key, value in (record.fields or {}).items() if key not in hidden},
         "own_fields": own_fields,
         "missing": missing(session, record),

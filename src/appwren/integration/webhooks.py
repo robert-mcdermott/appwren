@@ -56,7 +56,6 @@ MAX_ATTEMPTS = 6
 BATCH = 50
 TIMEOUT = 10
 GIVE_UP_AFTER = 20  # failures in a row before a webhook is switched off
-LOCAL = ("localhost", "127.0.0.1", "::1")
 
 Send = Callable[[str, bytes, dict[str, str]], int]
 
@@ -74,6 +73,18 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
+def _inside(host: str) -> bool:
+    """A name that is plainly this machine or a private network, without asking any DNS."""
+    if host.lower() in ("localhost", "localhost.localdomain") or host.lower().endswith(
+        ".localhost"
+    ):
+        return True
+    try:
+        return not ipaddress.ip_address(host.strip("[]")).is_global
+    except ValueError:
+        return False
+
+
 def _public(host: str) -> bool:
     """Whether a name resolves only to addresses on the public internet."""
     try:
@@ -85,7 +96,7 @@ def _public(host: str) -> bool:
 
 def _post(url: str, body: bytes, headers: dict[str, str]) -> int:
     host = urlsplit(url).hostname or ""
-    if host not in LOCAL and not _public(host):
+    if not _public(host):
         # Never the machine's own network: a webhook is for another system, somewhere else.
         raise ValueError(f"{host} is not an address on the public internet")
     request = urllib.request.Request(url, data=body, headers=headers, method="POST")  # noqa: S310
@@ -106,8 +117,10 @@ def _clean(values: dict[str, Any], current: Webhook | None) -> dict[str, Any]:
     parts = urlsplit(url)
     if parts.scheme not in ("https", "http") or not parts.hostname or len(url) > 500:
         errors["url"] = "Give an address that starts with https://."
-    elif parts.scheme == "http" and parts.hostname not in LOCAL:
+    elif parts.scheme == "http":
         errors["url"] = "Use https, so that what is sent cannot be read on the way."
+    elif _inside(parts.hostname):
+        errors["url"] = "Give an address on the public internet, not this machine or its network."
     elif parts.username or parts.password:
         errors["url"] = "Do not put a password in the address. Deliveries are signed instead."
     topics = values.get("topics", current.topics if current else [])

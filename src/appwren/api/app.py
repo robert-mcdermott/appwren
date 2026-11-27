@@ -50,6 +50,9 @@ def create_app(config: Config) -> FastAPI:
     from appwren.program import branding as brand_rules
 
     brand_rules.pin(config.branding)  # the configuration file's part of the branding
+    from appwren import connectors
+
+    connectors.reserve(config.sso.client_secret_env, config.mail.password_env)
     home = DataHome(config.data.home)
 
     @asynccontextmanager

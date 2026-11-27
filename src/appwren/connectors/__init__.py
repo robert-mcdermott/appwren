@@ -43,6 +43,24 @@ MOST_BYTES = 5_000_000  # in any one answer
 KEEP_RUNS = 50  # of each connector
 KEY = re.compile(r"[a-z][a-z0-9-]{1,39}")
 ENV = re.compile(r"[A-Z][A-Z0-9_]{1,79}")
+# Variables the server reads for itself. A connector sends its credential to the host an
+# administrator names, so it may never be given one of these: that would send the server's
+# own secrets wherever the address points.
+SERVER_PREFIXES = ("APPWREN_SERVER_", "APPWREN_DATABASE_", "APPWREN_DATA_", "APPWREN_SSO_",
+                   "APPWREN_MAIL_", "APPWREN_ADMIN_", "APPWREN_TEST_", "PG")  # fmt: skip
+SERVER_NAMES = {"APPWREN_CONFIG", "DATABASE_URL"}
+RESERVED: set[str] = set()  # those the configuration names, added when the server starts
+
+
+def reserve(*names: str) -> None:
+    """Keep the variables the configuration names for its own secrets from any connector."""
+    RESERVED.update(name for name in names if name)
+
+
+def server_variable(name: str) -> bool:
+    return name in SERVER_NAMES or name in RESERVED or name.startswith(SERVER_PREFIXES)
+
+
 # The tests put a transport of their own here, so that no test reaches the network.
 TRANSPORT: httpx.BaseTransport | None = None
 
@@ -208,6 +226,11 @@ def _clean(kind: Kind, values: dict[str, Any], *, current: Connector | None) -> 
                 "Name the environment variable that holds the credential, such as "
                 f"{kind.credential}. The credential itself is never given here."
             )
+        elif server_variable(env):
+            errors["credential_env"] = (
+                f"{env} holds one of the server's own settings or secrets, and is never sent "
+                f"to a source. Give the connector a variable of its own, such as {kind.credential}."
+            )
         out["credential_env"] = env
     every = values.get("every_hours", current.every_hours if current else 24)
     try:
@@ -278,6 +301,8 @@ def _reading(session: Session, row: Connector) -> Reading:
         raise SourceError(f"AppWren has no connector of the kind {row.kind}")
     credential = None
     if kind.credential is not None:
+        if server_variable(row.credential_env or ""):
+            raise SourceError(f"{row.credential_env} is one of the server's own variables")
         credential = os.environ.get(row.credential_env or "", "")
         if not credential:
             raise SourceError(f"the environment variable {row.credential_env} is not set")
