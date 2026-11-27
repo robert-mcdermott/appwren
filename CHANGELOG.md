@@ -4,6 +4,24 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## Unreleased
+
+### Added
+
+- **Trends.** Reports → Trends puts two portfolio snapshots side by side, or one and today:
+  the figures each held, the applications whose recommendation changed, whose scores rose or
+  fell by half a point or more, and whose flags came or went, applications added or gone,
+  and the decisions recorded between them. An application's Scores part shows its scores
+  over time.
+- **Shares of the portfolio.** Reports → Shares of the portfolio lists the costliest tenth,
+  the dearest tenth per user, the least used fifth, and the oldest fifth of the
+  applications in service. A share never feeds a score.
+
+### Changed
+
+- Three more rarely opened dialogs on a record's page (the people named on it, the
+  capabilities it serves, and what it is called elsewhere) load when they are opened.
+
 ## 0.5.0 (2026-11-27)
 
 Wave 5, *Planning change*: decisions become planned, tracked change. A portfolio review

@@ -162,6 +162,10 @@ export const SCENES = [
   { name: "retirement", as: "portfolio", path: app("Old Surveys", "retirement") },
   { name: "retirements", as: "portfolio", path: "/retirements" },
   { name: "stage-gate", as: "res_steward", path: app("Specimen Tracker"), step: click("Edit") },
+  // Insight (wave 6)
+  { name: "trends", as: "portfolio", path: "/trends" },
+  { name: "shares", as: "portfolio", path: "/shares" },
+  { name: "application-over-time", as: "portfolio", path: app("Freezer Watch", "scores") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

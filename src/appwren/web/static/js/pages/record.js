@@ -61,62 +61,8 @@ function shown(spec, record, ctx) {
 
 // --- People in roles -------------------------------------------------------------------------
 
-function editPeople(record, ctx) {
-  const people = record.owners.map((owner) => ({ ...owner }));
-  openOverlay({
-    title: "People",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const list = h("div", { class: "stack-sm" });
-      const problem = banner();
-      const roles = ctx.vocab.application_roles.filter((item) => !item.retired).map((item) => [item.key, item.label]);
-      const draw = () => {
-        list.replaceChildren(...people.map((person, index) => {
-          const role = select("Role", roles, { value: person.kind });
-          role.input.setAttribute("aria-label", `Role of ${person.name}`);
-          role.input.addEventListener("change", () => {
-            people[index].kind = role.input.value;
-          });
-          return h("div", { class: "owner-row" }, avatar(person.name),
-            h("div", { class: "grow" }, h("div", { class: "cell-main" }, person.name), h("div", { class: "cell-sub" }, person.email)),
-            role.input,
-            button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
-              people.splice(index, 1);
-              draw();
-            } }));
-        }));
-        if (!people.length) list.replaceChildren(h("p", { class: "muted" }, "Nobody yet."));
-      };
-      draw();
-      const picker = peoplePicker({ label: "Add a person",
-        exclude: () => false,
-        onPick: (account) => {
-          people.push({ account_id: account.id, name: account.display_name, email: account.email,
-            kind: people.some((p) => p.kind === "accountable") ? "technical_owner" : "accountable" });
-          draw();
-        } });
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => put(`/api/v1/applications/${record.ref}/people`,
-            { owners: people.map((person) => ({ account_id: person.account_id, kind: person.kind })) }) });
-        if (done) {
-          close();
-          toast("The people were saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack-lg" }, problem,
-        h("p", { class: "muted" }, "One person is accountable: they answer for the application and its record. Everyone named here may keep it current."),
-        list, picker));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
-}
-
 function peopleCard(record, ctx) {
-  return card({ title: "People", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editPeople(record, ctx) }) : null },
+  return card({ title: "People", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editPeople", record, ctx) }) : null },
     record.orphaned ? alert("warn", icon("alert"), h("div", {}, record.owners.some((o) => o.kind === "accountable")
       ? "Its accountable owner's account is disabled. Name someone new." : "Nobody is accountable for this application. Name someone.")) : null,
     record.owners.length ? h("div", { class: "stack" }, record.owners.map((person) => h("div", { class: "row" },
@@ -153,55 +99,10 @@ function editUnits(record, ctx) {
 
 // --- What it is called elsewhere -------------------------------------------------------------
 
-function editExternal(record, ctx) {
-  const systems = (ctx.vocab?.external_systems ?? []).filter((item) => !item.retired);
-  const rows = record.external_refs.map((item) => ({ system: item.system, value: item.value }));
-  openOverlay({
-    title: "Known elsewhere as",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const list = h("div", { class: "stack-sm" });
-      const problem = banner();
-      const draw = () => {
-        list.replaceChildren(...(rows.length ? rows.map((row, index) => h("div", { class: "owner-row" },
-          h("select", { class: "select", "aria-label": `System ${index + 1}`, onchange: (event) => {
-            row.system = event.target.value;
-          } }, systems.map((item) => h("option", { value: item.key, selected: item.key === row.system }, item.label))),
-          h("input", { class: "input", value: row.value, maxlength: 200, placeholder: "Identifier", "aria-label": `Identifier ${index + 1}`, oninput: (event) => {
-            row.value = event.target.value;
-          } }),
-          button("Remove", { kind: "btn-ghost btn-sm", "aria-label": `Remove identifier ${index + 1}`, onclick: () => {
-            rows.splice(index, 1);
-            draw();
-          } }))) : [h("p", { class: "muted" }, "Nothing yet: a configuration item, a ticket queue, a repository.")]));
-      };
-      draw();
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => patch(`/api/v1/${TYPES[record.type].path}/${record.ref}`, { version: record.version, external_refs: rows.filter((row) => row.value.trim()) }) });
-        if (done) {
-          close();
-          toast("Saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack" }, problem, list,
-        button("Add another", { iconName: "plus", kind: "btn-sm", onclick: () => {
-          rows.push({ system: systems[0]?.key ?? "other", value: "" });
-          draw();
-        } }),
-        h("p", { class: "subtle" }, "A record is found by these when searching.")));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
-}
-
 export function externalCard(record, ctx) {
   const refs = record.external_refs ?? [];
   if (!(refs.length || record.can?.edit)) return null;
-  return card({ title: "Known elsewhere as", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editExternal(record, ctx) }) : null },
+  return card({ title: "Known elsewhere as", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editExternal", record, ctx) }) : null },
     refs.length ? h("dl", { class: "dl" }, refs.map((item) => [h("dt", {}, item.label),
       h("dd", {}, item.url ? h("a", { href: item.url, target: "_blank", rel: "noopener noreferrer" }, item.value) : item.value)]))
       : h("p", { class: "muted" }, "No identifier in another system is recorded."));
@@ -597,55 +498,8 @@ function componentsTab(record, ctx) {
     h("p", { class: "muted" }, "The application and its components as a catalog-info.yaml, to keep beside the code. Imported again, it updates what it describes and adds any component it names; nothing it leaves out is removed.")));
 }
 
-function editCapabilities(record, ctx) {
-  const chosen = record.capabilities.map((c) => ({ ...c }));
-  openOverlay({
-    title: "Capabilities it serves",
-    subtitle: `${record.ref} · ${record.name}`,
-    render: (body, footer, close) => {
-      const list = h("div", { class: "stack-sm" });
-      const problem = banner();
-      const draw = () => {
-        list.replaceChildren(...(chosen.length ? chosen.map((c, index) => {
-          const primary = checkbox("Primary provider", { checked: c.is_primary });
-          primary.input.addEventListener("change", () => {
-            chosen[index].is_primary = primary.input.checked;
-          });
-          return h("div", { class: "owner-row" }, h("div", { class: "grow" }, recordChip(c, { link: false })), primary.node,
-            button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
-              chosen.splice(index, 1);
-              draw();
-            } }));
-        }) : [h("p", { class: "muted" }, "None yet.")]));
-      };
-      draw();
-      const finder = recordFinder("capability", { exclude: (r) => chosen.some((c) => c.ref === r.ref), onPick: (r) => {
-        chosen.push({ ...r, type: "capability", is_primary: false });
-        draw();
-        finder.refresh();
-      } });
-      const save = button("Save", { kind: "btn-primary" });
-      save.addEventListener("click", async () => {
-        const done = await submit({ button: save, banner: problem,
-          run: () => put(`/api/v1/applications/${record.ref}/capabilities`,
-            { capabilities: chosen.map((c) => ({ capability: c.ref, is_primary: Boolean(c.is_primary) })) }) });
-        if (done) {
-          close();
-          toast("Saved.");
-          ctx.reload();
-        }
-      });
-      body.append(h("div", { class: "stack-lg" }, problem,
-        h("p", { class: "muted" }, "The primary provider is the application the organization means to use for that capability. Each capability has at most one."),
-        list, h("div", { class: "field" }, h("div", { class: "label" }, "Add a capability"), finder.node)));
-      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
-      footer.hidden = false;
-    },
-  });
-}
-
 function capabilitiesTab(record, ctx) {
-  return card({ title: "Capabilities it serves", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => editCapabilities(record, ctx) }) : null },
+  return card({ title: "Capabilities it serves", actions: record.can?.edit ? button("Edit", { kind: "btn-sm", onclick: () => dialog("editCapabilities", record, ctx) }) : null },
     record.capabilities.length ? h("div", { class: "stack-sm" }, record.capabilities.map((c) => h("div", { class: "row" },
       recordChip(c), c.is_primary ? pill("Primary provider", "accent") : null)))
       : h("p", { class: "muted" }, "No capability recorded. Say what the application does for the organization, so overlaps and gaps can be seen."));
@@ -770,7 +624,7 @@ export function applicationPage(main, params, extraTabs = []) {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested, retiring, planning] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs, cost, contested, retiring, planning, history, overTime] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
@@ -781,10 +635,13 @@ export function applicationPage(main, params, extraTabs = []) {
         tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null,
         tab === "scores" ? get(`${base}/contests`, null, { fresh: true }) : null,
         tab === "retirement" ? get(`${base}/retirement`, null, { fresh: true }) : null,
-        tab === "retirement" ? import("../components/planning.js") : null]);
+        tab === "retirement" ? import("../components/planning.js") : null,
+        tab === "scores" ? get(`${base}/score-history`, null, { fresh: true }) : null,
+        tab === "scores" ? import("../components/over-time.js") : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
         interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null,
-        contests: contested?.data ?? null, retirement: retiring?.data ?? null, retiring: planning };
+        contests: contested?.data ?? null, retirement: retiring?.data ?? null, retiring: planning,
+        overTime: overTime ? overTime.overTime(history.data) : null };
     },
     view: (data, reload) => {
       const record = data.record;
@@ -797,7 +654,7 @@ export function applicationPage(main, params, extraTabs = []) {
       const extra = extraTabs.find(([key]) => key === tab);
       const body = tab === "history" ? card({ flush: true }, timeline(data.history))
         : tab === "scores" ? h("div", { class: "stack-lg" }, scoresTab(data.scores, { ref: record.ref, vocab: data.vocab }),
-          contestsCard(record.ref, data.scores, data.contests, reload))
+          contestsCard(record.ref, data.scores, data.contests, reload), data.overTime)
           : tab === "assessment" ? assessmentTab(record, ctx)
             : tab === "decisions" ? decisionsTab(record, data.decisions, data.vocab, { mayDecide: record.can?.decide, onDecide: decide })
             : tab === "components" ? componentsTab(record, ctx)

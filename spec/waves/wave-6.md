@@ -10,7 +10,7 @@ Leadership comes first here ([roadmap](../roadmap.md)): every figure is a link t
 
 The wave is done when, on a fresh checkout and on an installation upgraded from 0.5.0:
 
-1. A set of defined measures (applications in service, by disposition, annual cost, people served, assessed and confirmed in time, decided, at each maturity level) is shown with each figure a link to its list, and how each moved between two portfolio snapshots. Applications whose recommendation or decision changed, and whose scores rose or fell by half a point or more, are listed between any two snapshots. An application's page shows its scores over time (RPT-04).
+1. The dashboard's defined measures, each a link to its list, are joined by how the portfolio moved between two portfolio snapshots (or one and today): the figures each held (applications scored, with low confidence, by recommendation, each score's average), the applications whose recommendation changed, whose scores rose or fell by half a point or more, and whose flags came or went, and the decisions recorded between them. An application's page shows its scores over time (RPT-04).
 2. Reports by share of the portfolio (the costliest tenth, the least used fifth) are shown, and never feed a score (SCR-14).
 3. A leadership report for a period is worked out once and stored whole, with its SHA-256; opening it later shows what was stored, never the records as they are now; it prints cleanly (RPT-05).
 4. Any application, and the portfolio, can be shown as it stood on a chosen date, from the history (RPT-06).
@@ -31,16 +31,16 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: Measures and trends ☐
+## Slice 1: Measures and trends ☑
 
 **Goal:** what the portfolio looks like in figures, and how it moved.
 
-- [ ] Defined measures, each with its definition and a link to its list, now and at a portfolio snapshot
-- [ ] Movement between two snapshots: changed recommendations and decisions, scores that rose or fell
-- [ ] An application's scores over time
-- [ ] Shares of the portfolio: the costliest tenth, the least used fifth, and more
+- [x] The dashboard's measures, each with a link to its list, as they were (wave 1)
+- [x] Movement between two snapshots, or one and today: the figures each held, changed recommendations, scores that rose or fell, flags that came or went, applications added or gone, and the decisions recorded between them
+- [x] An application's scores over time
+- [x] Shares of the portfolio: the costliest tenth, the dearest tenth per user, the least used fifth, and the oldest fifth
 
-**Acceptance:** each measure's figure is the length of the list behind it, and movement between two snapshots lists exactly the applications that moved.
+**Acceptance:** movement between two snapshots lists exactly the applications that moved, and a share holds exactly its part of the applications with its figure.
 
 ## Slice 2: Leadership report ☐
 
@@ -78,3 +78,5 @@ None block the start. These defaults have been taken and can be changed before t
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+
+- **Trends read the snapshots as they were kept.** The dashboard already gives the measures now, each a link to its list; what was missing was how they moved. A portfolio snapshot keeps every scored application's scores, recommendation, confidence, and flags, so two of them say what moved without working anything out again; today's column is the one figure worked out now.

@@ -6350,6 +6350,50 @@
         ]
       }
     },
+    "/api/v1/applications/{ref}/score-history": {
+      "get": {
+        "operationId": "score_history_api_v1_applications__ref__score_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Score History Api V1 Applications  Ref  Score History Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application's scores over time",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
     "/api/v1/applications/{ref}/score-preview": {
       "post": {
         "description": "The scores these answers would give, from the same engine as the record. Nothing is\nsaved.",
@@ -15207,6 +15251,30 @@
         ]
       }
     },
+    "/api/v1/shares": {
+      "get": {
+        "description": "Which applications are at one end of the portfolio. A share never feeds a score.",
+        "operationId": "portfolio_shares_api_v1_shares_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Portfolio Shares Api V1 Shares Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Shares of the portfolio: the costliest tenth, and others",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
     "/api/v1/similar-applications": {
       "get": {
         "description": "Those already on record whose name or alias is close to this name or its aliases, or\nthat are the same product from the same vendor (INV-15).",
@@ -16398,6 +16466,71 @@
         "summary": "A technology's releases and their support",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/trends": {
+      "get": {
+        "description": "The figures each held, the applications whose recommendation changed, whose scores\nmoved by half a point or more, and whose flags came or went, and the decisions recorded\nbetween them.",
+        "operationId": "compare_snapshots_api_v1_trends_get",
+        "parameters": [
+          {
+            "description": "The earlier portfolio snapshot's reference",
+            "in": "query",
+            "name": "before",
+            "required": true,
+            "schema": {
+              "description": "The earlier portfolio snapshot's reference",
+              "title": "Before",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The later one; today if none",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The later one; today if none",
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Compare Snapshots Api V1 Trends Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "How the portfolio moved between two snapshots",
+        "tags": [
+          "insight"
         ]
       }
     },
