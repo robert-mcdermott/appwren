@@ -2,7 +2,7 @@
 
 **Goal:** decisions become planned, tracked change. Waves 1 to 4 made a record that is true, connected, kept current, and fed by the tools that already know it, and a decision recorded against it. This wave carries a decision through: the portfolio is reviewed on a cadence with an agenda drawn from what needs deciding; what is decided becomes an initiative on a roadmap with dates; a request for something new is checked against what already serves the need before anything is built or bought; an application cannot move to a stage without what that stage requires; and a retirement is a plan with a checklist that ends in savings on the record.
 
-**Branch:** `wave-5` · **Target version:** `0.5.0` · **Status:** ◐ in progress
+**Branch:** `wave-5` · **Target version:** `0.5.0` · **Status:** ☑ done
 
 The people who decide come first here ([roadmap](../roadmap.md)): a review that is quick to prepare and leaves a record of what was decided, and a roadmap that shows what the decisions commit the organization to.
 
@@ -83,12 +83,14 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** a plan with every step done retires its application with its savings on record, and the report's total is the sum of the plans behind it.
 
-## Slice 6: Release prep ☐
+## Slice 6: Release prep ☑
 
-- [ ] Guides, changelog, upgrade from 0.4.0 on both databases, audits, release, and the site republished
+- [x] Guides, changelog, upgrade from 0.4.0 on both databases, audits, release, and the site republished
 
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
 - **Stage gates never stop a retirement.** Stage requirements add up, stage by stage, so a move to *retired* would otherwise ask for a full record. Moving to a retired or archived stage, and moving back, need nothing.
 - **The demo's history was kept without gates.** Its two years were recorded before stage gates existed, so the builder records them with the gates off and the portfolio team switches them on six days before the build.
+- **The upgrade from 0.4.0 was checked on both databases.** A 0.4.0 demo built by 0.4.0, upgraded by this release: no row lost, the history verifies, every decision's snapshot digest is unchanged, the scoring model is unchanged, and none of the 107 applications' scores moved. The stage gates are on afterwards, as the changelog says.
+- **Reviews, initiatives, and requests are records.** Each has a reference, a unit, a history, and links, through the same machinery as every other record; their own parts (an agenda, the applications an initiative changes, a request's options and end) have routes of their own. A retirement plan belongs to its application, as its cost lines do.

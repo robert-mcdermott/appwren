@@ -25,7 +25,7 @@ const IMAGES = "img"; // the directory of screenshots, inside docs/ and on the s
 // Reading order, in groups. Each guide becomes a page of the same name.
 export const MENU = [
   ["Start", [["index", "Overview"], ["getting-started", "Getting started"]]],
-  ["Use", [["the-portfolio", "The portfolio"], ["the-landscape", "The landscape"], ["keeping-current", "Keeping current"], ["signals", "Facts from other systems"], ["running-the-program", "Running the program"]]],
+  ["Use", [["the-portfolio", "The portfolio"], ["the-landscape", "The landscape"], ["keeping-current", "Keeping current"], ["planning-change", "Planning change"], ["signals", "Facts from other systems"], ["running-the-program", "Running the program"]]],
   ["Run", [["configuration", "Configuration"]]],
   ["Reference", [["api", "The API"], ["api-reference", "API reference"], ["cli", "Command reference"], ["changelog", "Changelog"]]],
 ];
@@ -274,7 +274,7 @@ const TAGS = {
   system: "System", session: "Signing in", "single sign-on": "Single sign-on", people: "People and units", branding: "Appearance",
   inventory: "The inventory", "assessment and scores": "Assessment and scores", "decisions and the portfolio": "Decisions and the portfolio",
   landscape: "The landscape, and cost", "keeping current": "Keeping current", "reports, imports, and exports": "Reports, imports, and exports",
-  operations: "Scheduled work, email, and notices", connectors: "Facts from other systems", "catalog files": "Catalog files",
+  operations: "Scheduled work, email, and notices", connectors: "Facts from other systems", "catalog files": "Catalog files", planning: "Planning change",
 };
 
 function schemaType(schema) {

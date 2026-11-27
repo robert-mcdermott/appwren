@@ -920,7 +920,7 @@ function sharedOverview(type, record, ctx) {
   const split = h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
     h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)),
       sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
-      type === "review" ? null : externalCard(record, ctx)));
+      ["review", "request"].includes(type) ? null : externalCard(record, ctx)));
   // A review's agenda is the page: it takes the whole width.
   return type === "review" ? h("div", { class: "stack-lg" }, ctx.planning.reviewAgenda(record, ctx), split) : split;
 }

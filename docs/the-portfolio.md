@@ -76,7 +76,7 @@ An application moves through eight lifecycle stages: Proposed, Evaluating, Phase
 | Containment | A decision about what to do with it |
 | Phase-out | When it is planned to retire |
 
-What a stage requires is advice, not a gate: an application can be moved to any stage, and what it lacks is shown and counted on [Data quality](running-the-program.md#data-quality).
+**What a stage requires is a gate.** An application cannot move to a later stage without what that stage, and those before it, require: the editor, the API, an import, and a catalog file are refused, and say what is missing. Moving back, and retiring, need nothing, so a retirement is never stopped for want of a full record. What a record lacks for its stage is also shown on its page and counted on [Data quality](running-the-program.md#data-quality). The portfolio team can switch the gates off on **Admin → Program → Decisions**; the record then still shows what it lacks, but may move anyway.
 
 ### Links and other systems
 

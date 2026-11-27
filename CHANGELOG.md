@@ -4,7 +4,17 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.5.0 (2026-11-27)
+
+Wave 5, *Planning change*: decisions become planned, tracked change. A portfolio review
+draws its agenda from what needs deciding and keeps what it decided; a decision to change
+something becomes an initiative with its applications and dates, on a roadmap; a request for
+something new is checked against what already serves the need before anything is bought; an
+application cannot move to a later stage without what that stage requires; and a retirement
+is a plan with a checklist that ends with the application retired and its savings on record.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept, and no
+score moves. Stage gates are on after the upgrade: see **Changed**.
 
 ### Added
 
@@ -39,7 +49,6 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   with what is missing. Moving back, and retiring, need nothing. The gates are on by
   default and can be switched off on Admin → Program → Decisions, where a record still shows
   what it lacks.
-
 - **The retirement playbook.** On an application's new Retirement part, whoever keeps it
   starts a plan with a date (its planned retirement moves with it) and works through a
   checklist: its users told, its data archived and where, its interfaces removed, its
@@ -47,10 +56,13 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   by a named person on a date with a note. With every step done, completing the plan
   retires the application and keeps its annual cost as the savings. Reports → Retirements
   lists those under way, those done, and the savings by year.
+- **Planning change,** a new guide, and the API page's routes for it.
 
 ### Changed
 
 - Home gives tasks, campaigns, and reviews icons of their own.
+- Three rarely opened dialogs on a record's page (what a component is built on, a
+  technology's releases, and what a contract covers) load when they are opened.
 - **Breaking:** with the gates on by default, an import or an API call that moves an
   application to a later stage without what that stage requires is now refused. Switch the
   gates off to keep the old behaviour.

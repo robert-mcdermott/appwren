@@ -99,18 +99,18 @@ Detail: [waves/wave-3.md](waves/wave-3.md)
 
 Detail: [waves/wave-4.md](waves/wave-4.md)
 
-## Wave 5: Planning change (v0.5.0) ◐
+## Wave 5: Planning change (v0.5.0) ☑
 
 **Goal:** decisions become planned, tracked change.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Review cycles | A portfolio review with its scope, agenda, recommendations and mismatches, and the decisions taken | ☐ |
-| 2 | Initiatives and roadmap | Initiatives linked to applications, on a roadmap with their dates | ☐ |
-| 3 | Intake | A request for something new, a check for what already serves the need, a build, buy, or partner evaluation | ☐ |
-| 4 | Stage gates | Required fields enforced at each lifecycle stage | ☐ |
-| 5 | Retirement playbook | The plan, the checklist, archival of data, and savings realized | ☐ |
-| 6 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Review cycles | A portfolio review with its scope, agenda, recommendations and mismatches, and the decisions taken | ☑ |
+| 2 | Initiatives and roadmap | Initiatives linked to applications, on a roadmap with their dates | ☑ |
+| 3 | Intake | A request for something new, a check for what already serves the need, a build, buy, or partner evaluation | ☑ |
+| 4 | Stage gates | Required fields enforced at each lifecycle stage | ☑ |
+| 5 | Retirement playbook | The plan, the checklist, archival of data, and savings realized | ☑ |
+| 6 | Release prep | Guides, changelog, release | ☑ |
 
 Detail: [waves/wave-5.md](waves/wave-5.md)
 

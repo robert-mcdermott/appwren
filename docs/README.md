@@ -1,6 +1,6 @@
 # AppWren documentation
 
-These guides describe AppWren 0.4.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
+These guides describe AppWren 0.5.0, and are published with pictures at <https://robert-mcdermott.github.io/appwren/>. Read them in this order if you are new, or go straight to the one for your part.
 
 ## The guides
 
@@ -10,10 +10,11 @@ These guides describe AppWren 0.4.0, and are published with pictures at <https:/
 | 2 | [The portfolio](the-portfolio.md) | Everyone who keeps, assesses, or reads an application | What counts as an application, the record and its stages, components and technologies, capabilities, assessment, the scores and their working, recommendations, flags, decisions, cost lines, funding, contracts, import and export |
 | 3 | [The landscape](the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches | Interfaces and data flows, the picture of how a record is connected, what breaks if an application goes, hosting platforms and deployments, overlap, the capability map and its measures, the lifecycle timeline, the radar, support dates from a file, who handles a class of data |
 | 4 | [Keeping current](keeping-current.md) | Everyone who keeps an application, and the portfolio team | Home and the bell, reminders, email, confirming a record and what a stale one costs, campaigns, tasks raised by what happens, passing on what someone holds, search and saved views, likely duplicates, contesting a score |
-| 5 | [Facts from other systems](signals.md) | Administrators who connect other tools, and everyone who reads what they supply | Connectors (end-of-life data, source code hosting, the identity provider), values from other systems and overriding them, applications not on record, push keys and the facts API, catalog files, engineering maturity, signals in the scores |
-| 6 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields and contracts, shaping the program in the app or with a pack, its versions, what an upgrade does, the dashboard, Home, data quality, portfolio snapshots, scheduled work and email, the history, appearance |
-| 7 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, scheduled work, connector credentials, optional email and single sign-on, PostgreSQL, upgrading, reverse proxies, the demo guard |
-| 8 | [API](api.md) | Anyone connecting another system | Sign-in, the CSRF token, responses, errors, lists, and a table of routes |
+| 5 | [Planning change](planning-change.md) | The people who decide what happens to applications, and those who carry it out | Portfolio reviews and their agendas, initiatives and the roadmap, requests for something new, stage gates, the retirement playbook and savings |
+| 6 | [Facts from other systems](signals.md) | Administrators who connect other tools, and everyone who reads what they supply | Connectors (end-of-life data, source code hosting, the identity provider), values from other systems and overriding them, applications not on record, push keys and the facts API, catalog files, engineering maturity, signals in the scores |
+| 7 | [Running the program](running-the-program.md) | The portfolio team, and administrators | Roles and scope, who sees what, sensitive fields and contracts, shaping the program in the app or with a pack, its versions, what an upgrade does, the dashboard, Home, data quality, portfolio snapshots, scheduled work and email, the history, appearance |
+| 8 | [Configuration](configuration.md) | Whoever runs the server | `appwren.toml`, environment overrides, the data home, scheduled work, connector credentials, optional email and single sign-on, PostgreSQL, upgrading, reverse proxies, the demo guard |
+| 9 | [API](api.md) | Anyone connecting another system | Sign-in, the CSRF token, responses, errors, lists, and a table of routes |
 
 ## Reference
 
@@ -52,6 +53,11 @@ These two are written from the code, so they always match the version they ship 
 | What falls out of support next year, and what runs on it? | [Lifecycle](the-landscape.md#lifecycle) |
 | Which applications run on a particular release, such as .NET 6? | [Which applications run on a release](the-landscape.md#which-applications-run-on-a-release) |
 | How do I avoid typing support dates? | [End-of-life data](signals.md#end-of-life-data), or [support dates from a file](the-landscape.md#support-dates-from-a-file) |
+| How do I prepare a portfolio review? | [Portfolio reviews](planning-change.md#portfolio-reviews) |
+| What have our decisions committed us to, and when? | [Initiatives and the roadmap](planning-change.md#initiatives-and-the-roadmap) |
+| Someone wants a new tool. Do we already have one? | [Requests for something new](planning-change.md#requests-for-something-new) |
+| Why can I not move this application to Active? | [Stage gates](planning-change.md#stage-gates) |
+| How do we retire an application, and what did it save? | [Retiring an application](planning-change.md#retiring-an-application) |
 | Can AppWren read what our repositories, sign-ins, or service desk know? | [Facts from other systems](signals.md) |
 | Where did this value come from, and how do I correct it? | [Values from other systems](signals.md#values-from-other-systems) |
 | What do people sign in to that is not on record? | [Not on record](signals.md#not-on-record) |

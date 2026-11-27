@@ -4,7 +4,7 @@ This guide is for everyone who keeps an application, and for the portfolio team.
 
 ## What is waiting on you
 
-**Home** lists what is yours to do, most urgent first: an application not assessed or whose assessment has expired, a record due to be confirmed, a task, what a campaign asks of you, a flag on one of your applications, and what a record lacks for its stage.
+**Home** lists what is yours to do, most urgent first: an application not assessed or whose assessment has expired, a record due to be confirmed, a task, what a campaign asks of you, a flag on one of your applications, what a record lacks for its stage, and a [portfolio review](planning-change.md#portfolio-reviews) you run that is coming up.
 
 The **bell** in the top bar counts what is new for you. It opens **Notices**: each reminder, task, campaign, and answer, newest first, with a link to where to act.
 
