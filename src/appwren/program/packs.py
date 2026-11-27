@@ -110,6 +110,18 @@ def check(pack: Any) -> list[str]:
                 found.append(f"Every value of {name} needs a key and a label.")
             elif len(set(keys)) != len(keys):
                 found.append(f"A key appears twice in {name}.")
+            if name == "external_systems":
+                for item in items:
+                    pattern = item.get("url") if isinstance(item, Mapping) else None
+                    if pattern and not (
+                        isinstance(pattern, str)
+                        and pattern.startswith("https://")
+                        and "{id}" in pattern
+                    ):
+                        found.append(
+                            f"The address pattern for {item.get('key')} must begin https:// "
+                            "and say where the identifier goes, as {id}."
+                        )
     builtin = {field.name for field in APPLICATION.fields} | HEADER
     if "fields" in pack:
         found += catalog.check_fields(pack["fields"], builtin)

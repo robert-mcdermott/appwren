@@ -12,7 +12,7 @@ from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, CONTRACT, find_any
-from appwren.landscape import costs, graph, interfaces, lifecycle, overlap
+from appwren.landscape import costs, graph, handling, interfaces, lifecycle, overlap
 
 router = APIRouter(prefix="/api/v1", tags=["landscape"])
 
@@ -170,3 +170,61 @@ def import_end_of_life(
     principal = current(request)
     with writing(request, principal.actor) as session:
         return envelope(lifecycle.import_end_of_life(session, principal, body, dry_run=dry_run))
+
+
+# --- Evidence for other processes -----------------------------------------------------------
+
+
+@router.get("/data-handling", summary="The applications that handle a class of data")
+def data_handling(
+    request: Request,
+    data_class: str | None = Query(default=None, description="A class of data, by its key"),
+) -> dict[str, Any]:
+    """How many applications in service handle each class of data; and, for the class
+    chosen, each of them with its owner, sourcing, hosting, sign-in, technologies and their
+    support, the interfaces that carry the class, and the standing of its data agreement.
+    The same rows are exported by ``/exports/data-handling``."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(handling.handling(session, principal, data_class))
+
+
+@router.get("/history", summary="Every change, newest first, for those who read everything")
+def whole_history(
+    request: Request,
+    actor: int | None = Query(default=None, description="An account's id"),
+    about: str | None = Query(default=None, description="A record's reference"),
+    kind: str | None = Query(default=None, description="A kind of record, records, or other"),
+    since: str | None = Query(default=None, description="From this date, year-month-day"),
+    until: str | None = Query(default=None, description="Up to and including this date"),
+    before: int | None = Query(default=None, description="The `next` of the page before"),
+) -> dict[str, Any]:
+    from datetime import UTC, date, datetime, timedelta
+
+    from appwren.core.errors import Invalid
+    from appwren.inventory import history
+
+    def day(value: str | None, field: str, *, end: bool = False) -> datetime | None:
+        if not value:
+            return None
+        try:
+            found = date.fromisoformat(value)
+        except ValueError:
+            raise Invalid(
+                "The dates were not understood.", {field: "Give a date, as year-month-day."}
+            ) from None
+        moment = datetime(found.year, found.month, found.day, tzinfo=UTC)
+        return moment + timedelta(days=1) if end else moment
+
+    with reading(request) as session:
+        return envelope(
+            history.everywhere(
+                session,
+                actor=actor,
+                about=find_any(session, about) if about else None,
+                kind=kind or None,
+                since=day(since, "since"),
+                until=day(until, "until", end=True),
+                before=before,
+            )
+        )

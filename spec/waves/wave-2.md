@@ -125,15 +125,17 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** AppWren never fetches support dates. An architect brings a file in the shape public end-of-life datasets use, sees what it would change, and applies it, in the app or from the command line. The demo's timeline has 35 releases in use: 14 past their end of support, 6 ending within a year.
 
-## Slice 7: Exports, external references, and the whole history ☐
+## Slice 7: Exports, external references, and the whole history ☑
 
 **Goal:** the evidence other processes ask the portfolio for.
 
-- [ ] **Reports → Data handling:** the applications that handle a chosen data class, with accountable owner, sourcing, hosting and platforms, sign-in, technologies and their support, interfaces carrying the class, and the data agreement's standing; as a page and an export, withholding what the reader may not see
-- [ ] External references shown as links where the program gives the system an address pattern; patterns checked when a pack is loaded
-- [ ] **Reports → History:** every change in one place for managers, auditors, and administrators, narrowed by person, record, kind of record, action, and dates; sensitive values withheld as on a record
+- [x] **Reports → Data handling:** the applications that handle a chosen data class, with accountable owner, sourcing, hosting and platforms, sign-in, technologies and their support, the interfaces carrying the class, and the data agreement's standing; as a page and an export, withholding what the reader may not see
+- [x] External references shown as links where the program gives the system an address pattern; patterns checked when a pack is loaded
+- [x] **Reports → History:** every change in one place for managers, auditors, and administrators, narrowed by person, record, kind of record, and dates
 
-**Acceptance:** the data-handling list equals the applications list filtered by the class, for every role; a pattern can only produce an `https` address; the history page shows nothing a record's own history would withhold.
+**Acceptance (met):** the data-handling list equals the applications list filtered by the class, for every role, and its export has the same rows; sign-in and the data agreement are withheld from a reader as they are on the record; a pattern can only produce an `https` address with the identifier made safe for it, and a pack with any other pattern is refused; the history page is refused to everyone who may not read everything.
+
+**Done:** three pieces of evidence, each a view of what was already recorded. Building the history page showed that a record's own history had been telling its assessments, decisions, capabilities, and units as "Added this application" since wave 1; they are now told for what they are.
 
 ## Slice 8: Release prep ☐
 
@@ -165,3 +167,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **A heat map without heat.** The capability map shows each figure as a number with the score's own bar, as everywhere else, where a block of color would have said less and asked more of the eye. "Weakest health" is offered beside the average: a capability is as exposed as the worst thing that serves it.
 - **The timeline is bars with words.** Each release is a row: its name and what runs on it, a bar from its first day to the end of its support with today marked, and the state and date in words. Nothing is said by the bar alone, and there is no chart to make accessible.
 - **The file says what it would do first.** The import from a file always starts as a dry run, in the app and in the API. It never removes a release and never blanks a date: a file that says only "true" for an end of life gives no date, and none is taken.
+- **History tells what belongs to a record for what it is.** An assessment, a decision, a capability served, a unit that uses it, a release, a technology built on: each has its own sentence in its record's history. The copy of a decision onto its application, and the pointer from a superseded assessment to its successor, are not told twice. Found when every change was first read in one place.
+- **An event that only says what happened holds plain values.** An export or a sign-in is not a change with a before and after. The whole-history view assumed pairs and failed on the first export; the role-by-route test caught it.

@@ -15,6 +15,7 @@ from appwren.db.engine import Database
 from appwren.db.models import Application, HostingPlatform, PortfolioSnapshot, Technology
 from appwren.demo import build
 from appwren.events import chain
+from appwren.inventory import history as record_history
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION, CONTRACT, DEPLOYMENT, INTERFACE, TECHNOLOGY
 from appwren.landscape import costs, graph, hosting, interfaces, lifecycle, overlap
@@ -186,6 +187,17 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         placed = lifecycle.radar(session, ME)
         assert [ring["key"] for ring in placed["rings"]] == ["adopt", "trial", "assess", "hold"]
         assert all(ring["technologies"] for ring in placed["rings"])
+        # A record's history tells what belongs to it for what it is: an application is
+        # added once, and its assessments, decisions, capabilities, and units are named.
+        story = [
+            item["title"] for item in record_history.for_record(session, APPLICATION, scheduler)
+        ]
+        assert story.count("Added this application") == 1
+        assert any(title.startswith("Recorded a decision to maintain (DEC-") for title in story)
+        assert any(title.startswith("Recorded an assessment (ASM-") for title in story)
+        assert any(title.startswith("Now serves ") for title in story)
+        assert any(title.startswith("Now used by ") for title in story)
+        assert "Edited" not in story  # the copy of the decision is not told twice
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

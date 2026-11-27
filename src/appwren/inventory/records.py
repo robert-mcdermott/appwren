@@ -494,7 +494,7 @@ def external_refs_of(
         pattern = str(system.get("url") or "")
         link = (
             pattern.replace("{id}", quote(row.value, safe=""))
-            if pattern.startswith(("https://", "http://")) and "{id}" in pattern
+            if pattern.startswith("https://") and "{id}" in pattern
             else None
         )
         found[row.record_id].append(

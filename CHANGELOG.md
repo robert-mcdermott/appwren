@@ -54,6 +54,14 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   dates** on the Technologies page, adds releases and updates their dates from a file of
   end-of-life data, matched by each technology's end-of-life key. It says what it would
   change before it changes anything, and removes nothing. AppWren does not fetch the file.
+- **Data handling.** Reports → Data handling lists the applications that handle a chosen class
+  of data, with who answers for each, where it runs, how people sign in, what it is built on
+  and whether that is supported, the interfaces that carry the class, and whether a data
+  agreement covers it. The same rows export as CSV or JSON.
+- **History, in one place.** Reports → History shows every change, newest first, to managers,
+  auditors, and administrators: narrowed to a person, a record, a kind of record, or dates.
+- **Links to other systems.** An identifier in another system is shown as a link where the
+  program gives that system an address pattern, such as `https://code.example.org/{id}`.
 - Lists of applications, the portfolio list, and their exports can be narrowed by capability
   and by class of data.
 
@@ -68,6 +76,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   the default program when it chooses.
 - A record's history names the vendor, application, or person a change refers to, where it
   showed a number.
+
+### Fixed
+
+- A record's history told an assessment, a decision, a capability served, and a unit that
+  uses an application each as "Added this application". Each is now told for what it is, and
+  the copy of a decision onto its application is no longer told as a second change.
 
 ## 0.1.0 (2026-11-26)
 

@@ -410,4 +410,6 @@ APPLICATION.extra.update(
     "to it.",
     history_vocabularies={"data_classes": "data_classes"},
     history_labels={"fields": "The organization's fields"},
+    # Copies of the decision on record, kept for lists: the decision's own entry tells them.
+    history_quiet=("disposition", "review_on"),
 )

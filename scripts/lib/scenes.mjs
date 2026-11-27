@@ -85,5 +85,9 @@ export const SCENES = [
   { name: "appearance", as: "admin", path: "/admin/appearance" },
   { name: "admin-sso", as: "admin", path: "/admin/sso" },
   { name: "account", as: "rse", path: "/account" },
+  { name: "data-handling", as: "portfolio", path: "/data-handling?data_class=health" },
+  { name: "data-handling-member", as: "rse", path: "/data-handling?data_class=identifiable_research" },
+  { name: "history", as: "auditor", path: "/history" },
+  { name: "history-everything", as: "auditor", path: "/history?kind=all" },
   { name: "auditor", as: "auditor", path: "/applications" },
 ];

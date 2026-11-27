@@ -6197,6 +6197,60 @@
         ]
       }
     },
+    "/api/v1/data-handling": {
+      "get": {
+        "description": "How many applications in service handle each class of data; and, for the class\nchosen, each of them with its owner, sourcing, hosting, sign-in, technologies and their\nsupport, the interfaces that carry the class, and the standing of its data agreement.\nThe same rows are exported by ``/exports/data-handling``.",
+        "operationId": "data_handling_api_v1_data_handling_get",
+        "parameters": [
+          {
+            "description": "A class of data, by its key",
+            "in": "query",
+            "name": "data_class",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A class of data, by its key",
+              "title": "Data Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Data Handling Api V1 Data Handling Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The applications that handle a class of data",
+        "tags": [
+          "landscape"
+        ]
+      }
+    },
     "/api/v1/data-quality": {
       "get": {
         "operationId": "data_quality_api_v1_data_quality_get",
@@ -7289,6 +7343,149 @@
         "summary": "Can the server do its work?",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/history": {
+      "get": {
+        "operationId": "whole_history_api_v1_history_get",
+        "parameters": [
+          {
+            "description": "An account's id",
+            "in": "query",
+            "name": "actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "An account's id",
+              "title": "Actor"
+            }
+          },
+          {
+            "description": "A record's reference",
+            "in": "query",
+            "name": "about",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A record's reference",
+              "title": "About"
+            }
+          },
+          {
+            "description": "A kind of record, records, or other",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A kind of record, records, or other",
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "From this date, year-month-day",
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "From this date, year-month-day",
+              "title": "Since"
+            }
+          },
+          {
+            "description": "Up to and including this date",
+            "in": "query",
+            "name": "until",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Up to and including this date",
+              "title": "Until"
+            }
+          },
+          {
+            "description": "The `next` of the page before",
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The `next` of the page before",
+              "title": "Before"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Whole History Api V1 History Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Every change, newest first, for those who read everything",
+        "tags": [
+          "landscape"
         ]
       }
     },
