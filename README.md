@@ -62,9 +62,15 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.8.0 fits AppWren into the systems around it, all of it optional.
+Version 0.9.0 is the release 1.0 is made from: who uses each application, upgrades from every release checked, and the compatibility promise written down for review.
 
-**Connected, new in 0.8.0**
+**Toward 1.0, new in 0.9.0**
+
+- **Who uses it:** everyone in the organization, or the units and the kinds of people who use an application wherever they work, such as managers and supervisors, or hourly employees and contractors; with filters for what a kind of people or everyone in a unit uses.
+- **Upgrades checked from every release:** a demo built by each release from 0.1.0 on is upgraded to this one, on SQLite and PostgreSQL, keeping every row and file.
+- **The compatibility statement:** what 1.x will keep the same, and how something is deprecated, as a draft until 1.0.0.
+
+**Connected, from 0.8.0**
 
 - **The checkpoint:** another process asks whether an application is approved for new use, or for a class of data, and is told every reason.
 - **Tokens of your own, and suggestions:** a token that acts as you, reads, and proposes changes that wait on the record until someone who keeps it accepts them.

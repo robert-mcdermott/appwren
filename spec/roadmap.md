@@ -156,17 +156,17 @@ Detail: [waves/wave-6.md](waves/wave-6.md)
 | 4 | Other governance records | Links to records in other systems of record, with their standing | ☑ |
 | 5 | Release prep | Guides, changelog, release | ☑ |
 
-## Wave 9: Toward 1.0 (v0.9.0) ◐
+## Wave 9: Toward 1.0 (v0.9.0) ☑
 
 **Goal:** the release that 1.0 is made from: the first changes an adopter asked for, upgrades from every earlier release checked by script, the compatibility promise written down, and the threat table walked again.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Who uses it | Everyone in the organization, units, or kinds of people across it, such as managers or hourly employees; a filter by kind of people; who would be affected if it went | ☐ |
-| 2 | Upgrades | Every release since the first upgrades with every row and file kept, on both databases, checked by script | ☐ |
-| 3 | The 1.0 promise | A compatibility statement for the API, configuration file, pack formats, and data home, and deprecation rules, in force from 1.0.0 | ☐ |
-| 4 | Hardened | The threat table walked by a second reviewer; load and soak tests | ☐ |
-| 5 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Who uses it | Everyone in the organization, units, or kinds of people across it, such as managers or hourly employees; a filter by kind of people; who would be affected if it went | ☑ |
+| 2 | Upgrades | Every release since the first upgrades with every row and file kept, on both databases, checked by script | ☑ |
+| 3 | The 1.0 promise | A compatibility statement for the API, configuration file, pack formats, and data home, and deprecation rules, in force from 1.0.0 | ☑ |
+| 4 | Hardened | The threat table walked by a second reviewer; load and soak tests | ☑ |
+| 5 | Release prep | Guides, changelog, release | ☑ |
 
 Detail: [waves/wave-9.md](waves/wave-9.md)
 
