@@ -128,7 +128,7 @@ Detail: [waves/wave-5.md](waves/wave-5.md)
 
 Detail: [waves/wave-6.md](waves/wave-6.md)
 
-## Wave 7: Adoption (v0.7.0) ☐
+## Wave 7: Adoption (v0.7.0) ◐
 
 **Goal:** an organization that has never seen AppWren installs it, makes it its own, and runs it in production.
 
