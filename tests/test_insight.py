@@ -80,3 +80,48 @@ def test_shares_of_the_portfolio(as_role: Clients, db: Database, people: People)
     least = by_key["least_used"]
     assert [item["name"] for item in least["items"]] == ["App 0", "App 1"]  # a fifth of ten
     assert least["threshold"] == 20
+
+
+def test_a_report_is_kept_as_it_was_made(as_role: Clients, db: Database, people: People) -> None:
+    from datetime import timedelta
+
+    from appwren.core import clock
+    from appwren.db.models import Report
+
+    kept = add_app(db, people, name="Kept", annual_cost=12_000)
+    decide(db, people, "manager", kept, disposition="maintain")
+    snapshot(db, people, "Start")
+    snapshot(db, people, "End")
+    manager = as_role("manager")
+    on = clock.today()
+    period = {"title": "This quarter", "period_from": (on - timedelta(days=90)).isoformat(),
+              "period_to": on.isoformat()}  # fmt: skip
+    assert as_role("leader").post("/api/v1/reports", json=period).status_code == 403
+    late = {**period, "period_to": (on + timedelta(days=1)).isoformat()}
+    assert manager.post("/api/v1/reports", json=late).status_code == 422
+    backwards = {**period, "period_from": on.isoformat(),
+                 "period_to": (on - timedelta(days=1)).isoformat()}  # fmt: skip
+    assert manager.post("/api/v1/reports", json=backwards).status_code == 422
+    made = manager.post("/api/v1/reports", json=period)
+    assert made.status_code == 201, made.text
+    report = made.json()["data"]
+    assert report["ref"].startswith("RPT-") and report["intact"] and len(report["digest"]) == 64
+    content = report["content"]
+    assert content["decided"]["count"] == 1
+    assert content["decided"]["items"][0]["name"] == "Kept"
+    assert content["portfolio"]["total"] == 1 and content["portfolio"]["cost"] == 12_000
+    assert content["movement"]["before"]["name"] == "Start"
+    # The records change; the report does not.
+    add_app(db, people, name="Added after")
+    decide(db, people, "manager", kept, disposition="invest")
+    again = as_role("auditor").get(f"/api/v1/reports/{report['ref']}").json()["data"]
+    assert again["content"] == content and again["digest"] == report["digest"] and again["intact"]
+    assert [row["ref"] for row in manager.get("/api/v1/reports").json()["data"]] == [report["ref"]]
+    assert as_role("member").get(f"/api/v1/reports/{report['ref']}").status_code == 403
+    # Anything altered behind it shows: the digest no longer matches.
+    with db.read() as session:
+        row = session.query(Report).one()
+        tampered = {**row.content, "decided": {"count": 0}}
+    with db.engine.begin() as connection:  # behind the application's back
+        connection.execute(Report.__table__.update().values(content=tampered))
+    assert not manager.get(f"/api/v1/reports/{report['ref']}").json()["data"]["intact"]

@@ -129,6 +129,7 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 | [The landscape](docs/the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches |
 | [Keeping current](docs/keeping-current.md) | Everyone who keeps an application, and the portfolio team |
 | [Planning change](docs/planning-change.md) | The people who decide what happens to applications, and those who carry it out |
+| [Insight](docs/insight.md) | The portfolio team, and leadership |
 | [Facts from other systems](docs/signals.md) | Administrators who connect other tools, and everyone who reads what they supply |
 | [Running the program](docs/running-the-program.md) | The portfolio team, and administrators |
 | [Configuration](docs/configuration.md) | Whoever runs the server |

@@ -79,6 +79,10 @@ async function boot() {
   route("/retirements", page("retirements", "retirementReport"));
   route("/trends", page("trends", "trendsPage"));
   route("/shares", page("shares", "sharesPage"));
+  if (can("read_all")) {
+    route("/reports", page("reports", "reportList"));
+    route("/reports/:ref", page("reports", "reportPage"));
+  }
   if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));

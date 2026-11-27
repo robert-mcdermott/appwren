@@ -267,6 +267,17 @@ See [Planning change](planning-change.md).
 | `PUT /applications/{ref}/retirement/steps/{step}` · `POST /applications/{ref}/retirement/complete` | Mark a step `done`, or not, with a `note`; complete the plan, every step done, retiring the application and keeping its savings |
 | `GET /retirements` | Retirements under way and done, with the savings by year |
 
+### Insight
+
+See [Insight](insight.md).
+
+| Route | What it does |
+|---|---|
+| `GET /trends` | How the portfolio moved from the snapshot `before` to the snapshot `after`, or to today without one: the figures each held, what moved, and the decisions recorded between them |
+| `GET /applications/{ref}/score-history` | Its scores at each portfolio snapshot and each decision, oldest first |
+| `GET /shares` | The costliest tenth, the dearest tenth per user, the least used fifth, and the oldest fifth of the applications in service |
+| `GET` · `POST /reports` · `GET /reports/{ref}` | Leadership reports, the latest period first; make one with a `title`, `period_from`, and `period_to` (a manager); one report as it was made, with its `digest` and whether it is `intact`. Read by those who may see every record |
+
 ### The program and the installation
 
 | Route | What it does |

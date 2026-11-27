@@ -3090,6 +3090,33 @@
         "title": "ReleasesBody",
         "type": "object"
       },
+      "ReportBody": {
+        "properties": {
+          "period_from": {
+            "description": "The first day of the period, YYYY-MM-DD",
+            "title": "Period From",
+            "type": "string"
+          },
+          "period_to": {
+            "description": "Its last day, today or earlier",
+            "title": "Period To",
+            "type": "string"
+          },
+          "title": {
+            "description": "What the report is called",
+            "maxLength": 200,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "period_from",
+          "period_to"
+        ],
+        "title": "ReportBody",
+        "type": "object"
+      },
       "RequestBody": {
         "description": "A request for something new. Its summary is the need; its options and how it ends are\nset apart, at ``/requests/{ref}/...``.",
         "properties": {
@@ -13385,6 +13412,116 @@
         "summary": "The technologies in use, by ring",
         "tags": [
           "landscape"
+        ]
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "operationId": "list_reports_api_v1_reports_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Reports Api V1 Reports Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Leadership reports, the latest period first",
+        "tags": [
+          "insight"
+        ]
+      },
+      "post": {
+        "description": "Works the report out from the records as they are now, and keeps it whole. Reopening it\nreads what was kept.",
+        "operationId": "make_report_api_v1_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Make Report Api V1 Reports Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Make a leadership report for a period",
+        "tags": [
+          "insight"
+        ]
+      }
+    },
+    "/api/v1/reports/{ref}": {
+      "get": {
+        "description": "The report as stored, with its digest and whether it still matches.",
+        "operationId": "get_report_api_v1_reports__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Report Api V1 Reports  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A leadership report, as it was made",
+        "tags": [
+          "insight"
         ]
       }
     },

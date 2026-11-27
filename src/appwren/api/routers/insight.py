@@ -1,15 +1,16 @@
 """Insight: trends between portfolio snapshots, scores over time, and shares of the
-portfolio (RPT-04, SCR-14)."""
+portfolio (RPT-04, SCR-14), and leadership reports (RPT-05)."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, Query, Request
+from pydantic import BaseModel, Field
 
 from appwren.access.policy import current
-from appwren.api.common import envelope, reading
-from appwren.insight import shares, trends
+from appwren.api.common import envelope, reading, writing
+from appwren.insight import reports, shares, trends
 from appwren.inventory import records
 from appwren.inventory.registry import APPLICATION
 
@@ -44,3 +45,34 @@ def portfolio_shares(request: Request) -> dict[str, Any]:
     principal = current(request)
     with reading(request) as session:
         return envelope(shares.shares(session, principal))
+
+
+class ReportBody(BaseModel):
+    title: str = Field(max_length=200, description="What the report is called")
+    period_from: str = Field(description="The first day of the period, YYYY-MM-DD")
+    period_to: str = Field(description="Its last day, today or earlier")
+
+
+@router.get("/reports", summary="Leadership reports, the latest period first")
+def list_reports(request: Request) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(reports.listing(session, principal))
+
+
+@router.post("/reports", summary="Make a leadership report for a period", status_code=201)
+def make_report(request: Request, body: ReportBody) -> dict[str, Any]:
+    """Works the report out from the records as they are now, and keeps it whole. Reopening it
+    reads what was kept."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        row = reports.make(session, principal, body.model_dump())
+        return envelope(reports.view(row))
+
+
+@router.get("/reports/{ref}", summary="A leadership report, as it was made")
+def get_report(request: Request, ref: str) -> dict[str, Any]:
+    """The report as stored, with its digest and whether it still matches."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(reports.view(reports.load(session, principal, ref)))

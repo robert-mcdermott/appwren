@@ -16,6 +16,11 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **Shares of the portfolio.** Reports → Shares of the portfolio lists the costliest tenth,
   the dearest tenth per user, the least used fifth, and the oldest fifth of the
   applications in service. A share never feeds a score.
+- **Leadership reports.** A manager makes a report for a period under Reports → Leadership
+  reports: where the portfolio stood, how the scores moved between the period's snapshots,
+  the decisions taken, the reviews closed, initiatives, requests, and retirements with their
+  savings. It is worked out once and kept whole, with its SHA-256 digest checked whenever it
+  is opened, and prints cleanly. A new guide, *Insight*, covers these.
 
 ### Changed
 

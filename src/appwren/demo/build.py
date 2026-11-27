@@ -1952,6 +1952,21 @@ class Builder:
                     app = records.load(session, manager, APPLICATION, self.apps[app_name])
                     rt.mark(session, manager, app, key, True, notes[key].split(",")[0])
 
+    def reports(self) -> None:
+        """A leadership report for the last full quarter, made by the portfolio manager."""
+        from appwren.insight import reports
+
+        day = self.end.date()
+        first = date(day.year, (day.month - 1) // 3 * 3 + 1, 1)
+        end = first - timedelta(days=1)
+        start = date(end.year, (end.month - 1) // 3 * 3 + 1, 1)
+        quarter = (start.month - 1) // 3 + 1
+        manager = self.principal(self.cast["portfolio"])
+        with clock_set_to(lambda: self.end), self.db.write(manager.actor) as session:
+            reports.make(session, manager, {"title": f"Portfolio report, Q{quarter} {start.year}",
+                                            "period_from": start, "period_to": end})  # fmt: skip
+        self.tally("leadership reports")
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1998,6 +2013,7 @@ class Builder:
         self.initiatives()
         self.requests()
         self.retirements()
+        self.reports()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

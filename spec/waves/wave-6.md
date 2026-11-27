@@ -42,13 +42,13 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** movement between two snapshots lists exactly the applications that moved, and a share holds exactly its part of the applications with its figure.
 
-## Slice 2: Leadership report ☐
+## Slice 2: Leadership report ☑
 
 **Goal:** a report for a budget or roadmap meeting that reopens unchanged.
 
-- [ ] `report`: a period, worked out once and stored whole with its SHA-256
-- [ ] What it holds: the measures and how they moved, decisions taken, reviews held, initiatives, requests, retirements and savings, and the flags that matter
-- [ ] A page that prints cleanly
+- [x] `report`: a period, worked out once and stored whole with its SHA-256
+- [x] What it holds: the measures and how they moved, decisions taken, reviews held, initiatives, requests, retirements and savings, and the flags that matter
+- [x] A page that prints cleanly
 
 **Acceptance:** a report reopened after the records change shows exactly what it showed when made, and its digest checks.
 

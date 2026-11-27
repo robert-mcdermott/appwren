@@ -150,6 +150,9 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("GET", "/api/v1/trends"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/score-history"): Needs.MEMBER,
     ("GET", "/api/v1/shares"): Needs.MEMBER,
+    ("GET", "/api/v1/reports"): Needs.READ_ALL,
+    ("POST", "/api/v1/reports"): Needs.MANAGE,
+    ("GET", "/api/v1/reports/{ref}"): Needs.READ_ALL,
     # Engineering maturity, for anyone, of what they may see
     ("GET", "/api/v1/maturity"): Needs.MEMBER,
     ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,

@@ -47,6 +47,7 @@ export const NAV = [
     heading: "Reports",
     items: [
       { href: "/dashboard", label: "Dashboard", iconName: "dashboard" },
+      { href: "/reports", label: "Leadership reports", iconName: "list", when: "read_all" },
       { href: "/trends", label: "Trends", iconName: "chart" },
       { href: "/shares", label: "Shares of the portfolio", iconName: "chart" },
       { href: "/data-quality", label: "Data quality", iconName: "quality" },

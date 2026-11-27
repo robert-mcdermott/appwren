@@ -165,6 +165,9 @@ export const SCENES = [
   // Insight (wave 6)
   { name: "trends", as: "portfolio", path: "/trends" },
   { name: "shares", as: "portfolio", path: "/shares" },
+  { name: "reports", as: "portfolio", path: "/reports" },
+  { name: "report-make", as: "portfolio", path: "/reports", step: click("Make a report") },
+  { name: "report", as: "portfolio", path: async (page) => `/reports/${await first("/api/v1/reports")(page)}` },
   { name: "application-over-time", as: "portfolio", path: app("Freezer Watch", "scores") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },

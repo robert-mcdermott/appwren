@@ -17,6 +17,7 @@ from appwren.db.models.connectors import (
     PushKey,
 )
 from appwren.db.models.decision import Decision
+from appwren.db.models.insight import Report
 from appwren.db.models.inventory import (
     Application,
     ApplicationCapability,
@@ -119,6 +120,7 @@ __all__ = [
     "RecordLink",
     "RecordOwner",
     "Reminder",
+    "Report",
     "Request",
     "RequestOption",
     "Retirement",
