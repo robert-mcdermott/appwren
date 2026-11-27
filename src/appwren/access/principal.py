@@ -33,6 +33,7 @@ class Principal:
     has_password: bool = True
     session_id: int | None = None
     command: bool = field(default=False)
+    token_id: int | None = None  # a token another system presents, never a person
 
     @classmethod
     def for_command(cls, label: str = "Command line") -> Principal:
@@ -47,6 +48,8 @@ class Principal:
 
     @property
     def actor(self) -> Actor:
+        if self.token_id is not None:
+            return Actor.token(self.token_id, self.name)
         if self.command or self.account_id is None:
             return Actor.command(self.name)
         return Actor.account(self.account_id, self.name)

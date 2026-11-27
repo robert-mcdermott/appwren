@@ -18,6 +18,14 @@ from appwren.db.models.connectors import (
 )
 from appwren.db.models.decision import Decision
 from appwren.db.models.insight import Report, Scenario, ScenarioChange
+from appwren.db.models.integration import (
+    ApiToken,
+    ApiTokenUse,
+    Webhook,
+    WebhookCursor,
+    WebhookDelivery,
+    WebhookState,
+)
 from appwren.db.models.inventory import (
     Application,
     ApplicationCapability,
@@ -76,6 +84,8 @@ from appwren.db.models.system import ChainHead, Counter, Event
 
 __all__ = [
     "Account",
+    "ApiToken",
+    "ApiTokenUse",
     "Application",
     "ApplicationCapability",
     "ApplicationUnit",
@@ -140,4 +150,8 @@ __all__ = [
     "Technology",
     "TechnologyRelease",
     "Vendor",
+    "Webhook",
+    "WebhookCursor",
+    "WebhookDelivery",
+    "WebhookState",
 ]

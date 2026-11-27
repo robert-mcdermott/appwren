@@ -179,6 +179,7 @@ AppWren does some work by itself, so that nobody has to remember to. **Admin →
 | **Triggers** | Every hour | Raises a task when a contract's notice date is near, a release nears its end of support, a grant nears its end, or an owner leaves; closes tasks whose cause is settled |
 | **Reminders** | Every hour | Reminds people of what is nearly due or late, and tells stewards and leaders what stays late; closes campaign items whose thing has been done |
 | **Email** | Every minute | Sends notices and daily summaries, where email is set up |
+| **Webhooks** | Every minute | Tells each [webhook](api.md#be-told-when-something-happens) an administrator has registered of what it asked for, signed, and tries a failed delivery again later |
 | **Connectors** | Every 15 minutes | Runs each [connector](signals.md#connectors) an administrator has switched on, when it is due |
 | **Monthly snapshot** | Every six hours | Takes the month's portfolio snapshot, once |
 | **Housekeeping** | Every day | Removes records of old runs and sign-ins that were never finished |

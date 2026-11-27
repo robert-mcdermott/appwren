@@ -316,6 +316,14 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/reports"): {"manager"},
     ("GET", "/api/v1/reports/{ref}"): {"manager", "auditor", "admin"},
     ("GET", "/api/v1/as-of"): EVERYONE,
+    ("GET", "/api/v1/admin/tokens"): {"admin"},
+    ("POST", "/api/v1/admin/tokens"): {"admin"},
+    ("DELETE", "/api/v1/admin/tokens/{token_id}"): {"admin"},
+    ("GET", "/api/v1/admin/webhooks"): {"admin"},
+    ("POST", "/api/v1/admin/webhooks"): {"admin"},
+    ("PATCH", "/api/v1/admin/webhooks/{webhook_id}"): {"admin"},
+    ("DELETE", "/api/v1/admin/webhooks/{webhook_id}"): {"admin"},
+    ("POST", "/api/v1/admin/webhooks/{webhook_id}/test"): {"admin"},
     ("GET", "/api/v1/scenarios"): EVERYONE,
     ("POST", "/api/v1/scenarios"): ARCHITECTS,
     ("GET", "/api/v1/scenarios/{ref}"): EVERYONE,
@@ -552,6 +560,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{key_id}", "9999").replace("{step}", "users_told")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
             path = path.replace("{name}", "no_such_list").replace("{field}", "users")
+            path = path.replace("{token_id}", "9999").replace("{webhook_id}", "9999")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:

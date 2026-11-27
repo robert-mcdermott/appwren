@@ -48,6 +48,49 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' \
 
 Without it the answer is 403. If the request carries an `Origin` header, it must match the host, or the request is refused.
 
+## Sign in as another system
+
+A script or another system signs in with an **API token** instead of a session. An administrator issues one under **Admin → API tokens**: for one role (any but administrator), for one unit and those beneath it if the role has a unit, for reading only unless they say otherwise, and until a day at most a year away. The token is shown once; only its SHA-256 is kept. Send it with each request:
+
+```bash
+curl -s -H 'Authorization: Bearer awt_…' http://127.0.0.1:8000/api/v1/applications
+```
+
+A token sees and may do what its role may, and nothing more. A reading token is refused any change with 403. A change made with a token is recorded in the history against the token's name. A token needs no CSRF token, since no browser is involved, and never signs in to the web app. One that is revoked or has expired is refused with 401 at once.
+
+## Be told when something happens
+
+An administrator registers **webhooks** under **Admin → Webhooks**: an `https://` address on the public internet, and what it is to be told of.
+
+| Topic | Sent when |
+|---|---|
+| `decision.recorded` | A decision is recorded for an application |
+| `application.stage_changed` | An application moves to another lifecycle stage |
+| `confirmation.lapsed` | An application's record goes past the date it was to be confirmed by |
+| `assessment.lapsed` | An application's assessment goes past the date it was due again |
+
+Each message is a small JSON document that says what changed, never what a record holds; ask the API for more. A restricted application's name is left out.
+
+```json
+{"topic": "decision.recorded", "event": 4127, "at": "2026-11-27T10:15:02Z",
+ "data": {"ref": "APP-0024", "name": "Specimen Tracker", "tier": "2", "decision": "DEC-0031",
+          "disposition": "modernize", "recommendation": "modernize",
+          "decided_on": "2026-11-27", "review_on": "2027-11-27"}}
+```
+
+Every message is signed with the webhook's secret, shown once when it is added. To check one, compute HMAC-SHA256 over the `X-AppWren-Timestamp` header, a dot, and the body exactly as received, and compare it with `X-AppWren-Signature`:
+
+```python
+import hashlib, hmac
+
+def genuine(secret: str, headers: dict, body: bytes) -> bool:
+    mac = hmac.new(secret.encode(), headers["X-AppWren-Timestamp"].encode() + b"." + body,
+                   hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"sha256={mac}", headers["X-AppWren-Signature"])
+```
+
+Reject a message whose timestamp is more than a few minutes old. Answer with any 2xx status; anything else, or no answer within ten seconds, is tried again after 2, 4, 8, 16, and 32 minutes. A webhook that fails twenty times in a row is paused until an administrator switches it on again. Redirects are never followed.
+
 ### Editing a record someone else is editing
 
 Records carry a `version`. Send the version you read with a `PATCH`, and if someone else has changed the record since, the answer is 409 and nothing is saved. Read it again and decide what to do.
@@ -292,13 +335,17 @@ See [Insight](insight.md).
 | `POST /program/scoring/preview` · `PUT /program/scoring` | Every application a changed scoring model would change; publish it as a new version |
 | `GET /jobs` · `POST /jobs/{key}/run` · `PUT /jobs/{key}` | Scheduled work and its recent runs; run a job now; pause or resume one (admin) |
 | `GET /mail` · `POST /mail/test` | How email is set up and doing; send yourself a test message (admin) |
+| `GET` · `POST /admin/tokens` · `DELETE /admin/tokens/{id}` | API tokens and when each was last used; issue one with a `name`, `role`, `org_unit_id`, `read_only`, and `expires_on`, its `token` in the answer this once; revoke one (admin) |
+| `GET` · `POST /admin/webhooks` · `PATCH` · `DELETE /admin/webhooks/{id}` · `POST /admin/webhooks/{id}/test` | Webhooks and their recent deliveries; add one with a `name`, `url`, and `topics`, its `secret` in the answer this once; change, switch off, or remove one; send a test now (admin) |
 
 ## What the API will not do
 
 - It never returns a record you may not see, and never counts one.
 - It never returns a sensitive field, a cost line, or a contract you may not see, and refuses to filter or sort by a sensitive field, or to take a value for one.
 - It never gives a total of cost that includes a part you may not see.
-- It never reaches out to anything an administrator has not switched on: until a connector is on, support dates arrive only in a file someone sends. A connector only reads.
+- It never reaches out to anything an administrator has not switched on: until a connector is on, support dates arrive only in a file someone sends. A connector only reads. A webhook is sent only to an address an administrator registered, on the public internet.
+- It never takes a token as an administrator. Tokens are for other systems, with a role.
+- It never takes away within 0.x what a release offered: every route of the last release is still there, and no request asks for more than it did. A test holds it to the last release's OpenAPI document.
 - It never edits an assessment or a decision. Each is superseded by a new one.
 - It never lets a person record a decision about an application they are accountable for.
 - It never takes a score. Scores are worked out from the record and the answers; a contest says one is wrong, and moves nothing.

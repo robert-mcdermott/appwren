@@ -1977,6 +1977,19 @@ class Builder:
             ])  # fmt: skip
         self.tally("scenarios")
 
+    def integration(self) -> None:
+        """A reading token the administrator issued for the reporting warehouse. No webhook:
+        the demo sends nothing anywhere."""
+        from appwren.integration import tokens
+
+        admin = self.principal(self.cast["admin"])
+        moment = self.end - timedelta(days=40)
+        with clock_set_to(lambda: moment), self.db.write(admin.actor) as session:
+            tokens.create(session, admin, {"name": "Reporting warehouse", "role": "auditor",
+                                           "expires_on": (self.end + timedelta(days=50)).date()
+                                           .isoformat()})  # fmt: skip
+        self.tally("API tokens")
+
     def reports(self) -> None:
         """A leadership report for the last full quarter, made by the portfolio manager."""
         from appwren.insight import reports
@@ -2039,6 +2052,7 @@ class Builder:
         self.requests()
         self.retirements()
         self.scenarios()
+        self.integration()
         self.reports()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])

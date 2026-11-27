@@ -26,6 +26,15 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   or a company would first change it: its own capability map, domains, kinds of unit, data
   classes, funding, fields, and examples. `appwren program starters` lists them, and
   `appwren program import` loads one by its key.
+- **API tokens.** An administrator issues a token under Admin → API tokens for one role
+  (never administrator), for one unit if the role has one, for reading only unless told
+  otherwise, and until a day at most a year away. It is shown once and kept as a hash;
+  what it changes is recorded against its name.
+- **Webhooks.** Admin → Webhooks registers addresses to be told, in small signed messages,
+  when a decision is recorded, an application changes stage, or a confirmation or an
+  assessment lapses. Failed deliveries are tried again, and every delivery is listed.
+- **The API's contract.** A test holds the API to the last release's OpenAPI document:
+  nothing it offered is taken away, and no request asks for more.
 - **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
   50,000 components; the figures are in the configuration guide.
 

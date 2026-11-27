@@ -68,6 +68,8 @@ export const NAV = [
       { href: "/admin/appearance", label: "Appearance", iconName: "appearance", when: "admin" },
       { href: "/admin/sso", label: "Single sign-on", iconName: "key", when: "admin" },
       { href: "/admin/connectors", label: "Connectors", iconName: "link", when: "admin" },
+      { href: "/admin/tokens", label: "API tokens", iconName: "key", when: "admin" },
+      { href: "/admin/webhooks", label: "Webhooks", iconName: "link", when: "admin" },
       { href: "/admin/scheduled-work", label: "Scheduled work", iconName: "clock", when: "admin" },
     ],
   },

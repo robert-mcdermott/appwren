@@ -58,11 +58,11 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** each pack loads into a fresh installation, scores the same sample applications, and says what it is for.
 
-## Slice 4: API for others ☐
+## Slice 4: API for others ☑
 
-- [ ] Scoped tokens: a role, a unit, reading only, an expiry; shown once, stored as a hash
-- [ ] Signed webhooks for named events, with deliveries on record
-- [ ] The API contract, recorded and checked
+- [x] Scoped tokens: a role, a unit, reading only, an expiry; shown once, stored as a hash
+- [x] Signed webhooks for named events, with deliveries on record
+- [x] The API contract, recorded and checked
 
 **Acceptance:** a reading token cannot change anything; a webhook's signature verifies with the documented recipe.
 
@@ -97,3 +97,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **Measuring at size found three things.** A query that passed every component's id as a parameter failed past SQLite's limit of 32,766; ids are now written into such statements as whole numbers (`db/among.py`). The scoring model's profile was deep-copied for every application; it is now resolved once for each model. And figures counted per unit filtered every row of the portfolio for each unit. The pages that score the whole portfolio now take under two seconds at 5,000 applications; everything else stays under a quarter of a second.
 - **The brand kit is the same as the sibling products', with AppWren's words.** The words an organization may replace are application, component, capability, technology, vendor, and unit. The email "header" is the product's name, and the organization's, in a strip of the accent at the top of every HTML email; the organization's own line goes at its foot. An exact palette is set only in the configuration file, where it can be kept in version control; the app shows it, locked.
 - **A starter changes the shape of the program, not how it scores.** Each starter replaces the lists that differ by kind of organization (domains, kinds of unit, data classes, funding, the first tier's meaning), the capability map, the organization's own fields, and the definition's examples. The question bank, scoring model, and lifecycle stay the default's, so the same application scores the same under every starter. Values the starter leaves out are kept, retired, because a value is never removed.
+- **Tokens act as a role; webhooks come from the history and the reminders.** A token's principal holds its one role and unit and no account, and its actor is a `token` in the history. Lapses are not events, so the webhook job also reads the reminders job's *overdue* records. The demo issues a reading token and registers no webhook, so it never sends anything out.
+- **The contract is the last release's OpenAPI document.** `tests/fixtures/openapi-X.Y.Z.json` is copied from each release's tag; the check fails if a route or method is gone or a request needs a field or query parameter it did not.

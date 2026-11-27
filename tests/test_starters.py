@@ -75,4 +75,3 @@ def test_from_the_command_line(tmp_path: Path, capsys: pytest.CaptureFixture[str
     assert "Would change" in capsys.readouterr().out
     assert run("program", "import", "starter-castle", config=config) == 1
     assert "no starter program" in capsys.readouterr().err
-

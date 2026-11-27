@@ -73,7 +73,7 @@ def test_jobs_run_when_due_and_not_before(instance: Instance, people: People) ->
         assert ran == set(jobs.JOBS)
         assert jobs.run_due(db, config) == []  # nothing is due again yet
     with frozen_at(START + timedelta(minutes=2)):
-        assert [result["key"] for result in jobs.run_due(db, config)] == ["mail"]
+        assert [result["key"] for result in jobs.run_due(db, config)] == ["mail", "webhooks"]
     with frozen_at(START + timedelta(hours=1, minutes=1)):
         ran = {result["key"] for result in jobs.run_due(db, config)}
         assert "reminders" in ran and "tidy" not in ran  # not the daily one
