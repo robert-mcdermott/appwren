@@ -2,7 +2,7 @@
 
 **Goal:** answer leadership's questions from the record, with figures that explain themselves. Waves 1 to 5 made a record that is true, connected, current, fed by other tools, and carried through to planned change. This wave reads it back as a whole: defined measures and how they moved between snapshots; a leadership report frozen when it is made; any application, and the portfolio, as it stood on a chosen date; and a scenario that shows what a set of proposed changes would do before anyone commits to it.
 
-**Branch:** `wave-6` · **Target version:** `0.6.0` · **Status:** ◐ in progress
+**Branch:** `wave-6` · **Target version:** `0.6.0` · **Status:** ☑ done
 
 Leadership comes first here ([roadmap](../roadmap.md)): every figure is a link to the list it counts, every report says when it was made and from what, and nothing is a projection that the record cannot back.
 
@@ -71,12 +71,15 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** a scenario's effect is exactly what its applications' records give, and building one changes no record.
 
-## Slice 5: Release prep ☐
+## Slice 5: Release prep ☑
 
-- [ ] Guides, changelog, upgrade from 0.5.0 on both databases, audits, release, and the site republished
+- [x] Guides, changelog, upgrade from 0.5.0 on both databases, audits, release, and the site republished
 
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
 
 - **Trends read the snapshots as they were kept.** The dashboard already gives the measures now, each a link to its list; what was missing was how they moved. A portfolio snapshot keeps every scored application's scores, recommendation, confidence, and flags, so two of them say what moved without working anything out again; today's column is the one figure worked out now.
+- **A report keeps plain values, and a digest of them.** It stores its figures and lists as JSON and the SHA-256 of their canonical form (sorted keys, no spaces) with its title and period; opening it recomputes the digest and says if they differ. The event recording it keeps the digest, not the content. "Where the portfolio stood" is the day the report was made, which the page says.
+- **As of replays events, and stores nothing.** The state on a day is every `created`, `updated`, and `deleted` event up to the end of that day, applied in order; a record changed but never created in the history (before the history began) is not shown rather than guessed. The decision on a day is the last recorded by then, and scores come from the nearest portfolio snapshot.
+- **A scenario's effect is worked out each time it is opened.** It is a shared record (kept by architects and managers, seen by everyone). An interface counts as stopping only when one end goes and the other stays, and not when it fed the application the work moves into.

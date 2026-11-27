@@ -4,7 +4,15 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.6.0 (2026-11-27)
+
+Wave 6, *Insight*: the record read back as a whole, for leadership. Two portfolio snapshots
+side by side say what moved between them, and an application's scores are shown over time;
+shares of the portfolio name the costliest and least used applications without feeding any
+score; a leadership report for a period is worked out once and kept whole, with a digest
+that shows it is unchanged; the portfolio, and any application, can be seen as it stood at
+the end of a chosen day, from the history; and a scenario shows what a set of changes would
+save, whom it would affect, and what would stop, before anyone commits to it.
 
 ### Added
 

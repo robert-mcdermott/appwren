@@ -62,9 +62,17 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.5.0 carries a decision through to planned, tracked change.
+Version 0.6.0 reads the record back as a whole, for leadership.
 
-**Planning change, new in 0.5.0**
+**Insight, new in 0.6.0**
+
+- **Trends** between two portfolio snapshots, or one and today: the figures each held, the applications whose recommendation changed, whose scores moved, and whose flags came or went, and the decisions recorded between them. An application's scores over time.
+- **Shares of the portfolio:** the costliest tenth, the dearest tenth per user, the least used fifth, and the oldest fifth. A share never feeds a score.
+- **Leadership reports** for a period, worked out once and kept whole, with a digest checked whenever one is opened, and a page that prints cleanly.
+- **As of a day:** the portfolio, and any application value by value, as it stood at the end of a chosen day, read from the history.
+- **Scenarios:** a proposed set of changes (retire, consolidate, replace) with what it would save, whom it would affect, what would stop, and the risk that would go with it, made into an initiative when agreed. A scenario changes nothing.
+
+**Planning change, from 0.5.0**
 
 - **Portfolio reviews** with an agenda drawn from what needs deciding in a unit: decisions that differ from the recommendation, decisions due for review, and applications with none. A decision recorded during the review is kept on its item, and a closed review is a record of what was decided.
 - **Initiatives and a roadmap:** modernizations, migrations, consolidations, replacements, and retirements, each with the applications it changes, an owner, a stage, and dates, on a timeline by unit and kind; started from a decision in one step.
