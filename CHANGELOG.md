@@ -102,6 +102,9 @@ record is stale on the day of the upgrade.
 
 ### Fixed
 
+- **A bubble on the portfolio chart opened a page that was not there.** Links inside a
+  drawing were followed by the wrong address. Clicking a bubble now opens its application,
+  and hovering one shows which application it is and where it stands. Present since 0.1.0.
 - **The demo's research software engineer** was named on no application, though the guides
   sent people to see the applications they keep. They now keep the two pieces of research
   software in the demo's storylines.

@@ -85,8 +85,10 @@ export function start() {
     if (event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const anchor = event.target.closest("a[href]");
-    if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
-    const url = new URL(anchor.href, window.location.origin);
+    // Read the attributes, not the properties: a link inside a drawing (an SVG <a>, such as a
+    // bubble on the portfolio chart) has objects there, not text.
+    if (!anchor || anchor.getAttribute("target") === "_blank" || anchor.hasAttribute("download")) return;
+    const url = new URL(anchor.getAttribute("href"), window.location.href);
     if (url.origin !== window.location.origin) return;
     if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/branding/")) return;
     // A link to a place on this page (the skip link) is the browser's to follow: it moves the focus.

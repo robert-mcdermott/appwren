@@ -198,7 +198,7 @@ Retired and archived applications are no longer scored.
 
 ### The portfolio chart
 
-**Portfolio → Portfolio chart** places every scored application by business value against technical health, or against cost and burden. Each bubble is sized by its cost, where you may see costs, and colored by risk exposure. The threshold lines divide it into the quarters the rules use. A table beneath gives the exact figures for every application on the chart, and the applications too little is known about to place are listed after it.
+**Portfolio → Portfolio chart** places every scored application by business value against technical health, or against cost and burden. Each bubble is sized by its cost, where you may see costs, and colored by risk exposure. The threshold lines divide it into the quarters the rules use. Hover over a bubble to see which application it is and where it stands, and click it to open the application. A table beneath gives the exact figures for every application on the chart, and the applications too little is known about to place are listed after it.
 
 ![The portfolio chart: business value against technical health, bubbles sized by cost and colored by risk exposure](img/portfolio-chart-light.webp)
 

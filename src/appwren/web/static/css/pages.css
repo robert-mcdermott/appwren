@@ -219,3 +219,9 @@ a:hover > .bubble, a:focus-visible > .bubble { stroke: var(--focus); stroke-widt
 .levels-edit { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); }
 .narrow-field { max-width: 22rem; }
 .table-check { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); }
+
+/* ---- The portfolio chart's label for the bubble under the pointer ---- */
+.chart-wrap { position: relative; }
+.chart-tip { position: absolute; z-index: 5; max-width: 260px; display: grid; gap: 2px; padding: var(--space-2) var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-s); background: var(--surface-1); color: var(--text); box-shadow: var(--shadow-2, 0 4px 16px rgb(0 0 0 / 0.18)); font-size: var(--text-s); pointer-events: none; }
+.chart-tip[hidden] { display: none; }
+.portfolio-chart a { cursor: pointer; }
