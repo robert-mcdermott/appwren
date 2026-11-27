@@ -4,6 +4,14 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## Unreleased
+
+### Added
+
+- **The checkpoint.** `GET /api/v1/checkpoint/{ref}` tells another process whether an
+  application is approved for new use, and for a class of data, with every reason: its
+  stage, its decision, its support, and the data its record says it handles.
+
 ## 0.7.0 (2026-11-27)
 
 Wave 7, *Adoption*: an organization that has never seen AppWren installs it, makes it its

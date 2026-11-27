@@ -58,6 +58,29 @@ curl -s -H 'Authorization: Bearer awt_…' http://127.0.0.1:8000/api/v1/applicat
 
 A token sees and may do what its role may, and nothing more. A reading token is refused any change with 403. A change made with a token is recorded in the history against the token's name. A token needs no CSRF token, since no browser is involved, and never signs in to the web app. One that is revoked or has expired is refused with 401 at once.
 
+## Ask whether an application is approved
+
+A purchasing form, a data access request, or a project intake can cite an application's reference and ask AppWren whether it is approved, with any token or session:
+
+```bash
+curl -s -H 'Authorization: Bearer awt_…' \
+  'http://127.0.0.1:8000/api/v1/checkpoint/APP-0024?data_class=identifiable_research'
+```
+
+```json
+{"data": {"ref": "APP-0024", "name": "Specimen Tracker", "checked_on": "2026-11-27",
+          "stage": "active", "decision": "modernize", "approved": true,
+          "asked_data_class": "identifiable_research", "allowed": true,
+          "data_classes": ["identifiable_research", "personal"], "flags": [],
+          "reasons": [
+            {"check": "stage", "ok": true, "text": "Its lifecycle stage is Active"},
+            {"check": "decision", "ok": true, "text": "The decision on record is to modernize it"},
+            {"check": "support", "ok": true, "text": "Nothing it is known to run on is past its end of support"},
+            {"check": "data_class", "ok": true, "text": "Its record says it handles identifiable research data"}]}}
+```
+
+`approved` is true when the application is in service and open to new use (phase in or active), its decision on record does not take it away (retire, replace, or consolidate), and nothing it is known to run on is past its end of support. With `data_class`, `allowed` is also true only if its record says it handles that class. Every reason is given, so the process asking can weigh them itself. A restricted application the asker may not see is answered 404, as if there were none.
+
 ## Be told when something happens
 
 An administrator registers **webhooks** under **Admin → Webhooks**: an `https://` address on the public internet, and what it is to be told of.
@@ -337,6 +360,7 @@ See [Insight](insight.md).
 | `POST /program/scoring/preview` · `PUT /program/scoring` | Every application a changed scoring model would change; publish it as a new version |
 | `GET /jobs` · `POST /jobs/{key}/run` · `PUT /jobs/{key}` | Scheduled work and its recent runs; run a job now; pause or resume one (admin) |
 | `GET /mail` · `POST /mail/test` | How email is set up and doing; send yourself a test message (admin) |
+| `GET /checkpoint/{ref}` | Whether an application is approved for new use, and for a `data_class` if given, with every reason. See [Ask whether an application is approved](#ask-whether-an-application-is-approved) |
 | `GET` · `POST /admin/tokens` · `DELETE /admin/tokens/{id}` | API tokens and when each was last used; issue one with a `name`, `role`, `org_unit_id`, `read_only`, and `expires_on`, its `token` in the answer this once; revoke one (admin) |
 | `GET` · `POST /admin/webhooks` · `PATCH` · `DELETE /admin/webhooks/{id}` · `POST /admin/webhooks/{id}/test` | Webhooks and their recent deliveries; add one with a `name`, `url`, and `topics`, its `secret` in the answer this once; change, switch off, or remove one; send a test now (admin) |
 

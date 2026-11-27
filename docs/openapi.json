@@ -8254,6 +8254,69 @@
         ]
       }
     },
+    "/api/v1/checkpoint/{ref}": {
+      "get": {
+        "description": "Whether the application is approved for new use: in service and open to it, with a\ndecision that keeps it, and nothing past its end of support; with ``data_class``,\n``allowed`` says whether its record also says it handles that class. Every reason is\ngiven. A restricted application the asker may not see is answered 404.",
+        "operationId": "ask_checkpoint_api_v1_checkpoint__ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "A data class's key, if asking",
+            "in": "query",
+            "name": "data_class",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A data class's key, if asking",
+              "title": "Data Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ask Checkpoint Api V1 Checkpoint  Ref  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Is this application approved, and for this data?",
+        "tags": [
+          "integration"
+        ]
+      }
+    },
     "/api/v1/components": {
       "get": {
         "operationId": "list_component_api_v1_components_get",

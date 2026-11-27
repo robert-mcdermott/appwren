@@ -154,6 +154,7 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/reports"): Needs.MANAGE,
     ("GET", "/api/v1/reports/{ref}"): Needs.READ_ALL,
     ("GET", "/api/v1/as-of"): Needs.MEMBER,
+    ("GET", "/api/v1/checkpoint/{ref}"): Needs.MEMBER,
     ("GET", "/api/v1/admin/tokens"): Needs.ADMIN,
     ("POST", "/api/v1/admin/tokens"): Needs.ADMIN,
     ("DELETE", "/api/v1/admin/tokens/{token_id}"): Needs.ADMIN,

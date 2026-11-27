@@ -29,10 +29,10 @@ None block the start. These defaults have been taken and can be changed before t
 
 ---
 
-## Slice 1: A reference others can check ☐
+## Slice 1: A reference others can check ☑
 
-- [ ] `GET /api/v1/checkpoint/{ref}`, with a data class: approved or not, and why
-- [ ] A restricted application is not named, or even confirmed, to someone who may not see it
+- [x] `GET /api/v1/checkpoint/{ref}`, with a data class: approved or not, and why
+- [x] A restricted application is not named, or even confirmed, to someone who may not see it
 
 ## Slice 2: Tool server for assistants ☐
 

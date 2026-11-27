@@ -1,17 +1,31 @@
-"""What other systems use: API tokens an administrator issues, and webhooks (INT-02, INT-03)."""
+"""What other systems use: API tokens, webhooks, and the checkpoint (INT-02 to INT-04)."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field
 
 from appwren.access.policy import current
 from appwren.api.common import database, envelope, reading, writing
-from appwren.integration import tokens, webhooks
+from appwren.integration import checkpoint, tokens, webhooks
 
 router = APIRouter(prefix="/api/v1", tags=["integration"])
+
+
+@router.get("/checkpoint/{ref}", summary="Is this application approved, and for this data?")
+def ask_checkpoint(
+    request: Request, ref: str,
+    data_class: str | None = Query(default=None, description="A data class's key, if asking"),
+) -> dict[str, Any]:  # fmt: skip
+    """Whether the application is approved for new use: in service and open to it, with a
+    decision that keeps it, and nothing past its end of support; with ``data_class``,
+    ``allowed`` says whether its record also says it handles that class. Every reason is
+    given. A restricted application the asker may not see is answered 404."""
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(checkpoint.check(session, principal, ref, data_class))
 
 
 class TokenBody(BaseModel):
