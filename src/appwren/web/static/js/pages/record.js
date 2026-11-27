@@ -12,6 +12,7 @@ import { peoplePicker } from "../components/people-picker.js";
 import { lifecyclePill, recordChip, statusPill, supportPill, tierMeter, TYPES } from "../components/record.js";
 import { editRecord, SECTIONS } from "../components/record-forms.js";
 import { openWorking, scorecard, scoresTab, verdict } from "../components/scorecard.js";
+import { confirmationLine, confirmRecord } from "../components/confirmation.js";
 import { decisionsTab, recordDecision } from "../components/decision.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
@@ -807,6 +808,7 @@ export function applicationPage(main, params, extraTabs = []) {
           actions: h("div", { class: "row-sm" }, assessButton, decideButton, edit) }),
         h("div", { class: "app-summary" }, scorecard(data.scores, { onOpen: open }),
           verdict(data.scores, data.vocab, record.decision ?? null)),
+        confirmationLine(data.scores.confirmation, data.scores.stale?.penalty, () => confirmRecord(record, reload)),
         tabBar(tabs.map(([key, text]) => [key, text]), tab),
         body);
     },

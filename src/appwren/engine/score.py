@@ -31,6 +31,7 @@ WHERE = {
 }
 BUILT_IN_FLAGS = {
     "mismatch": ("info", "The decision on record differs from today's recommendation"),
+    "stale": ("warning", "Nobody has confirmed its record in time"),
 }
 
 
@@ -341,6 +342,17 @@ def evaluate(facts: Mapping[str, Any], model: Mapping[str, Any], *, today: date)
     confidence = whole(
         sum(Decimal(d["coverage"]) for d in dimensions.values()) / Decimal(len(dimensions))
     )
+    # A record nobody has confirmed in time is trusted less, whatever it says (CUR-03).
+    stale = None
+    if facts.get("stale"):
+        penalty = models.stale_penalty(model)
+        stale = {
+            "penalty": penalty,
+            "from": confidence,
+            "due": facts.get("confirm_due"),
+            "confirmed_on": facts.get("confirmed_on"),
+        }
+        confidence = max(0, confidence - penalty)
     bv = dimensions["business_value"]
     th = dimensions["technical_health"]
     cb = dimensions["cost_burden"]
@@ -411,14 +423,28 @@ def evaluate(facts: Mapping[str, Any], model: Mapping[str, Any], *, today: date)
     if decision and recommendation and decision != recommendation:
         severity, text = BUILT_IN_FLAGS["mismatch"]
         flags.append({"key": "mismatch", "severity": severity, "text": text})
+    if stale is not None:
+        severity, text = BUILT_IN_FLAGS["stale"]
+        flags.append({"key": "stale", "severity": severity, "text": text})
     order = {"danger": 0, "warning": 1, "info": 2}
     flags.sort(key=lambda item: order.get(item["severity"], 3))
     missing.sort(key=lambda item: -item["weight"])
+    if stale is not None:
+        since = stale["confirmed_on"]
+        missing.insert(0, {
+            "dimension": None, "factor": "confirm", "label": "Confirm the record",
+            "weight": stale["penalty"],
+            "why": (f"Last confirmed on {since.isoformat()}" if since else "Never confirmed")
+            + f"; it was due by {stale['due'].isoformat()}. Confirming it gives back "
+            f"{stale['penalty']} points.",
+            "where": "confirm",
+        })  # fmt: skip
     return {
         "profile": {"key": profile["key"], "label": profile["label"]},
         "dimensions": dimensions,
         "scores": {key: d["score"] for key, d in dimensions.items()},
         "confidence": confidence,
+        "stale": stale,
         "thresholds": dict(thresholds),
         "recommendation": recommendation,
         "rule": fired,

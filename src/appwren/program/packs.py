@@ -46,6 +46,9 @@ def install(session: Session) -> dict[str, int]:
             done["capabilities"] = parts.load_map(session, INSTALLER, pack["capabilities"])
         for name, _check, _export, load in PARTS:
             done[name] = load(session, pack.get(name), only_missing=True)
+    from appwren.oversight import attestation
+
+    attestation.begin(session)  # the day this installation began asking for confirmations
     return done
 
 

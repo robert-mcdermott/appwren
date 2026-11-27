@@ -174,6 +174,8 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("GET", "/api/v1/applications/{ref}/scores"): Needs.MEMBER,
     ("POST", "/api/v1/applications/{ref}/score-preview"): Needs.MEMBER,
     ("GET", "/api/v1/applications/{ref}/assessments"): Needs.MEMBER,
+    ("GET", "/api/v1/applications/{ref}/confirmations"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/confirmations"): Needs.MEMBER,
     ("POST", "/api/v1/applications/{ref}/assessments"): Needs.MEMBER,
     # Decisions and the portfolio
     ("POST", "/api/v1/applications/{ref}/decisions"): Needs.DECIDE,

@@ -538,3 +538,7 @@ th[aria-sort] .sort-button { color: var(--text); }
 .flag-info { background: var(--info-soft); color: var(--info); }
 .card-note { padding: var(--space-3) var(--space-5); margin: 0; border-bottom: 1px solid var(--border); }
 .cell-name { min-width: 15rem; }
+
+/* ---- Confirming a record ---- */
+.confirm-line { align-items: center; }
+.confirm-line .grow { min-width: 0; }

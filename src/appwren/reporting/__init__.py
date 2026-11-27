@@ -27,6 +27,7 @@ QUALITY = {
     "no_assessment": "Never assessed",
     "assessment_expired": "Assessment expired",
     "low_confidence": "Low confidence",
+    "not_confirmed": "Not confirmed in time",
     "missing_required": "Missing what its stage requires",
 }
 CONFIDENCE_BANDS = [
@@ -96,6 +97,7 @@ def rows(
                 ("no_assessment", result["assessment"] is None),
                 ("assessment_expired", bool(result["assessment"]) and not has["assessment"]),
                 ("low_confidence", result["confidence"] < threshold),
+                ("not_confirmed", result.get("stale") is not None),
                 ("missing_required", bool(missing["now"])),
             )
             if true
@@ -359,8 +361,22 @@ def owed(session: Session, principal: Principal) -> dict[str, Any]:
                 "Its assessment has expired",
                 f"/applications/{ref}/assess",
             )
+        if "not_confirmed" in row["quality"]:
+            add(
+                row,
+                "warning",
+                "confirm",
+                "Confirm that its record is right",
+                f"/applications/{ref}",
+            )
         for key in row["flags"]:
-            if key in ("assessment_expired", "mismatch", "decision_review_due", "cost_review"):
+            if key in (
+                "assessment_expired",
+                "mismatch",
+                "decision_review_due",
+                "cost_review",
+                "stale",
+            ):
                 continue
             severity = (
                 "danger" if key in ("restricted_unsupported", "no_accountable") else "warning"

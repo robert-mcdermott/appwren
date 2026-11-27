@@ -164,7 +164,13 @@ def _tier(app: Application) -> int | None:
 SOURCES: list[Callable[[Session, date, date], Iterable[Due]]] = []
 
 
+def _sources() -> None:
+    """Make sure every module that adds dates of its own has added them."""
+    import appwren.oversight.attestation  # noqa: F401
+
+
 def due_items(session: Session, on: date, horizon: date) -> list[Due]:
+    _sources()
     model = _model(session)
     found = [
         *_assessments(session, horizon, model),

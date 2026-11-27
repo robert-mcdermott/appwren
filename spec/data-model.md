@@ -201,11 +201,21 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 `decision(ref, application_id, disposition, rationale, target_on, review_on, successor_id?, snapshot_id, snapshot_digest, recommendation, decided_by, decided_by_name, decided_on, created_at, superseded_by)`. `disposition` is a vocabulary (see [engine.md](engine.md#dispositions)). `snapshot_id` is the score snapshot taken at the moment of the decision, `snapshot_digest` its digest (so the decision's event fixes what it saw), and `recommendation` its recommendation, so a mismatch at the time is on the record. Without a review date, a decision is reviewed a year on; consolidating needs a successor. Never edited; a new decision supersedes the last. The application keeps a copy of its current disposition and review date for lists and filters.
 
+## Keeping current (wave 3)
+
+### Jobs, reminders, notices, and email
+
+`job(key, enabled, next_run_at, claimed_until, last_started_at, last_finished_at, last_status, last_summary)` is one piece of scheduled work; a process claims the row, with a lease, before it runs it. `job_run` keeps the runs that did something or failed, for ninety days. `reminder(subject_type, subject_id, due_on, stage)` says a reminder about a date has been sent at a stage (soon, overdue, steward, leader), so it is sent once. `notice(account_id, kind, text, href, created_at, read_at, mail_state)` is a pointer for one person. `outbox_message` is an email waiting to be sent, or sent. None of these is history.
+
+### Attestation
+
+`attestation(application_id, attested_by, attested_by_name, attested_on, note)`. That a person who keeps an application confirmed its record is right on a date. A statement, never edited; the next follows it. The day the installation began asking is the program setting `attestation_began`.
+
 ## Later waves (sketch)
 
 | Wave | Entities |
 |---|---|
-| 3 | `job`, `campaign`, `campaign_item`, `attestation`, `mail_outbox`, `saved_view`, `search_doc`, `notice`, `trigger_rule` |
+| 3 | `campaign`, `campaign_item`, `task`, `saved_view`, `score_contest` (the rest of the wave is above) |
 | 4 | `connector`, `connector_run`, `fact_value` (a value with its source and time, and overrides), `maturity_check`, `maturity_result` |
 | 5 | `review_cycle`, `review_item`, `initiative`, `initiative_application`, `retirement_plan`, `retirement_step`, `request`, `request_option` |
 | 6 | `measure_snapshot`, `report`, `scenario`, `scenario_change` |

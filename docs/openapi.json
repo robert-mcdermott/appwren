@@ -920,6 +920,24 @@
         "title": "ComponentBody",
         "type": "object"
       },
+      "ConfirmBody": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "ConfirmBody",
+        "type": "object"
+      },
       "ContractBody": {
         "description": "An agreement with a vendor. Seen only by those who may see the cost of an application\nit covers, and those who see every application's.",
         "properties": {
@@ -3949,6 +3967,103 @@
         "summary": "Say which capabilities it serves",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/confirmations": {
+      "get": {
+        "operationId": "confirmations_api_v1_applications__ref__confirmations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Confirmations Api V1 Applications  Ref  Confirmations Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Who has confirmed the record, and when",
+        "tags": [
+          "assessment and scores"
+        ]
+      },
+      "post": {
+        "description": "Anyone named on the application, its unit's stewards, and managers confirm that its\nrecord and its parts are right as of today (CUR-03).",
+        "operationId": "confirm_api_v1_applications__ref__confirmations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Confirm Api V1 Applications  Ref  Confirmations Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm that the record is right",
+        "tags": [
+          "assessment and scores"
         ]
       }
     },

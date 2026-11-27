@@ -43,6 +43,7 @@ from appwren.inventory.registry import (
     VENDOR,
 )
 from appwren.landscape import costs
+from appwren.oversight import attestation
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -116,6 +117,7 @@ class Builder:
         self.sample: list[dict[str, str]] = []
         self.departed: set[int] = set()
         self.primaries: set[str] = {"surveys"}  # the survey hub claims it whenever it arrives
+        self.planned: dict[str, tuple[str, float]] = {}  # name → (tier, days ago it was added)
         self._principals: dict[int, Principal] = {}
         self._emails: set[str] = set()
         self._order = 0
@@ -417,6 +419,7 @@ class Builder:
         )
         unit = self.units[unit_code]
         story = more.get("story")
+        self.planned[name] = (str(tier), days_ago)
 
         def register() -> None:
             owner = self.cast["res_steward"] if story == "worked_example" else self.owner_for(unit)
@@ -600,6 +603,36 @@ class Builder:
             self.tally("assessments")
 
         self.at(days_ago, run)
+
+    def confirm(self, name: str, days_ago: float) -> None:
+        """Whoever answers for an application confirms that its record is right."""
+
+        def run() -> None:
+            ref = self.apps.get(name)
+            if ref is None or self.accountable.get(ref) in self.departed:
+                return
+            by = self.principal(self.accountable[ref])
+            with self.db.write(by.actor) as session:
+                app = records.load(session, ME, APPLICATION, ref)
+                if app.lifecycle in ("retired", "archived"):
+                    return
+                try:
+                    attestation.confirm(session, by, app)
+                except PermissionDenied:
+                    return
+            self.tally("confirmations")
+
+        self.at(days_ago, run)
+
+    def confirm_on_cadence(self, name: str, lapsed: bool) -> None:
+        """Confirmations as the cadence asks, from when the application was added. One that
+        has lapsed missed the last."""
+        tier, added = self.planned.get(name, ("4", 600))
+        period = 182 if tier in ("1", "2") else 365
+        last = period + self.rng.randint(20, 150) if lapsed else self.rng.randint(5, period - 25)
+        while last < added:
+            self.confirm(name, last)
+            last += period - self.rng.randint(0, 20)
 
     def decider(self, ref: str) -> int:
         """A manager decides, or the leader of the application's area; never its owner."""
@@ -858,6 +891,15 @@ class Builder:
         )
         self.assess("Electronic Lab Notebook Pilot", 40)
         self.assess("Old Reports Server", 480)
+        # Confirmations: most records are confirmed as their cadence asks; some have lapsed.
+        # What the leaver answered for was last confirmed by them, long ago.
+        orphaned = {"Executive Dashboards", "Applicant Tracking", "Space Planning",
+                    "Contracts Repository"}  # fmt: skip
+        for name in everything:
+            if name in orphaned:
+                self.confirm(name, r.randint(380, 460))
+            else:
+                self.confirm_on_cadence(name, lapsed=name not in storied and r.random() < 0.08)
         # The year of reviews: a snapshot each quarter, and decisions after it.
         for days in (365, 272, 182, 91):
             self.snapshot(days)

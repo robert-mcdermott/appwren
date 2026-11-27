@@ -34,6 +34,7 @@ from appwren.db.models.landscape import (
     HostingPlatform,
     Interface,
 )
+from appwren.db.models.oversight import Attestation
 from appwren.db.models.people import (
     Account,
     Credential,
@@ -55,6 +56,7 @@ __all__ = [
     "ApplicationCapability",
     "ApplicationUnit",
     "Assessment",
+    "Attestation",
     "Capability",
     "ChainHead",
     "Component",

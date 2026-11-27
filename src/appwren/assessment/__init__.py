@@ -338,6 +338,9 @@ def gather(
         relying[source] |= receivers
     dependents = {app_id: len(found - {app_id}) for app_id, found in relying.items()}
     assessments = latest(session, ids)
+    from appwren.oversight import attestation
+
+    confirmed = attestation.facts(session, apps, model, on)
     extra: dict[int, dict[str, Any]] = defaultdict(dict)
     for gatherer in EXTRA_FACTS:
         for app_id, found in gatherer(session, apps).items():
@@ -388,6 +391,7 @@ def gather(
             "decided_within_year": False,
             "decision": None,
             "decision_review_due": False,
+            **confirmed[app.id],
             **extra.get(app.id, {}),
         }  # fmt: skip
     return out

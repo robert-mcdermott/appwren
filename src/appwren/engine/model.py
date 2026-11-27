@@ -210,6 +210,24 @@ def problems(model: Any, questions: set[str]) -> list[str]:
     return found
 
 
+# How often the people who keep an application confirm its record, by tier, and how much
+# confidence a record past its confirmation loses, where the model does not say (CUR-03).
+CONFIRM_MONTHS = {"1": 6, "2": 6, "3": 12, "4": 12, "5": 12}
+STALE_PENALTY = 15
+
+
+def months_to_confirm(model: Mapping[str, Any], tier: int | None) -> int:
+    """How long a confirmation of an application's record holds, for its tier."""
+    cadence = model.get("cadence") or {}
+    by_tier = cadence.get("confirm_months") or CONFIRM_MONTHS
+    return int(by_tier.get(str(tier), cadence.get("default_confirm_months", 12)))
+
+
+def stale_penalty(model: Mapping[str, Any]) -> int:
+    """How many points of confidence a record past its confirmation loses."""
+    return int((model.get("cadence") or {}).get("stale_penalty", STALE_PENALTY))
+
+
 def months_current(model: Mapping[str, Any], tier: int | None) -> int:
     """How long an assessment stays current for an application of this tier."""
     cadence = model.get("cadence") or {}

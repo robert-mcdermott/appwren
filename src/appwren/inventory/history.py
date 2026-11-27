@@ -144,11 +144,16 @@ def _release(lookups: Lookups, now: Any, added: bool) -> str:
     return f"{'Added' if added else 'Removed'} the release {now('cycle')}"
 
 
+def _confirmed(lookups: Lookups, now: Any, added: bool) -> str:
+    return "Confirmed the record" if added else "Removed a confirmation"
+
+
 # How the rows that belong to a record are told in its history: (names, the event's value for
 # a field, whether it was added) -> a sentence.
 CHILD_TITLES: dict[str, Any] = {
     "assessment": _assessed,
     "decision": _decided,
+    "attestation": _confirmed,
     "application_capability": _serves,
     "application_unit": _used_by,
     "component_technology": _built_on,

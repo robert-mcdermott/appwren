@@ -29,6 +29,20 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   password comes from the environment. Until email is set up nothing is attempted, and
   nothing written before then is ever sent. `appwren mail test` sends a test message, and
   `appwren doctor` checks the server.
+- **Confirming a record.** The people named on an application, its unit's stewards, and
+  managers confirm that its record is right, in one step from its page: every 6 months for
+  tiers 1 and 2, every 12 for the rest. A record past its confirmation is stale: its page
+  says so, it is flagged, data quality and the portfolio list count it, its owner is
+  reminded, and its data confidence is 15 points lower until someone confirms it. A record
+  never confirmed is due one period after it was added or after the upgrade, whichever is
+  later, so nothing is stale on the day of the upgrade.
+
+### Changed
+
+- **The default scoring model gains the cadence of wave 3:** how often records are
+  confirmed and what a stale one costs, when reminders go, and how far ahead tasks are
+  raised. An upgrade brings it to a model that nobody has changed since 0.1.0 or 0.2.0; one
+  the organization has shaped is left alone and uses the same values until it says otherwise.
 
 ## 0.2.0 (2026-11-26)
 
