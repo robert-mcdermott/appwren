@@ -31,7 +31,15 @@ from appwren.db.engine import Database
 from appwren.db.models import Application, Capability
 from appwren.demo import content as c
 from appwren.inventory import applications, links, parts, records
-from appwren.inventory.registry import APPLICATION, COMPONENT, INTERFACE, TECHNOLOGY, VENDOR
+from appwren.inventory.registry import (
+    APPLICATION,
+    COMPONENT,
+    DEPLOYMENT,
+    HOSTING_PLATFORM,
+    INTERFACE,
+    TECHNOLOGY,
+    VENDOR,
+)
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -92,6 +100,7 @@ class Builder:
         self.vendors: dict[str, str] = {}
         self.techs: dict[str, tuple[str, str]] = {}  # key → (ref, kind)
         self.capabilities: dict[str, str] = {}  # key → ref
+        self.platforms: dict[str, str] = {}
         self.cap_domain: dict[str, str | None] = {}
         self.cap_name: dict[str, str] = {}
         self.apps: dict[str, str] = {}  # name → ref
@@ -286,6 +295,19 @@ class Builder:
                 session, ME, VENDOR, {"name": name, "kind": kind}
             ).ref
             self.tally("vendors")
+        for key, name, kind, vendor, location in c.PLATFORMS:
+            self.platforms[key] = records.create(
+                session,
+                ME,
+                HOSTING_PLATFORM,
+                {
+                    "name": name,
+                    "kind": kind,
+                    "vendor_id": self.vendors.get(vendor) if vendor else None,
+                    "location": location,
+                },
+            ).ref
+            self.tally("hosting platforms")
         for key, name, kind, radar, releases in c.TECHNOLOGIES:
             tech = records.create(
                 session,
@@ -499,6 +521,7 @@ class Builder:
                         ],
                     )
                     self.tally("components")
+                self.deploy(session, ref, name, sourcing, tier, values, techs)
             self.apps[name] = ref
             self.accountable[ref] = owner
             self.health[ref] = health
@@ -507,6 +530,47 @@ class Builder:
             self.tally("applications")
 
         self.at(days_ago, register)
+
+    def deploy(
+        self,
+        session: Session,
+        ref: str,
+        name: str,
+        sourcing: str,
+        tier: str,
+        values: dict[str, Any],
+        techs: list[tuple[str, str]],
+    ) -> None:
+        """Where an application runs. What a vendor hosts has no deployment of ours."""
+        hosting = values.get("hosting")
+        if hosting == "vendor_cloud":
+            return
+        if sourcing == "research_software":
+            on_desk = any(tech in c.ON_A_WORKSTATION for tech, _ in techs)
+            where = "lab" if on_desk else "hpc"
+        elif hosting == "our_cloud":
+            where = "cloud_res" if values.get("domain") == "research" else "cloud_ent"
+        else:
+            where = "dc"
+        slug = "".join(ch if ch.isalnum() else "-" for ch in name.lower()).strip("-")
+        wanted = [("production", where, f"https://{slug}.{c.DOMAIN}" if where != "lab" else None)]
+        if tier in ("1", "2") and where != "lab":
+            wanted.append(("staging", where, None))
+        if tier == "1" and where == "dc":
+            wanted.append(("disaster_recovery", "standby", None))
+        for environment, platform, url in wanted:
+            records.create(
+                session,
+                ME,
+                DEPLOYMENT,
+                {
+                    "application_id": ref,
+                    "environment": environment,
+                    "platform_id": self.platforms[platform],
+                    "url": url,
+                },
+            )
+            self.tally("deployments")
 
     def assess(self, name: str, days_ago: float, answers: dict[str, Any] | None = None) -> None:
         def run() -> None:

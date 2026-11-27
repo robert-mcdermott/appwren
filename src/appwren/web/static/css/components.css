@@ -536,3 +536,4 @@ th[aria-sort] .sort-button { color: var(--text); }
 .flag-danger { background: var(--danger-soft); color: var(--danger); }
 .flag-warn { background: var(--warn-soft); color: var(--warn); }
 .flag-info { background: var(--info-soft); color: var(--info); }
+.card-note { padding: var(--space-3) var(--space-5); margin: 0; border-bottom: 1px solid var(--border); }

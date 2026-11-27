@@ -38,9 +38,9 @@ export function ownUnits() {
 
 const YES_NO = [["", "Not said"], ["true", "Yes"], ["false", "No"]];
 
-async function refOptions(target) {
+async function refOptions(target, scope = {}) {
   const type = TYPES[target];
-  const page = await get(`/api/v1/${type.path}`, { sort: "name", limit: 200 });
+  const page = await get(`/api/v1/${type.path}`, { sort: "name", limit: 200, ...scope });
   return page.data.map((row) => [row.ref, `${row.name} (${row.ref})`]);
 }
 
@@ -143,7 +143,10 @@ export async function editRecord(type, { record = null, preset = {}, only = null
   const [program, vocab, unitIndex] = await Promise.all([catalog(), vocabularies(), loadUnits()]);
   const spec = program.types[type];
   const targets = [...new Set(spec.fields.filter((f) => f.kind === "ref").map((f) => f.target))];
-  const refs = Object.fromEntries(await Promise.all(targets.map(async (target) => [target, await refOptions(target)])));
+  // A deployment's component is one of its own application's.
+  const within = type === "deployment" ? (record?.application?.ref ?? preset.application_id ?? null) : null;
+  const scopeOf = (target) => (target === "component" && within ? { application: within } : target === "hosting_platform" ? { status: "active" } : {});
+  const refs = Object.fromEntries(await Promise.all(targets.map(async (target) => [target, await refOptions(target, scopeOf(target))])));
   // A record's links to others arrive as chips; the form works in references.
   const refValue = (f, value) => {
     if (value == null) return null;
@@ -160,7 +163,8 @@ export async function editRecord(type, { record = null, preset = {}, only = null
     subtitle: record ? `${record.ref} · ${record.name}` : meta.lede,
     render: (body, footer, close) => {
       const withheld = new Set(record?.withheld ?? []);
-      const name = field("Name", { value: record?.name ?? "", required: true });
+      const named = type === "deployment"; // named for what runs and where, unless someone names it
+      const name = field("Name", { value: record?.name ?? "", required: !named, hint: named && !record ? "Leave empty to name it for what runs and where." : null });
       const summary = field("Summary", { type: "textarea", rows: 3, value: record?.summary ?? "" });
       const header = [name.node, summary.node];
       const fields = { name, summary };
@@ -176,7 +180,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
       const bySection = {};
       for (const f of spec.fields) {
         if (withheld.has(f.name)) continue;
-        if (record && f.name === "application_id") continue; // a component stays with its application
+        if (record && f.name === "application_id") continue; // a component or deployment stays with its application
         const value = record ? record[f.name] : preset[f.name];
         const made = input(f, value, ctx);
         // What the form was opened for (a component's application, an interface's near end) is fixed.
@@ -246,6 +250,6 @@ export async function editRecord(type, { record = null, preset = {}, only = null
 
 export function mayAdd(type) {
   if (type === "application") return can("steward") || can("architect");
-  if (type === "component" || type === "interface") return true; // the server asks who keeps the application
+  if (["component", "interface", "deployment"].includes(type)) return true; // the server asks who keeps the application
   return can("architect");
 }

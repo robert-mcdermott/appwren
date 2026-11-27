@@ -45,6 +45,8 @@ Enough to look like an organization that has used AppWren for a year, and small 
 | Applications | 107 | Every sourcing type and tier, most lifecycle stages, and about forty research tools kept by labs |
 | Components | 120 | Most built and commercial applications decomposed; most SaaS with none |
 | Interfaces | 24 | Clinical messages, feeds to the warehouse, files between administrative systems, and one re-keyed by hand |
+| Hosting platforms | 6 | A data center, a standby site, two cloud accounts, a research cluster, and lab workstations |
+| Deployments | 87 | Production for everything the institute runs itself; staging for tiers 1 and 2; a standby for tier 1 in the data center |
 | Assessments | 125 | Re-assessments over time; some expired; a dozen applications never assessed |
 | Decisions | 70 | Some superseded; several mismatches with today's recommendation; some due for review |
 | Portfolio snapshots | 4 | Quarterly, for the last year |

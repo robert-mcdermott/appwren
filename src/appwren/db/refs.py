@@ -20,6 +20,7 @@ PREFIXES = {
     "DEC": "Decision",
     "PSN": "Portfolio snapshot",
     "DEP": "Deployment",
+    "HST": "Hosting platform",
     "INT": "Interface",
     "CON": "Contract",
     "CMG": "Campaign",

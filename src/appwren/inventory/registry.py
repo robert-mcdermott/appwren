@@ -20,6 +20,8 @@ from appwren.db.models import (
     Application,
     Capability,
     Component,
+    Deployment,
+    HostingPlatform,
     Interface,
     Technology,
     Vendor,
@@ -215,6 +217,7 @@ COMPONENT = register(
             F("hosting", "Hosting", "choice", vocab="hosting"),
         ),
         filters=("status", "kind", "application_id"),
+        more_filters=("application",),
         sorts=("updated_at", "name", "ref", "status", "kind"),
     )
 )
@@ -322,6 +325,62 @@ INTERFACE = register(
         filters=("status", "method", "frequency", "source_id", "target_id"),
         more_filters=("application", "data_class"),
         sorts=("updated_at", "name", "ref", "status", "method", "frequency"),
+    )
+)
+HOSTING_PLATFORM = register(
+    RecordType(
+        "hosting_platform",
+        HostingPlatform,
+        "HST",
+        "hosting-platforms",
+        "hosting platform",
+        "hosting platforms",
+        fields=(
+            F("kind", "Kind", "choice", vocab="platform_kinds", required=True),
+            F("vendor_id", "Provider", "ref", target="vendor"),
+            F(
+                "location",
+                "Where it is",
+                "text",
+                help="A site, a region, or an account: enough to tell it from the others.",
+            ),
+        ),
+        shared=True,
+        filters=("status", "kind", "vendor_id"),
+        sorts=("updated_at", "name", "ref", "status", "kind"),
+    )
+)
+DEPLOYMENT = register(
+    RecordType(
+        "deployment",
+        Deployment,
+        "DEP",
+        "deployments",
+        "deployment",
+        "deployments",
+        fields=(
+            F("application_id", "Application", "ref", target="application", required=True),
+            F(
+                "component_id",
+                "Component",
+                "ref",
+                target="component",
+                help="Leave empty when the whole application runs there.",
+            ),
+            F(
+                "environment",
+                "Environment",
+                "choice",
+                vocab="environments",
+                required=True,
+                default="production",
+            ),
+            F("platform_id", "Platform", "ref", target="hosting_platform", required=True),
+            F("url", "Address", "url", max_length=300),
+        ),
+        filters=("status", "environment", "platform_id", "application_id", "component_id"),
+        more_filters=("application",),
+        sorts=("updated_at", "name", "ref", "status", "environment"),
     )
 )
 

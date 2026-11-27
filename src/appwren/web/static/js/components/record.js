@@ -25,6 +25,12 @@ export const TYPES = {
   interface: { prefix: "INT", path: "interfaces", label: "Interface", plural: "Interfaces", noun: "interface", nouns: "interfaces",
     article: "an interface", iconName: "interface", section: "Landscape", kinds: null,
     lede: "Data passing from one application to another: how, how often, and of which classes." },
+  hosting_platform: { prefix: "HST", path: "hosting-platforms", label: "Hosting platform", plural: "Hosting platforms", noun: "hosting platform", nouns: "hosting platforms",
+    article: "a hosting platform", iconName: "platform", section: "Landscape", kinds: "platform_kinds",
+    lede: "Where things run: data centers, cloud accounts, clusters, and providers, each with what runs on it." },
+  deployment: { prefix: "DEP", path: "deployments", label: "Deployment", plural: "Deployments", noun: "deployment", nouns: "deployments",
+    article: "a deployment", iconName: "deployment", section: "Landscape", kinds: null,
+    lede: "An application, or one of its components, running in an environment on a platform." },
 };
 
 const BY_PREFIX = Object.fromEntries(Object.entries(TYPES).map(([key, type]) => [type.prefix, key]));

@@ -148,6 +148,12 @@ The application's support team is a unit: `support_unit_id` on the application.
 
 An active application that receives data through an active interface counts among the dependents of the application that sends it. Where an interface carries a class its target's record does not list, the interface is shown as *undeclared* for that class: nothing is changed, and somebody is prompted to correct one or the other.
 
+### Hosting platform and deployment (wave 2)
+
+`hosting_platform(…, kind, vendor_id?, location)`. Somewhere things run: a data center, a cloud account, a compute cluster, a hosting provider, a vendor's service, or people's own computers. A shared record with a reference of its own (`HST-0003`), kept by architects and managers.
+
+`deployment(…, application_id, component_id?, environment, platform_id, url)`. An application, or one of its components, running in an environment (a vocabulary: production, staging, test, development, disaster recovery) on a platform, with a reference of its own (`DEP-0041`). With no name given it is named for what runs and where. A deployment takes its unit, its restriction, and its keepers from its application, as a component does; a component named on it must be one of that application's; and a retired platform takes no new deployments. What a vendor hosts has no deployment: the application's *hosting* field says so.
+
 ### Tags and external references
 
 Free labels on any record, for whatever the vocabularies do not cover. `external_ref(record_type, record_id, system, value)` records what a record is called in another system (a configuration item, a ticket queue, a repository), with a URL pattern per system.

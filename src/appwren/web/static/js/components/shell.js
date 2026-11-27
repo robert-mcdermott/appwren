@@ -28,6 +28,7 @@ export const NAV = [
       { href: "/capability-map", label: "Capabilities", iconName: "capability" },
       { href: "/data-flows", label: "Data flows", iconName: "flow" },
       { href: "/technologies", label: "Technologies", iconName: "technology" },
+      { href: "/hosting-platforms", label: "Hosting", iconName: "platform" },
       { href: "/vendors", label: "Vendors", iconName: "vendor" },
     ],
   },

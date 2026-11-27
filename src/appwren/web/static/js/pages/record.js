@@ -416,15 +416,37 @@ function applicationOverview(record, ctx) {
       externalCard(record, ctx)));
 }
 
+function deploymentTable(rows, ctx, { withApplication = false } = {}) {
+  return h("div", { class: "table-wrap" }, h("table", { class: "table" },
+    h("thead", {}, h("tr", {}, withApplication ? h("th", { scope: "col" }, "Application") : null, h("th", { scope: "col" }, "What runs"),
+      h("th", { scope: "col" }, "Environment"), withApplication ? null : h("th", { scope: "col" }, "Platform"), h("th", { scope: "col" }, "Address"))),
+    h("tbody", {}, rows.map((d) => h("tr", {},
+      withApplication ? h("td", {}, d.application ? recordChip(d.application) : "") : null,
+      h("td", { class: "nowrap" }, h("a", { class: "cell-main", href: `/deployments/${d.ref}` }, d.component ? d.component.name : "The whole application"), h("div", { class: "cell-sub" }, d.ref)),
+      h("td", {}, label(ctx.vocab, "environments", d.environment)),
+      withApplication ? null : h("td", {}, d.platform ? recordChip(d.platform) : ""),
+      h("td", {}, d.url ? outside(d.url) : h("span", { class: "subtle" }, "—")))))));
+}
+
+function runsCard(record, ctx) {
+  const rows = ctx.deployments ?? [];
+  const add = record.can?.edit ? button("Say where it runs", { kind: "btn-sm", iconName: "plus", onclick: () =>
+    editRecord("deployment", { preset: { application_id: record.ref }, onDone: () => ctx.reload() }) }) : null;
+  return card({ title: rows.length ? `Runs in ${plural(rows.length, "place")}` : "Where it runs", actions: add, flush: rows.length > 0 },
+    rows.length ? deploymentTable(rows, ctx)
+      : h("p", { class: "muted" }, "No deployment recorded. Say which platform it runs on, in which environment: production, staging, test, or a standby."));
+}
+
 function componentsTab(record, ctx) {
   const add = record.can?.edit ? button("Add a component", { kind: "btn-sm", iconName: "plus", onclick: () =>
     editRecord("component", { preset: { application_id: record.ref }, onDone: () => ctx.reload() }) }) : null;
-  return card({ title: plural(record.components.length, "component"), actions: add, flush: record.components.length > 0 },
+  return h("div", { class: "stack-lg" }, card({ title: plural(record.components.length, "component"), actions: add, flush: record.components.length > 0 },
     record.components.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Component"), h("th", { scope: "col" }, "Kind"), h("th", { scope: "col" }, "Status"))),
       h("tbody", {}, record.components.map((c) => h("tr", {},
         h("td", {}, recordChip(c)), h("td", {}, label(ctx.vocab, "component_kinds", c.kind)), h("td", {}, statusPill(c.status)))))))
-      : h("p", { class: "muted" }, "No components recorded. A service, a database, a batch job, or a report that is built, bought, or kept on its own is a component; its technologies are recorded on it."));
+      : h("p", { class: "muted" }, "No components recorded. A service, a database, a batch job, or a report that is built, bought, or kept on its own is a component; its technologies are recorded on it.")),
+  runsCard(record, ctx));
 }
 
 function editCapabilities(record, ctx) {
@@ -587,20 +609,21 @@ export function applicationPage(main, params, extraTabs = []) {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
         tab === "decisions" ? get(`${base}/decisions`, null, { fresh: true }) : null,
         tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null,
-        tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null]);
+        tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null,
+        tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
-        interfaces: joined?.data ?? [], impact: impact?.data ?? null };
+        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [] };
     },
     view: (data, reload) => {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
-      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces, impact: data.impact };
+      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces, impact: data.impact, deployments: data.deployments };
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord("application", { record, onDone: reload }) }) : null;
       const assessButton = record.can?.assess ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
       const decide = () => recordDecision(record, data.scores, data.vocab, reload);
@@ -771,6 +794,18 @@ function sharedOverview(type, record, ctx) {
       : h("p", { class: "muted" }, "No application is recorded as serving it.")));
     if (record.children.length) main.push(card({ title: "Narrower capabilities" }, h("div", { class: "chips" }, record.children.map((r) => recordChip(r)))));
     glance.push(["Part of", record.parent ? recordChip(record.parent) : null]);
+  }
+  if (type === "hosting_platform") {
+    const rows = record.deployments;
+    const spread = Object.entries(record.by_environment).map(([key, count]) => `${count} ${label(ctx.vocab, "environments", key).toLowerCase()}`).join(", ");
+    main.push(card({ title: rows.length ? `${plural(record.application_count, "application")} run here` : "What runs here", flush: rows.length > 0 },
+      rows.length ? [h("p", { class: "card-note muted" }, `${plural(rows.length, "deployment")}: ${spread}. If this platform were lost, these are what would stop.`),
+        deploymentTable(rows, ctx, { withApplication: true })]
+        : h("p", { class: "muted" }, "Nothing is recorded as running here. A deployment is added from its application's Components part.")));
+    glance.push(["Provider", record.vendor ? recordChip(record.vendor) : "Ourselves"]);
+  }
+  if (type === "deployment") {
+    glance.unshift(["Application", record.application ? recordChip(record.application) : null]);
   }
   if (type === "interface") {
     const missing = record.undeclared ?? [];

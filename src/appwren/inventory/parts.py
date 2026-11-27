@@ -38,6 +38,7 @@ from appwren.inventory.registry import (
     COMPONENT,
     TECHNOLOGY,
     VENDOR,
+    find,
 )
 
 WARNING_DAYS = 365  # end of support this close is a warning
@@ -277,7 +278,17 @@ def _component_cards(
     ]  # fmt: skip
 
 
+def _component_conditions(
+    session: Session, principal: Principal, filters: Mapping[str, Any]
+) -> list[Any]:
+    if not filters.get("application"):
+        return []
+    application = find(session, APPLICATION, str(filters["application"]))
+    return [Component.application_id == application.id]
+
+
 COMPONENT.extra.update(
+    conditions=_component_conditions,
     apply=_component_apply,
     can_add=_component_can_add,
     detail=_component_detail,

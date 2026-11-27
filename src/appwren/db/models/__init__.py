@@ -24,7 +24,7 @@ from appwren.db.models.inventory import (
     TechnologyRelease,
     Vendor,
 )
-from appwren.db.models.landscape import Interface
+from appwren.db.models.landscape import Deployment, HostingPlatform, Interface
 from appwren.db.models.people import (
     Account,
     Credential,
@@ -53,9 +53,11 @@ __all__ = [
     "Counter",
     "Credential",
     "Decision",
+    "Deployment",
     "Event",
     "ExternalRef",
     "FailedSignIn",
+    "HostingPlatform",
     "Identity",
     "Interface",
     "Membership",

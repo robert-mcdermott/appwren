@@ -132,7 +132,20 @@ VENDORS = [
     ("calendra", "Calendra", "software_vendor"),
     ("keystone", "Keystone Identity", "software_vendor"),
     ("watchtower", "Watchtower Monitoring", "software_vendor"),
+    ("stratus", "Stratus Cloud", "service_provider"),
 ]  # fmt: skip
+
+# Where things run: key, name, kind, provider (a vendor's key), where it is.
+PLATFORMS = [
+    ("dc", "Campus data center", "data_center", None, "Main campus, lower level"),
+    ("standby", "Standby site", "hosting_provider", "oakmere", "Oakmere Hosting, in another region"),
+    ("cloud_ent", "Enterprise cloud account", "cloud_account", "stratus", "Western region"),
+    ("cloud_res", "Research cloud account", "cloud_account", "stratus", "Western region"),
+    ("hpc", "Research computing cluster", "cluster", None, "Main campus"),
+    ("lab", "Lab workstations", "endpoints", None, "In the labs, beside the instruments"),
+]  # fmt: skip
+# Technologies that only run on a workstation in the lab.
+ON_A_WORKSTATION = {"matlab", "access"}
 
 # key, name, kind, radar, releases as (cycle, days from the build its support ends, or None)
 TECHNOLOGIES = [

@@ -153,6 +153,18 @@ export function applicationList(main) {
 const COLUMNS = {
   component: [["Application", (r) => (r.application ? recordChip(r.application) : "")], ["Kind", (r, v) => label(v, "component_kinds", r.kind)]],
   vendor: [["Kind", (r, v) => label(v, "vendor_kinds", r.kind)]],
+  hosting_platform: [
+    ["Kind", (r, v) => label(v, "platform_kinds", r.kind)],
+    ["Provider", (r) => (r.vendor ? recordChip(r.vendor) : h("span", { class: "subtle" }, "Ourselves"))],
+    ["Where", (r) => r.location ?? ""],
+    ["Runs", (r) => (r.deployment_count ? `${plural(r.application_count, "application")} in ${plural(r.deployment_count, "deployment")}` : h("span", { class: "subtle" }, "Nothing recorded"))],
+  ],
+  deployment: [
+    ["Application", (r) => (r.application ? recordChip(r.application) : "")],
+    ["Part", (r) => (r.component ? recordChip(r.component) : h("span", { class: "subtle" }, "All of it"))],
+    ["Environment", (r, v) => label(v, "environments", r.environment)],
+    ["Platform", (r) => (r.platform ? recordChip(r.platform) : "")],
+  ],
   interface: [
     ["From", (r) => (r.source ? recordChip(r.source) : "")],
     ["To", (r) => (r.target ? recordChip(r.target) : "")],
@@ -194,12 +206,14 @@ export function recordList(main, type) {
     view: (data, reload) => {
       const { vocab } = data;
       const rows = data.page.data;
-      const add = type !== "component" && mayAdd(type) ? () => editRecord(type, {}) : null;
+      // A component and a deployment are added from their application's page.
+      const add = !["component", "deployment"].includes(type) && mayAdd(type) ? () => editRecord(type, {}) : null;
       const search = searchBox(`Search ${meta.nouns}`);
       keepSearchFocus(search);
       const bar = h("div", { class: "filters" }, h("div", { class: "filter-search" }, search),
         meta.kinds ? filterSelect("kind", options(vocab, meta.kinds, { blank: "Any kind" }), "Kind") : null,
         type === "technology" ? filterSelect("radar", options(vocab, "radar", { blank: "Any ring" }), "Radar") : null,
+        type === "deployment" ? filterSelect("environment", options(vocab, "environments", { blank: "Any environment" }), "Environment") : null,
         type === "interface" ? filterSelect("method", options(vocab, "interface_methods", { blank: "Any method" }), "Method") : null,
         type === "interface" ? filterSelect("data_class", options(vocab, "data_classes", { blank: "Any data" }), "Data it carries") : null,
         type === "capability" ? filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain") : null,

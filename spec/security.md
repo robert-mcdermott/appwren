@@ -123,12 +123,12 @@ One function per record type decides what a principal may see. Single records, l
 | Read scores, recommendations, and decisions | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Read sensitive fields | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Add an application in a unit | | | ✓ | | ✓ | ✓ | | |
-| Edit an application; its components; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
+| Edit an application; its components and deployments; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
 | Assess an application | | ✓ | ✓ | | ✓ | ✓ | | |
 | Change who is accountable | | ✓ (the accountable owner) | ✓ | ✓ | | ✓ | | |
 | Record a decision | | | | ✓ (not as its accountable owner) | | ✓ (not as its accountable owner) | | |
 | Add and edit an interface between two applications | | ✓ (named on either) | ✓ (either in scope) | | ✓ (either in scope) | ✓ | | |
-| Add and edit capabilities, technologies and their releases, and vendors | | | | | ✓ | ✓ | | |
+| Add and edit capabilities, technologies and their releases, vendors, and hosting platforms | | | | | ✓ | ✓ | | |
 | Import applications from a spreadsheet, each row as if added by hand | | | ✓ | | ✓ | ✓ | | |
 | Export a list they can see, as CSV or JSON | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Take a portfolio snapshot | | | | | | ✓ | | |

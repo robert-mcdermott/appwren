@@ -600,6 +600,65 @@
     "description": "Its record in another governance system"
    }
   ],
+  "environments": [
+   {
+    "key": "production",
+    "label": "Production",
+    "description": "What people use for real work"
+   },
+   {
+    "key": "staging",
+    "label": "Staging",
+    "description": "A copy of production for trying a change before it goes live"
+   },
+   {
+    "key": "test",
+    "label": "Test",
+    "description": "For testing; holds no real data"
+   },
+   {
+    "key": "development",
+    "label": "Development",
+    "description": "Where it is built"
+   },
+   {
+    "key": "disaster_recovery",
+    "label": "Disaster recovery",
+    "description": "A standby to fail over to"
+   }
+  ],
+  "platform_kinds": [
+   {
+    "key": "data_center",
+    "label": "Data center",
+    "description": "Servers the organization runs in its own or a leased room"
+   },
+   {
+    "key": "cloud_account",
+    "label": "Cloud account",
+    "description": "An account or subscription with a cloud provider"
+   },
+   {
+    "key": "cluster",
+    "label": "Compute cluster",
+    "description": "A shared cluster, such as research computing"
+   },
+   {
+    "key": "hosting_provider",
+    "label": "Hosting provider",
+    "description": "Servers or platforms a provider runs for the organization"
+   },
+   {
+    "key": "vendor_service",
+    "label": "A vendor's service",
+    "description": "The vendor runs it; the organization only uses it"
+   },
+   {
+    "key": "endpoints",
+    "label": "People's own computers",
+    "description": "Installed on desktops, laptops, or instruments"
+   }
+  ],
   "interface_methods": [
    {
     "key": "api",

@@ -68,17 +68,19 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** every kind of record has a picture, seen from its own side: an application's dependencies, flows, capabilities, parts, technologies, vendor, and what it replaced; a technology's components; a vendor's applications; a capability's providers. Impact follows the same rule the engine counts dependents by, ring by ring, and adds up the people who use anything it reaches as an upper bound.
 
-## Slice 3: Deployments and hosting ☐
+## Slice 3: Deployments and hosting ☑
 
 **Goal:** where everything runs.
 
-- [ ] `hosting_platform`: a shared record (a data center, a cloud account, a vendor's service, a cluster), kept by architects, with kind, provider, and location
-- [ ] `deployment`: an application, or one of its components, in an environment on a platform, with an address and a note
-- [ ] The application's page gains a **Where it runs** part; a platform's page lists what runs on it, by environment
-- [ ] Platforms join the graph; "what runs here" answers what a platform's loss would touch
-- [ ] The demo's platforms and deployments; export; guide and changelog entries
+- [x] `hosting_platform`: a shared record (a data center, a cloud account, a vendor's service, a cluster), kept by architects, with kind, provider, and location
+- [x] `deployment`: an application, or one of its components, in an environment on a platform, with an address; named for what runs and where unless someone names it
+- [x] The application's Components part gains **Where it runs**; a platform's page lists what runs on it, by environment
+- [x] Platforms join the picture: an application runs on them, they host applications, and a vendor provides them
+- [x] The demo's platforms and deployments; export; changelog entry
 
-**Acceptance:** a deployment is visible exactly when its application is; a platform's page counts only what the reader may see; a test holds the platform's list equal to the deployments list filtered by it, for every role.
+**Acceptance (met):** a deployment is visible exactly when its application is; a platform's page and its row in the list count only what the reader may see; a test holds the platform's list equal to the deployments list filtered by it, for every role; a component on a deployment must belong to its application; a retired platform takes nothing new.
+
+**Done:** two more record types on the registry, with their lists, filters, exports, and histories. The demo has six platforms and 87 deployments: what the institute runs itself has production, tiers 1 and 2 have staging, and tier 1 systems in the data center have a standby at a provider. What vendors host has none.
 
 ## Slice 4: Cost, funding, and contracts ☐
 
@@ -146,3 +148,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **A record's parts are few.** Interfaces, dependencies, and (next) impact share one part of the application's page, Connections, where a part each would have made eleven.
 - **Impact and the score follow one rule.** What depends on an application is worked out once: a recorded dependency, or receiving its data. The engine counts it for business value, and impact walks it outward, so the number in the working and the list on the page cannot disagree.
 - **People affected is an upper bound, and says so.** The users of an application and of everything that depends on it are added together; the same person may use several. The page says "up to".
+- **Where it runs sits with what it is made of.** Deployments are shown on the application's Components part: a component is what runs, and a deployment is where. A part of its own would have been an eighth for two short tables.
+- **A deployment names itself.** Nobody wants to type "Tracker API, production". A record type may now say how to name a record that arrives without a name.

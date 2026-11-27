@@ -231,6 +231,27 @@ INTERFACE_FREQUENCIES = items(
     ("on_demand", "When someone asks"),
 )
 
+# Where things run (wave 2).
+ENVIRONMENTS = items(
+    ("production", "Production", "What people use for real work"),
+    ("staging", "Staging", "A copy of production for trying a change before it goes live"),
+    ("test", "Test", "For testing; holds no real data"),
+    ("development", "Development", "Where it is built"),
+    ("disaster_recovery", "Disaster recovery", "A standby to fail over to"),
+)
+PLATFORM_KINDS = items(
+    ("data_center", "Data center", "Servers the organization runs in its own or a leased room"),
+    ("cloud_account", "Cloud account", "An account or subscription with a cloud provider"),
+    ("cluster", "Compute cluster", "A shared cluster, such as research computing"),
+    (
+        "hosting_provider",
+        "Hosting provider",
+        "Servers or platforms a provider runs for the organization",
+    ),
+    ("vendor_service", "A vendor's service", "The vendor runs it; the organization only uses it"),
+    ("endpoints", "People's own computers", "Installed on desktops, laptops, or instruments"),
+)
+
 EXTERNAL_SYSTEMS = items(
     ("configuration_item", "Configuration item", "Its record in the infrastructure inventory"),
     ("ticket_queue", "Ticket queue", "Where its support requests go"),
@@ -921,6 +942,8 @@ def main() -> None:
             "application_roles": APPLICATION_ROLES,
             "link_kinds": LINK_KINDS,
             "external_systems": EXTERNAL_SYSTEMS,
+            "environments": ENVIRONMENTS,
+            "platform_kinds": PLATFORM_KINDS,
             "interface_methods": INTERFACE_METHODS,
             "interface_frequencies": INTERFACE_FREQUENCIES,
             "unit_kinds": UNIT_KINDS,

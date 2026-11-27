@@ -137,7 +137,26 @@ class InterfaceBody(RecordBody):
     owner_id: int | None = Field(default=None, description="An account's id")
 
 
+class HostingPlatformBody(RecordBody):
+    kind: str | None = Field(default=None, description="From the platform_kinds vocabulary")
+    vendor_id: str | None = Field(default=None, description="The provider, by reference")
+    location: str | None = None
+
+
+class DeploymentBody(RecordBody):
+    """An application, or one of its components, in an environment on a platform. With no
+    ``name`` it is named for what runs and where."""
+
+    application_id: str | None = Field(default=None, description="Its application's reference")
+    component_id: str | None = Field(default=None, description="One of its components, if not all")
+    environment: str | None = None
+    platform_id: str | None = Field(default=None, description="A hosting platform's reference")
+    url: str | None = None
+
+
 BODIES: dict[str, type[RecordBody]] = {
+    "hosting_platform": HostingPlatformBody,
+    "deployment": DeploymentBody,
     "interface": InterfaceBody,
     "application": ApplicationBody,
     "component": ComponentBody,
@@ -364,6 +383,8 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application_id": "An application's id",
         "parent_id": "A broader capability's id",
         "sensitivity": "The highest sensitivity of its data: 0 public to 3 restricted",
+        "platform_id": "A hosting platform's id",
+        "component_id": "A component's id",
         "source_id": "The id of the application data comes from",
         "target_id": "The id of the application data goes to",
         "application": "An application's reference: at either end",

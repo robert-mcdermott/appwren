@@ -12,12 +12,12 @@ from sqlalchemy import select
 from appwren import assessment, decisions, reporting
 from appwren.api.app import create_app
 from appwren.db.engine import Database
-from appwren.db.models import Application, PortfolioSnapshot, Technology
+from appwren.db.models import Application, HostingPlatform, PortfolioSnapshot, Technology
 from appwren.demo import build
 from appwren.events import chain
 from appwren.inventory import records
-from appwren.inventory.registry import APPLICATION, INTERFACE, TECHNOLOGY
-from appwren.landscape import graph, interfaces
+from appwren.inventory.registry import APPLICATION, DEPLOYMENT, INTERFACE, TECHNOLOGY
+from appwren.landscape import graph, hosting, interfaces
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -123,6 +123,21 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
             c["name"] for c in records.cards(session, ME, INTERFACE, everything) if c["undeclared"]
         ]
         assert marked == ["Enrollment figures"]
+        # Where it runs: what a vendor hosts has no deployment of ours, a tier 1 system in
+        # the data center has a standby, and a platform's page lists what would stop with it.
+        room = session.scalars(
+            select(HostingPlatform).where(HostingPlatform.name == "Campus data center")
+        ).one()
+        running = hosting.running_on(session, ME, room)
+        assert len({row["application"]["ref"] for row in running}) >= 10
+        environments = {row["environment"] for row in running}
+        assert environments == {"production", "staging"}
+        standby, _ = records.search(session, ME, DEPLOYMENT, {"environment": "disaster_recovery"})
+        assert standby and all(row.platform_id != room.id for row in standby)
+        hosted, _ = records.search(
+            session, ME, DEPLOYMENT, {"application": app_named(session, "Survey Hub").ref}
+        )
+        assert hosted == []  # a vendor runs it
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

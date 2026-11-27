@@ -206,6 +206,9 @@ def apply_header(
     restricted; and, for a type that has one, the unit that answers for it."""
     if "name" in values or creating:
         name = text(values.get("name"))
+        named = record_type.extra.get("default_name")
+        if not name and creating and named is not None:
+            name = named(session, values)  # a deployment is named for where and what it runs
         if not name:
             errors.add("name", "Give it a name.")
         elif len(name) > 200:

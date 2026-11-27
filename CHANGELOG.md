@@ -22,6 +22,10 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **What breaks if this goes.** An application's Connections part lists what depends on it,
   directly and through those; the interfaces that would stop; the capabilities left with no
   provider, or without their primary; and the people and units affected.
+- **Hosting platforms and deployments.** Landscape → Hosting holds the data centers, cloud
+  accounts, clusters, and providers things run on. An application's Components part says
+  where it, or any of its components, runs: which platform, in which environment, at what
+  address. A platform's page lists everything on it, which is what would stop with it.
 
 ### Changed
 
