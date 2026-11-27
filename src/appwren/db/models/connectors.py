@@ -120,3 +120,23 @@ class Discovered(Base):
         CheckConstraint("status IN ('new', 'dismissed', 'added')", name="status"),
         Index("ix_discovered_status", "status"),
     )
+
+
+class PushKey(Base):
+    """A secret an administrator issues for one push source: a script that posts facts and does
+    nothing else. Shown once when issued; only its hash is kept."""
+
+    __tablename__ = "push_key"
+    __subject__ = "push_key"
+    __audit_skip__ = frozenset({"last_used_at"})
+    __audit_redact__ = frozenset({"digest"})
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    prefix: Mapped[str] = mapped_column(String(16))  # the start of the key, to tell keys apart
+    digest: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime)
+    created_by_name: Mapped[str | None] = mapped_column(String(200))
+    last_used_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    revoked_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    revoked_by_name: Mapped[str | None] = mapped_column(String(200))

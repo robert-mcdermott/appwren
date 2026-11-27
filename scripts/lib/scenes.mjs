@@ -135,6 +135,8 @@ export const SCENES = [
   { name: "discovered", as: "portfolio", path: "/discovered" },
   { name: "discovered-add", as: "portfolio", path: "/discovered", step: press("Add Room Booking") },
   { name: "application-sourced", as: "portfolio", path: app("Grant Management System") },
+  { name: "push-key", as: "admin", path: "/admin/connectors", step: click("Issue a key") },
+  { name: "catalog-import", as: "res_steward", path: app("Specimen Tracker", "components"), step: click("Import one") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

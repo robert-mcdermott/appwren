@@ -86,6 +86,9 @@
 .local-sign-in summary { cursor: pointer; color: var(--text-muted); font-weight: 500; min-height: 24px; }
 .local-sign-in[open] summary { margin-bottom: var(--space-2); }
 .steps-list { display: grid; gap: var(--space-3); padding-left: var(--space-5); list-style: decimal; }
+.kind-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: start; }
+.code-input { font-family: var(--font-mono); font-size: var(--text-s); }
+.code-block { margin: 0; padding: var(--space-3); border-radius: var(--radius-s); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-s); white-space: pre-wrap; overflow-wrap: anywhere; }
 .copyable { display: inline-block; margin-top: var(--space-1); padding: var(--space-1) var(--space-2); border-radius: var(--radius-s); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-s); overflow-wrap: anywhere; user-select: all; }
 
 /* ---- Records ---- */

@@ -2,11 +2,11 @@
 // time, for a named source. A credential stays in the server's environment; only the name of
 // its variable is given here. Every run is listed with what it read, changed, and missed.
 
-import { get, patch, post } from "../core/api.js";
+import { del, get, patch, post } from "../core/api.js";
 import { button, h, icon } from "../core/dom.js";
 import { dateTime, plural, relative } from "../core/format.js";
 import { banner, field, submit } from "../components/form.js";
-import { openOverlay } from "../components/overlay.js";
+import { confirmAction, openOverlay } from "../components/overlay.js";
 import { toast } from "../components/toast.js";
 import { alert, card, emptyState, pageHeader, pill } from "../components/ui.js";
 import { show } from "./page.js";
@@ -142,16 +142,77 @@ function connectorForm(kind, row, reload) {
 function kindsCard(kinds, reload) {
   return card({ title: "Sources AppWren can read" },
     h("div", { class: "stack" },
-      kinds.map((kind) => h("div", { class: "row wrap" },
+      kinds.map((kind) => h("div", { class: "kind-row" },
         h("div", { class: "stack-sm grow" }, h("strong", {}, kind.label), h("span", { class: "muted" }, `${kind.describes}.`),
           h("span", { class: "subtle" }, `Access it needs: ${kind.access}`)),
         button("Add", { kind: "btn-sm", iconName: "plus", "aria-label": `Add a connector: ${kind.label}`, onclick: () => connectorForm(kind, null, reload) })))));
 }
 
+function issueForm(reload) {
+  openOverlay({
+    title: "Issue a push key",
+    kind: "dialog",
+    render: (body, footer, close) => {
+      const name = field("The tool that will post with it", { maxlength: 120, hint: "Such as: Service desk, or Monitoring. Facts it posts are shown as from this name." });
+      const problem = banner();
+      const save = button("Issue the key", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem, fields: { name },
+          run: () => post("/api/v1/push-keys", { name: name.input.value }) });
+        if (!done) return;
+        const key = done.data.key;
+        const example = `curl -X POST ${window.location.origin}/api/v1/facts \\
+  -H "Authorization: Bearer ${key}" -H "Content-Type: application/json" \\
+  -d '{"facts": [{"record": "APP-0001", "field": "incidents_90d", "value": 3}]}'`;
+        body.replaceChildren(h("div", { class: "stack" },
+          alert("warn", icon("alert"), h("div", {}, h("strong", {}, "Copy the key now. "), "It is shown this once and kept only as a hash; if it is lost, revoke it and issue another.")),
+          h("div", { class: "field" }, h("div", { class: "label" }, `Key for ${done.data.name}`), h("code", { class: "copyable" }, key)),
+          h("p", { class: "muted" }, "Keep it where the tool runs, such as in an environment variable. It may post facts and nothing else. For example:"),
+          h("pre", { class: "code-block" }, example)));
+        footer.replaceChildren(h("div", { class: "row" }, button("Done", { kind: "btn-primary", onclick: close })));
+        reload();
+      });
+      body.append(h("div", { class: "stack" }, problem,
+        h("p", { class: "muted" }, "A push key lets one of your own tools post facts, such as incidents from the service desk, in one format, to POST /api/v1/facts. It can read nothing and post nowhere else."),
+        name.node));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+function keysCard(keys, reload) {
+  const live = keys.filter((key) => !key.revoked_at);
+  if (!keys.length) {
+    return card({ title: "Push keys", actions: button("Issue a key", { kind: "btn-sm", iconName: "plus", onclick: () => issueForm(reload) }) },
+      h("p", { class: "muted" }, "None issued. A push key lets one of your own tools, such as the service desk or monitoring, post facts here."));
+  }
+  return card({ title: "Push keys", actions: button("Issue a key", { kind: "btn-sm", iconName: "plus", onclick: () => issueForm(reload) }), flush: true },
+    live.length ? null : h("p", { class: "card-note subtle" }, "No key is in use."),
+    h("div", { class: "table-wrap" }, h("table", { class: "table" },
+      h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Tool"), h("th", { scope: "col" }, "Key begins"), h("th", { scope: "col" }, "Issued"),
+        h("th", { scope: "col" }, "Last posted"), h("th", { scope: "col" }, h("span", { class: "sr-only" }, "Actions")))),
+      h("tbody", {}, keys.map((key) => h("tr", {},
+        h("td", { class: "cell-main" }, key.name, key.revoked_at ? h("div", { class: "cell-sub" }, `Revoked by ${key.revoked_by}, ${relative(key.revoked_at)}`) : null),
+        h("td", {}, h("code", {}, `${key.prefix}…`)),
+        h("td", {}, h("span", {}, relative(key.created_at)), h("div", { class: "cell-sub" }, `by ${key.created_by}`)),
+        h("td", {}, key.last_used_at ? relative(key.last_used_at) : h("span", { class: "subtle" }, "Never")),
+        h("td", { class: "cell-actions" }, key.revoked_at ? pill("Revoked") : button("Revoke", { kind: "btn-sm btn-ghost", "aria-label": `Revoke the key for ${key.name}`,
+          onclick: () => confirmAction({ title: `Revoke the key for ${key.name}?`, text: "The tool can post no more facts with it. What it posted stays, with its source.",
+            confirmLabel: "Revoke", danger: true, run: async () => {
+              await del(`/api/v1/push-keys/${key.id}`);
+              toast(`The key for ${key.name} is revoked.`);
+              reload();
+            } }) }))))))));
+}
+
 export function adminConnectors(main) {
   return show(main, {
     title: "Connectors",
-    load: async () => (await get("/api/v1/connectors", null, { fresh: true })).data,
+    load: async () => {
+      const [found, keys] = await Promise.all([get("/api/v1/connectors", null, { fresh: true }), get("/api/v1/push-keys", null, { fresh: true })]);
+      return { ...found.data, keys: keys.data };
+    },
     view: (data, reload) => {
       const kinds = Object.fromEntries(data.kinds.map((kind) => [kind.key, kind]));
       const on = data.connectors.filter((row) => row.enabled);
@@ -162,7 +223,8 @@ export function adminConnectors(main) {
           "Each is added switched off, for one named source, and can be checked before it runs.")),
         data.connectors.length ? data.connectors.map((row) => connectorCard(row, kinds[row.kind], reload))
           : emptyState({ iconName: "link", title: "No connectors yet", text: "Add one below for each source you want facts from." }),
-        kindsCard(data.kinds, reload));
+        kindsCard(data.kinds, reload),
+        keysCard(data.keys, reload));
     },
   });
 }

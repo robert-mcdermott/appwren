@@ -5,16 +5,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from appwren import connectors
 from appwren.access.policy import current
-from appwren.api.common import envelope, reading, writing
-from appwren.connectors import discovery, sourced
+from appwren.api.common import database, envelope, reading, writing
+from appwren.connectors import discovery, push, sourced
+from appwren.core.clock import utc_now
 from appwren.core.errors import Invalid, NotFound
-from appwren.db.models import TechnologyRelease
+from appwren.db.models import PushKey, TechnologyRelease
 from appwren.inventory import records
 from appwren.inventory.registry import find_any
 
@@ -90,6 +91,61 @@ def run_connector(request: Request, key: str) -> dict[str, Any]:
     with reading(request) as session:
         connectors.load(session, key)
     return envelope(connectors.run(request.app.state.db, key))
+
+
+class KeyBody(BaseModel):
+    name: str = Field(default="", max_length=120, description="The tool that will post with it")
+
+
+class FactsBody(BaseModel):
+    facts: list[Any] | None = Field(
+        default=None,
+        description="Each with record (a reference), field, value, and optionally observed_at "
+        "(a date and time with its zone) and release (for a technology's release)",
+    )
+
+
+@router.get("/push-keys", summary="Push keys, issued and revoked")
+def list_push_keys(request: Request) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        return envelope(push.listing(session, principal))
+
+
+@router.post("/push-keys", summary="Issue a push key, shown this once", status_code=201)
+def issue_push_key(request: Request, body: KeyBody) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        row, key = push.issue(session, principal, body.name)
+        return envelope({**push.view(row), "key": key})
+
+
+@router.delete("/push-keys/{key_id}", summary="Revoke a push key")
+def revoke_push_key(request: Request, key_id: int) -> dict[str, Any]:
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        return envelope(push.view(push.revoke(session, principal, key_id)))
+
+
+@router.post("/facts", summary="Post facts, with a push key")
+def post_facts(request: Request, body: FactsBody) -> dict[str, Any]:
+    """For a script holding a push key, sent as ``Authorization: Bearer <key>``. Each fact is
+    kept with the key's name as its source. The batch is checked whole first: one bad fact
+    and nothing is written, with each problem named by its place in the list."""
+    said = request.headers.get("authorization", "")
+    presented = said[7:].strip() if said.lower().startswith("bearer ") else None
+    db = database(request)
+    with db.read() as session:
+        holder = push.holder(session, presented)
+        key_id, actor = (holder.id, push.actor(holder)) if holder else (None, None)
+    if key_id is None or actor is None:
+        raise HTTPException(401, "Post facts with a push key an administrator issued.")
+    with db.write(actor, action="facts.push") as session:
+        row = session.get(PushKey, key_id)
+        assert row is not None
+        counts = push.take(session, row, body.facts)
+        row.last_used_at = utc_now()
+    return envelope(counts)
 
 
 class AddBody(BaseModel):

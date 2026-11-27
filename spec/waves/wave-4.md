@@ -85,13 +85,13 @@ Built with slice 1, as the framework's first connector: it needs no credential, 
 
 **Acceptance:** against a fake provider inside the tests, matched applications get their users with the source; an unmatched one is listed once, and adding it makes a record named for it.
 
-## Slice 5: Push and catalog files ☐
+## Slice 5: Push and catalog files ☑
 
 **Goal:** everything else, from the tools the organization runs itself.
 
-- [ ] Push sources: an administrator issues a push key, shown once; `POST /api/v1/facts` takes facts in one format (a record's reference, a field, a value, when it was observed) from a script holding the key, and nothing else
-- [ ] Incidents and tickets over 90 days as fields that pushes fill, joining reliability and support effort
-- [ ] Catalog files: import a repository's catalog file into an application and its components, with a dry run; export an application as one; the code-hosting connector reports where a repository has one
+- [x] Push sources: an administrator issues a push key, shown once; `POST /api/v1/facts` takes facts in one format (a record's reference, a field, a value, when it was observed) from a script holding the key, and nothing else
+- [x] Incidents and tickets over 90 days as fields that pushes fill, joining reliability and support effort (as factors in slice 6)
+- [x] Catalog files: import a repository's catalog file into an application and its components, with a dry run; export an application as one; the code-hosting connector reports where a repository has one
 
 **Acceptance:** a pushed fact lands with its source; a key cannot read anything or post to any other route; a catalog file imported twice changes nothing the second time.
 
@@ -121,3 +121,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **The demo's repositories keep its storylines.** Who changed each demo repository is drawn so that an application's maintainers come out as already recorded; nothing the earlier waves told moves.
 - **The applications not on record are listed for those who add applications, not on Admin → Connectors.** The plan put the list on the administrator's page, but an administrator often may not add an application, and the people who decide what the portfolio keeps (stewards, architects, managers) do not see Admin. The list is on Portfolio → Not on record for them. Adding one keeps the provider's identifier on the new record as its sign-in registration, so the next run matches it however it is renamed; one recorded by hand is matched by the next run and leaves the list; one the provider no longer lists, that nobody decided about, goes.
 - **The demo's sign-ins keep its storylines.** The demo's identity provider gives each bought or rented application its users as already recorded, and lists six registrations on no record and one dismissed.
+- **A push key is the only way to post facts.** A person signed in, even an administrator, is refused at `POST /api/v1/facts`, and a key is refused everywhere else, because nothing else reads it. A batch is checked whole before anything is written: one bad fact and nothing lands, with each problem named by its place in the list.
+- **Catalog files are written under AppWren's own version.** The files use the common descriptor shape (documents with `kind`, `metadata`, and `spec`; a `System` for the application, a `Component` or `Resource` for each part). Import accepts any `apiVersion`; export writes `appwren/v1` with AppWren's references in each document, so a file kept in a repository matches the same records when imported again. Owners are not taken from a file: people are named in AppWren.

@@ -26,6 +26,7 @@ class Needs(StrEnum):
     CONFIGURE = "configure"  # those managers, and administrators: shaping the program
     READ_ALL = "read_all"  # those managers, auditors, and administrators
     ADMIN = "admin"  # administrators
+    PUSH = "push"  # a push key, and no one signed in: the route checks the key itself
 
 
 POLICIES: dict[tuple[str, str], Needs] = {
@@ -102,6 +103,14 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/connectors/{key}/check"): Needs.ADMIN,
     ("POST", "/api/v1/connectors/{key}/run"): Needs.ADMIN,
     # What sources supply: read with the record; overridden by whoever keeps it
+    # Catalog files: exported by anyone who may see the application, imported by its keepers
+    ("GET", "/api/v1/applications/{ref}/catalog"): Needs.MEMBER,
+    ("POST", "/api/v1/applications/{ref}/catalog"): Needs.KEEP,
+    # Push keys, issued by an administrator; and the one route a key may use
+    ("GET", "/api/v1/push-keys"): Needs.ADMIN,
+    ("POST", "/api/v1/push-keys"): Needs.ADMIN,
+    ("DELETE", "/api/v1/push-keys/{key_id}"): Needs.ADMIN,
+    ("POST", "/api/v1/facts"): Needs.PUSH,
     # Applications a source knows that are not on record, for those who add applications
     ("GET", "/api/v1/discovered"): Needs.KEEP,
     ("POST", "/api/v1/discovered/{item_id}/add"): Needs.KEEP,
@@ -254,6 +263,8 @@ POLICIES: dict[tuple[str, str], Needs] = {
 def allowed(principal: Principal | None, needs: Needs) -> bool:
     if needs is Needs.PUBLIC:
         return True
+    if needs is Needs.PUSH:
+        return principal is None  # a person signed in does not post facts; a key does
     if principal is None:
         return False
     return {

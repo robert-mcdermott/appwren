@@ -37,6 +37,16 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **Not on record.** Applications registered with the identity provider that match no
   record are listed once, on Portfolio → Not on record, for whoever adds applications: add
   one with its name filled in and its identifier kept, or dismiss it with a reason.
+- **Push sources.** An administrator issues a push key for one of the organization's own
+  tools, shown once and kept only as a hash. The tool posts facts to `POST /api/v1/facts` in
+  one format (a record, a field, a value, when it was observed), and can do nothing else. A
+  batch is checked whole first, so one bad fact writes nothing. Incidents and support tickets
+  over 90 days are fields that pushes fill.
+- **Catalog files.** An application and its components can be exported as a
+  `catalog-info.yaml` to keep beside the code, and a file can be imported into an
+  application, with a dry run first: it updates what it describes and adds any component it
+  names, and removes nothing, so the same file twice changes nothing. Files are read with a
+  safe loader; PyYAML is the sixth runtime dependency.
 - The history names the release whose dates changed, and shows the reason given for an
   override.
 

@@ -1802,6 +1802,25 @@
         "title": "ExternalRefBody",
         "type": "object"
       },
+      "FactsBody": {
+        "properties": {
+          "facts": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Each with record (a reference), field, value, and optionally observed_at (a date and time with its zone) and release (for a technology's release)",
+            "title": "Facts"
+          }
+        },
+        "title": "FactsBody",
+        "type": "object"
+      },
       "FieldsBody": {
         "properties": {
           "fields": {
@@ -2279,6 +2298,19 @@
           "enabled"
         ],
         "title": "JobSwitch",
+        "type": "object"
+      },
+      "KeyBody": {
+        "properties": {
+          "name": {
+            "default": "",
+            "description": "The tool that will post with it",
+            "maxLength": 120,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "title": "KeyBody",
         "type": "object"
       },
       "LinkBody": {
@@ -4591,6 +4623,108 @@
         "summary": "Say which capabilities it serves",
         "tags": [
           "inventory"
+        ]
+      }
+    },
+    "/api/v1/applications/{ref}/catalog": {
+      "get": {
+        "operationId": "export_catalog_api_v1_applications__ref__catalog_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/yaml": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "An application and its components, as a catalog file",
+        "tags": [
+          "catalog files"
+        ]
+      },
+      "post": {
+        "description": "Send the file as the request body. Only what it says is changed; nothing is removed.",
+        "operationId": "import_catalog_api_v1_applications__ref__catalog_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ref",
+            "required": true,
+            "schema": {
+              "title": "Ref",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Say what would change, and keep nothing",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Say what would change, and keep nothing",
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/yaml": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Import Catalog Api V1 Applications  Ref  Catalog Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bring a catalog file into an application and its components",
+        "tags": [
+          "catalog files"
         ]
       }
     },
@@ -8700,6 +8834,50 @@
         ]
       }
     },
+    "/api/v1/facts": {
+      "post": {
+        "description": "For a script holding a push key, sent as ``Authorization: Bearer <key>``. Each fact is\nkept with the key's name as its source. The batch is checked whole first: one bad fact\nand nothing is written, with each problem named by its place in the list.",
+        "operationId": "post_facts_api_v1_facts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FactsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Post Facts Api V1 Facts Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post facts, with a push key",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
     "/api/v1/funding-sources": {
       "get": {
         "operationId": "list_funding_source_api_v1_funding_sources_get",
@@ -11393,6 +11571,114 @@
         "summary": "Rename, reorder, add to, or retire a list",
         "tags": [
           "program"
+        ]
+      }
+    },
+    "/api/v1/push-keys": {
+      "get": {
+        "operationId": "list_push_keys_api_v1_push_keys_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Push Keys Api V1 Push Keys Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Push keys, issued and revoked",
+        "tags": [
+          "connectors"
+        ]
+      },
+      "post": {
+        "operationId": "issue_push_key_api_v1_push_keys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeyBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Issue Push Key Api V1 Push Keys Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Issue a push key, shown this once",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/api/v1/push-keys/{key_id}": {
+      "delete": {
+        "operationId": "revoke_push_key_api_v1_push_keys__key_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "title": "Key Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Revoke Push Key Api V1 Push Keys  Key Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke a push key",
+        "tags": [
+          "connectors"
         ]
       }
     },

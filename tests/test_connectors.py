@@ -625,3 +625,81 @@ def test_a_next_page_on_another_host_is_not_followed(
     done = connectors.run(db, "entra")
     assert done["status"] == "failed" and "pointed elsewhere" in done["error"]
     assert not any(r.url.host == "elsewhere.test" for r in source.asked)
+
+
+# --- Push sources (slice 5) ---------------------------------------------------------------------
+
+
+def test_a_push_key_posts_facts_and_nothing_else(
+    as_role: Clients, db: Database, people: People
+) -> None:
+    from appwren.db.models import PushKey
+    from appwren.inventory.registry import APPLICATION
+    from tests.test_inventory import add_app
+
+    app = add_app(db, people, name="Sample Tracker", users=10)
+    admin = as_role("admin")
+    issued = admin.post("/api/v1/push-keys", json={"name": "Service desk"})
+    assert issued.status_code == 201
+    key = issued.json()["data"]["key"]
+    assert key.startswith("awp_") and issued.json()["data"]["prefix"] == key[:10]
+    listed = admin.get("/api/v1/push-keys").json()["data"]
+    assert [k["name"] for k in listed] == ["Service desk"] and "key" not in listed[0]
+    with db.read() as session:  # only its hash is kept
+        assert key not in str([vars(row) for row in session.scalars(select(PushKey))])
+    script = as_role(None)
+    bearer = {"Authorization": f"Bearer {key}"}
+    facts = [
+        {
+            "record": app,
+            "field": "incidents_90d",
+            "value": 4,
+            "observed_at": "2026-11-20T09:00:00Z",
+        },
+        {"record": app, "field": "tickets_90d", "value": 31},
+        {"record": app, "field": "users", "value": 42},
+    ]
+    assert script.post("/api/v1/facts", json={"facts": facts}).status_code == 401
+    wrong = {"Authorization": "Bearer awp_not-a-key"}
+    assert script.post("/api/v1/facts", json={"facts": facts}, headers=wrong).status_code == 401
+    # A person signed in does not post facts, even an administrator.
+    assert admin.post("/api/v1/facts", json={"facts": facts}, headers=bearer).status_code == 403
+    done = script.post("/api/v1/facts", json={"facts": facts}, headers=bearer)
+    assert done.status_code == 200, done.text
+    assert done.json()["data"] == {"accepted": 3, "changed": 3, "unchanged": 0, "kept": 0}
+    shown = {v["field"]: v for v in
+             as_role("member").get(f"/api/v1/sourced/{app}").json()["data"]["values"]}  # fmt: skip
+    assert shown["incidents_90d"]["shown"] == 4 and shown["incidents_90d"]["source_name"] == (
+        "Service desk"
+    )
+    assert shown["incidents_90d"]["read_at"].startswith("2026-11-20T09:00")
+    with db.read() as session:
+        record = records.load(session, ME, APPLICATION, app)
+        assert record.users == 42
+        assert history.for_record(session, APPLICATION, record)[0]["actor"] == "Push: Service desk"
+        assert session.scalars(select(PushKey)).one().last_used_at is not None
+    # One bad fact and nothing is written, each problem named by its place.
+    bad = [{"record": app, "field": "tickets_90d", "value": 1},
+           {"record": app, "field": "no_such_field", "value": 1},
+           {"record": "APP-9999", "field": "users", "value": 1},
+           {"record": app, "field": "users", "value": -1},
+           {"record": app, "field": "users", "value": 3, "observed_at": "2999-01-01Z"}]  # fmt: skip
+    refused = script.post("/api/v1/facts", json={"facts": bad}, headers=bearer)
+    assert refused.status_code == 422
+    assert [e["location"] for e in refused.json()["errors"]] == [
+        ["facts.1"],
+        ["facts.2"],
+        ["facts.3"],
+        ["facts.4"],
+    ]
+    assert shown["tickets_90d"]["shown"] == 31
+    assert script.post("/api/v1/facts", json={}, headers=bearer).status_code == 422
+    # A key reads nothing and posts nowhere else.
+    assert script.get("/api/v1/applications", headers=bearer).status_code == 401
+    assert script.get(f"/api/v1/sourced/{app}", headers=bearer).status_code == 401
+    assert script.post("/api/v1/push-keys", json={"name": "x"}, headers=bearer).status_code == 401
+    # Revoked, it is refused.
+    key_id = listed[0]["id"]
+    assert admin.delete(f"/api/v1/push-keys/{key_id}").status_code == 200
+    assert script.post("/api/v1/facts", json={"facts": facts}, headers=bearer).status_code == 401
+    assert admin.delete(f"/api/v1/push-keys/{key_id}").status_code == 409

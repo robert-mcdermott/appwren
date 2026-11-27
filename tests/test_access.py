@@ -270,6 +270,12 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("PATCH", "/api/v1/connectors/{key}"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/check"): {"admin"},
     ("POST", "/api/v1/connectors/{key}/run"): {"admin"},
+    ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,
+    ("POST", "/api/v1/applications/{ref}/catalog"): KEEPERS,
+    ("GET", "/api/v1/push-keys"): {"admin"},
+    ("POST", "/api/v1/push-keys"): {"admin"},
+    ("DELETE", "/api/v1/push-keys/{key_id}"): {"admin"},
+    ("POST", "/api/v1/facts"): set(),  # a push key only: see test_connectors
     ("GET", "/api/v1/discovered"): KEEPERS,
     ("POST", "/api/v1/discovered/{item_id}/add"): KEEPERS,
     ("POST", "/api/v1/discovered/{item_id}/dismiss"): KEEPERS,
@@ -485,6 +491,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{ref}", "APP-9999").replace("{link_id}", "1")
             path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
             path = path.replace("{item_id}", "9999").replace("{task_id}", "9999")
+            path = path.replace("{key_id}", "9999")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
             path = path.replace("{name}", "no_such_list").replace("{field}", "users")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":

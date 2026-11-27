@@ -607,6 +607,9 @@ function runsCard(record, ctx) {
 function componentsTab(record, ctx) {
   const add = record.can?.edit ? button("Add a component", { kind: "btn-sm", iconName: "plus", onclick: () =>
     editRecord("component", { preset: { application_id: record.ref }, onDone: () => ctx.reload() }) }) : null;
+  const catalogActions = h("div", { class: "row-sm" },
+    h("a", { class: "btn btn-sm", href: `/api/v1/applications/${record.ref}/catalog`, download: "" }, "Export a catalog file"),
+    record.can?.edit ? button("Import one", { kind: "btn-sm", onclick: async () => (await import("../components/catalog-file.js")).importCatalog(record, ctx) }) : null);
   const code = Object.fromEntries((ctx.sourced?.components ?? []).map((c) => [c.ref, Object.fromEntries(c.values.map((v) => [v.field, v]))]));
   const anyCode = Object.keys(code).length > 0;
   const alerts = (v) => {
@@ -633,7 +636,9 @@ function componentsTab(record, ctx) {
         anyCode ? [h("td", {}, codeCell(c)), h("td", {}, code[c.ref] ? alerts(code[c.ref].dependency_alerts) : h("span", { class: "subtle" }, "—"))] : null,
         h("td", {}, statusPill(c.status)))))))
       : h("p", { class: "muted" }, "No components recorded. A service, a database, a batch job, or a report that is built, bought, or kept on its own is a component; its technologies are recorded on it.")),
-  runsCard(record, ctx));
+  runsCard(record, ctx),
+  card({ title: "Catalog file", actions: catalogActions },
+    h("p", { class: "muted" }, "The application and its components as a catalog-info.yaml, to keep beside the code. Imported again, it updates what it describes and adds any component it names; nothing it leaves out is removed.")));
 }
 
 function editCapabilities(record, ctx) {

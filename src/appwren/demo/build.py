@@ -1579,6 +1579,47 @@ class Builder:
             connectors.change(session, admin, connectors.load(session, "entra"),
                               {"enabled": False})  # fmt: skip
 
+    def pushes(self) -> None:
+        """The service desk's nightly push: incidents and tickets over 90 days for what is in
+        service, more where an application is in poor health. Its key was issued a week ago."""
+        from appwren.connectors import push
+        from appwren.db.models import Application, PushKey
+
+        r = random.Random(self.seed * 15485863 + 5)  # wave 4's push draws
+        admin = self.principal(self.cast["admin"])
+        issued = self.end - timedelta(days=7, hours=4)
+        with clock_set_to(lambda: issued), self.db.write(admin.actor) as session:
+            key, _ = push.issue(session, admin, "Service desk")
+            key_id = key.id
+        with self.db.read() as session:
+            apps = session.scalars(
+                select(Application).where(
+                    Application.status == "active", Application.lifecycle == "active",
+                    Application.tier.in_(("1", "2", "3")),
+                ).order_by(Application.ref)
+            ).all()  # fmt: skip
+            facts = []
+            for app in apps:
+                health = self.health.get(app.ref, "fair")
+                low, high = {"good": (0, 1), "fair": (1, 3), "poor": (4, 12)}[health]
+                tickets = {"good": (2, 15), "fair": (10, 40), "poor": (30, 90)}[health]
+                facts.append({"record": app.ref, "field": "incidents_90d",
+                              "value": r.randint(low, high)})  # fmt: skip
+                facts.append({"record": app.ref, "field": "tickets_90d",
+                              "value": r.randint(*tickets)})  # fmt: skip
+        for days in range(7, 0, -1):
+            at = self.end - timedelta(days=days, hours=7, minutes=10)
+            with clock_set_to(lambda at=at: at):
+                with self.db.read() as session:
+                    row = session.get(PushKey, key_id)
+                    assert row is not None
+                    actor = push.actor(row)
+                with self.db.write(actor, action="facts.push") as session:
+                    row = session.get(PushKey, key_id)
+                    assert row is not None
+                    push.take(session, row, facts)
+                    row.last_used_at = at
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1618,6 +1659,7 @@ class Builder:
         self.sources()
         self.code()
         self.signins()
+        self.pushes()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

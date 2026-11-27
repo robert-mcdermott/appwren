@@ -54,8 +54,10 @@ def _order(record_type: str, name: str) -> int:
 
 
 def spec_for(record_type: str, name: str) -> Field | None:
-    """The field a source may supply, once every kind has said which it supplies."""
-    import appwren.connectors.kinds  # noqa: F401
+    """The field a source may supply, once every kind, and the push sources, have said which
+    they supply."""
+    import appwren.connectors.kinds
+    import appwren.connectors.push  # noqa: F401
 
     return FIELDS.get((record_type, name))
 
