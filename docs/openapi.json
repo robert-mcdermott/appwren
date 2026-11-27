@@ -1454,6 +1454,20 @@
         "title": "DecisionBody",
         "type": "object"
       },
+      "DefinitionBody": {
+        "properties": {
+          "definition": {
+            "additionalProperties": true,
+            "title": "Definition",
+            "type": "object"
+          }
+        },
+        "required": [
+          "definition"
+        ],
+        "title": "DefinitionBody",
+        "type": "object"
+      },
       "DemoSignIn": {
         "properties": {
           "email": {
@@ -1638,6 +1652,37 @@
           "value"
         ],
         "title": "ExternalRefBody",
+        "type": "object"
+      },
+      "FieldsBody": {
+        "properties": {
+          "fields": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "sensitive_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sensitive Fields"
+          }
+        },
+        "required": [
+          "fields"
+        ],
+        "title": "FieldsBody",
         "type": "object"
       },
       "FundingSourceBody": {
@@ -2967,6 +3012,24 @@
           }
         },
         "title": "ViewBody",
+        "type": "object"
+      },
+      "VocabularyBody": {
+        "properties": {
+          "items": {
+            "description": "Every value in order: its key, label, and any description; new values may leave the key empty; retired values say so",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "VocabularyBody",
         "type": "object"
       }
     }
@@ -10300,6 +10363,256 @@
         "summary": "One portfolio snapshot",
         "tags": [
           "decisions and the portfolio"
+        ]
+      }
+    },
+    "/api/v1/program": {
+      "get": {
+        "operationId": "get_program_api_v1_program_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Program Api V1 Program Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The program as it stands, and what may be changed",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/fields": {
+      "put": {
+        "operationId": "put_fields_api_v1_program_fields_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Fields Api V1 Program Fields Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The organization's own fields, and which are sensitive",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/questionnaire": {
+      "put": {
+        "operationId": "put_questionnaire_api_v1_program_questionnaire_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Questionnaire Api V1 Program Questionnaire Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish new wording of the questions",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/scoring": {
+      "put": {
+        "operationId": "put_scoring_api_v1_program_scoring_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Scoring Api V1 Program Scoring Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a new version of the scoring model",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/scoring/preview": {
+      "post": {
+        "description": "Every application in service whose scores, confidence, recommendation, or flags would\ndiffer. Nothing is saved.",
+        "operationId": "preview_scoring_api_v1_program_scoring_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinitionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Preview Scoring Api V1 Program Scoring Preview Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What a changed scoring model would change",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/v1/program/vocabularies/{name}": {
+      "put": {
+        "operationId": "put_vocabulary_api_v1_program_vocabularies__name__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VocabularyBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Put Vocabulary Api V1 Program Vocabularies  Name  Put",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename, reorder, add to, or retire a list",
+        "tags": [
+          "program"
         ]
       }
     },

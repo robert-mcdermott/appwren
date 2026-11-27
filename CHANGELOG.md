@@ -67,6 +67,15 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   be, and why, with a link to the evidence. A manager or an architect accepts or answers it,
   and the owner is told. Both stay on the record and in its history. A contest does not move
   a score; putting the record or the assessment right does.
+- **The program, shaped in the app.** Admin → Program, for managers of the whole
+  organization and administrators: rename, describe, reorder, add to, and retire the values
+  of a list (those AppWren's rules read can be renamed and reordered only); add and edit the
+  organization's own fields and say which are sensitive; reword the questions and their
+  levels; and change the thresholds, every profile's weights, and the cadence. A changed
+  scoring model is previewed first, listing every application whose scores, confidence,
+  recommendation, or flags would differ, and publishing it changes exactly those. Each change
+  publishes a new version or is kept in the history.
+- **A portfolio snapshot each month,** kept by the scheduler on the first turn of the month.
 
 ### Changed
 

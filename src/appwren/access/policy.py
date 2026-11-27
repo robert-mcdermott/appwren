@@ -86,6 +86,13 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("POST", "/api/v1/applications/{ref}/contests"): Needs.MEMBER,
     ("GET", "/api/v1/contests"): Needs.MEMBER,
     ("POST", "/api/v1/contests/{contest_id}/answer"): Needs.ARCHITECT,
+    # Shaping the program: managers for the whole organization, and administrators
+    ("GET", "/api/v1/program"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/vocabularies/{name}"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/fields"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/questionnaire"): Needs.CONFIGURE,
+    ("POST", "/api/v1/program/scoring/preview"): Needs.CONFIGURE,
+    ("PUT", "/api/v1/program/scoring"): Needs.CONFIGURE,
     # People
     ("GET", "/api/v1/accounts"): Needs.MEMBER,  # the people picker; members see names only
     ("POST", "/api/v1/accounts"): Needs.ADMIN,

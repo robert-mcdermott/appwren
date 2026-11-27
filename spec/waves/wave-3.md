@@ -112,15 +112,19 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Not done:** a page of likely duplicate pairs across the whole portfolio, and merging two records into one. Duplicates are offered where they are made, which is where they are cheapest to stop.
 
-## Slice 6: Program editors ☐
+## Slice 6: Program editors ☑
 
 **Goal:** the program is shaped where it is used.
 
-- [ ] Admin → Program: vocabularies, the organization's own fields, the question bank, profiles and their weights, thresholds, rules, and cadences
-- [ ] A draft, and a preview of every application whose scores, recommendation, or flags would change; publishing makes a new version
-- [ ] Monthly portfolio snapshots, taken by the scheduler
+- [x] Admin → Program: vocabularies, the organization's own fields, the question bank, profiles and their weights, thresholds, rules, and cadences
+- [x] A draft, and a preview of every application whose scores, recommendation, or flags would change; publishing makes a new version
+- [x] Monthly portfolio snapshots, taken by the scheduler
 
-**Acceptance:** publishing a changed model changes exactly the applications the preview listed.
+**Acceptance (met):** publishing a changed model changes exactly the applications the preview listed.
+
+**Done:** `appwren.program.editing` checks each part by the rules a program pack is checked by and saves it by the same means, so the app and a pack cannot disagree about what is allowed. A list keeps every key it has had: a value is retired rather than removed, a new value takes a key from its label, and the lists AppWren's rules read by key (lifecycle, sourcing, tiers, dispositions, and others) may be renamed, described, and reordered but not added to or retired. The organization's own fields may be added and edited, but a field that holds values is never removed; which fields are sensitive is set beside them. The questions may be reworded, with their help and their five levels, as a new version of the question bank; which questions there are, and which score each answers, stays with the scoring model and a pack. The scoring model's thresholds, every profile's weights (shown resolved, kept as the differences from the standard profile), and the whole cadence (assessment and confirmation periods by tier, the stale penalty, reminder periods, and trigger periods) are edited in one form. The engine scores under a candidate model without saving it, so a preview lists every application in service whose scores, confidence, recommendation, or flags would differ; publishing works the list out the same way, publishes a new version, and returns it. The model's check now covers the cadence. A fifth job keeps a portfolio snapshot each month, named for the month, on its first turn after the month begins. The acceptance test is `tests/test_program_editing.py::test_publishing_a_changed_model_changes_exactly_the_applications_the_preview_listed`.
+
+**Not done in the app:** the recommendation rules, guardrails, and flags, and adding or removing a question. Each names other parts of the model by key, and they are changed together with a program pack.
 
 ## Slice 7: Release prep ☐
 

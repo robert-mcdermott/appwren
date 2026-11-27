@@ -91,6 +91,7 @@ async function boot() {
     route("/admin/sso", page("admin-sso", "adminSso"));
     route("/admin/scheduled-work", page("admin-operations", "adminOperations"));
   }
+  if (can("configure")) route("/admin/program", page("admin-program", "adminProgram"));
   fallback(page("not-found", "notFound"));
 
   window.addEventListener("appwren:signed-out", () => window.location.reload());

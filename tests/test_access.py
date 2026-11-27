@@ -257,6 +257,12 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("POST", "/api/v1/tasks/{task_id}/close"): EVERYONE,
     ("GET", "/api/v1/accounts/{account_id}/holdings"): EVERYONE,
     ("POST", "/api/v1/accounts/{account_id}/hand-over"): {"admin", "manager"},
+    ("GET", "/api/v1/program"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/vocabularies/{name}"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/fields"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/questionnaire"): {"manager", "admin"},
+    ("POST", "/api/v1/program/scoring/preview"): {"manager", "admin"},
+    ("PUT", "/api/v1/program/scoring"): {"manager", "admin"},
     ("GET", "/api/v1/search"): EVERYONE,
     ("GET", "/api/v1/views"): EVERYONE,
     ("POST", "/api/v1/views"): EVERYONE,
@@ -466,6 +472,7 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             path = path.replace("{snapshot_id}", "9999").replace("{key}", "no-such-job")
             path = path.replace("{item_id}", "9999").replace("{task_id}", "9999")
             path = path.replace("{view_id}", "9999").replace("{contest_id}", "9999")
+            path = path.replace("{name}", "no_such_list")
             if template == "/api/v1/portfolio-snapshots" and method == "POST":
                 body = {"name": ""}  # reached, and refused for want of a name
             if template.endswith("/password") and "{account_id}" in template:
@@ -476,6 +483,8 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
             body: dict[str, object] | None = {}
             if template == "/api/v1/accounts" and method == "POST":
                 body = {"email": f"new-{role}@bramblewood.example", "display_name": "New"}
+            elif template.startswith("/api/v1/program/"):
+                body = {"items": [], "fields": [], "definition": {}}  # reached, and refused
             elif template.endswith("/answer"):
                 body = {"accept": False, "answer": "No."}
             elif template.endswith("/hand-over"):

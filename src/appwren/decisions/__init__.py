@@ -260,6 +260,22 @@ def take_portfolio_snapshot(session: Session, principal: Principal, name: str) -
     return row
 
 
+def take_monthly(session: Session) -> int:
+    """The portfolio as it stood this month, kept by the scheduler once a month: on the first
+    turn after the month begins. Returns how many it took: none, or one."""
+    on = today_()
+    name = f"{on:%B %Y}, monthly"
+    if session.scalars(select(PortfolioSnapshot.id).where(PortfolioSnapshot.name == name)).first():
+        return 0
+    if (
+        session.scalars(select(Application.id).where(Application.status == "active")).first()
+        is None
+    ):
+        return 0
+    take_portfolio_snapshot(session, Principal.for_command("Scheduler"), name)
+    return 1
+
+
 def portfolio_snapshots(session: Session) -> list[dict[str, Any]]:
     rows = session.scalars(select(PortfolioSnapshot).order_by(PortfolioSnapshot.id.desc())).all()
     return [

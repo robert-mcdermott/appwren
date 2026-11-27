@@ -122,6 +122,7 @@ def problems(model: Any, questions: set[str]) -> list[str]:
     if not isinstance(model, Mapping):
         return ["The scoring model is not a set of definitions."]
     found: list[str] = []
+    found += _check_cadence(model.get("cadence"))
     thresholds = model.get("thresholds") or {}
     for name in THRESHOLDS:
         if not isinstance(thresholds.get(name), int | float):
@@ -214,6 +215,42 @@ def problems(model: Any, questions: set[str]) -> list[str]:
 # confidence a record past its confirmation loses, where the model does not say (CUR-03).
 CONFIRM_MONTHS = {"1": 6, "2": 6, "3": 12, "4": 12, "5": 12}
 STALE_PENALTY = 15
+
+
+def _whole(value: Any, low: int, high: int) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
+
+
+def _check_cadence(cadence: Any) -> list[str]:
+    """How often things fall due: whole numbers in sensible ranges, every tier said."""
+    if cadence in (None, {}):
+        return []
+    if not isinstance(cadence, Mapping):
+        return ["The cadence must name its periods."]
+    found: list[str] = []
+    for key, what in (("assessment_months", "An assessment stays current for"),
+                      ("confirm_months", "A record is confirmed every")):  # fmt: skip
+        by_tier = cadence.get(key)
+        if by_tier is None:
+            continue
+        if not isinstance(by_tier, Mapping) or not all(
+            _whole(value, 1, 60) for value in by_tier.values()
+        ):
+            found.append(f"{what} 1 to 60 months, for each tier.")
+    for key in ("default_months", "default_confirm_months"):
+        if key in cadence and not _whole(cadence[key], 1, 60):
+            found.append(f"The cadence's {key.replace('_', ' ')} must be 1 to 60.")
+    if "stale_penalty" in cadence and not _whole(cadence["stale_penalty"], 0, 50):
+        found.append("What a stale record costs in confidence must be 0 to 50 points.")
+    for group, low, high in (("reminders", 0, 365), ("triggers", 1, 730)):
+        values = cadence.get(group)
+        if values is None:
+            continue
+        if not isinstance(values, Mapping) or not all(
+            _whole(value, low, high) for value in values.values()
+        ):
+            found.append(f"The {group} periods must be whole days, {low} to {high}.")
+    return found
 
 
 def months_to_confirm(model: Mapping[str, Any], tier: int | None) -> int:
