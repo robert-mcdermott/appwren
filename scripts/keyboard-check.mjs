@@ -1,6 +1,7 @@
 // Check the places where the keyboard has most to do: the skip link, a record's parts, the
 // working behind a score (a dialog that keeps the focus and gives it back), and the portfolio
-// chart, whose table holds every point. Run with: node scripts/keyboard-check.mjs
+// chart, whose table holds every point; and the picture of how a record is connected.
+// Run with: node scripts/keyboard-check.mjs
 import { openBrowser } from "./lib/browser.mjs";
 import { signInAs, startDemo } from "./lib/demo-server.mjs";
 
@@ -86,6 +87,38 @@ try {
   else if (!chart.out) fail("the chart's points are in the Tab order");
   else if (chart.rows !== chart.points) fail(`the chart has ${chart.points} points and its table ${chart.rows}`);
   else pass(`the chart's ${chart.points} points are all in its table, each a link`);
+
+  // The picture of how a record is connected: every record in it can be reached and named,
+  // the list beside it is complete, and opening a neighbor keeps the focus where it was.
+  await signInAs(page, demo.base, "architect");
+  const hub = await page.evaluate(`fetch("/api/v1/applications?q=Research+Data+Warehouse").then((r) => r.json()).then((b) => b.data[0].ref)`);
+  const graph = await page.evaluate(`fetch("/api/v1/graph/${hub}").then((r) => r.json()).then((b) => b.data)`);
+  await page.goto(`${demo.base}/graph/${hub}`);
+  await page.waitFor(`document.querySelector("svg.graph")`, "the picture");
+  const listed = await page.evaluate(`document.querySelectorAll(".glist > li").length`);
+  if (listed !== graph.count) fail(`the list has ${listed} records and the answer ${graph.count}`);
+  const reach = await page.evaluate(`(() => {
+    const all = [...document.querySelectorAll('svg.graph [role="link"], svg.graph [role="button"]')];
+    return { count: all.length, focusable: all.every((el) => el.tabIndex === 0 && el.getAttribute("aria-label")) };
+  })()`);
+  if (!reach.count || !reach.focusable) fail("not every record in the picture can be reached and named");
+  await page.evaluate(`document.querySelector(".gexpand").focus()`);
+  await page.press("Enter");
+  await page.waitFor(`document.querySelector('.gexpand[aria-expanded="true"]')`, "the neighbor to open");
+  const kept = await page.evaluate(`document.activeElement?.getAttribute("aria-expanded")`);
+  if (kept !== "true") fail(`after opening, the focus is not on the button that opened it (${kept})`);
+  if (!(await page.evaluate(`Boolean(document.querySelector(".glist-more"))`))) fail("the list did not open with the picture");
+  await page.press(" ");
+  await page.waitFor(`!document.querySelector('.gexpand[aria-expanded="true"]')`, "the neighbor to close");
+  const target = await page.evaluate(`(() => { const el = document.querySelector('svg.graph [role="link"]'); el.focus(); return el.getAttribute("aria-label"); })()`);
+  await page.press("Enter");
+  await page.waitFor(`location.pathname.startsWith("/graph/") && location.pathname !== "/graph/${hub}"`, "the record to move to the middle");
+  // The old picture stays until the new one is drawn: wait for the middle to change.
+  const before = JSON.stringify(`Application ${hub}: ${graph.center.name}`);
+  await page.waitFor(`(() => { const t = document.querySelector('.gnode[data-ring="0"] title')?.textContent; return t && t !== ${before}; })()`, "the new picture");
+  const middle = await page.evaluate(`document.querySelector('.gnode[data-ring="0"] title').textContent`);
+  if (!target.startsWith(middle)) fail(`${target} was chosen and ${middle} is in the middle`);
+  else pass(`the picture of ${hub}: ${reach.count} things reachable by keyboard, ${listed} records listed`);
 } finally {
   await page.close?.();
   await demo.stop?.();

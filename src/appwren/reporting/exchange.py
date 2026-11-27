@@ -372,6 +372,10 @@ def export(
         raise Invalid("Choose csv or json.", {"format": "csv or json"})
     if kind == "portfolio":
         found = reporting.portfolio_list(session, principal, filters)
+    elif kind == "data-handling":
+        from appwren.landscape import handling
+
+        found = handling.export_rows(session, principal, str(filters.get("data_class") or ""))
     elif kind in {t.path for t in TYPES.values()}:
         record_type = next(t for t in TYPES.values() if t.path == kind)
         found, _ = records.search(

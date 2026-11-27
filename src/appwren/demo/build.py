@@ -28,10 +28,21 @@ from appwren.access.principal import Grant, Principal
 from appwren.core.clock import clock_set_to
 from appwren.core.errors import AppWrenError, Invalid, PermissionDenied
 from appwren.db.engine import Database
-from appwren.db.models import Application, Capability
+from appwren.db.models import Application, Capability, Vendor
 from appwren.demo import content as c
 from appwren.inventory import applications, links, parts, records
-from appwren.inventory.registry import APPLICATION, COMPONENT, TECHNOLOGY, VENDOR
+from appwren.inventory.registry import (
+    APPLICATION,
+    COMPONENT,
+    CONTRACT,
+    DEPLOYMENT,
+    FUNDING_SOURCE,
+    HOSTING_PLATFORM,
+    INTERFACE,
+    TECHNOLOGY,
+    VENDOR,
+)
+from appwren.landscape import costs
 from appwren.people import accounts, units
 from appwren.program import branding, packs, settings
 from appwren.reporting import exchange
@@ -92,6 +103,8 @@ class Builder:
         self.vendors: dict[str, str] = {}
         self.techs: dict[str, tuple[str, str]] = {}  # key → (ref, kind)
         self.capabilities: dict[str, str] = {}  # key → ref
+        self.platforms: dict[str, str] = {}
+        self.funding: dict[str, str] = {}
         self.cap_domain: dict[str, str | None] = {}
         self.cap_name: dict[str, str] = {}
         self.apps: dict[str, str] = {}  # name → ref
@@ -286,6 +299,19 @@ class Builder:
                 session, ME, VENDOR, {"name": name, "kind": kind}
             ).ref
             self.tally("vendors")
+        for key, name, kind, vendor, location in c.PLATFORMS:
+            self.platforms[key] = records.create(
+                session,
+                ME,
+                HOSTING_PLATFORM,
+                {
+                    "name": name,
+                    "kind": kind,
+                    "vendor_id": self.vendors.get(vendor) if vendor else None,
+                    "location": location,
+                },
+            ).ref
+            self.tally("hosting platforms")
         for key, name, kind, radar, releases in c.TECHNOLOGIES:
             tech = records.create(
                 session,
@@ -499,6 +525,7 @@ class Builder:
                         ],
                     )
                     self.tally("components")
+                self.deploy(session, ref, name, sourcing, tier, values, techs)
             self.apps[name] = ref
             self.accountable[ref] = owner
             self.health[ref] = health
@@ -507,6 +534,47 @@ class Builder:
             self.tally("applications")
 
         self.at(days_ago, register)
+
+    def deploy(
+        self,
+        session: Session,
+        ref: str,
+        name: str,
+        sourcing: str,
+        tier: str,
+        values: dict[str, Any],
+        techs: list[tuple[str, str]],
+    ) -> None:
+        """Where an application runs. What a vendor hosts has no deployment of ours."""
+        hosting = values.get("hosting")
+        if hosting == "vendor_cloud":
+            return
+        if sourcing == "research_software":
+            on_desk = any(tech in c.ON_A_WORKSTATION for tech, _ in techs)
+            where = "lab" if on_desk else "hpc"
+        elif hosting == "our_cloud":
+            where = "cloud_res" if values.get("domain") == "research" else "cloud_ent"
+        else:
+            where = "dc"
+        slug = "".join(ch if ch.isalnum() else "-" for ch in name.lower()).strip("-")
+        wanted = [("production", where, f"https://{slug}.{c.DOMAIN}" if where != "lab" else None)]
+        if tier in ("1", "2") and where != "lab":
+            wanted.append(("staging", where, None))
+        if tier == "1" and where == "dc":
+            wanted.append(("disaster_recovery", "standby", None))
+        for environment, platform, url in wanted:
+            records.create(
+                session,
+                ME,
+                DEPLOYMENT,
+                {
+                    "application_id": ref,
+                    "environment": environment,
+                    "platform_id": self.platforms[platform],
+                    "url": url,
+                },
+            )
+            self.tally("deployments")
 
     def assess(self, name: str, days_ago: float, answers: dict[str, Any] | None = None) -> None:
         def run() -> None:
@@ -616,6 +684,29 @@ class Builder:
 
         self.at(days_ago, run)
 
+    def interface(self, spec: tuple, days_ago: float) -> None:
+        source, target, method, frequency, classes, name = spec
+
+        def run() -> None:
+            with self.db.write(ME.actor) as session:
+                records.create(
+                    session,
+                    ME,
+                    INTERFACE,
+                    {
+                        "name": name or f"{source} to {target}",
+                        "source_id": self.apps[source],
+                        "target_id": self.apps[target],
+                        "method": method,
+                        "frequency": frequency,
+                        "data_classes": classes,
+                        "owner_id": self.accountable.get(self.apps[source]),
+                    },
+                )
+            self.tally("interfaces")
+
+        self.at(days_ago, run)
+
     def change(self, name: str, days_ago: float, values: dict[str, Any]) -> None:
         def run() -> None:
             with self.db.write(ME.actor) as session:
@@ -699,6 +790,9 @@ class Builder:
             self.link(source, "Identity and Sign-in", 510)
         self.link("Cohort Analysis Platform", "Research Data Warehouse", 500)
         self.link("Genomics Pipeline", "High Performance Computing Portal", 500)
+        # What passes between them.
+        for index, spec in enumerate(c.INTERFACES):
+            self.interface(spec, 480 - index * 3)
         # Assessments: a first round, and for most a second within the last year.
         storied = {s[0] for s in catalog if s[10].get("story")}
         everything = [s[0] for s in catalog] + tools
@@ -817,7 +911,138 @@ class Builder:
             "Contracts Repository",
         ):
             self.at(530, lambda name=name: self._hand_to(name, self.cast["leaver"]))
+        self.at(300, self._money)
         self.at(55, self._leave)
+
+    def _money(self) -> None:
+        """What everything costs, what pays for it, and the contracts behind it. The lines
+        add up to the cost each application already has, so no score moves."""
+        with self.db.write(ME.actor) as session:
+            for key, name, kind, code, ends in c.FUNDING:
+                self.funding[key] = records.create(
+                    session,
+                    ME,
+                    FUNDING_SOURCE,
+                    {
+                        "name": name,
+                        "kind": kind,
+                        "code": code,
+                        "ends_on": self.day(ends).isoformat() if ends else None,
+                    },
+                ).ref
+                self.tally("funding sources")
+            apps = session.scalars(
+                select(Application).where(Application.status == "active").order_by(Application.id)
+            ).all()
+            # Contracts: one for each vendor, and one of its own for an application with a story.
+            groups: dict[tuple[int, str], list[Application]] = {}
+            for app in apps:
+                if (
+                    app.vendor_id is None
+                    or app.sourcing not in c.COST_SHARES
+                    or not app.annual_cost
+                ):
+                    continue
+                if app.sourcing == "research_software":
+                    continue
+                alone = c.CONTRACT_STORIES.get(app.name, {}).get("alone")
+                groups.setdefault((app.vendor_id, app.name if alone else ""), []).append(app)
+            covering: dict[int, str] = {}
+            for index, ((vendor_id, alone), covered) in enumerate(sorted(groups.items())):
+                vendor = session.get(Vendor, vendor_id)
+                story: dict[str, Any] = {}
+                for app in covered:
+                    story.update(c.CONTRACT_STORIES.get(app.name, {}))
+                seats = sum(app.users or 0 for app in covered if app.sourcing == "saas")
+                sensitive = any((app.sensitivity or 0) >= 2 for app in covered)
+                paid = sum(
+                    app.annual_cost * share // 100
+                    for app in covered
+                    for category, share in c.COST_SHARES[app.sourcing]
+                    if category in ("license", "support")
+                )
+                contract = records.create(
+                    session,
+                    ME,
+                    CONTRACT,
+                    {
+                        "name": f"{vendor.name}: {alone}" if alone else f"{vendor.name} agreement",
+                        "vendor_id": vendor.ref,
+                        "number": f"BW-{2019 + index % 6}-{100 + index * 7:04d}",
+                        "starts_on": self.day(-(400 + (index * 211) % 900)).isoformat(),
+                        "ends_on": self.day(
+                            story.get("ends", 130 + (index * 97) % 800)
+                        ).isoformat(),
+                        "notice_days": story.get("notice", 60 if index % 2 else 90),
+                        "auto_renews": story.get("auto_renews", index % 3 != 0),
+                        "annual_value": paid,
+                        "licenses": story.get("licenses", round(seats * 1.2) if seats else None),
+                        "data_agreement": story.get(
+                            "agreement", "in_place" if sensitive else "not_needed"
+                        ),
+                        "owner_id": self.cast["portfolio"],
+                    },
+                )
+                costs.set_applications(
+                    session,
+                    ME,
+                    contract,
+                    [
+                        {
+                            "application": app.ref,
+                            "licenses_used": story.get("used", app.users)
+                            if app.sourcing == "saas"
+                            else None,
+                        }
+                        for app in covered
+                    ],
+                )
+                for app in covered:
+                    covering[app.id] = contract.ref
+                self.tally("contracts")
+            # Cost lines for five applications in six; the sixth keeps the figure as typed.
+            for index, app in enumerate(apps):
+                if not app.annual_cost or index % 6 == 5:
+                    continue
+                if app.funding == "grant" and app.grant_ref:
+                    source = self.funding.get(app.grant_ref)
+                    if source is None:
+                        source = records.create(
+                            session,
+                            ME,
+                            FUNDING_SOURCE,
+                            {
+                                "name": f"Award {app.grant_ref}",
+                                "kind": "grant",
+                                "code": app.grant_ref,
+                                "ends_on": app.grant_end.isoformat() if app.grant_end else None,
+                            },
+                        ).ref
+                        self.funding[app.grant_ref] = source
+                        self.tally("funding sources")
+                elif app.funding in ("chargeback", "capital"):
+                    source = self.funding["recharge" if app.funding == "chargeback" else "capital"]
+                else:
+                    by_domain = {"research": "research", "clinical": "clinic", "it": "it"}
+                    source = self.funding[by_domain.get(app.domain or "", "admin")]
+                shares = c.COST_SHARES.get(app.sourcing or "", c.OWN_SHARES)
+                lines, left = [], app.annual_cost
+                for position, (category, share) in enumerate(shares):
+                    last = position == len(shares) - 1
+                    amount = left if last else app.annual_cost * share // 100
+                    left -= amount
+                    lines.append(
+                        {
+                            "category": category,
+                            "amount": amount,
+                            "funding_source": source,
+                            "contract": covering.get(app.id)
+                            if category in ("license", "support")
+                            else None,
+                        }
+                    )
+                costs.set_lines(session, ME, app, lines)
+                self.tally("cost lines", len(lines))
 
     def _import_spreadsheet(self) -> None:
         lines = ["Name,Unit,Sourcing,Users,Tier"]

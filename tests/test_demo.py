@@ -12,11 +12,13 @@ from sqlalchemy import select
 from appwren import assessment, decisions, reporting
 from appwren.api.app import create_app
 from appwren.db.engine import Database
-from appwren.db.models import Application, PortfolioSnapshot, Technology
+from appwren.db.models import Application, HostingPlatform, PortfolioSnapshot, Technology
 from appwren.demo import build
 from appwren.events import chain
+from appwren.inventory import history as record_history
 from appwren.inventory import records
-from appwren.inventory.registry import APPLICATION, TECHNOLOGY
+from appwren.inventory.registry import APPLICATION, CONTRACT, DEPLOYMENT, INTERFACE, TECHNOLOGY
+from appwren.landscape import costs, graph, hosting, interfaces, lifecycle, overlap
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -48,7 +50,7 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         assert tracker["scores"] == {
             "business_value": 4.1,
             "technical_health": 2.5,
-            "cost_burden": 2.4,
+            "cost_burden": 2.7,
             "risk_exposure": 2.1,
         }
         assert (tracker["confidence"], tracker["recommendation"]) == (95, "modernize")
@@ -100,6 +102,102 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         )
         history = decisions.history(session, retired)
         assert history[-1]["successor"]["name"] == "Executive Dashboards"
+        # What passes between them: the worked example keeps exactly its three dependents,
+        # and one flow delivers research data to dashboards whose record does not list it.
+        tracker_value = tracker["dimensions"]["business_value"]["factors"]
+        depends = next(f for f in tracker_value if f["key"] == "dependents")
+        assert depends["why"] == "3 active applications depend on it"
+        # What breaks if it goes: its three dependents, and the capability it alone provides.
+        broken = graph.impact(session, ME, app_named(session, "Specimen Tracker"))
+        assert {row["name"] for row in broken["direct"]} == {
+            "Biorepository Request Portal",
+            "Freezer Watch",
+            "Research Data Warehouse",
+        }
+        assert [row["name"] for row in broken["capabilities_left"]] == ["Biospecimen management"]
+        assert len(broken["beyond"]) >= 2 and len(broken["interfaces"]) == 3
+        flows = interfaces.flows(session, ME, "identifiable_research")
+        lost = [row["target"]["name"] for row in flows["interfaces"] if row["undeclared"]]
+        assert lost == ["Executive Dashboards"] and flows["total"] >= 20
+        everything, _ = records.search(session, ME, INTERFACE, {}, limit=200)
+        marked = [
+            c["name"] for c in records.cards(session, ME, INTERFACE, everything) if c["undeclared"]
+        ]
+        assert marked == ["Enrollment figures"]
+        # Where it runs: what a vendor hosts has no deployment of ours, a tier 1 system in
+        # the data center has a standby, and a platform's page lists what would stop with it.
+        room = session.scalars(
+            select(HostingPlatform).where(HostingPlatform.name == "Campus data center")
+        ).one()
+        running = hosting.running_on(session, ME, room)
+        assert len({row["application"]["ref"] for row in running}) >= 10
+        environments = {row["environment"] for row in running}
+        assert environments == {"production", "staging"}
+        standby, _ = records.search(session, ME, DEPLOYMENT, {"environment": "disaster_recovery"})
+        assert standby and all(row.platform_id != room.id for row in standby)
+        hosted, _ = records.search(
+            session, ME, DEPLOYMENT, {"application": app_named(session, "Survey Hub").ref}
+        )
+        assert hosted == []  # a vendor runs it
+        # What it costs: lines add up to the cost on record, so no score moved; a notice date
+        # two weeks off; health data with no data agreement; and licenses going unused.
+        lined = 0
+        for app in session.scalars(select(Application).where(Application.status == "active")):
+            lines = costs.lines_of(session, app)
+            if lines:
+                lined += 1
+                assert sum(line["amount"] for line in lines) == app.annual_cost, app.name
+        assert lined >= 60
+        scheduler_flags = flags(scored(session, "Clinic Scheduler"))
+        assert "contract_notice" in scheduler_flags
+        assert "no_data_agreement" in flags(scored(session, "Clinic Questionnaires"))
+        assert "no_data_agreement" not in flags(scored(session, "Survey Hub"))
+        learning = scored(session, "Learning Management")["dimensions"]["cost_burden"]["factors"]
+        unused = next(f for f in learning if f["key"] == "license_use")
+        assert (unused["value"], unused["level"]) == (28, 1)
+        due, _ = records.search(session, ME, CONTRACT, {"ending_within": "90"})
+        assert "Calendra agreement" in [row.name for row in due]
+        money = costs.breakdown(session, ME, [r["id"] for r in rows])
+        assert money is not None and money["total"] == sum(
+            r["annual_cost"] or 0 for r in rows if isinstance(r["annual_cost"], int | type(None))
+        )
+        assert {row["label"] for row in money["by_category"]} >= {
+            "License or subscription", "Our own people's time", "Not broken down",
+        }  # fmt: skip
+        # Three tools for one job, side by side, with the hub as primary; and the map measured.
+        twice = overlap.overlap(session, ME, {})
+        surveys = next(c for c in twice["capabilities"] if c["name"] == "Participant surveys")
+        assert [a["name"] for a in surveys["applications"]] == [
+            "Survey Hub", "Clinic Questionnaires", "Old Surveys",
+        ]  # fmt: skip
+        assert surveys["applications"][0]["is_primary"] and surveys["consolidate"] >= 1
+        assert len(reporting.portfolio_list(session, ME, surveys["filters"])) == 3
+        heat = overlap.heat(session, ME, {})
+        assert all(root["measures"]["applications"] > 0 for root in heat)
+        # What falls out of support: the timeline starts with what has ended, and its counts
+        # are the technology's own; the radar places what is in use.
+        line = lifecycle.timeline(session, ME)
+        assert line["releases"][0]["support"] == "ended" and line["by_support"]["ending"] >= 3
+        ours = next(
+            r
+            for r in line["releases"]
+            if r["technology"]["name"] == "PostgreSQL" and r["cycle"] == "13"
+        )
+        assert ours["components"] == len(thirteen["used_by"]) and ours["support"] == "ending"
+        placed = lifecycle.radar(session, ME)
+        assert [ring["key"] for ring in placed["rings"]] == ["adopt", "trial", "assess", "hold"]
+        assert all(ring["technologies"] for ring in placed["rings"])
+        # A record's history tells what belongs to it for what it is: an application is
+        # added once, and its assessments, decisions, capabilities, and units are named.
+        story = [
+            item["title"] for item in record_history.for_record(session, APPLICATION, scheduler)
+        ]
+        assert story.count("Added this application") == 1
+        assert any(title.startswith("Recorded a decision to maintain (DEC-") for title in story)
+        assert any(title.startswith("Recorded an assessment (ASM-") for title in story)
+        assert any(title.startswith("Now serves ") for title in story)
+        assert any(title.startswith("Now used by ") for title in story)
+        assert "Edited" not in story  # the copy of the decision is not told twice
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

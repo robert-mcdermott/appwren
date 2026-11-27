@@ -22,6 +22,21 @@ export const TYPES = {
   capability: { prefix: "CAP", path: "capabilities", label: "Capability", plural: "Capabilities", noun: "capability", nouns: "capabilities",
     article: "a capability", iconName: "capability", section: "Landscape",
     lede: "What the organization does, whatever does it. Each application says which capabilities it serves, and one may be the primary provider." },
+  interface: { prefix: "INT", path: "interfaces", label: "Interface", plural: "Interfaces", noun: "interface", nouns: "interfaces",
+    article: "an interface", iconName: "interface", section: "Landscape", kinds: null,
+    lede: "Data passing from one application to another: how, how often, and of which classes." },
+  hosting_platform: { prefix: "HST", path: "hosting-platforms", label: "Hosting platform", plural: "Hosting platforms", noun: "hosting platform", nouns: "hosting platforms",
+    article: "a hosting platform", iconName: "platform", section: "Landscape", kinds: "platform_kinds",
+    lede: "Where things run: data centers, cloud accounts, clusters, and providers, each with what runs on it." },
+  deployment: { prefix: "DEP", path: "deployments", label: "Deployment", plural: "Deployments", noun: "deployment", nouns: "deployments",
+    article: "a deployment", iconName: "deployment", section: "Landscape", kinds: null,
+    lede: "An application, or one of its components, running in an environment on a platform." },
+  contract: { prefix: "CON", path: "contracts", label: "Contract", plural: "Contracts", noun: "contract", nouns: "contracts",
+    article: "a contract", iconName: "contract", section: "Portfolio", kinds: null,
+    lede: "Agreements with vendors: what each covers, when it ends, and how long before that the vendor must be told. Shown to those who may see what the applications cost." },
+  funding_source: { prefix: "FND", path: "funding-sources", label: "Funding source", plural: "Funding sources", noun: "funding source", nouns: "funding sources",
+    article: "a funding source", iconName: "funding", section: "Portfolio", kinds: "funding",
+    lede: "What pays: operating budgets, grants, chargebacks, and capital projects. Cost lines say which pays for what." },
 };
 
 const BY_PREFIX = Object.fromEntries(Object.entries(TYPES).map(([key, type]) => [type.prefix, key]));

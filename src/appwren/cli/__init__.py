@@ -87,6 +87,50 @@ def cmd_program_export(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_import_eol(args: argparse.Namespace) -> int:
+    import json
+
+    from appwren.access.principal import Principal
+    from appwren.core.errors import Invalid
+    from appwren.landscape import lifecycle
+
+    config, _ = _load(args)
+    try:
+        data = json.loads(Path(args.file).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise AppWrenError(f"{args.file} could not be read: {exc}") from exc
+    db = _database(config)
+    principal = Principal.for_command()
+    try:
+        with db.write(principal.actor) as session:
+            try:
+                report = lifecycle.import_end_of_life(
+                    session, principal, data, dry_run=args.dry_run
+                )
+            except Invalid as exc:
+                raise AppWrenError(f"{exc} {' '.join(exc.errors.values())}") from exc
+    finally:
+        db.dispose()
+    would = "would be " if args.dry_run else ""
+    print(
+        f"{len(report['matched'])} technologies matched: {len(report['added'])} releases "
+        f"{would}added, {len(report['changed'])} dates {would}changed."
+    )
+    for item in report["changed"]:
+        print(
+            f"  {item['technology']} {item['cycle']}: {item['field'].replace('_', ' ')} "
+            f"{item['from'] or 'not set'} → {item['to']}"
+        )
+    for problem in report["problems"]:
+        print(f"  Skipped: {problem}")
+    if report["without_key"]:
+        print(
+            f"{report['without_key']} technologies have no end-of-life key, so no file can "
+            "match them. Set it on the technology."
+        )
+    return EXIT_OK
+
+
 def cmd_program_import(args: argparse.Namespace) -> int:
     import json
 
@@ -168,10 +212,12 @@ def cmd_demo(args: argparse.Namespace) -> int:
     print(
         f"  {counts.get('units', 0)} units, {counts.get('accounts', 0)} people, "
         f"{counts.get('applications', 0)} applications, {counts.get('components', 0)} "
-        f"components, {counts.get('technologies', 0)} technologies"
+        f"components, {counts.get('technologies', 0)} technologies, "
+        f"{counts.get('interfaces', 0)} interfaces, {counts.get('deployments', 0)} deployments"
     )
     print(
         f"  {counts.get('assessments', 0)} assessments, {counts.get('decisions', 0)} decisions, "
+        f"{counts.get('contracts', 0)} contracts, "
         f"{counts.get('portfolio snapshots', 0)} portfolio snapshots, {report.events} events, "
         f"in {time.monotonic() - started:.0f} seconds"
     )
@@ -588,6 +634,29 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run", action="store_true", help="say what would change, and change nothing"
     )
     program_import.set_defaults(handler=cmd_program_import)
+
+    technologies = commands.add_parser(
+        "technologies",
+        help="bring technology support dates in from a file",
+        description="Technologies and their releases are kept in the app. Their support dates "
+        "can also be brought in from a file, so that nobody types them. AppWren does not "
+        "fetch the file: you bring it.",
+    )
+    technology_commands = technologies.add_subparsers(dest="technology_command", metavar="ACTION")
+    technologies.set_defaults(handler=lambda _args: technologies.print_help() or EXIT_OK)
+    import_eol = technology_commands.add_parser(
+        "import-eol",
+        help="add releases and support dates from an end-of-life file",
+        description="Read a JSON file of end-of-life data: one object whose keys are products "
+        "and whose values are lists of releases, each with a cycle and any of releaseDate, "
+        "eol, extendedSupport, and latest. A product is matched to the technology whose "
+        "end-of-life key it is. Releases are added and dates updated; nothing is removed.",
+    )
+    import_eol.add_argument("file", metavar="FILE", help="the file to read")
+    import_eol.add_argument(
+        "--dry-run", action="store_true", help="say what would change, and change nothing"
+    )
+    import_eol.set_defaults(handler=cmd_import_eol)
 
     doctor = commands.add_parser(
         "doctor",

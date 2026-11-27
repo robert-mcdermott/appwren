@@ -107,7 +107,7 @@ Every list route takes the same parameters:
 | `owner` | An account's id: only the records that person is named on |
 | `mine` | `true` for only the records you are named on |
 
-Each kind of record adds its own filters, such as `lifecycle`, `sourcing`, `tier`, and `domain` for applications. The OpenAPI document lists them.
+Each kind of record adds its own filters, such as `lifecycle`, `sourcing`, `tier`, `domain`, `data_class`, and `capability` for applications; `application` and `data_class` for interfaces; `platform_id` and `environment` for deployments; and `ending_within` (days) for contracts. The OpenAPI document lists them.
 
 A list's `meta` says where the page sits:
 
@@ -149,11 +149,11 @@ Every route requires a signed-in account except those marked public. What a rout
 
 ### Records
 
-`{records}` is one of `applications`, `components`, `vendors`, `technologies`, or `capabilities`. A record is addressed by its reference, such as `APP-0042`.
+`{records}` is one of `applications`, `components`, `interfaces`, `deployments`, `contracts`, `funding-sources`, `vendors`, `technologies`, `hosting-platforms`, or `capabilities`. A record is addressed by its reference, such as `APP-0042`.
 
 | Route | What it does |
 |---|---|
-| `GET /{records}` · `POST /{records}` | List; add one (applications: a steward, architect, or manager in scope; vendors, technologies, capabilities: an architect or manager) |
+| `GET /{records}` · `POST /{records}` | List; add one. Applications: a steward, architect, or manager in scope. Components, deployments, and interfaces: whoever keeps the application (for an interface, either of the two). Contracts: a steward, architect, or manager. Vendors, technologies, capabilities, hosting platforms, and funding sources: an architect or manager |
 | `GET` · `PATCH /{records}/{ref}` | One record with everything about it; change it. Send the `version` you read. `external_refs` sets what it is called in other systems |
 | `GET /{records}/{ref}/history` | Its history |
 | `POST /{records}/{ref}/links` · `DELETE /{records}/{ref}/links/{id}` | Link two records (depends on, is part of, replaces); unlink them |
@@ -164,6 +164,7 @@ Every route requires a signed-in account except those marked public. What a rout
 | `PUT /technologies/{ref}/releases` | A technology's releases and their support dates (an architect or manager) |
 | `GET /vocabularies` · `GET /catalog` | Every vocabulary; the fields of each kind of record, the definition, and what each stage requires |
 | `GET /capability-map` | The capabilities in their areas, with how many applications serve each |
+| `PUT /contracts/{ref}/applications` | The applications a contract covers, and the licenses each uses |
 
 ### Assessment, scores, and decisions
 
@@ -185,6 +186,21 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
   http://127.0.0.1:8000/api/v1/applications/APP-0042/decisions
 ```
 
+### The landscape, and cost
+
+| Route | What it does |
+|---|---|
+| `GET /data-flows` | How many interfaces carry each class of data; with `data_class`, every interface that carries it and every application that holds it. `undeclared` on an interface lists the classes its receiver's record does not list |
+| `GET /graph/{ref}` | Any record and what it is joined to, in groups; `hidden` counts what the reader may not see |
+| `GET /applications/{ref}/impact` | What depends on it, directly and beyond; the interfaces that would stop; the capabilities left with nothing; the people and units affected |
+| `GET /overlap` | Capabilities served by more than one application in service, with those applications side by side. Takes `unit` and `domain` |
+| `GET /capability-heat` | The capability tree, each capability with how many serve it, their average scores and confidence, and the health of the weakest |
+| `GET /lifecycle` · `GET /radar` | Technology releases to their end of support, with what runs on each; technologies in use by ring |
+| `POST /imports/end-of-life` | Releases and support dates from a JSON body of end-of-life data. `dry_run` is `true` unless you say otherwise (an architect or manager) |
+| `GET /applications/{ref}/costs` · `PUT /applications/{ref}/cost-lines` | Its cost lines, totals by category, cost per user, and the contracts that cover it, or `withheld`; replace the lines |
+| `GET /data-handling` | How many applications handle each class of data; with `data_class`, each of them with its owner, hosting, sign-in, technology support, interfaces, and data agreement |
+| `GET /history` | Every change, newest first: `actor`, `about` (a reference), `kind`, `since`, `until`, and `before` for the next page (managers for the whole organization, auditors, administrators) |
+
 ### Reports, import, and export
 
 | Route | What it does |
@@ -192,14 +208,16 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: …
 | `GET /portfolio` | Every application you may see, with its scores, recommendation, decision, flags, and what its record lacks. Takes the dashboard's filters, such as `recommendation`, `decision`, `flag`, `quality`, `mismatch`, and `review_due` |
 | `GET /home` | What is waiting on the signed-in person |
 | `GET /dashboard` · `GET /data-quality` | The figures, each with the filters that give its list from `/portfolio`. Take `unit`, and the dashboard `domain` |
-| `GET /exports/{kind}` | `applications`, `components`, `vendors`, `technologies`, `capabilities`, or `portfolio`, as `format=csv` or `format=json`, with the same filters as the list |
+| `GET /exports/{kind}` | Any `{records}` above, `portfolio`, or `data-handling` (with `data_class`), as `format=csv` or `format=json`, with the same filters as the list |
 | `GET /imports/applications/fields` | The fields a file of applications may hold, and the headings each is known by |
 | `POST /imports/applications` | A CSV file as the body (`text/csv`). `dry_run` is `true` unless you say otherwise; `mapping` says which column holds each field where the headings differ |
 
 ## What the API will not do
 
 - It never returns a record you may not see, and never counts one.
-- It never returns a sensitive field you may not see, and refuses to filter or sort by one, or to take a value for one.
+- It never returns a sensitive field, a cost line, or a contract you may not see, and refuses to filter or sort by a sensitive field, or to take a value for one.
+- It never gives a total of cost that includes a part you may not see.
+- It never fetches anything: support dates arrive only in a file someone sends.
 - It never edits an assessment or a decision. Each is superseded by a new one.
 - It never lets a person record a decision about an application they are accountable for.
 - It never takes a score. Scores are worked out from the record and the answers.

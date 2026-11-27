@@ -9,6 +9,7 @@ import { hrefOf, lifecyclePill, recordChip, statusOptions, statusPill, supportPi
 import { editRecord, mayAdd } from "../components/record-forms.js";
 import { openImport } from "../components/importer.js";
 import { card, emptyState, pageHeader } from "../components/ui.js";
+import { importSupportDates } from "./lifecycle.js";
 import { show } from "./page.js";
 
 /** Download the list as it is filtered now. */
@@ -153,6 +154,40 @@ export function applicationList(main) {
 const COLUMNS = {
   component: [["Application", (r) => (r.application ? recordChip(r.application) : "")], ["Kind", (r, v) => label(v, "component_kinds", r.kind)]],
   vendor: [["Kind", (r, v) => label(v, "vendor_kinds", r.kind)]],
+  hosting_platform: [
+    ["Kind", (r, v) => label(v, "platform_kinds", r.kind)],
+    ["Provider", (r) => (r.vendor ? recordChip(r.vendor) : h("span", { class: "subtle" }, "Ourselves"))],
+    ["Where", (r) => r.location ?? ""],
+    ["Runs", (r) => (r.deployment_count ? `${plural(r.application_count, "application")} in ${plural(r.deployment_count, "deployment")}` : h("span", { class: "subtle" }, "Nothing recorded"))],
+  ],
+  deployment: [
+    ["Application", (r) => (r.application ? recordChip(r.application) : "")],
+    ["Part", (r) => (r.component ? recordChip(r.component) : h("span", { class: "subtle" }, "All of it"))],
+    ["Environment", (r, v) => label(v, "environments", r.environment)],
+    ["Platform", (r) => (r.platform ? recordChip(r.platform) : "")],
+  ],
+  contract: [
+    ["Vendor", (r) => (r.vendor ? recordChip(r.vendor) : "")],
+    ["Covers", (r) => (r.applications.length ? h("div", { class: "chips" }, r.applications.slice(0, 2).map((a) => recordChip(a)),
+      r.applications.length > 2 ? h("span", { class: "subtle" }, `and ${r.applications.length - 2} more`) : null) : h("span", { class: "subtle" }, "Nothing yet"))],
+    ["Ends", (r) => (r.ends_on ? h("span", { class: "nowrap" }, date(r.ends_on)) : h("span", { class: "subtle" }, "Not said"))],
+    ["Notice", (r) => noticePill(r)],
+    ["Data agreement", (r, v) => agreementPill(v, r.data_agreement)],
+  ],
+  funding_source: [
+    ["Kind", (r, v) => label(v, "funding", r.kind)],
+    ["Code", (r) => r.code ?? ""],
+    ["Ends", (r) => (r.ends_on ? h("span", { class: "row-sm" }, date(r.ends_on), r.days_to_end != null && r.days_to_end >= 0 && r.days_to_end <= 365 ? h("span", { class: "pill pill-warn" }, "Within a year") : null) : h("span", { class: "subtle" }, "—"))],
+    ["Pays for", (r) => plural(r.application_count, "application")],
+    ["A year", (r) => (r.total == null ? h("span", { class: "subtle" }, "Withheld") : Number(r.total).toLocaleString())],
+  ],
+  interface: [
+    ["From", (r) => (r.source ? recordChip(r.source) : "")],
+    ["To", (r) => (r.target ? recordChip(r.target) : "")],
+    ["Method", (r, v) => label(v, "interface_methods", r.method)],
+    ["How often", (r, v) => (r.frequency ? label(v, "interface_frequencies", r.frequency) : h("span", { class: "subtle" }, "Not said"))],
+    ["Data", (r, v) => dataClasses(v, r.data_classes, r.undeclared)],
+  ],
   technology: [
     ["Kind", (r, v) => label(v, "technology_kinds", r.kind)],
     ["Radar", (r, v) => (r.radar ? label(v, "radar", r.radar) : h("span", { class: "subtle" }, "Not said"))],
@@ -166,7 +201,30 @@ const COLUMNS = {
   ],
 };
 
-/** Components, vendors, technologies, and capabilities. */
+/** When the vendor must be told, if a contract is not to renew: a date, and how near it is. */
+export function noticePill(contract) {
+  if (contract.notice_by == null) return h("span", { class: "subtle" }, "No end date");
+  const days = contract.days_to_notice;
+  if (contract.days_to_end != null && contract.days_to_end < 0) return h("span", { class: "pill" }, "Ended");
+  if (days < 0) return h("span", { class: "pill pill-danger" }, contract.auto_renews ? "Notice date passed: it renews" : "Notice date passed");
+  if (days <= 90) return h("span", { class: "pill pill-warn" }, `Notice due in ${plural(days, "day")}`);
+  return h("span", { class: "nowrap" }, `By ${date(contract.notice_by)}`);
+}
+
+export function agreementPill(vocab, key) {
+  if (!key) return h("span", { class: "subtle" }, "Not said");
+  return h("span", { class: `pill${key === "missing" ? " pill-danger" : key === "in_place" ? " pill-ok" : ""}` }, label(vocab, "agreement_states", key));
+}
+
+/** The classes of data something holds or carries, with a mark on any the receiver's record lacks. */
+export function dataClasses(vocab, keys, undeclared = []) {
+  if (!keys?.length) return h("span", { class: "subtle" }, "Not said");
+  return h("span", { class: "chips" }, keys.map((key) => (undeclared.includes(key)
+    ? h("span", { class: "pill pill-warn", title: "The receiving application's record does not list this class" }, label(vocab, "data_classes", key), " · not on its record")
+    : h("span", { class: "pill" }, label(vocab, "data_classes", key)))));
+}
+
+/** Components, vendors, technologies, capabilities, and interfaces. */
 export function recordList(main, type) {
   const meta = TYPES[type];
   return show(main, {
@@ -179,12 +237,18 @@ export function recordList(main, type) {
     view: (data, reload) => {
       const { vocab } = data;
       const rows = data.page.data;
-      const add = type !== "component" && mayAdd(type) ? () => editRecord(type, {}) : null;
+      // A component and a deployment are added from their application's page.
+      const add = !["component", "deployment"].includes(type) && mayAdd(type) ? () => editRecord(type, {}) : null;
       const search = searchBox(`Search ${meta.nouns}`);
       keepSearchFocus(search);
       const bar = h("div", { class: "filters" }, h("div", { class: "filter-search" }, search),
         meta.kinds ? filterSelect("kind", options(vocab, meta.kinds, { blank: "Any kind" }), "Kind") : null,
         type === "technology" ? filterSelect("radar", options(vocab, "radar", { blank: "Any ring" }), "Radar") : null,
+        type === "contract" ? filterSelect("ending_within", [["", "Ending whenever"], ["90", "Ending within 90 days"], ["180", "Ending within 6 months"], ["365", "Ending within a year"]], "Ending") : null,
+        type === "contract" ? filterSelect("data_agreement", options(vocab, "agreement_states", { blank: "Any agreement" }), "Data agreement") : null,
+        type === "deployment" ? filterSelect("environment", options(vocab, "environments", { blank: "Any environment" }), "Environment") : null,
+        type === "interface" ? filterSelect("method", options(vocab, "interface_methods", { blank: "Any method" }), "Method") : null,
+        type === "interface" ? filterSelect("data_class", options(vocab, "data_classes", { blank: "Any data" }), "Data it carries") : null,
         type === "capability" ? filterSelect("domain", options(vocab, "domains", { blank: "Any domain" }), "Domain") : null,
         filterSelect("status", statusOptions(["active", "retired"], "Any status"), "Status"));
       const columns = COLUMNS[type] ?? [];
@@ -193,13 +257,19 @@ export function recordList(main, type) {
           h("thead", {}, h("tr", {}, sortHeader(meta.label, "name", "name"), columns.map(([title]) => h("th", { scope: "col" }, title)),
             sortHeader("Status", "status", "name"))),
           h("tbody", {}, rows.map((r) => h("tr", {},
-            h("td", {}, h("a", { class: "cell-main", href: hrefOf(r.ref) }, r.name), h("div", { class: "cell-sub" }, r.ref)),
+            h("td", { class: "cell-name" }, h("a", { class: "cell-main", href: hrefOf(r.ref) }, r.name), h("div", { class: "cell-sub" }, r.ref)),
             columns.map(([, cell]) => h("td", {}, cell(r, vocab))),
             h("td", {}, statusPill(r.status)))))))
         : nothing(meta, add);
       return h("div", { class: "stack-lg" },
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
           actions: [type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
+            type === "technology" ? h("a", { class: "btn", href: "/lifecycle" }, "Lifecycle") : null,
+            type === "technology" ? h("a", { class: "btn", href: "/radar" }, "Radar") : null,
+            type === "technology" && mayAdd(type) ? button("Import support dates", { iconName: "upload", onclick: () => importSupportDates(reload) }) : null,
+            type === "interface" ? h("a", { class: "btn", href: "/data-flows" }, "Data flows") : null,
+            type === "contract" ? h("a", { class: "btn", href: "/funding-sources" }, "Funding sources") : null,
+            type === "funding_source" ? h("a", { class: "btn", href: "/contracts" }, "Contracts") : null,
             add ? button(`Add ${meta.article}`, { kind: "btn-primary", iconName: "plus", onclick: add }) : null,
             exportLink(meta.path)] }),
         bar,

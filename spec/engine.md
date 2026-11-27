@@ -46,7 +46,11 @@ A fact is named, so rules and factors can refer to it. The default program uses 
 | `tier` | Field | Criticality, 1 (mission critical) to 5 (minimal) |
 | `users` | Field | Estimated number of people who use it (a number); from wave 4, active users from the identity provider |
 | `maintainers` | Field | People who can maintain or administer it |
-| `annual_cost` | Field | Estimated yearly cost, all in; from wave 2, the sum of its cost lines. Sensitive |
+| `annual_cost` | Field | Estimated yearly cost, all in; the sum of its cost lines once it has any. Sensitive |
+| `cost_per_user` | Computed | Annual cost divided by users. Withheld with the cost |
+| `licensed`, `license_use` | Computed | Whether a contract that covers it records licenses bought and used, and the percentage in use. Withheld with the cost |
+| `contract_notice_in_days` | Computed | Days to the nearest notice date of a contract that covers it |
+| `data_agreement_missing` | Computed | A contract that covers it needs a data agreement and has none |
 | `sign_in` | Field | SSO with MFA, SSO, Local with MFA, Local, Shared accounts, Not applicable (no sign-in) |
 | `monitoring` | Field | None, Uptime only, Metrics and logs, Alerting, Alerting to a staffed on-call |
 | `backup` | Field | None, Unverified, Tested, Vendor managed |
@@ -61,7 +65,7 @@ A fact is named, so rules and factors can refer to it. The default program uses 
 | `age_months` | Computed | Months since its go-live date, or since it was recorded |
 | `currency` | Computed | See *Technology currency* |
 | `uniqueness` | Computed | See *Capability uniqueness* |
-| `dependents` | Computed | How many active applications depend on it |
+| `dependents` | Computed | How many active applications depend on it: by a recorded dependency, or by receiving its data through an interface |
 | `primary_peer` | Computed | The primary provider of a capability it shares, if it is not one itself |
 | `decided_within_year` | Computed | A disposition has been recorded in the last 365 days |
 | `answer.<key>` | Assessment | The answer to a question, if the assessment is current |
@@ -116,7 +120,7 @@ A technology with no support dates recorded counts as supported but makes the fa
 | One of several, where another application is the primary | 2 |
 | No capability recorded | Unknown |
 
-**Dependents.** The number of active applications recorded as depending on it: none is *not applicable* (nothing is known to depend on it, which neither raises nor lowers its value); 1 is level 3; 2 to 4 is level 4; 5 or more is level 5.
+**Dependents.** The number of active applications that depend on it, each counted once: those recorded as depending on it, and those that receive its data through an active interface. Of that number: none is *not applicable* (nothing is known to depend on it, which neither raises nor lowers its value); 1 is level 3; 2 to 4 is level 4; 5 or more is level 5.
 
 **Data exposure.** Sensitivity against the sign-in level (the level of the security factor):
 
@@ -180,11 +184,13 @@ What it takes to keep. Here 5 means a light burden.
 
 | Factor | Kind | Weight | Source and levels |
 |---|---|---|---|
-| Annual cost | band, falling | 40 | Annual cost: 5,000; 25,000; 100,000; 500,000 |
-| Support effort | answer | 30 | *How much effort does it take to keep running?* |
-| Change effort | answer | 30 | *How much effort does it take to change or upgrade?* |
+| Annual cost | band, falling | 30 | Annual cost: 5,000; 25,000; 100,000; 500,000 |
+| Cost per user | band, falling | 15 | Annual cost divided by the people who use it: 50; 200; 1,000; 5,000 |
+| License use | band, rising | 10 | The share of the licenses bought that are in use, as a percentage: 40, 60, 80, 90. Applies only where a contract that covers it records licenses bought and used |
+| Support effort | answer | 25 | *How much effort does it take to keep running?* |
+| Change effort | answer | 20 | *How much effort does it take to change or upgrade?* |
 
-From wave 2, cost per user and license use join this dimension; from wave 4, ticket and incident counts.
+Cost per user is unknown when either the cost or the number of users is. Where several contracts cover an application, license use is that of the least used. A contract's licenses in use are those of every application it covers, added together. From wave 4, ticket and incident counts join this dimension.
 
 ### Risk exposure (RE)
 
@@ -262,6 +268,8 @@ Flags are raised whatever the recommendation. They are separate signals with the
 | **Grant ending** | Funding is Grant, the grant ends within 12 months, and no disposition has been recorded in the last year | Warning |
 | **One person keeps this** | Built here, Low-code, or Research software, tier 1 to 3, and one maintainer or none | Warning |
 | **Archive before retiring** | Recommended or decided Retire, Replace, or Consolidate, and its data must be retained | Information |
+| **No data agreement** | It handles confidential or restricted data, and a contract that covers it is recorded as needing a data agreement and having none | Danger |
+| **Contract notice** | A contract that covers it has a notice date within 90 days | Warning |
 | **Cost review** | Raised by rule 5 | Information |
 | **No accountable owner** | Nobody is accountable | Danger |
 | **Assessment expired** | The latest assessment is no longer current | Warning |
@@ -298,7 +306,7 @@ When today's recommendation differs from the decision on record, the application
 
 **Technical health:** currency 1 × 25, security 4 × 20 (SSO), operability 3 × 15, reliability 3 × 15, maintainability 2 × 10, sustainability 2 × 10 (one maintainer); vendor viability is not applicable. That is 235 ÷ 95 = 2.47, so **2.5**, coverage 100%.
 
-**Cost and burden:** annual cost 3 × 40 (under 100,000), support effort 2 × 30, change effort 2 × 30. That is 240 ÷ 100 = **2.4**.
+**Cost and burden:** annual cost 3 × 30 (under 100,000), cost per user 4 × 15 (60,000 ÷ 380 is 158 a person, under 200), support effort 2 × 25, change effort 2 × 20; license use is not applicable, as no contract covers it. That is 240 ÷ 90 = 2.67, so **2.7**, coverage 100%.
 
 **Risk exposure:** data exposure 3 × 35 (restricted, sign-in 4), end-of-life exposure 1 × 25 (currency 1, restricted), continuity 2 × 20 (tier 2, unverified); compliance unknown. That is 170 ÷ 80 = 2.13, so **2.1**, coverage 80%.
 

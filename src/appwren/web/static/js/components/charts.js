@@ -22,7 +22,8 @@ export function statTile({ value, label, href, tone = "" }) {
 }
 
 /**
- * Horizontal bars. items: [{ label, value, href, part?, partLabel?, badge? }]. `part` is a
+ * Horizontal bars. items: [{ label, value, text?, href?, part?, partLabel?, badge? }]. `text` is how the
+ * value is written, where a plain number would not do (an amount of money). `part` is a
  * share of the value drawn darker (for example, how many of them need attention).
  */
 export function bars(items, { empty = "Nothing to show yet." } = {}) {
@@ -34,7 +35,7 @@ export function bars(items, { empty = "Nothing to show yet." } = {}) {
       h("div", { class: "bar-fill", "data-width": String(Math.round((item.value / most) * 100)) },
         item.part ? h("div", { class: "bar-part", "data-width": String(Math.round((item.part / item.value) * 100)) }) : null)),
     h("div", { class: "bar-value numeric" },
-      item.href && item.value ? h("a", { href: item.href }, String(item.value)) : String(item.value),
+      item.href && item.value ? h("a", { href: item.href }, item.text ?? String(item.value)) : (item.text ?? String(item.value)),
       item.part ? h("span", { class: "cell-sub" }, ` ${item.part} ${item.partLabel ?? ""}`) : null))));
 }
 

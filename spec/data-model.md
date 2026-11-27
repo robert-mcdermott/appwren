@@ -140,7 +140,31 @@ The application's support team is a unit: `support_unit_id` on the application.
 | `replaces` | Application → Application | replaces / is replaced by |
 | `depends_on` | Component → Component | depends on / is depended on by |
 
-From wave 2, *interfaces* are records of their own, with direction, method, frequency, and the data classes they carry; a `depends_on` link is the lightweight version.
+*Interfaces* are records of their own, with direction, method, frequency, and the data classes they carry; a `depends_on` link is the lightweight version.
+
+### Interface (wave 2)
+
+`interface(…, source_id, target_id, method, frequency, data_classes, owner_id)`. Data passing from one application (the source) to another (the target), with the shared header and a reference of its own (`INT-0007`). `method` and `frequency` are vocabularies; `data_classes` is a list from the data-class vocabulary; `owner_id` is the person to ask about it. An interface belongs to no unit: it is seen by whoever may see both of its applications and kept by whoever keeps either, and it is marked restricted when either application is. The two ends must differ.
+
+An active application that receives data through an active interface counts among the dependents of the application that sends it. Where an interface carries a class its target's record does not list, the interface is shown as *undeclared* for that class: nothing is changed, and somebody is prompted to correct one or the other.
+
+### Hosting platform and deployment (wave 2)
+
+`hosting_platform(…, kind, vendor_id?, location)`. Somewhere things run: a data center, a cloud account, a compute cluster, a hosting provider, a vendor's service, or people's own computers. A shared record with a reference of its own (`HST-0003`), kept by architects and managers.
+
+`deployment(…, application_id, component_id?, environment, platform_id, url)`. An application, or one of its components, running in an environment (a vocabulary: production, staging, test, development, disaster recovery) on a platform, with a reference of its own (`DEP-0041`). With no name given it is named for what runs and where. A deployment takes its unit, its restriction, and its keepers from its application, as a component does; a component named on it must be one of that application's; and a retired platform takes no new deployments. What a vendor hosts has no deployment: the application's *hosting* field says so.
+
+### Cost, funding, and contracts (wave 2)
+
+`funding_source(…, kind, code, ends_on)`. What pays: an operating budget, a grant, a chargeback, a capital project. A shared record (`FND-0004`), kept by architects and managers. It holds no amounts; those are on the cost lines that name it.
+
+`cost_line(application_id, category, amount, funding_source_id?, contract_id?, note)`. A yearly amount an application costs, by category (a vocabulary: license or subscription, hosting, support contract, our own people's time, other), with what pays for it and the contract it falls under. Lines are set together and belong to their application's history. **Once an application has lines, its annual cost is their sum**, kept on the application so that lists, filters, and the engine read one figure; typing a different figure is then refused. A line that names a contract makes that contract cover the application. Cost lines are withheld exactly as annual cost is: from the record, the history, exports, and any figure that would reveal them.
+
+`contract(…, vendor_id, number, starts_on, ends_on, notice_days, auto_renews, annual_value, licenses, data_agreement, owner_id)`. An agreement with a vendor (`CON-0012`). The *notice date* is the end of the term less the notice period: the last day to tell the vendor it is not to renew. `licenses` is how many were bought; `data_agreement` is a vocabulary (in place, not needed, missing).
+
+`contract_application(contract_id, application_id, licenses_used)`. An application a contract covers, and how many of the contract's licenses it uses.
+
+A contract is **sensitive as a whole**. It is seen by those who see every application's sensitive fields, by anyone who may see the sensitive fields of an application it covers, and by whoever made or owns it; it is kept by architects and managers who can see it, by whoever keeps an application it covers, and by its owner. Seen through one application, it does not name another the reader may not see, and nobody removes from it what they cannot name.
 
 ### Tags and external references
 
@@ -181,7 +205,6 @@ Scores between snapshots are computed when they are read, and are never stored e
 
 | Wave | Entities |
 |---|---|
-| 2 | `deployment`, `hosting_platform`, `interface`, `interface_data_class`, `cost_line`, `contract`, `contract_application`, `funding_source` |
 | 3 | `job`, `campaign`, `campaign_item`, `attestation`, `mail_outbox`, `saved_view`, `search_doc`, `notice`, `trigger_rule` |
 | 4 | `connector`, `connector_run`, `fact_value` (a value with its source and time, and overrides), `maturity_check`, `maturity_result` |
 | 5 | `review_cycle`, `review_item`, `initiative`, `initiative_application`, `retirement_plan`, `retirement_step`, `request`, `request_option` |

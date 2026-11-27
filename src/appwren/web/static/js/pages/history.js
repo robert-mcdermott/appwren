@@ -40,7 +40,7 @@ export function wholeHistory(main) {
     view: (data) => {
       const { page, asked } = data;
       const filtering = ["actor", "about", "kind", "since", "until"].some((key) => asked[key]);
-      const about = h("input", { class: "input", type: "search", value: asked.about ?? "", placeholder: "A reference, such as CTL-0012", "aria-label": "Changes to one record, by its reference",
+      const about = h("input", { class: "input", type: "search", value: asked.about ?? "", placeholder: "A reference, such as APP-0042", "aria-label": "Changes to one record, by its reference",
         onchange: (event) => setQuery({ about: event.target.value.trim().toUpperCase() || null, before: null }) });
       const day = (name, text) => h("label", { class: "filter-date" }, h("span", { class: "sr-only" }, text),
         h("input", { class: "input", type: "date", value: asked[name] ?? "", "aria-label": text, onchange: (event) => setQuery({ [name]: event.target.value || null, before: null }) }));

@@ -31,6 +31,8 @@ def worked_example() -> dict[str, Any]:
         "users": 380,
         "maintainers": 1,
         "annual_cost": 60_000,
+        "cost_per_user": 158,  # 60,000 over 380 people
+        "licensed": False,
         "sign_in": "sso",
         "monitoring": "metrics",
         "backup": "unverified",
@@ -88,12 +90,15 @@ def test_the_worked_example_gives_exactly_the_figures_in_the_spec() -> None:
     assert result["scores"] == {
         "business_value": 4.1,
         "technical_health": 2.5,
-        "cost_burden": 2.4,
+        "cost_burden": 2.7,
         "risk_exposure": 2.1,
     }
     dims = result["dimensions"]
     assert (dims["business_value"]["sum"], dims["business_value"]["known_weight"]) == (405, 100)
     assert (dims["technical_health"]["sum"], dims["technical_health"]["known_weight"]) == (235, 95)
+    assert (dims["cost_burden"]["sum"], dims["cost_burden"]["known_weight"]) == (240, 90)
+    assert factor(result, "cost_burden", "cost_per_user")["level"] == 4
+    assert factor(result, "cost_burden", "license_use")["state"] == "not_applicable"
     assert (dims["risk_exposure"]["sum"], dims["risk_exposure"]["known_weight"]) == (170, 80)
     assert [d["coverage"] for d in dims.values()] == [100, 100, 100, 80]
     assert result["confidence"] == 95
@@ -375,7 +380,7 @@ def test_a_model_that_cannot_be_used_says_everything_wrong_with_it() -> None:
     standard = broken["profiles"][-1]
     standard["factors"]["business_value"][0]["weight"] = 99
     standard["factors"]["technical_health"][5]["bands"] = [3, 2, 1, 0]
-    standard["factors"]["cost_burden"][1]["question"] = "no_such_question"
+    standard["factors"]["cost_burden"][3]["question"] = "no_such_question"
     broken["rules"][0]["when"] = {"field": "colour", "op": "eq", "value": "red"}
     broken["rules"][1]["recommend"] = "panic"
     broken["profiles"][-1]["when"] = {"field": "tier", "op": "eq", "value": 1}

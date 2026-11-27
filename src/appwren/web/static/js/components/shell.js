@@ -20,13 +20,18 @@ export const NAV = [
       { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
       { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/components", label: "Components", iconName: "component" },
+      { href: "/contracts", label: "Contracts", iconName: "contract" },
     ],
   },
   {
     heading: "Landscape",
     items: [
       { href: "/capability-map", label: "Capabilities", iconName: "capability" },
+      { href: "/overlap", label: "Overlap", iconName: "consolidate" },
+      { href: "/data-flows", label: "Data flows", iconName: "flow" },
       { href: "/technologies", label: "Technologies", iconName: "technology" },
+      { href: "/lifecycle", label: "Lifecycle", iconName: "lifecycle" },
+      { href: "/hosting-platforms", label: "Hosting", iconName: "platform" },
       { href: "/vendors", label: "Vendors", iconName: "vendor" },
     ],
   },
@@ -35,6 +40,8 @@ export const NAV = [
     items: [
       { href: "/dashboard", label: "Dashboard", iconName: "dashboard" },
       { href: "/data-quality", label: "Data quality", iconName: "quality" },
+      { href: "/data-handling", label: "Data handling", iconName: "shield" },
+      { href: "/history", label: "History", iconName: "history", when: "read_all" },
     ],
   },
   {

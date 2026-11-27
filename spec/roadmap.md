@@ -41,20 +41,20 @@ Status key: ☐ planned · ◐ in progress · ☑ done
 
 Detail: [waves/wave-1.md](waves/wave-1.md)
 
-## Wave 2: The landscape (v0.2.0) ☐
+## Wave 2: The landscape (v0.2.0) ☑
 
 **Goal:** see each application in its surroundings: what it talks to and what data passes, where it runs, what it costs and who pays, what else does the same job, and what breaks if it goes.
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Interfaces and data flows | Interfaces with direction, method, frequency, owner, and data classes; the flow view for a data class | ☐ |
-| 2 | Dependency graph and impact | The focused graph around any record; *what breaks if this goes* | ☐ |
-| 3 | Deployments and hosting | Environments, hosting platforms, deployments of applications and components | ☐ |
-| 4 | Cost, funding, and contracts | Cost lines by category and funding source, contracts with renewal and notice dates, cost per user and license use as factors | ☐ |
-| 5 | Overlap and the capability heat map | Capabilities served more than once, side by side; the tree colored by any score | ☐ |
-| 6 | Technology lifecycle | The lifecycle timeline, the technology radar, end-of-life data imported from a file | ☐ |
-| 7 | Exports for a risk analysis | Applications by data class with owners, versions, hosting, sign-in, and support status; external references; the organization-wide history | ☐ |
-| 8 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Interfaces and data flows | Interfaces with direction, method, frequency, owner, and data classes; the flow view for a data class | ☑ |
+| 2 | Dependency graph and impact | The focused graph around any record; *what breaks if this goes* | ☑ |
+| 3 | Deployments and hosting | Environments, hosting platforms, deployments of applications and components | ☑ |
+| 4 | Cost, funding, and contracts | Cost lines by category and funding source, contracts with renewal and notice dates, cost per user and license use as factors | ☑ |
+| 5 | Overlap and the capability heat map | Capabilities served more than once, side by side; the tree colored by any score | ☑ |
+| 6 | Technology lifecycle | The lifecycle timeline, the technology radar, end-of-life data imported from a file | ☑ |
+| 7 | Exports for a risk analysis | Applications by data class with owners, versions, hosting, sign-in, and support status; external references; the organization-wide history | ☑ |
+| 8 | Release prep | Guides, changelog, release | ☑ |
 
 ## Documentation site (between v0.2.0 and v0.3.0) ☐
 

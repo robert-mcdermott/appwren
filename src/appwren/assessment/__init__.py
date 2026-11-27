@@ -11,7 +11,7 @@ import copy
 import hashlib
 import json
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from datetime import date
 from typing import Any
 
@@ -41,23 +41,14 @@ from appwren.db.models import (
 from appwren.db.models.inventory import ACCOUNTABLE
 from appwren.db.refs import next_ref
 from appwren.engine import evaluate, months_current, problems
+from appwren.engine.facts import EXTRA_FACTS, REVEALS
 from appwren.events import audit
 from appwren.inventory import access, applications
 from appwren.inventory.registry import APPLICATION
+from appwren.landscape import interfaces
 from appwren.program import catalog, vocab
 
 VENDOR_SOURCED = ("saas", "commercial", "vendor_custom")
-# Later slices add facts of their own (the decision on record): each takes the session and
-# the applications and returns each one's extra facts by id.
-EXTRA_FACTS: list[Callable[[Session, list[Application]], dict[int, dict[str, Any]]]] = []
-# Facts a sensitive field feeds, and the computed factors that reveal them.
-REVEALS = {
-    "sign_in": {"security", "data_exposure"},
-    "backup": {"continuity"},
-    "last_restore_test": {"continuity"},
-    "annual_cost": {"annual_cost"},
-}
-
 
 # --- The question bank and the scoring model, in versions ---------------------------------
 
@@ -329,9 +320,10 @@ def gather(
             peers[app_id] = primary_of
     primaries = {app_id for app_id, _, is_primary in links if is_primary}
     peers = {app_id: peer for app_id, peer in peers.items() if app_id not in primaries}
-    dependents: dict[int, int] = defaultdict(int)
-    for target in session.scalars(
-        select(RecordLink.to_id)
+    # What depends on it: a recorded dependency, or receiving its data through an interface.
+    relying: dict[int, set[int]] = defaultdict(set)
+    for target, source in session.execute(
+        select(RecordLink.to_id, RecordLink.from_id)
         .join(Application, Application.id == RecordLink.from_id)
         .where(
             RecordLink.from_type == "application",
@@ -341,7 +333,10 @@ def gather(
             Application.status == "active",
         )
     ):
-        dependents[target] += 1
+        relying[target].add(source)
+    for source, receivers in interfaces.consumers(session, ids).items():
+        relying[source] |= receivers
+    dependents = {app_id: len(found - {app_id}) for app_id, found in relying.items()}
     assessments = latest(session, ids)
     extra: dict[int, dict[str, Any]] = defaultdict(dict)
     for gatherer in EXTRA_FACTS:
@@ -545,6 +540,14 @@ def take_snapshot(
 # --- The program's parts: the question bank and the scoring model -----------------------------
 
 
+def earlier_defaults(part: str) -> set[str]:
+    """The digests of the defaults earlier releases shipped for a part of the program."""
+    from importlib import resources
+
+    text = resources.files("appwren.resources").joinpath("packs", "earlier-defaults.json")
+    return set(json.loads(text.read_text("utf-8")).get(part, {}).values())
+
+
 def _load_questionnaire(session: Session, definition: Any, *, only_missing: bool) -> int:
     if definition is None:
         return 0
@@ -559,7 +562,11 @@ def _load_scoring(session: Session, definition: Any, *, only_missing: bool) -> i
         return 0
     have = session.scalars(select(ScoringModel.id).limit(1)).first()
     if only_missing and have is not None:
-        return 0
+        # An upgrade brings a new default model only to an organization still running an
+        # earlier default unchanged. A model it has shaped is its own, and is left alone.
+        if digest(current_model(session).definition) not in earlier_defaults("scoring"):
+            return 0
+        return 1 if publish_model(session, definition, "AppWren upgrade") else 0
     return 1 if publish_model(session, definition, "Program pack") else 0
 
 

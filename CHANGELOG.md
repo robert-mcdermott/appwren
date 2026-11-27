@@ -6,6 +6,94 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+## 0.2.0 (2026-11-26)
+
+Wave 2, *The landscape*: each application in its surroundings. What it sends and receives
+and what data passes, what depends on it and what breaks if it goes, where it runs, what it
+costs and what pays, the contracts behind it, what else does the same job, and what it is
+built on that is falling out of support.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept.
+
+### Added
+
+- **Interfaces.** Data passing from one application to another is a record of its own, with a
+  reference (`INT-0007`), a method, how often, the classes of data it carries, and an owner.
+  An application's new **Connections** part shows what it sends and receives. An interface
+  is seen by whoever may see both of its applications and kept by whoever keeps either.
+- **Data flows.** Landscape → Data flows follows a class of data between applications, and
+  marks any interface that delivers a class the receiving application's record does not
+  list.
+- **How a record is connected.** Every application, component, capability, technology,
+  vendor, and interface opens a picture of what it is joined to, with any neighbor opened a
+  ring further. It works from the keyboard, and a list beside it says everything the
+  picture does.
+- **What breaks if this goes.** An application's Connections part lists what depends on it,
+  directly and through those; the interfaces that would stop; the capabilities left with no
+  provider, or without their primary; and the people and units affected.
+- **Hosting platforms and deployments.** Landscape → Hosting holds the data centers, cloud
+  accounts, clusters, and providers things run on. An application's Components part says
+  where it, or any of its components, runs: which platform, in which environment, at what
+  address. A platform's page lists everything on it, which is what would stop with it.
+- **Cost lines and funding.** An application's new **Cost** part breaks its yearly cost into
+  lines by what each is for and what pays for it. Once it has lines, its annual cost is
+  their sum. Funding sources (budgets, grants, chargebacks, capital projects) are records of
+  their own, each showing what it pays for.
+- **Contracts.** Portfolio → Contracts holds agreements with vendors: the applications each
+  covers and the licenses they use, the term, the date by which the vendor must be told, and
+  whether a data agreement is in place. A contract is shown only to those who may see the
+  cost of an application it covers.
+- **Two cost factors and two flags.** Cost and burden now weighs cost per user, and the share
+  of licenses bought that are in use. Flags are raised for a contract's notice date within
+  90 days, and for confidential or restricted data under a contract with no data agreement.
+- **Cost on the dashboard,** by category and by what pays, for those who see every
+  application's cost.
+- **Overlap.** Landscape → Overlap lists every capability served by more than one application
+  in service, with those applications side by side: scores, recommendation, decision,
+  people, and cost where the reader may see it.
+- **The capability map, measured.** The map can show, for each capability, how many
+  applications serve it, the average of any score, data confidence, or the technical health
+  of the weakest application that serves it. Each figure opens the applications behind it.
+- **Lifecycle.** Landscape → Lifecycle shows the technology releases applications run on,
+  soonest end of support first, as a timeline with how many components and applications are
+  on each; and the applications with a planned retirement.
+- **Radar.** The technologies in use by ring (adopt, trial, assess, hold), with how much
+  runs on each, and those in use that nobody has placed.
+- **Support dates from a file.** `appwren technologies import-eol FILE`, or **Import support
+  dates** on the Technologies page, adds releases and updates their dates from a file of
+  end-of-life data, matched by each technology's end-of-life key. It says what it would
+  change before it changes anything, and removes nothing. AppWren does not fetch the file.
+- **Data handling.** Reports → Data handling lists the applications that handle a chosen class
+  of data, with who answers for each, where it runs, how people sign in, what it is built on
+  and whether that is supported, the interfaces that carry the class, and whether a data
+  agreement covers it. The same rows export as CSV or JSON.
+- **History, in one place.** Reports → History shows every change, newest first, to managers,
+  auditors, and administrators: narrowed to a person, a record, a kind of record, or dates.
+- **Links to other systems.** An identifier in another system is shown as a link where the
+  program gives that system an address pattern, such as `https://code.example.org/{id}`.
+- Lists of applications, the portfolio list, and their exports can be narrowed by capability
+  and by class of data.
+- **Guides.** A new guide, *The landscape*; cost and contracts in *The portfolio*; and what an
+  upgrade does to the program in *Running the program*.
+
+### Changed
+
+- An application that receives data through an interface now counts among the dependents of
+  the application that sends it, so recording interfaces can raise a source's business value.
+- **The default scoring model has a new version.** Cost and burden is now annual cost 30,
+  cost per user 15, license use 10, support effort 25, and change effort 20, so scores for
+  cost and burden move. An installation still running the previous default gets the new
+  one on upgrade; one that has shaped its model keeps it, and can take the new factors from
+  the default program when it chooses.
+- A record's history names the vendor, application, or person a change refers to, where it
+  showed a number.
+
+### Fixed
+
+- A record's history told an assessment, a decision, a capability served, and a unit that
+  uses an application each as "Added this application". Each is now told for what it is, and
+  the copy of a decision onto its application is no longer told as a second change.
+
 ## 0.1.0 (2026-11-26)
 
 Wave 1, *The portfolio*: install, sign in, and keep one record of every application, with

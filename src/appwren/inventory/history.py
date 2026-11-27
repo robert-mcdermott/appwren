@@ -24,7 +24,9 @@ LABELS = {
     "tags": "Tags",
     "restricted": "Restricted",
 }
-HIDDEN = {"id", "ref", "created_by", "created_at"}
+# What an event holds that is not worth telling: bookkeeping, and the pointer from a superseded
+# assessment or decision to the one that took its place, which that one's own entry tells.
+HIDDEN = {"id", "ref", "created_by", "created_at", "superseded_by"}
 VOCABULARIES: dict[str, str] = {}
 OPERATIONS = {
     "create": "Added",
@@ -33,6 +35,10 @@ OPERATIONS = {
     "link": "Added a link",
     "unlink": "Removed a link",
 }
+
+
+# Rows that say what a sensitive field says, in more detail.
+CHILDREN_OF = {"annual_cost": ("cost_line",)}
 
 
 def words(text: str) -> str:
@@ -52,6 +58,9 @@ class Lookups:
         }
         self.labels.update(record_type.extra.get("history_labels", {}))
         self.special = record_type.extra.get("history_value")
+        # Fields that hold another record's id, or a person's, are told by name.
+        self.refs = {f.name: f.target for f in record_type.fields if f.kind == "ref" and f.target}
+        self.people = {f.name for f in record_type.fields if f.kind == "person"}
         self._vocab: dict[str, dict[str, str]] = {}
         self._names: dict[str, dict[int, str]] = {}
 
@@ -84,6 +93,10 @@ class Lookups:
             if isinstance(value, list):
                 return ", ".join(self.vocab(self.vocabularies[field], item) for item in value)
             return self.vocab(self.vocabularies[field], value)
+        if field in self.refs:
+            return self.name(self.refs[field], value)
+        if field in self.people:
+            return self.name("account", value)
         if field.endswith("unit_id"):
             return self.name("unit", value)
         if field.endswith("_by") or field == "owner_id":
@@ -97,6 +110,50 @@ class Lookups:
         if isinstance(value, dict):
             return "; ".join(f"{words(k)}: {v}" for k, v in value.items() if v not in (None, ""))
         return value
+
+
+def _assessed(lookups: Lookups, now: Any, added: bool) -> str:
+    return f"Recorded an assessment ({now('ref')})" if added else "Removed an assessment"
+
+
+def _decided(lookups: Lookups, now: Any, added: bool) -> str:
+    if not added:
+        return "Removed a decision"
+    disposition = lookups.vocab("dispositions", now("disposition")).lower()
+    return f"Recorded a decision to {disposition} ({now('ref')})"
+
+
+def _serves(lookups: Lookups, now: Any, added: bool) -> str:
+    capability = lookups.name("capability", now("capability_id"))
+    if not added:
+        return f"No longer serves {capability}"
+    return f"Now serves {capability}" + (", as its primary provider" if now("is_primary") else "")
+
+
+def _used_by(lookups: Lookups, now: Any, added: bool) -> str:
+    unit = lookups.name("unit", now("org_unit_id"))
+    return f"Now used by {unit}" if added else f"No longer used by {unit}"
+
+
+def _built_on(lookups: Lookups, now: Any, added: bool) -> str:
+    technology = lookups.name("technology", now("technology_id"))
+    return f"Now built on {technology}" if added else f"No longer built on {technology}"
+
+
+def _release(lookups: Lookups, now: Any, added: bool) -> str:
+    return f"{'Added' if added else 'Removed'} the release {now('cycle')}"
+
+
+# How the rows that belong to a record are told in its history: (names, the event's value for
+# a field, whether it was added) -> a sentence.
+CHILD_TITLES: dict[str, Any] = {
+    "assessment": _assessed,
+    "decision": _decided,
+    "application_capability": _serves,
+    "application_unit": _used_by,
+    "component_technology": _built_on,
+    "technology_release": _release,
+}
 
 
 def entry(
@@ -130,12 +187,28 @@ def entry(
         title = (
             f"Now {label} {other}" if event.action == "created" else f"No longer {label} {other}"
         )
+    elif event.subject_type == "cost_line":
+        category = lookups.vocab("cost_categories", now("category")).lower()
+        amount = now("amount")
+        said = f"{category}, {int(amount):,} a year" if isinstance(amount, int) else category
+        verb = {"created": "Added", "deleted": "Removed"}.get(event.action, "Changed")
+        title = f"{verb} a cost line: {said}"
+    elif event.subject_type == "contract_application":
+        other = lookups.name("application", now("application_id"))
+        verb = {"created": "Now covers", "deleted": "No longer covers"}.get(event.action)
+        title = f"{verb} {other}" if verb else f"Changed the licenses {other} uses"
+    elif event.subject_type in CHILD_TITLES and event.action in ("created", "deleted"):
+        title = CHILD_TITLES[event.subject_type](lookups, now, event.action == "created")
     elif event.subject_type == "external_ref":
         system = lookups.vocab("external_systems", now("system")).lower()
         verb = "Now also known as" if event.action == "created" else "No longer known as"
         title = f"{verb} {now('value')} ({system})"
-    elif event.action == "created":
+    elif event.action == "created" and event.subject_type == record_type.key:
         title = f"Added this {record_type.label}"
+    elif event.action in ("created", "deleted"):
+        # Something that belongs to the record, told for what it is and never as the record.
+        verb = "Added" if event.action == "created" else "Removed"
+        title = f"{verb} {words(event.subject_type).lower()}"
     elif event.action == "updated":
         quiet = record_type.extra.get("history_quiet", ())
         for field, (old, new) in changes.items():
@@ -192,6 +265,9 @@ def for_record(
         .limit(limit)
     ).all()
     lookups = Lookups(session, record_type)
+    # What belongs to a withheld field is withheld with it: cost lines go with the cost.
+    unseen = {child for name in withheld for child in CHILDREN_OF.get(name, ())}
+    events = [event for event in events if event.subject_type not in unseen]
     story = [entry(event, record_type, lookups, withheld) for event in events]
     # A change that only copied what another entry already says (a score onto its
     # application) is not told twice, unless the type says its own titled
@@ -218,7 +294,12 @@ SAID = {
 
 def _plain(event: Event) -> dict[str, Any]:
     """An event about something that is not a record: a sign-in, an export, a setting."""
-    changes = event.changes or {}
+    # A change to a row is a pair, before and after. An event that only says what happened
+    # (an export, a sign-in) holds plain values, which are what it is now.
+    changes = {
+        field: value if isinstance(value, list) and len(value) == 2 else [None, value]
+        for field, value in (event.changes or {}).items()
+    }
 
     def now(field: str) -> Any:
         pair = changes.get(field) or [None, None]

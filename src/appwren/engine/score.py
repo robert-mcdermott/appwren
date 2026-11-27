@@ -245,7 +245,10 @@ def factor_result(
     if kind == "band":
         value = facts.get(factor["fact"])
         if value is None:
-            return {**out, "state": UNKNOWN, "why": "Not recorded", "where": factor["fact"]}
+            # A figure worked out from others is entered where the first one missing is.
+            needs = [name for name in factor.get("needs", []) if facts.get(name) is None]
+            where = needs[0] if needs else factor["fact"]
+            return {**out, "state": UNKNOWN, "why": "Not recorded", "where": where}
         level = band_level(float(value), factor["bands"], factor["direction"])
         bands = ", ".join(f"{b:,}" for b in factor["bands"])
         return {**out, "state": KNOWN, "level": level, "value": value, "source": factor["fact"],

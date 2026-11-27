@@ -6,6 +6,7 @@ import { apply, setOrganizationPalette, setOrganizationRamp } from "./core/prefs
 import { fallback, route, start } from "./core/router.js";
 import { can, setSession } from "./core/session.js";
 import { openPalette } from "./components/cmdk.js";
+import { TYPES } from "./components/record.js";
 import { commands, mountShell } from "./components/shell.js";
 import { emptyState } from "./components/ui.js";
 import { setProduct, setTitle } from "./pages/page.js";
@@ -56,15 +57,22 @@ async function boot() {
   route("/applications", page("records", "applicationList"));
   route("/applications/:ref", page("record", "applicationPage"));
   route("/applications/:ref/assess", page("assess", "assess"));
-  for (const type of ["component", "vendor", "technology", "capability"]) {
-    const path = { component: "components", vendor: "vendors", technology: "technologies", capability: "capabilities" }[type];
+  for (const type of ["component", "vendor", "technology", "capability", "interface", "hosting_platform", "deployment", "contract", "funding_source"]) {
+    const path = TYPES[type].path;
     route(`/${path}`, page("records", "recordList", type));
     route(`/${path}/:ref`, page("record", "recordPage", type));
   }
   route("/capability-map", page("capability-map", "capabilityMap"));
+  route("/data-flows", page("data-flows", "dataFlows"));
+  route("/overlap", page("overlap", "overlapPage"));
+  route("/lifecycle", page("lifecycle", "lifecyclePage"));
+  route("/radar", page("lifecycle", "radarPage"));
+  route("/graph/:ref", page("graph", "graphPage"));
   route("/portfolio", page("portfolio", "portfolioChart"));
   route("/dashboard", page("dashboard", "dashboard"));
   route("/data-quality", page("quality", "dataQuality"));
+  route("/data-handling", page("data-handling", "dataHandling"));
+  if (can("read_all")) route("/history", page("history", "wholeHistory"));
   route("/list", page("list", "portfolioList"));
   route("/decisions", page("decisions", "decisionList"));
   route("/snapshots", page("decisions", "snapshotList"));

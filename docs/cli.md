@@ -20,6 +20,7 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 | [`appwren verify`](#appwren-verify) | Check that the history has not been altered |
 | [`appwren demo`](#appwren-demo) | Build a fictional organization to explore |
 | [`appwren program`](#appwren-program) | Move the program between installations |
+| [`appwren technologies`](#appwren-technologies) | Bring technology support dates in from a file |
 | [`appwren doctor`](#appwren-doctor) | Check that this installation is healthy |
 
 ## `appwren init`
@@ -147,6 +148,19 @@ Load a program pack. The whole pack is checked first, and nothing is loaded unle
 | Option | Meaning |
 |---|---|
 | `FILE` | the pack to load |
+| `--dry-run` | say what would change, and change nothing |
+
+## `appwren technologies`
+
+Technologies and their releases are kept in the app. Their support dates can also be brought in from a file, so that nobody types them. AppWren does not fetch the file: you bring it.
+
+### `appwren technologies import-eol`
+
+Read a JSON file of end-of-life data: one object whose keys are products and whose values are lists of releases, each with a cycle and any of releaseDate, eol, extendedSupport, and latest. A product is matched to the technology whose end-of-life key it is. Releases are added and dates updated; nothing is removed.
+
+| Option | Meaning |
+|---|---|
+| `FILE` | the file to read |
 | `--dry-run` | say what would change, and change nothing |
 
 ## `appwren doctor`

@@ -37,7 +37,8 @@ FACTS = {
     "records_retention", "external_users", "age_months", "dependents", "sole_provider",
     "accountable", "assessment_expired", "decided_within_year", "decision",
     "decision_review_due", "enough", "overlap", "high", "level", "score", "coverage",
-    "confidence", "recommendation", "answer",
+    "confidence", "recommendation", "answer", "cost_per_user", "licensed", "license_use",
+    "contract_notice_in_days", "data_agreement_missing",
 }  # fmt: skip
 
 

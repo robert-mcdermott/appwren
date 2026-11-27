@@ -67,6 +67,14 @@ def _apply(
         record.fields = kept
     if record.successor_id is not None and record.successor_id == record.id:
         errors.add("successor_id", "An application cannot replace itself.")
+    if "annual_cost" in values and not creating and _moved(record, "annual_cost"):
+        from appwren.landscape import costs
+
+        if costs.has_lines(session, record):
+            errors.add(
+                "annual_cost",
+                "Its annual cost is the sum of its cost lines. Change the lines instead.",
+            )
 
 
 def _moved(record: Any, name: str) -> bool:
@@ -358,7 +366,33 @@ def _detail(
         "own_fields": own_fields,
         "missing": missing(session, record),
         "sees_sensitive": not hidden,
+        "has_cost_lines": _has_cost_lines(session, record),
     }
+
+
+def _conditions(session: Session, principal: Principal, filters: Mapping[str, Any]) -> list[Any]:
+    """What narrows a list of applications beyond its own columns."""
+    found: list[Any] = []
+    if filters.get("data_class"):
+        found.append(records.holds(Application.data_classes, str(filters["data_class"])))
+    if filters.get("capability"):
+        from appwren.inventory.registry import find
+
+        capability = find(session, CAPABILITY, str(filters["capability"]))
+        found.append(
+            Application.id.in_(
+                select(ApplicationCapability.application_id).where(
+                    ApplicationCapability.capability_id == capability.id
+                )
+            )
+        )
+    return found
+
+
+def _has_cost_lines(session: Session, record: Application) -> bool:
+    from appwren.landscape import costs
+
+    return costs.has_lines(session, record)
 
 
 def _can_add(session: Session, principal: Principal, record: Application) -> bool:
@@ -371,8 +405,11 @@ APPLICATION.extra.update(
     cards=_cards,
     detail=_detail,
     can_add=_can_add,
+    conditions=_conditions,
     add_refusal="Only a steward of the unit, an architect, or a manager can add an application "
     "to it.",
     history_vocabularies={"data_classes": "data_classes"},
     history_labels={"fields": "The organization's fields"},
+    # Copies of the decision on record, kept for lists: the decision's own entry tells them.
+    history_quiet=("disposition", "review_on"),
 )

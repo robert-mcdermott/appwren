@@ -132,7 +132,48 @@ VENDORS = [
     ("calendra", "Calendra", "software_vendor"),
     ("keystone", "Keystone Identity", "software_vendor"),
     ("watchtower", "Watchtower Monitoring", "software_vendor"),
+    ("stratus", "Stratus Cloud", "service_provider"),
 ]  # fmt: skip
+
+# Where things run: key, name, kind, provider (a vendor's key), where it is.
+PLATFORMS = [
+    ("dc", "Campus data center", "data_center", None, "Main campus, lower level"),
+    ("standby", "Standby site", "hosting_provider", "oakmere", "Oakmere Hosting, in another region"),
+    ("cloud_ent", "Enterprise cloud account", "cloud_account", "stratus", "Western region"),
+    ("cloud_res", "Research cloud account", "cloud_account", "stratus", "Western region"),
+    ("hpc", "Research computing cluster", "cluster", None, "Main campus"),
+    ("lab", "Lab workstations", "endpoints", None, "In the labs, beside the instruments"),
+]  # fmt: skip
+# What pays: key, name, kind, code, and the days from the build until it ends, if it does.
+# Grants are added as the applications they pay for are found.
+FUNDING = [
+    ("it", "Information Technology operating budget", "operating", "CC-4100", None),
+    ("research", "Research operations budget", "operating", "CC-2200", None),
+    ("clinic", "Clinic operating budget", "operating", "CC-5100", None),
+    ("admin", "Administration operating budget", "operating", "CC-1000", None),
+    ("recharge", "Core facility recharge", "chargeback", "RC-3300", None),
+    ("capital", "Clinical systems renewal", "capital", "CP-0412", 400),
+]  # fmt: skip
+# How an application's yearly cost divides, by where it comes from: category and share.
+COST_SHARES = {
+    "saas": [("license", 85), ("internal", 15)],
+    "vendor_custom": [("license", 60), ("support", 25), ("internal", 15)],
+    "commercial": [("license", 45), ("support", 20), ("hosting", 15), ("internal", 20)],
+    "research_software": [("hosting", 20), ("internal", 80)],
+}
+OWN_SHARES = [("hosting", 25), ("internal", 75)]
+# Contracts with a story: the application, and what is particular about its contract.
+CONTRACT_STORIES = {
+    # The decision is to keep it until the contract ends; the notice date is two weeks off.
+    "Clinic Scheduler": {"ends": 75, "notice": 60, "auto_renews": True},
+    # Health data under a subscription nobody put a data agreement behind.
+    "Clinic Questionnaires": {"alone": True, "agreement": "missing", "ends": 300, "notice": 30},
+    # Bought for everyone, used by a few.
+    "Learning Management": {"licenses": 5000, "used": 1400, "ends": 520, "notice": 90},
+}
+
+# Technologies that only run on a workstation in the lab.
+ON_A_WORKSTATION = {"matlab", "access"}
 
 # key, name, kind, radar, releases as (cycle, days from the build its support ends, or None)
 TECHNOLOGIES = [
@@ -311,6 +352,36 @@ UNASSESSED = [
     ("Alumni Directory", "philanthropy", "PHIL"), ("Seminar Calendar", "communications", "COMMS"),
     ("Key Inventory", "facilities", "FAC"), ("Travel Booking", "finance", "FIN"),
     ("Poster Printing Queue", "communications", "COMMS"), ("Shuttle Schedule", "facilities", "FAC"),
+]  # fmt: skip
+
+# Data passing between applications: from, to, method, how often, the classes carried, and a
+# name where "X to Y" would not say enough. Specimen Tracker sends only to applications that
+# already depend on it, so the worked example keeps its three dependents.
+INTERFACES = [
+    ("Electronic Health Record", "Integration Engine", "messaging", "real_time", ["health"], "Clinical messages out"),
+    ("Integration Engine", "Clinical Lab Information System", "messaging", "real_time", ["health"], "Orders to the lab"),
+    ("Clinical Lab Information System", "Integration Engine", "messaging", "real_time", ["health"], "Results from the lab"),
+    ("Integration Engine", "Research Pharmacy Dispensing", "messaging", "real_time", ["health"], "Orders to the pharmacy"),
+    ("Integration Engine", "Clinical Trials Management", "messaging", "hourly", ["health"], "Visits and results to trials"),
+    ("Electronic Health Record", "Patient Portal", "api", "real_time", ["health"], None),
+    ("Clinic Scheduler", "Electronic Health Record", "manual", "daily", ["health"], "Appointments, re-keyed each morning"),
+    ("Clinic Questionnaires", "Electronic Health Record", "file_transfer", "daily", ["health"], None),
+    ("Clinical Trials Management", "Research Data Warehouse", "extract_load", "daily", ["identifiable_research"], "Trial data to the warehouse"),
+    ("Specimen Tracker", "Research Data Warehouse", "extract_load", "daily", ["identifiable_research"], "Specimens to the warehouse"),
+    ("Specimen Tracker", "Biorepository Request Portal", "api", "real_time", ["deidentified_research"], "What is available to request"),
+    ("Specimen Tracker", "Freezer Watch", "api", "hourly", ["internal"], "Freezer positions"),
+    ("Survey Hub", "Research Data Warehouse", "extract_load", "weekly", ["identifiable_research"], "Survey answers to the warehouse"),
+    ("Research Data Warehouse", "Cohort Analysis Platform", "database_link", "on_demand", ["identifiable_research"], "Cohorts for analysis"),
+    ("Research Data Warehouse", "Executive Dashboards", "extract_load", "daily", ["identifiable_research"], "Enrollment figures"),
+    ("Research Data Warehouse", "Data Sharing Gateway", "manual", "on_demand", ["controlled_access"], "Approved data sets"),
+    ("Sequencing Run Manager", "Genomics Pipeline", "file_transfer", "daily", ["controlled_access"], "Runs to the pipeline"),
+    ("Participant Recruitment Registry", "eConsent", "api", "real_time", ["identifiable_research"], None),
+    ("eConsent", "Clinical Trials Management", "api", "real_time", ["health"], "Signed consents"),
+    ("Human Resources and Payroll", "Identity and Sign-in", "file_transfer", "daily", ["personal"], "Joiners and leavers"),
+    ("Human Resources and Payroll", "Finance and Ledger", "extract_load", "monthly", ["financial"], "Payroll journal"),
+    ("Human Resources and Payroll", "Learning Management", "file_transfer", "weekly", ["personal"], "Staff list"),
+    ("Grant Management System", "Finance and Ledger", "api", "daily", ["financial"], "Awards and budgets"),
+    ("Expense Reports", "Finance and Ledger", "extract_load", "weekly", ["financial"], None),
 ]  # fmt: skip
 
 # What an application is for, in a sentence: by storyline, and by the kind of a lab's tool.

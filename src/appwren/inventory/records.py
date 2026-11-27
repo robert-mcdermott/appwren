@@ -6,13 +6,14 @@ the hooks a type's own module adds to ``RecordType.extra``.
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from datetime import date
 from typing import Any
 from urllib.parse import quote
 
-from sqlalchemy import exists, func, or_, select
+from sqlalchemy import String, cast, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from appwren.access.principal import Principal
@@ -173,6 +174,25 @@ def reference(session: Session, target: str, value: Any, field: str, errors: Err
     return found.id
 
 
+def person(session: Session, value: Any, field: str, errors: Errors) -> int | None:
+    """Someone with an account that is not disabled, by its id."""
+    if value is None or value == "":
+        return None
+    found = session.get(Account, int(value)) if str(value).isdigit() else None
+    if found is None or found.status == "disabled":
+        errors.add(field, "Choose a person whose account is not disabled.")
+        return None
+    return found.id
+
+
+def holds(column: Any, key: str) -> Any:
+    """A condition that a stored list of vocabulary keys includes this one. Lists are kept as
+    JSON text on both databases, and a key is only letters, digits, and underscores."""
+    if not re.fullmatch(r"[a-z0-9_]{1,40}", key):
+        raise Invalid("The list could not be narrowed.", {"filter": f"{key!r} is not a key."})
+    return cast(column, String).like(f'%"{key}"%')
+
+
 def apply_header(
     session: Session,
     record_type: RecordType,
@@ -186,6 +206,9 @@ def apply_header(
     restricted; and, for a type that has one, the unit that answers for it."""
     if "name" in values or creating:
         name = text(values.get("name"))
+        named = record_type.extra.get("default_name")
+        if not name and creating and named is not None:
+            name = named(session, values)  # a deployment is named for where and what it runs
         if not name:
             errors.add("name", "Give it a name.")
         elif len(name) > 200:
@@ -237,6 +260,8 @@ def value_of(session: Session, field: Field, given: Any, errors: Errors) -> Any:
         return reference(session, field.target, given, name, errors)
     if field.kind == "unit":
         return None if given in (None, "") else active_unit(session, given, name, errors)
+    if field.kind == "person":
+        return person(session, given, name, errors)
     cleaned = text(given)
     if cleaned and field.kind == "text" and len(cleaned) > field.max_length:
         errors.add(name, f"Keep this to {field.max_length} characters.")
@@ -469,7 +494,7 @@ def external_refs_of(
         pattern = str(system.get("url") or "")
         link = (
             pattern.replace("{id}", quote(row.value, safe=""))
-            if pattern.startswith(("https://", "http://")) and "{id}" in pattern
+            if pattern.startswith("https://") and "{id}" in pattern
             else None
         )
         found[row.record_id].append(

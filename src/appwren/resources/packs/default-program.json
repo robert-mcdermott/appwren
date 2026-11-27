@@ -600,6 +600,172 @@
     "description": "Its record in another governance system"
    }
   ],
+  "environments": [
+   {
+    "key": "production",
+    "label": "Production",
+    "description": "What people use for real work"
+   },
+   {
+    "key": "staging",
+    "label": "Staging",
+    "description": "A copy of production for trying a change before it goes live"
+   },
+   {
+    "key": "test",
+    "label": "Test",
+    "description": "For testing; holds no real data"
+   },
+   {
+    "key": "development",
+    "label": "Development",
+    "description": "Where it is built"
+   },
+   {
+    "key": "disaster_recovery",
+    "label": "Disaster recovery",
+    "description": "A standby to fail over to"
+   }
+  ],
+  "platform_kinds": [
+   {
+    "key": "data_center",
+    "label": "Data center",
+    "description": "Servers the organization runs in its own or a leased room"
+   },
+   {
+    "key": "cloud_account",
+    "label": "Cloud account",
+    "description": "An account or subscription with a cloud provider"
+   },
+   {
+    "key": "cluster",
+    "label": "Compute cluster",
+    "description": "A shared cluster, such as research computing"
+   },
+   {
+    "key": "hosting_provider",
+    "label": "Hosting provider",
+    "description": "Servers or platforms a provider runs for the organization"
+   },
+   {
+    "key": "vendor_service",
+    "label": "A vendor's service",
+    "description": "The vendor runs it; the organization only uses it"
+   },
+   {
+    "key": "endpoints",
+    "label": "People's own computers",
+    "description": "Installed on desktops, laptops, or instruments"
+   }
+  ],
+  "cost_categories": [
+   {
+    "key": "license",
+    "label": "License or subscription",
+    "description": "What is paid for the right to use it"
+   },
+   {
+    "key": "hosting",
+    "label": "Hosting",
+    "description": "Servers, cloud, storage, and network it runs on"
+   },
+   {
+    "key": "support",
+    "label": "Support contract",
+    "description": "Vendor support, maintenance, and managed services"
+   },
+   {
+    "key": "internal",
+    "label": "Our own people's time",
+    "description": "The effort of those who run and change it, as money"
+   },
+   {
+    "key": "other",
+    "label": "Other",
+    "description": "Training, consulting, and anything else"
+   }
+  ],
+  "agreement_states": [
+   {
+    "key": "in_place",
+    "label": "In place",
+    "description": "An agreement covers the data the vendor handles"
+   },
+   {
+    "key": "not_needed",
+    "label": "Not needed",
+    "description": "The vendor handles no data that needs one"
+   },
+   {
+    "key": "missing",
+    "label": "Missing",
+    "description": "One is needed and there is none"
+   }
+  ],
+  "interface_methods": [
+   {
+    "key": "api",
+    "label": "API call",
+    "description": "One application calls the other as it needs to"
+   },
+   {
+    "key": "file_transfer",
+    "label": "File transfer",
+    "description": "Files are sent or collected on a schedule"
+   },
+   {
+    "key": "extract_load",
+    "label": "Scheduled extract and load",
+    "description": "A job copies data from one database to another"
+   },
+   {
+    "key": "database_link",
+    "label": "Shared database",
+    "description": "One reads or writes the other's database directly"
+   },
+   {
+    "key": "messaging",
+    "label": "Messages or events",
+    "description": "A queue, a stream, or an integration engine carries messages"
+   },
+   {
+    "key": "embedded",
+    "label": "Embedded page or hand-off",
+    "description": "One shows the other's pages, or hands the user across"
+   },
+   {
+    "key": "manual",
+    "label": "By hand",
+    "description": "Someone exports from one and uploads or re-keys into the other"
+   }
+  ],
+  "interface_frequencies": [
+   {
+    "key": "real_time",
+    "label": "As it happens"
+   },
+   {
+    "key": "hourly",
+    "label": "Hourly or more often"
+   },
+   {
+    "key": "daily",
+    "label": "Daily"
+   },
+   {
+    "key": "weekly",
+    "label": "Weekly"
+   },
+   {
+    "key": "monthly",
+    "label": "Monthly or less often"
+   },
+   {
+    "key": "on_demand",
+    "label": "When someone asks"
+   }
+  ],
   "unit_kinds": [
    {
     "key": "organization",
@@ -1409,7 +1575,7 @@
        "key": "annual_cost",
        "label": "Annual cost",
        "kind": "band",
-       "weight": 40,
+       "weight": 30,
        "fact": "annual_cost",
        "bands": [
         5000,
@@ -1421,17 +1587,56 @@
        "unit": "a year"
       },
       {
+       "key": "cost_per_user",
+       "label": "Cost per user",
+       "kind": "band",
+       "weight": 15,
+       "fact": "cost_per_user",
+       "bands": [
+        50,
+        200,
+        1000,
+        5000
+       ],
+       "direction": "falling",
+       "unit": "a year for each person who uses it",
+       "needs": [
+        "annual_cost",
+        "users"
+       ]
+      },
+      {
+       "key": "license_use",
+       "label": "License use",
+       "kind": "band",
+       "weight": 10,
+       "fact": "license_use",
+       "bands": [
+        40,
+        60,
+        80,
+        90
+       ],
+       "direction": "rising",
+       "unit": "percent of the licenses bought are in use",
+       "applies": {
+        "field": "licensed",
+        "op": "eq",
+        "value": true
+       }
+      },
+      {
        "key": "support_effort",
        "label": "Support effort",
        "kind": "answer",
-       "weight": 30,
+       "weight": 25,
        "question": "support_effort"
       },
       {
        "key": "change_effort",
        "label": "Change effort",
        "kind": "answer",
-       "weight": 30,
+       "weight": 20,
        "question": "change_effort"
       }
      ],
@@ -1758,6 +1963,44 @@
        "field": "decided_within_year",
        "op": "eq",
        "value": false
+      }
+     ]
+    }
+   },
+   {
+    "key": "no_data_agreement",
+    "severity": "danger",
+    "text": "Confidential or restricted data under a contract with no data agreement",
+    "when": {
+     "all": [
+      {
+       "field": "sensitivity",
+       "op": "gte",
+       "value": 2
+      },
+      {
+       "field": "data_agreement_missing",
+       "op": "eq",
+       "value": true
+      }
+     ]
+    }
+   },
+   {
+    "key": "contract_notice",
+    "severity": "warning",
+    "text": "A contract's notice date is within 90 days",
+    "when": {
+     "all": [
+      {
+       "field": "contract_notice_in_days",
+       "op": "lte",
+       "value": 90
+      },
+      {
+       "field": "contract_notice_in_days",
+       "op": "gte",
+       "value": 0
       }
      ]
     }

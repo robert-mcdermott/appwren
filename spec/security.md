@@ -60,6 +60,7 @@ AppWren is designed **not** to hold the data it describes. Records describe appl
 Some fields are useful to everyone who keeps the portfolio and should not be read by everyone who can see the catalog. A field is **sensitive** if the program says so. By default these are sensitive: annual cost (and, from wave 2, cost lines and contract values), and the security details of an application (its sign-in method, backup and restore state, and the data-exposure and end-of-life-exposure factors).
 
 - A sensitive field is visible to the people named on the application, to stewards, leaders, and architects in scope, and to managers, auditors, and administrators. To everyone else it is **withheld**: it is left out of the record, its list column, its filters, its exports, and the working of any score that uses it, and the record says that something is withheld.
+- Cost lines, and the figures worked out from cost (cost per user, license use), are withheld with annual cost. A contract is sensitive as a whole: it is visible to those who see every application's sensitive fields, to anyone who may see the sensitive fields of an application it covers, and to whoever made or owns it. Totals of cost across applications are shown only to those who see every application's cost, since a part would reveal the rest.
 - Scores and recommendations are not sensitive, so a member can see that an application is recommended for *Modernize* without seeing what it costs. Where a figure would reveal a sensitive value (the bubble size on the portfolio chart is cost), it is drawn without it.
 - One function decides whether a principal may see an application's sensitive fields. Single records, lists, charts, exports, and the working all call it.
 
@@ -109,6 +110,8 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 
 **The catalog is open.** Applications, capabilities, technologies, and vendors are visible to everyone signed in, apart from their sensitive fields. A portfolio is useful in proportion to how many people can find what already exists: a researcher looking for an approved tool, an engineer checking who else uses a database, a team about to buy something another department already has. An application can be marked **restricted**, which limits even its existence to the people named on it, stewards and leaders of its unit, architects and managers in scope, auditors, and administrators.
 
+A record that joins applications, such as an interface, is visible only to those who may see every application it joins: a restricted application's interfaces are hidden with it, even from someone who keeps the other end.
+
 One function per record type decides what a principal may see. Single records, lists, counts, charts, searches, and exports all call it, so they always agree.
 
 ### Permissions
@@ -121,11 +124,16 @@ One function per record type decides what a principal may see. Single records, l
 | Read scores, recommendations, and decisions | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Read sensitive fields | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Add an application in a unit | | | ✓ | | ✓ | ✓ | | |
-| Edit an application; its components; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
+| Edit an application; its components and deployments; its links, capabilities, and people in roles | | ✓ | ✓ | | ✓ | ✓ | | |
 | Assess an application | | ✓ | ✓ | | ✓ | ✓ | | |
 | Change who is accountable | | ✓ (the accountable owner) | ✓ | ✓ | | ✓ | | |
 | Record a decision | | | | ✓ (not as its accountable owner) | | ✓ (not as its accountable owner) | | |
-| Add and edit capabilities, technologies and their releases, and vendors | | | | | ✓ | ✓ | | |
+| Read and set an application's cost lines | | ✓ | ✓ | read only | ✓ | ✓ | read only | read only |
+| Read a contract that covers an application | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Add a contract; edit one that covers an application they keep | | | ✓ | | ✓ | ✓ | | |
+| Add and edit funding sources | | | | | ✓ | ✓ | | |
+| Add and edit an interface between two applications | | ✓ (named on either) | ✓ (either in scope) | | ✓ (either in scope) | ✓ | | |
+| Add and edit capabilities, technologies and their releases, vendors, and hosting platforms | | | | | ✓ | ✓ | | |
 | Import applications from a spreadsheet, each row as if added by hand | | | ✓ | | ✓ | ✓ | | |
 | Export a list they can see, as CSV or JSON | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Take a portfolio snapshot | | | | | | ✓ | | |

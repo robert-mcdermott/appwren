@@ -1,6 +1,6 @@
 # The portfolio
 
-This guide is for everyone who keeps, assesses, or reads the record of an application: the people named on applications, the stewards of units, architects, leaders, and the portfolio team. It covers what an application is, the record and what each stage of its life requires, components and what they are built on, capabilities, assessment, the scores and the working behind them, recommendations, flags, decisions, and import and export.
+This guide is for everyone who keeps, assesses, or reads the record of an application: the people named on applications, the stewards of units, architects, leaders, and the portfolio team. It covers what an application is, the record and what each stage of its life requires, components and what they are built on, capabilities, assessment, the scores and the working behind them, recommendations, flags, decisions, cost and contracts, and import and export. What joins applications to one another is in [The landscape](the-landscape.md).
 
 ## What counts as an application
 
@@ -21,7 +21,7 @@ Holding to one definition is what lets the portfolio compare like with like. The
 
 ![The applications list, each with its four scores, its recommendation, and its decision](img/applications-light.webp)
 
-Each application has a permanent reference, such as `APP-0042`, that never changes or is reused. Its page has seven parts:
+Each application has a permanent reference, such as `APP-0042`, that never changes or is reused. Its page has nine parts:
 
 | Part | What it holds |
 |---|---|
@@ -29,8 +29,10 @@ Each application has a permanent reference, such as `APP-0042`, that never chang
 | **Scores** | Each dimension's working, the rule behind the recommendation, and what would raise confidence |
 | **Assessment** | The latest answers, who gave them and when, and every assessment before |
 | **Decisions** | The decision on record, with the scores it was made against, and every decision before it |
-| **Components** | Its parts, and the technologies each is built on |
+| **Components** | Its parts, the technologies each is built on, and where it runs |
 | **Capabilities** | What it does for the organization, and who else does it |
+| **Connections** | What would break if it went, what it sends and receives, and what it depends on. See [The landscape](the-landscape.md) |
+| **Cost** | What it costs a year, line by line, and the contracts that cover it |
 | **History** | Every change to it, by whom and when |
 
 ![An application's overview: its scores, recommendation, flags, owners, and record](img/application-light.webp)
@@ -78,9 +80,9 @@ What a stage requires is advice, not a gate: an application can be moved to any 
 
 ### Links and other systems
 
-An application can be recorded as **depending on** another, as **part of** another, or as **replacing** another. How many active applications depend on one is part of its business value.
+An application can be recorded as **depending on** another, as **part of** another, or as **replacing** another. Data passing between two applications is recorded as an [interface](the-landscape.md#interfaces). How many active applications depend on one, by a link or by receiving its data, is part of its business value.
 
-It can also carry its references in other systems: a configuration item, a ticket queue, a repository, its sign-in registration, a contract number, or a governance record. Search finds an application by any of them.
+It can also carry its references in other systems: a configuration item, a ticket queue, a repository, its sign-in registration, a contract number, or a governance record. Search finds an application by any of them, and each is shown as a link where the program gives its system an [address pattern](running-the-program.md#links-to-other-systems).
 
 ### Restricted applications
 
@@ -99,6 +101,8 @@ Each component records the **technologies** it is built on, and which release of
 Architects and managers keep technologies, their releases, and **vendors**. A vendor's page lists what the organization has from it.
 
 A SaaS product with no components recorded is not judged on technology currency: that is the vendor's to keep.
+
+The Components part also says **where it runs**: each deployment of the application, or of one of its components, in an environment on a [hosting platform](the-landscape.md#where-it-runs).
 
 ## Capabilities
 
@@ -142,7 +146,7 @@ Every application in service has four scores, each from 1 to 5, where **5 is alw
 | **Cost and burden** | What does it take to keep? | Little |
 | **Risk exposure** | What could go wrong while it is kept? | Little |
 
-Each score is the weighted average of its **factors**. A factor comes from an answer (*strategic fit*), from a field (*criticality* from the tier, *security* from the sign-in method), from a number in bands (*reach*: fewer than 10 users is 1, at least 1,000 is 5), or from a calculation over the record (*technology currency* from the support dates of what its components run on; *capability uniqueness* from who else serves its capabilities). [The engine](../spec/engine.md) lists every factor, its weight, and its levels.
+Each score is the weighted average of its **factors**. A factor comes from an answer (*strategic fit*), from a field (*criticality* from the tier, *security* from the sign-in method), from a number in bands (*reach*: fewer than 10 users is 1, at least 1,000 is 5), or from a calculation over the record (*technology currency* from the support dates of what its components run on; *capability uniqueness* from who else serves its capabilities; *cost per user* from its cost and the people who use it; *license use* from the contracts that cover it). [The engine](../spec/engine.md) lists every factor, its weight, and its levels.
 
 ### Unknown is not zero
 
@@ -209,6 +213,8 @@ Flags are raised whatever the recommendation. Each is a separate signal, with it
 | **Assessment expired** | Its latest assessment is no longer current |
 | **Decision review due** | The decision on record is past its review date |
 | **Archive before retiring** | It is to be retired, replaced, or consolidated, and its data must be kept |
+| **No data agreement** | It handles confidential or restricted data, and a contract that covers it needs a data agreement and has none |
+| **Contract notice** | A contract that covers it has a notice date within 90 days |
 | **Cost review** | Valuable and healthy, but costly to keep |
 | **Mismatch** | The decision on record differs from today's recommendation |
 
@@ -230,6 +236,52 @@ When today's recommendation differs from the decision on record, the application
 
 ![The decisions page, showing applications whose decision differs from today's recommendation](img/decisions-light.webp)
 
+## Cost and contracts
+
+### What it costs
+
+An application's **Cost** part says what it costs a year, and how much that is for each person who uses it. The figure can be typed on the record as a rough estimate, or broken down into **cost lines**:
+
+| A line says | |
+|---|---|
+| What it is for | A license or subscription, hosting, a support contract, your own people's time, or something else |
+| How much a year | |
+| What pays for it | A **funding source**: an operating budget, a grant, a chargeback, a capital project |
+| The contract it falls under | Optional. Naming one makes that contract cover the application |
+
+![An application's Cost part: the yearly figure, the cost for each person who uses it, and the lines that add up to it](img/application-cost-light.webp)
+
+Choose **Break it down**, or **Edit the lines**, to change them. **Once an application has lines, its annual cost is their sum**, and the figure on the record can no longer be typed over. Include your own people's time: an application that costs nothing to license and half an engineer to keep is not free.
+
+Cost is judged three ways in the *cost and burden* score: the yearly figure, the cost for each person who uses it, and, where a contract says how many licenses were bought, how many of them are in use.
+
+Cost is **sensitive** by default. The Cost part, like annual cost itself, is shown to the people named on the application and those with a role over its unit; everyone else is told it is withheld. See [Who sees what](running-the-program.md#who-sees-what).
+
+### Funding sources
+
+Funding sources are kept by architects and managers, under **Portfolio → Contracts → Funding sources**. Each has a kind, a code such as a cost center or grant number, and, for a grant or a project, the day the money stops. Its page lists what it pays for.
+
+### Contracts
+
+**Portfolio → Contracts** holds the agreements with vendors that applications run under:
+
+![Contracts: what each covers, when it ends, and how soon the vendor must be told](img/contracts-light.webp)
+
+| | |
+|---|---|
+| **Vendor, number, start, and end** | The end is the end of the current term |
+| **Notice, in days** | How long before the end the vendor must be told, if it is not to renew. The list shows the date this makes, and marks it when it is within 90 days or has passed |
+| **Renews by itself** | Whether it renews unless someone says otherwise |
+| **Yearly value** and **licenses bought** | |
+| **Data agreement** | Whether an agreement covers the data the vendor handles: in place, not needed, or missing |
+| **What it covers** | The applications, and how many of the licenses each uses |
+
+Narrow the list to contracts ending within 90 days, six months, or a year. Stewards, architects, and managers add contracts; a contract is then kept by architects and managers, by whoever keeps an application it covers, and by its owner.
+
+A contract is shown only to those who may see the cost of an application it covers, and to those who see every application's cost. Seen through one application, it does not name another you may not see.
+
+Two flags come from contracts: **Contract notice**, when a contract that covers an application has a notice date within 90 days, and **No data agreement**, when the application handles confidential or restricted data and a contract that covers it is recorded as lacking one.
+
 ## Import and export
 
 ### Import applications
@@ -246,7 +298,7 @@ Stewards, architects, and managers import, each for the units in their scope. A 
 
 ### Export
 
-Every list can be exported as CSV from its **Export** button: applications, components, vendors, technologies, capabilities, and, from a list that a dashboard figure opens, the portfolio with its scores, recommendations, and decisions. The same exports come as JSON through the [API](api.md#reports-import-and-export). An export holds only what you may see, with the filters you have chosen. Values that a spreadsheet would treat as a formula are prefixed so that they are shown as text, and each export is recorded in the history.
+Every list can be exported as CSV from its **Export** button: applications, components, interfaces, deployments, contracts, funding sources, vendors, technologies, hosting platforms, capabilities, the applications that handle a class of data, and, from a list that a dashboard figure opens, the portfolio with its scores, recommendations, and decisions. The same exports come as JSON through the [API](api.md#reports-import-and-export). An export holds only what you may see, with the filters you have chosen. Values that a spreadsheet would treat as a formula are prefixed so that they are shown as text, and each export is recorded in the history.
 
 ## Next
 
