@@ -23,6 +23,7 @@ PREFIXES = {
     "HST": "Hosting platform",
     "INT": "Interface",
     "CON": "Contract",
+    "FND": "Funding source",
     "CMG": "Campaign",
     "SRC": "Connector source",
     "INI": "Initiative",

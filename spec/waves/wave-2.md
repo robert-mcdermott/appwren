@@ -82,21 +82,23 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Done:** two more record types on the registry, with their lists, filters, exports, and histories. The demo has six platforms and 87 deployments: what the institute runs itself has production, tiers 1 and 2 have staging, and tier 1 systems in the data center have a standby at a provider. What vendors host has none.
 
-## Slice 4: Cost, funding, and contracts ☐
+## Slice 4: Cost, funding, and contracts ☑
 
 **Goal:** what each application costs, who pays, and what is about to renew.
 
-- [ ] `funding_source`: a shared record (an operating budget, a grant, a chargeback, a capital project) with a code and, for a grant, an end date
-- [ ] `cost_line`: a yearly amount on an application, by category (license or subscription, hosting, support contract, internal effort, other), with its funding source and an optional contract; the application's annual cost is the sum of its lines once it has any
-- [ ] `contract` and `contract_application`: vendor, number, term, renewal date, notice period, auto-renewal, yearly value, licenses bought, a data agreement's standing, and the applications covered with the licenses each uses
-- [ ] Sensitive throughout: one function decides, and records, lists, filters, exports, and the working call it
-- [ ] The engine: *cost per user* and *license use* as factors of cost and burden; a new version of the default scoring model; the worked example updated in the specification and in the test
-- [ ] An upgrade publishes the new default model only where the organization still runs the previous default unchanged
-- [ ] **Portfolio → Contracts:** renewals and notice dates ahead; flags for a notice date within 90 days and for a missing data agreement where restricted data is handled
-- [ ] The dashboard gains cost by category, by funding source, and by domain, for those who may see cost
-- [ ] The demo's funding, lines, and contracts; exports; guide and changelog entries
+- [x] `funding_source`: a shared record (an operating budget, a grant, a chargeback, a capital project) with a code and, for a grant, an end date
+- [x] `cost_line`: a yearly amount on an application, by category, with its funding source and an optional contract; the application's annual cost is the sum of its lines once it has any
+- [x] `contract` and `contract_application`: vendor, number, term, notice period, auto-renewal, yearly value, licenses bought, a data agreement's standing, and the applications covered with the licenses each uses
+- [x] Sensitive throughout: one function decides, and records, lists, history, exports, the picture, and the working call it
+- [x] The engine: *cost per user* and *license use* as factors of cost and burden; a new version of the default scoring model; the worked example updated in the specification and in the test
+- [x] An upgrade publishes the new default model only where the organization still runs the previous default unchanged
+- [x] **Portfolio → Contracts:** renewals and notice dates ahead; flags for a notice date within 90 days and for a missing data agreement where confidential or restricted data is handled
+- [x] The dashboard gains cost by category and by what pays, for those who see every application's cost
+- [x] The application's page gains a **Cost** part; the demo's funding, lines, and contracts; exports; changelog entry
 
-**Acceptance:** the sum of an application's lines equals its annual cost in the record, the list, the chart, and the working; a member sees no line, contract, or funding figure they could not see as annual cost; the worked example produces the specification's figures to the decimal; an installation with a shaped scoring model keeps it across the upgrade.
+**Acceptance (met):** the sum of an application's lines is its annual cost in the record, the list, and the working, and a different figure typed in is refused; a member sees no line, contract, funding figure, cost-line event, or cost factor they could not see as annual cost; a contract seen through one application does not name another the reader may not see; the worked example produces the specification's figures to the decimal (cost and burden is now 2.7); an installation running 0.1.0's model unchanged gets the new one on upgrade, and one that has shaped its model keeps it.
+
+**Done:** cost has a part of its own on the application's page, with the figure, the cost for each person who uses it, the lines, and the contracts that cover it. Contracts list what ends when and how soon the vendor must be told. The demo has 22 contracts and about 200 cost lines; its three storylines are a notice date two weeks off, health data with no data agreement, and five thousand licenses of which fourteen hundred are used.
 
 ## Slice 5: Overlap and the capability heat map ☐
 
@@ -150,3 +152,9 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **People affected is an upper bound, and says so.** The users of an application and of everything that depends on it are added together; the same person may use several. The page says "up to".
 - **Where it runs sits with what it is made of.** Deployments are shown on the application's Components part: a component is what runs, and a deployment is where. A part of its own would have been an eighth for two short tables.
 - **A deployment names itself.** Nobody wants to type "Tracker API, production". A record type may now say how to name a record that arrives without a name.
+- **The sum is kept on the application.** An application's annual cost stays a column, written as the sum of its lines whenever they change, so every list, filter, sort, chart, and the engine go on reading one figure. Lines that add up to the figure already there change no score.
+- **A contract's visibility is its own rule.** A contract belongs to several applications in different units, and is not seen by all who see them: it needs someone who may see the cost of one. Record types may now give a rule of their own for who sees and keeps them.
+- **Cost breakdowns are for those who see all of it.** A total over applications a reader may see only in part would let them work out the rest, so the dashboard's cost figures are given whole or not at all.
+- **License use is the contract's.** A contract's licenses in use are added up over every application it covers, and each of them is judged by that share: an application cannot be efficient with licenses its neighbor wastes.
+- **An upgrade respects a shaped model.** The new default scoring model replaces only an earlier default that nobody changed, recognized by its digest. A test holds the 0.1.0 model's digest against the list.
+- **Buttons in cards say what they edit.** "Edit" beside "Edit" on one page failed a scene and would fail a person using a screen reader's list of buttons.

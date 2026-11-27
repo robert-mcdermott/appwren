@@ -252,6 +252,20 @@ PLATFORM_KINDS = items(
     ("endpoints", "People's own computers", "Installed on desktops, laptops, or instruments"),
 )
 
+# What an application costs, and whether a vendor's handling of data is agreed (wave 2).
+COST_CATEGORIES = items(
+    ("license", "License or subscription", "What is paid for the right to use it"),
+    ("hosting", "Hosting", "Servers, cloud, storage, and network it runs on"),
+    ("support", "Support contract", "Vendor support, maintenance, and managed services"),
+    ("internal", "Our own people's time", "The effort of those who run and change it, as money"),
+    ("other", "Other", "Training, consulting, and anything else"),
+)
+AGREEMENT_STATES = items(
+    ("in_place", "In place", "An agreement covers the data the vendor handles"),
+    ("not_needed", "Not needed", "The vendor handles no data that needs one"),
+    ("missing", "Missing", "One is needed and there is none"),
+)
+
 EXTERNAL_SYSTEMS = items(
     ("configuration_item", "Configuration item", "Its record in the infrastructure inventory"),
     ("ticket_queue", "Ticket queue", "Where its support requests go"),
@@ -621,14 +635,36 @@ STANDARD = {
             "annual_cost",
             "Annual cost",
             "band",
-            40,
+            30,
             fact="annual_cost",
             bands=[5000, 25000, 100000, 500000],
             direction="falling",
             unit="a year",
         ),
-        f("support_effort", "Support effort", "answer", 30, question="support_effort"),
-        f("change_effort", "Change effort", "answer", 30, question="change_effort"),
+        f(
+            "cost_per_user",
+            "Cost per user",
+            "band",
+            15,
+            fact="cost_per_user",
+            bands=[50, 200, 1000, 5000],
+            direction="falling",
+            unit="a year for each person who uses it",
+            needs=["annual_cost", "users"],
+        ),
+        f(
+            "license_use",
+            "License use",
+            "band",
+            10,
+            fact="license_use",
+            bands=[40, 60, 80, 90],
+            direction="rising",
+            unit="percent of the licenses bought are in use",
+            applies={"field": "licensed", "op": "eq", "value": True},
+        ),
+        f("support_effort", "Support effort", "answer", 25, question="support_effort"),
+        f("change_effort", "Change effort", "answer", 20, question="change_effort"),
     ],
     "risk_exposure": [
         f("data_exposure", "Data exposure", "computed", 35, compute="data_exposure"),
@@ -852,6 +888,28 @@ SCORING = {
             },
         },
         {
+            "key": "no_data_agreement",
+            "severity": "danger",
+            "text": "Confidential or restricted data under a contract with no data agreement",
+            "when": {
+                "all": [
+                    {"field": "sensitivity", "op": "gte", "value": 2},
+                    {"field": "data_agreement_missing", "op": "eq", "value": True},
+                ]
+            },
+        },
+        {
+            "key": "contract_notice",
+            "severity": "warning",
+            "text": "A contract's notice date is within 90 days",
+            "when": {
+                "all": [
+                    {"field": "contract_notice_in_days", "op": "lte", "value": 90},
+                    {"field": "contract_notice_in_days", "op": "gte", "value": 0},
+                ]
+            },
+        },
+        {
             "key": "single_maintainer",
             "severity": "warning",
             "text": "One person keeps this",
@@ -944,6 +1002,8 @@ def main() -> None:
             "external_systems": EXTERNAL_SYSTEMS,
             "environments": ENVIRONMENTS,
             "platform_kinds": PLATFORM_KINDS,
+            "cost_categories": COST_CATEGORIES,
+            "agreement_states": AGREEMENT_STATES,
             "interface_methods": INTERFACE_METHODS,
             "interface_frequencies": INTERFACE_FREQUENCIES,
             "unit_kinds": UNIT_KINDS,

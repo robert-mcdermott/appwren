@@ -144,6 +144,34 @@ PLATFORMS = [
     ("hpc", "Research computing cluster", "cluster", None, "Main campus"),
     ("lab", "Lab workstations", "endpoints", None, "In the labs, beside the instruments"),
 ]  # fmt: skip
+# What pays: key, name, kind, code, and the days from the build until it ends, if it does.
+# Grants are added as the applications they pay for are found.
+FUNDING = [
+    ("it", "Information Technology operating budget", "operating", "CC-4100", None),
+    ("research", "Research operations budget", "operating", "CC-2200", None),
+    ("clinic", "Clinic operating budget", "operating", "CC-5100", None),
+    ("admin", "Administration operating budget", "operating", "CC-1000", None),
+    ("recharge", "Core facility recharge", "chargeback", "RC-3300", None),
+    ("capital", "Clinical systems renewal", "capital", "CP-0412", 400),
+]  # fmt: skip
+# How an application's yearly cost divides, by where it comes from: category and share.
+COST_SHARES = {
+    "saas": [("license", 85), ("internal", 15)],
+    "vendor_custom": [("license", 60), ("support", 25), ("internal", 15)],
+    "commercial": [("license", 45), ("support", 20), ("hosting", 15), ("internal", 20)],
+    "research_software": [("hosting", 20), ("internal", 80)],
+}
+OWN_SHARES = [("hosting", 25), ("internal", 75)]
+# Contracts with a story: the application, and what is particular about its contract.
+CONTRACT_STORIES = {
+    # The decision is to keep it until the contract ends; the notice date is two weeks off.
+    "Clinic Scheduler": {"ends": 75, "notice": 60, "auto_renews": True},
+    # Health data under a subscription nobody put a data agreement behind.
+    "Clinic Questionnaires": {"alone": True, "agreement": "missing", "ends": 300, "notice": 30},
+    # Bought for everyone, used by a few.
+    "Learning Management": {"licenses": 5000, "used": 1400, "ends": 520, "notice": 90},
+}
+
 # Technologies that only run on a workstation in the lab.
 ON_A_WORKSTATION = {"matlab", "access"}
 

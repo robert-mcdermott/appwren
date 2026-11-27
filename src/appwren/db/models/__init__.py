@@ -24,7 +24,15 @@ from appwren.db.models.inventory import (
     TechnologyRelease,
     Vendor,
 )
-from appwren.db.models.landscape import Deployment, HostingPlatform, Interface
+from appwren.db.models.landscape import (
+    Contract,
+    ContractApplication,
+    CostLine,
+    Deployment,
+    FundingSource,
+    HostingPlatform,
+    Interface,
+)
 from appwren.db.models.people import (
     Account,
     Credential,
@@ -50,6 +58,9 @@ __all__ = [
     "ChainHead",
     "Component",
     "ComponentTechnology",
+    "Contract",
+    "ContractApplication",
+    "CostLine",
     "Counter",
     "Credential",
     "Decision",
@@ -57,6 +68,7 @@ __all__ = [
     "Event",
     "ExternalRef",
     "FailedSignIn",
+    "FundingSource",
     "HostingPlatform",
     "Identity",
     "Interface",

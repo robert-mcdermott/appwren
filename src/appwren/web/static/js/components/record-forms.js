@@ -182,7 +182,9 @@ export async function editRecord(type, { record = null, preset = {}, only = null
         if (withheld.has(f.name)) continue;
         if (record && f.name === "application_id") continue; // a component or deployment stays with its application
         const value = record ? record[f.name] : preset[f.name];
-        const made = input(f, value, ctx);
+        const made = input(f.name === "annual_cost" && record?.has_cost_lines
+          ? { ...f, help: "The sum of its cost lines. Change them on its Cost part." } : f, value, ctx);
+        if (f.name === "annual_cost" && record?.has_cost_lines && made.field) made.field.input.disabled = true;
         // What the form was opened for (a component's application, an interface's near end) is fixed.
         if (!record && f.name in preset && made.field) made.field.input.disabled = true;
         if (made.field) fields[f.name] = made.field;
@@ -249,7 +251,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
 }
 
 export function mayAdd(type) {
-  if (type === "application") return can("steward") || can("architect");
+  if (type === "application" || type === "contract") return can("steward") || can("architect");
   if (["component", "interface", "deployment"].includes(type)) return true; // the server asks who keeps the application
   return can("architect");
 }

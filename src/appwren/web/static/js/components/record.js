@@ -31,6 +31,12 @@ export const TYPES = {
   deployment: { prefix: "DEP", path: "deployments", label: "Deployment", plural: "Deployments", noun: "deployment", nouns: "deployments",
     article: "a deployment", iconName: "deployment", section: "Landscape", kinds: null,
     lede: "An application, or one of its components, running in an environment on a platform." },
+  contract: { prefix: "CON", path: "contracts", label: "Contract", plural: "Contracts", noun: "contract", nouns: "contracts",
+    article: "a contract", iconName: "contract", section: "Portfolio", kinds: null,
+    lede: "Agreements with vendors: what each covers, when it ends, and how long before that the vendor must be told. Shown to those who may see what the applications cost." },
+  funding_source: { prefix: "FND", path: "funding-sources", label: "Funding source", plural: "Funding sources", noun: "funding source", nouns: "funding sources",
+    article: "a funding source", iconName: "funding", section: "Portfolio", kinds: "funding",
+    lede: "What pays: operating budgets, grants, chargebacks, and capital projects. Cost lines say which pays for what." },
 };
 
 const BY_PREFIX = Object.fromEntries(Object.entries(TYPES).map(([key, type]) => [type.prefix, key]));

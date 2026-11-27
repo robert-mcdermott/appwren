@@ -20,7 +20,9 @@ from appwren.db.models import (
     Application,
     Capability,
     Component,
+    Contract,
     Deployment,
+    FundingSource,
     HostingPlatform,
     Interface,
     Technology,
@@ -381,6 +383,60 @@ DEPLOYMENT = register(
         filters=("status", "environment", "platform_id", "application_id", "component_id"),
         more_filters=("application",),
         sorts=("updated_at", "name", "ref", "status", "environment"),
+    )
+)
+FUNDING_SOURCE = register(
+    RecordType(
+        "funding_source",
+        FundingSource,
+        "FND",
+        "funding-sources",
+        "funding source",
+        "funding sources",
+        fields=(
+            F("kind", "Kind", "choice", vocab="funding", required=True, default="operating"),
+            F("code", "Code", "text", max_length=80, help="A cost center, a grant number, a fund."),
+            F("ends_on", "Ends", "date", help="For a grant or a project: when the money stops."),
+        ),
+        shared=True,
+        filters=("status", "kind"),
+        sorts=("updated_at", "name", "ref", "status", "kind", "ends_on"),
+    )
+)
+CONTRACT = register(
+    RecordType(
+        "contract",
+        Contract,
+        "CON",
+        "contracts",
+        "contract",
+        "contracts",
+        fields=(
+            F("vendor_id", "Vendor", "ref", target="vendor", required=True),
+            F("number", "Contract number", "text", max_length=120),
+            F("starts_on", "Starts", "date"),
+            F("ends_on", "Ends", "date", help="When the current term ends."),
+            F(
+                "notice_days",
+                "Notice, in days",
+                "int",
+                help="How long before the end the vendor must be told, if it is not to renew.",
+            ),
+            F("auto_renews", "Renews by itself", "bool"),
+            F("annual_value", "Yearly value", "int"),
+            F("licenses", "Licenses bought", "int"),
+            F(
+                "data_agreement",
+                "Data agreement",
+                "choice",
+                vocab="agreement_states",
+                help="Whether an agreement covers the data the vendor handles.",
+            ),
+            F("owner_id", "Owner", "person", help="Who looks after the contract."),
+        ),
+        filters=("status", "vendor_id", "auto_renews", "data_agreement"),
+        more_filters=("application", "ending_within"),
+        sorts=("updated_at", "name", "ref", "status", "ends_on", "annual_value"),
     )
 )
 

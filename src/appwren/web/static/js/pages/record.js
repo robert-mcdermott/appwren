@@ -16,7 +16,7 @@ import { decisionsTab, recordDecision } from "../components/decision.js";
 import { toast } from "../components/toast.js";
 import { alert, avatar, card, emptyState, pill } from "../components/ui.js";
 import { show } from "./page.js";
-import { dataClasses } from "./records.js";
+import { agreementPill, dataClasses, noticePill } from "./records.js";
 
 export function facts(pairs) {
   const shown = pairs.filter(([, value]) => value != null && value !== "" && !(Array.isArray(value) && !value.length));
@@ -45,7 +45,7 @@ function shown(spec, record, ctx) {
     case "bool": return value ? "Yes" : "No";
     case "date": return date(value);
     case "url": return outside(value);
-    case "int": return spec.name === "annual_cost" ? Number(value).toLocaleString() : String(value);
+    case "int": return Number(value).toLocaleString();
     case "unit": return ctx.units.byId.get(value)?.name ?? null;
     case "ref": {
       const chip = record[spec.name.replace(/_id$/, "")];
@@ -416,6 +416,168 @@ function applicationOverview(record, ctx) {
       externalCard(record, ctx)));
 }
 
+function costTable(lines, ctx, { withApplication = false } = {}) {
+  return h("div", { class: "table-wrap" }, h("table", { class: "table" },
+    h("thead", {}, h("tr", {}, withApplication ? h("th", { scope: "col" }, "Application") : null, h("th", { scope: "col" }, "For"),
+      h("th", { scope: "col", class: "numeric" }, "A year"), withApplication ? null : h("th", { scope: "col" }, "Paid for by"),
+      withApplication ? null : h("th", { scope: "col" }, "Under"), withApplication ? null : h("th", { scope: "col" }, "Note"))),
+    h("tbody", {}, lines.map((line) => h("tr", {},
+      withApplication ? h("td", {}, recordChip(line.application)) : null,
+      h("td", {}, label(ctx.vocab, "cost_categories", line.category)),
+      h("td", { class: "numeric" }, line.amount === WITHHELD ? h("span", { class: "subtle" }, "Withheld") : Number(line.amount).toLocaleString()),
+      withApplication ? null : h("td", {}, line.funding_source ? recordChip(line.funding_source) : h("span", { class: "subtle" }, "Not said")),
+      withApplication ? null : h("td", {}, line.contract ? recordChip(line.contract) : h("span", { class: "subtle" }, "—")),
+      withApplication ? null : h("td", {}, line.note ?? ""))))));
+}
+
+async function editCostLines(record, ctx) {
+  const [sources, contracts] = await Promise.all([
+    get("/api/v1/funding-sources", { sort: "name", status: "active", limit: 200 }),
+    get("/api/v1/contracts", { sort: "name", status: "active", limit: 200 })]);
+  const rows = ctx.costs.lines.map((line) => ({ category: line.category, amount: line.amount, funding_source: line.funding_source?.ref ?? "",
+    contract: line.contract?.ref ?? "", note: line.note ?? "" }));
+  const choices = (page, blank) => [["", blank], ...page.data.map((r) => [r.ref, r.name])];
+  openOverlay({
+    title: "What it costs a year",
+    subtitle: `${record.ref} · ${record.name}`,
+    render: (body, footer, close) => {
+      const list = h("div", { class: "stack" });
+      const total = h("p", { class: "cell-main", role: "status" });
+      const problem = banner();
+      const sum = () => rows.reduce((all, row) => all + (Number(row.amount) || 0), 0);
+      const say = () => total.replaceChildren(rows.length ? `${sum().toLocaleString()} a year, in ${plural(rows.length, "line")}` : "No lines: the annual cost stays as it was typed.");
+      const pick = (row, key, text, options) => {
+        const node = h("select", { class: "select", "aria-label": text }, options.map(([value, shown]) => h("option", { value, selected: value === row[key] }, shown)));
+        node.addEventListener("change", () => {
+          row[key] = node.value;
+        });
+        return node;
+      };
+      const draw = () => {
+        list.replaceChildren(...rows.map((row, index) => {
+          const amount = h("input", { class: "input", type: "number", min: 0, step: 1, value: row.amount, "aria-label": `Amount a year, line ${index + 1}` });
+          amount.addEventListener("input", () => {
+            row.amount = amount.value;
+            say();
+          });
+          const note = h("input", { class: "input", value: row.note, placeholder: "A note", "aria-label": `Note, line ${index + 1}` });
+          note.addEventListener("input", () => {
+            row.note = note.value;
+          });
+          return h("div", { class: "cost-row" },
+            pick(row, "category", `For, line ${index + 1}`, (ctx.vocab.cost_categories ?? []).filter((c) => !c.retired || c.key === row.category).map((c) => [c.key, c.label])),
+            amount,
+            pick(row, "funding_source", `Paid for by, line ${index + 1}`, choices(sources, "No source named")),
+            pick(row, "contract", `Under contract, line ${index + 1}`, choices(contracts, "No contract")),
+            note,
+            button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
+              rows.splice(index, 1);
+              draw();
+            } }));
+        }));
+        say();
+      };
+      draw();
+      const save = button("Save", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem,
+          run: () => put(`/api/v1/applications/${record.ref}/cost-lines`, { lines: rows.map((row) => ({ category: row.category,
+            amount: Number(row.amount) || 0, funding_source: row.funding_source || null, contract: row.contract || null, note: row.note || null })) }) });
+        if (done) {
+          close();
+          toast("Saved.");
+          ctx.reload();
+        }
+      });
+      body.append(h("div", { class: "stack-lg" }, problem,
+        h("p", { class: "muted" }, "Everything it costs a year, a line for each kind of cost: what is paid for it, what it runs on, its support, and the time of the people who keep it. The lines add up to its annual cost."),
+        list,
+        button("Add a line", { iconName: "plus", kind: "btn-sm", onclick: () => {
+          rows.push({ category: ctx.vocab.cost_categories?.[0]?.key ?? "other", amount: "", funding_source: "", contract: "", note: "" });
+          draw();
+        } }),
+        total));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+function editCovered(record, ctx) {
+  const rows = record.applications.map((a) => ({ ref: a.ref, name: a.name, licenses_used: a.licenses_used ?? "" }));
+  openOverlay({
+    title: "What it covers",
+    subtitle: `${record.ref} · ${record.name}`,
+    render: (body, footer, close) => {
+      const list = h("div", { class: "stack-sm" });
+      const problem = banner();
+      const draw = () => {
+        list.replaceChildren(...(rows.length ? rows.map((row, index) => {
+          const used = h("input", { class: "input", type: "number", min: 0, step: 1, value: row.licenses_used, placeholder: "Licenses it uses", "aria-label": `Licenses ${row.name} uses` });
+          used.addEventListener("input", () => {
+            row.licenses_used = used.value;
+          });
+          return h("div", { class: "owner-row" }, h("div", { class: "grow" }, recordChip({ ...row, type: "application" }, { link: false })), used,
+            button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
+              rows.splice(index, 1);
+              draw();
+            } }));
+        }) : [h("p", { class: "muted" }, "Nothing yet.")]));
+      };
+      draw();
+      const finder = recordFinder("application", { exclude: (r) => rows.some((row) => row.ref === r.ref), onPick: (r) => {
+        rows.push({ ref: r.ref, name: r.name, licenses_used: "" });
+        draw();
+        finder.refresh();
+      } });
+      const save = button("Save", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem,
+          run: () => put(`/api/v1/contracts/${record.ref}/applications`, { applications: rows.map((row) => ({ application: row.ref,
+            licenses_used: row.licenses_used === "" ? null : Number(row.licenses_used) })) }) });
+        if (done) {
+          close();
+          toast("Saved.");
+          ctx.reload();
+        }
+      });
+      body.append(h("div", { class: "stack-lg" }, problem,
+        h("p", { class: "muted" }, "Each application the contract covers, and how many of its licenses that application uses. Use against what was bought is one of the things an application's cost is judged by."),
+        list, h("div", { class: "field" }, h("div", { class: "label" }, "Add an application"), finder.node)));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+function costTab(record, ctx) {
+  const found = ctx.costs;
+  if (!found || found.withheld) {
+    return card({ title: "What it costs" }, h("p", { class: "muted" }, "What this application costs is shown only to the people named on it and those with a role over its unit. Its scores, which take cost into account, are open to everyone."));
+  }
+  const edit = found.can_edit ? button(found.lines.length ? "Edit the lines" : "Break it down", { kind: "btn-sm", onclick: () => editCostLines(record, ctx) }) : null;
+  const typed = found.annual_cost != null && !found.lines.length;
+  const lead = found.annual_cost == null ? "No cost is recorded."
+    : `${Number(found.annual_cost).toLocaleString()} a year${found.per_user != null ? `, which is ${Number(found.per_user).toLocaleString()} for each of the ${Number(found.users).toLocaleString()} people who use it` : ""}.`;
+  return h("div", { class: "stack-lg" },
+    card({ title: "What it costs", actions: edit, flush: found.lines.length > 0 },
+      found.lines.length ? [h("p", { class: "card-note" }, lead), costTable(found.lines, ctx)]
+        : h("div", { class: "stack-sm" }, h("p", {}, lead),
+          h("p", { class: "muted" }, typed ? "This is the figure typed on its record. Break it down by what it is for and what pays for it, and the lines become the figure."
+            : "Say what it costs a year, a line for each kind of cost and what pays for it."))),
+    card({ title: found.contracts.length ? `Covered by ${plural(found.contracts.length, "contract")}` : "Contracts", flush: found.contracts.length > 0,
+      actions: h("a", { class: "btn btn-sm", href: "/contracts" }, "All contracts") },
+    found.contracts.length ? h("div", { class: "table-wrap" }, h("table", { class: "table" },
+      h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Contract"), h("th", { scope: "col" }, "Vendor"), h("th", { scope: "col" }, "Ends"),
+        h("th", { scope: "col" }, "Notice"), h("th", { scope: "col" }, "Data agreement"))),
+      h("tbody", {}, found.contracts.map((c) => h("tr", {},
+        h("td", {}, h("a", { class: "cell-main", href: `/contracts/${c.ref}` }, c.name), h("div", { class: "cell-sub" }, c.ref)),
+        h("td", {}, c.vendor ? recordChip(c.vendor) : ""),
+        h("td", { class: "nowrap" }, c.ends_on ? date(c.ends_on) : h("span", { class: "subtle" }, "Not said")),
+        h("td", {}, noticePill(c)), h("td", {}, agreementPill(ctx.vocab, c.data_agreement)))))))
+      : h("p", { class: "muted" }, "No contract is recorded as covering it. A contract is added under Portfolio, Contracts, or by naming one on a cost line.")));
+}
+
 function deploymentTable(rows, ctx, { withApplication = false } = {}) {
   return h("div", { class: "table-wrap" }, h("table", { class: "table" },
     h("thead", {}, h("tr", {}, withApplication ? h("th", { scope: "col" }, "Application") : null, h("th", { scope: "col" }, "What runs"),
@@ -602,28 +764,29 @@ function assessmentTab(record, ctx) {
 
 export function applicationPage(main, params, extraTabs = []) {
   const tabs = [["overview", "Overview"], ["scores", "Scores"], ["assessment", "Assessment"], ["decisions", "Decisions"], ["components", "Components"],
-    ["capabilities", "Capabilities"], ["connections", "Connections"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
+    ["capabilities", "Capabilities"], ["connections", "Connections"], ["cost", "Cost"], ...extraTabs.map(([key, text]) => [key, text]), ["history", "History"]];
   const wanted = query().get("tab");
   const tab = tabs.some(([key]) => key === wanted) ? wanted : "overview";
   return show(main, {
     title: params.ref,
     load: async () => {
       const base = `/api/v1/applications/${params.ref}`;
-      const [data, scores, bank, assessments, decided, joined, impact, runs] = await Promise.all([loadRecord("application", params.ref, tab),
+      const [data, scores, bank, assessments, decided, joined, impact, runs, cost] = await Promise.all([loadRecord("application", params.ref, tab),
         get(`${base}/scores`, null, { fresh: true }),
         tab === "assessment" ? get("/api/v1/questionnaire") : null,
         tab === "assessment" ? get(`${base}/assessments`, null, { fresh: true }) : null,
         tab === "decisions" ? get(`${base}/decisions`, null, { fresh: true }) : null,
         tab === "connections" ? get("/api/v1/interfaces", { application: params.ref, sort: "name", limit: 200 }, { fresh: true }) : null,
         tab === "connections" ? get(`${base}/impact`, null, { fresh: true }) : null,
-        tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null]);
+        tab === "components" ? get("/api/v1/deployments", { application: params.ref, sort: "environment", limit: 200 }, { fresh: true }) : null,
+        tab === "cost" ? get(`${base}/costs`, null, { fresh: true }) : null]);
       return { ...data, scores: scores.data, questionnaire: bank?.data, assessments: assessments?.data ?? [], decisions: decided?.data ?? [],
-        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [] };
+        interfaces: joined?.data ?? [], impact: impact?.data ?? null, deployments: runs?.data ?? [], costs: cost?.data ?? null };
     },
     view: (data, reload) => {
       const record = data.record;
       document.title = `${record.name} · ${record.ref}`;
-      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces, impact: data.impact, deployments: data.deployments };
+      const ctx = { ...context(data, reload), questionnaire: data.questionnaire, assessments: data.assessments, interfaces: data.interfaces, impact: data.impact, deployments: data.deployments, costs: data.costs };
       const edit = record.can?.edit ? button("Edit", { iconName: "edit", onclick: () => editRecord("application", { record, onDone: reload }) }) : null;
       const assessButton = record.can?.assess ? h("a", { class: "btn", href: `/applications/${record.ref}/assess` }, "Assess") : null;
       const decide = () => recordDecision(record, data.scores, data.vocab, reload);
@@ -636,6 +799,7 @@ export function applicationPage(main, params, extraTabs = []) {
             : tab === "components" ? componentsTab(record, ctx)
               : tab === "capabilities" ? capabilitiesTab(record, ctx)
                 : tab === "connections" ? connectionsTab(record, ctx)
+                : tab === "cost" ? costTab(record, ctx)
                 : extra ? extra[2](record, ctx) : applicationOverview(record, ctx);
       const open = (key) => openWorking(data.scores, key, { ref: record.ref, vocab: data.vocab });
       return h("div", { class: "stack" },
@@ -794,6 +958,28 @@ function sharedOverview(type, record, ctx) {
       : h("p", { class: "muted" }, "No application is recorded as serving it.")));
     if (record.children.length) main.push(card({ title: "Narrower capabilities" }, h("div", { class: "chips" }, record.children.map((r) => recordChip(r)))));
     glance.push(["Part of", record.parent ? recordChip(record.parent) : null]);
+  }
+  if (type === "contract") {
+    const covered = record.applications;
+    const use = record.licenses ? `${record.licenses_used == null ? "An unknown number" : Number(record.licenses_used).toLocaleString()} of ${Number(record.licenses).toLocaleString()} licenses in use${record.licenses_used != null ? ` (${Math.round((100 * record.licenses_used) / record.licenses)}%)` : ""}.` : null;
+    main.push(card({ title: covered.length ? `Covers ${plural(covered.length, "application")}` : "What it covers",
+      actions: record.can?.edit ? button("Edit what it covers", { kind: "btn-sm", onclick: () => editCovered(record, ctx) }) : null, flush: covered.length > 0 },
+    covered.length ? [use ? h("p", { class: "card-note muted" }, use) : null,
+      h("div", { class: "table-wrap" }, h("table", { class: "table" },
+        h("thead", {}, h("tr", {}, h("th", { scope: "col" }, "Application"), h("th", { scope: "col", class: "numeric" }, "Licenses it uses"))),
+        h("tbody", {}, covered.map((a) => h("tr", {}, h("td", {}, recordChip(a)),
+          h("td", { class: "numeric" }, a.licenses_used == null ? h("span", { class: "subtle" }, "Not said") : Number(a.licenses_used).toLocaleString()))))))]
+      : h("p", { class: "muted" }, "No application is recorded as covered by it.")));
+    if (record.cost_lines.length) {
+      main.push(card({ title: `Cost lines that name it: ${Number(record.cost_total).toLocaleString()} a year`, flush: true }, costTable(record.cost_lines, ctx, { withApplication: true })));
+    }
+    glance.push(["Tell the vendor", record.notice_by ? noticePill(record) : null]);
+  }
+  if (type === "funding_source") {
+    const lines = record.cost_lines;
+    main.push(card({ title: lines.length ? `Pays for ${plural(new Set(lines.map((l) => l.application.ref)).size, "application")}${record.cost_total == null ? "" : `: ${Number(record.cost_total).toLocaleString()} a year`}` : "What it pays for", flush: lines.length > 0 },
+      lines.length ? costTable(lines, ctx, { withApplication: true })
+        : h("p", { class: "muted" }, "No cost line names it. A cost line is added on an application's Cost part.")));
   }
   if (type === "hosting_platform") {
     const rows = record.deployments;

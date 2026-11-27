@@ -47,6 +47,9 @@ Enough to look like an organization that has used AppWren for a year, and small 
 | Interfaces | 24 | Clinical messages, feeds to the warehouse, files between administrative systems, and one re-keyed by hand |
 | Hosting platforms | 6 | A data center, a standby site, two cloud accounts, a research cluster, and lab workstations |
 | Deployments | 87 | Production for everything the institute runs itself; staging for tiers 1 and 2; a standby for tier 1 in the data center |
+| Funding sources | about 25 | Four operating budgets, a recharge, a capital project, and a grant for each grant-funded tool |
+| Cost lines | about 200 | Five applications in six have their cost broken down; the lines add up to the cost on record |
+| Contracts | 22 | One for each vendor, with renewals spread over three years |
 | Assessments | 125 | Re-assessments over time; some expired; a dozen applications never assessed |
 | Decisions | 70 | Some superseded; several mismatches with today's recommendation; some due for review |
 | Portfolio snapshots | 4 | Quarterly, for the last year |
@@ -66,4 +69,7 @@ Hand-written situations, each asserted by a test, so that every wave 1 screen ha
 - **Not enough to say.** A dozen applications recorded from the spreadsheet import with no assessment, recommended *Assess*, each showing what would raise its confidence.
 - **The end of support.** A database release used by a dozen components reaches end of support next quarter.
 - **The data nobody recorded.** The research data warehouse sends enrollment figures, with identifiable research data in them, to the executive dashboards, whose record lists only financial data. The flow view marks it.
+- **The notice date.** The clinic scheduler's contract renews by itself, and the last day to say otherwise is two weeks off. The decision on record was to keep it until the contract ends.
+- **No data agreement.** The clinic's questionnaires hold health information under a subscription with no data agreement.
+- **Shelfware.** Five thousand licenses of the learning system were bought, and fourteen hundred are in use.
 - **Retired properly.** An old reporting tool retired last year, with its decision, its successor, and its history.

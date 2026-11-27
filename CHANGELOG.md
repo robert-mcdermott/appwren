@@ -26,11 +26,29 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   accounts, clusters, and providers things run on. An application's Components part says
   where it, or any of its components, runs: which platform, in which environment, at what
   address. A platform's page lists everything on it, which is what would stop with it.
+- **Cost lines and funding.** An application's new **Cost** part breaks its yearly cost into
+  lines by what each is for and what pays for it. Once it has lines, its annual cost is
+  their sum. Funding sources (budgets, grants, chargebacks, capital projects) are records of
+  their own, each showing what it pays for.
+- **Contracts.** Portfolio → Contracts holds agreements with vendors: the applications each
+  covers and the licenses they use, the term, the date by which the vendor must be told, and
+  whether a data agreement is in place. A contract is shown only to those who may see the
+  cost of an application it covers.
+- **Two cost factors and two flags.** Cost and burden now weighs cost per user, and the share
+  of licenses bought that are in use. Flags are raised for a contract's notice date within
+  90 days, and for confidential or restricted data under a contract with no data agreement.
+- **Cost on the dashboard,** by category and by what pays, for those who see every
+  application's cost.
 
 ### Changed
 
 - An application that receives data through an interface now counts among the dependents of
   the application that sends it, so recording interfaces can raise a source's business value.
+- **The default scoring model has a new version.** Cost and burden is now annual cost 30,
+  cost per user 15, license use 10, support effort 25, and change effort 20, so scores for
+  cost and burden move. An installation still running the previous default gets the new
+  one on upgrade; one that has shaped its model keeps it, and can take the new factors from
+  the default program when it chooses.
 - A record's history names the vendor, application, or person a change refers to, where it
   showed a number.
 

@@ -154,7 +154,31 @@ class DeploymentBody(RecordBody):
     url: str | None = None
 
 
+class FundingSourceBody(RecordBody):
+    kind: str | None = Field(default=None, description="From the funding vocabulary")
+    code: str | None = None
+    ends_on: date | None = None
+
+
+class ContractBody(RecordBody):
+    """An agreement with a vendor. Seen only by those who may see the cost of an application
+    it covers, and those who see every application's."""
+
+    vendor_id: str | None = Field(default=None, description="The vendor's reference")
+    number: str | None = None
+    starts_on: date | None = None
+    ends_on: date | None = None
+    notice_days: int | None = Field(default=None, ge=0)
+    auto_renews: bool | None = None
+    annual_value: int | None = Field(default=None, ge=0)
+    licenses: int | None = Field(default=None, ge=0, description="Licenses bought")
+    data_agreement: str | None = Field(default=None, description="in_place, not_needed, missing")
+    owner_id: int | None = None
+
+
 BODIES: dict[str, type[RecordBody]] = {
+    "funding_source": FundingSourceBody,
+    "contract": ContractBody,
     "hosting_platform": HostingPlatformBody,
     "deployment": DeploymentBody,
     "interface": InterfaceBody,
@@ -383,6 +407,8 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application_id": "An application's id",
         "parent_id": "A broader capability's id",
         "sensitivity": "The highest sensitivity of its data: 0 public to 3 restricted",
+        "ending_within": "Contracts whose term ends within this many days",
+        "auto_renews": "true or false",
         "platform_id": "A hosting platform's id",
         "component_id": "A component's id",
         "source_id": "The id of the application data comes from",
@@ -390,7 +416,8 @@ def _filter_parameter(name: str) -> inspect.Parameter:
         "application": "An application's reference: at either end",
         "data_class": "A class of data, by its key",
     }
-    annotation: Any = int | None if name.endswith("_id") or name == "sensitivity" else str | None
+    whole = name.endswith("_id") or name in ("sensitivity", "ending_within")
+    annotation: Any = int | None if whole else bool | None if name == "auto_renews" else str | None
     return inspect.Parameter(
         name,
         inspect.Parameter.KEYWORD_ONLY,

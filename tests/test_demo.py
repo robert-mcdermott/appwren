@@ -16,8 +16,8 @@ from appwren.db.models import Application, HostingPlatform, PortfolioSnapshot, T
 from appwren.demo import build
 from appwren.events import chain
 from appwren.inventory import records
-from appwren.inventory.registry import APPLICATION, DEPLOYMENT, INTERFACE, TECHNOLOGY
-from appwren.landscape import graph, hosting, interfaces
+from appwren.inventory.registry import APPLICATION, CONTRACT, DEPLOYMENT, INTERFACE, TECHNOLOGY
+from appwren.landscape import costs, graph, hosting, interfaces
 from tests.conftest import Instance
 from tests.people import ME
 
@@ -49,7 +49,7 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
         assert tracker["scores"] == {
             "business_value": 4.1,
             "technical_health": 2.5,
-            "cost_burden": 2.4,
+            "cost_burden": 2.7,
             "risk_exposure": 2.1,
         }
         assert (tracker["confidence"], tracker["recommendation"]) == (95, "modernize")
@@ -138,6 +138,31 @@ def test_the_demo_tells_every_storyline(db: Database) -> None:
             session, ME, DEPLOYMENT, {"application": app_named(session, "Survey Hub").ref}
         )
         assert hosted == []  # a vendor runs it
+        # What it costs: lines add up to the cost on record, so no score moved; a notice date
+        # two weeks off; health data with no data agreement; and licenses going unused.
+        lined = 0
+        for app in session.scalars(select(Application).where(Application.status == "active")):
+            lines = costs.lines_of(session, app)
+            if lines:
+                lined += 1
+                assert sum(line["amount"] for line in lines) == app.annual_cost, app.name
+        assert lined >= 60
+        scheduler_flags = flags(scored(session, "Clinic Scheduler"))
+        assert "contract_notice" in scheduler_flags
+        assert "no_data_agreement" in flags(scored(session, "Clinic Questionnaires"))
+        assert "no_data_agreement" not in flags(scored(session, "Survey Hub"))
+        learning = scored(session, "Learning Management")["dimensions"]["cost_burden"]["factors"]
+        unused = next(f for f in learning if f["key"] == "license_use")
+        assert (unused["value"], unused["level"]) == (28, 1)
+        due, _ = records.search(session, ME, CONTRACT, {"ending_within": "90"})
+        assert "Calendra agreement" in [row.name for row in due]
+        money = costs.breakdown(session, ME, [r["id"] for r in rows])
+        assert money is not None and money["total"] == sum(
+            r["annual_cost"] or 0 for r in rows if isinstance(r["annual_cost"], int | type(None))
+        )
+        assert {row["label"] for row in money["by_category"]} >= {
+            "License or subscription", "Our own people's time", "Not broken down",
+        }  # fmt: skip
         # Quarterly snapshots, the last within a quarter of today.
         snaps = session.scalars(
             select(PortfolioSnapshot).order_by(PortfolioSnapshot.taken_at)

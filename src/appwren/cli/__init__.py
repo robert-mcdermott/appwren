@@ -173,6 +173,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
     )
     print(
         f"  {counts.get('assessments', 0)} assessments, {counts.get('decisions', 0)} decisions, "
+        f"{counts.get('contracts', 0)} contracts, "
         f"{counts.get('portfolio snapshots', 0)} portfolio snapshots, {report.events} events, "
         f"in {time.monotonic() - started:.0f} seconds"
     )

@@ -35,6 +35,10 @@ OPERATIONS = {
 }
 
 
+# Rows that say what a sensitive field says, in more detail.
+CHILDREN_OF = {"annual_cost": ("cost_line",)}
+
+
 def words(text: str) -> str:
     return text.replace("_", " ").capitalize()
 
@@ -137,6 +141,16 @@ def entry(
         title = (
             f"Now {label} {other}" if event.action == "created" else f"No longer {label} {other}"
         )
+    elif event.subject_type == "cost_line":
+        category = lookups.vocab("cost_categories", now("category")).lower()
+        amount = now("amount")
+        said = f"{category}, {int(amount):,} a year" if isinstance(amount, int) else category
+        verb = {"created": "Added", "deleted": "Removed"}.get(event.action, "Changed")
+        title = f"{verb} a cost line: {said}"
+    elif event.subject_type == "contract_application":
+        other = lookups.name("application", now("application_id"))
+        verb = {"created": "Now covers", "deleted": "No longer covers"}.get(event.action)
+        title = f"{verb} {other}" if verb else f"Changed the licenses {other} uses"
     elif event.subject_type == "external_ref":
         system = lookups.vocab("external_systems", now("system")).lower()
         verb = "Now also known as" if event.action == "created" else "No longer known as"
@@ -199,6 +213,9 @@ def for_record(
         .limit(limit)
     ).all()
     lookups = Lookups(session, record_type)
+    # What belongs to a withheld field is withheld with it: cost lines go with the cost.
+    unseen = {child for name in withheld for child in CHILDREN_OF.get(name, ())}
+    events = [event for event in events if event.subject_type not in unseen]
     story = [entry(event, record_type, lookups, withheld) for event in events]
     # A change that only copied what another entry already says (a score onto its
     # application) is not told twice, unless the type says its own titled

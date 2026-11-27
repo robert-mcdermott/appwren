@@ -200,8 +200,12 @@ def dashboard(session: Session, principal: Principal, base: Mapping[str, Any]) -
     flag_texts["mismatch"] = "The decision on record differs from today's recommendation"
     flag_severity["mismatch"] = "info"
     flags = Counter(key for row in found for key in row["flags"])
+    from appwren.landscape import costs
+
     return {
         "total": _figure("Applications in service", found, dict(base)),
+        # What it all costs, for those who see every application's cost; None for the rest.
+        "costs": costs.breakdown(session, principal, [row["id"] for row in found]),
         "headline": [
             _figure("Decided", found, {**base, "decided": "true"}),
             _figure("Mismatches", found, {**base, "mismatch": "true"}),

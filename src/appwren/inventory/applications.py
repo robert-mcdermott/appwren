@@ -67,6 +67,14 @@ def _apply(
         record.fields = kept
     if record.successor_id is not None and record.successor_id == record.id:
         errors.add("successor_id", "An application cannot replace itself.")
+    if "annual_cost" in values and not creating and _moved(record, "annual_cost"):
+        from appwren.landscape import costs
+
+        if costs.has_lines(session, record):
+            errors.add(
+                "annual_cost",
+                "Its annual cost is the sum of its cost lines. Change the lines instead.",
+            )
 
 
 def _moved(record: Any, name: str) -> bool:
@@ -358,6 +366,7 @@ def _detail(
         "own_fields": own_fields,
         "missing": missing(session, record),
         "sees_sensitive": not hidden,
+        "has_cost_lines": _has_cost_lines(session, record),
     }
 
 
@@ -367,6 +376,12 @@ def _conditions(session: Session, principal: Principal, filters: Mapping[str, An
     if filters.get("data_class"):
         found.append(records.holds(Application.data_classes, str(filters["data_class"])))
     return found
+
+
+def _has_cost_lines(session: Session, record: Application) -> bool:
+    from appwren.landscape import costs
+
+    return costs.has_lines(session, record)
 
 
 def _can_add(session: Session, principal: Principal, record: Application) -> bool:

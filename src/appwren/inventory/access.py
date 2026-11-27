@@ -76,6 +76,9 @@ def can_see(session: Session, principal: Principal, record_type: RecordType, rec
     """Whether the person may know this record exists. The catalog is open; a restricted
     application, and whatever belongs to it, are known only to those with a part in it. A
     record between applications is seen by whoever may see all of them."""
+    special = record_type.extra.get("can_see")
+    if special is not None:
+        return bool(special(session, principal, record))
     applications = applications_of(session, record_type, record)
     if applications is None:
         return True
@@ -88,6 +91,9 @@ def visible(
     """A condition that keeps only the records the person may see, or None for all of them."""
     if record_type.shared or principal.reads_all:
         return None
+    whole = record_type.extra.get("visible_to")
+    if whole is not None:  # a type with a rule all its own, such as a contract
+        return whole(session, principal)
     trusted = principal.units_for(*TRUSTED)
     if trusted is None:
         return None
@@ -141,6 +147,9 @@ def can_edit(session: Session, principal: Principal, record_type: RecordType, re
     keeps an application it belongs to."""
     if record_type.shared:
         return keeps_shared(principal)
+    special = record_type.extra.get("can_edit")
+    if special is not None:
+        return bool(special(session, principal, record))
     applications = applications_of(session, record_type, record) or []
     return any(keeps(session, principal, app) for app in applications)
 
@@ -174,6 +183,22 @@ def sees_sensitive(
     if is_named is None:
         is_named = named(session, principal, application)
     return is_named
+
+
+def sees_sensitive_where(principal: Principal) -> ColumnElement[bool] | None:
+    """The same rule as a condition on applications, or None when the person sees every
+    application's sensitive fields."""
+    if sees_all_sensitive(principal):
+        return None
+    owned = exists(
+        select(RecordOwner.id).where(
+            RecordOwner.record_type == APPLICATION.key,
+            RecordOwner.record_id == Application.id,
+            RecordOwner.account_id == principal.account_id,
+        )
+    )
+    trusted = principal.units_for(*TRUSTED) or frozenset()
+    return or_(Application.org_unit_id.in_(trusted), owned) if trusted else owned
 
 
 def sees_all_sensitive(principal: Principal) -> bool:

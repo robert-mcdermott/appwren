@@ -2,4 +2,4 @@
 the wave) where things run and what they cost. Importing it registers each record type's own
 behavior."""
 
-from appwren.landscape import hosting, interfaces  # noqa: F401  (each type's hooks)
+from appwren.landscape import costs, hosting, interfaces  # noqa: F401  (each type's hooks)

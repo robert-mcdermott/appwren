@@ -2,6 +2,7 @@
 
 import { get } from "../core/api.js";
 import { h } from "../core/dom.js";
+import { plural } from "../core/format.js";
 import { options, unitOptions, units, vocabularies } from "../core/lookups.js";
 import { query } from "../core/router.js";
 import { bars, listHref, sizeBars, statTile } from "../components/charts.js";
@@ -10,6 +11,13 @@ import { show } from "./page.js";
 import { filterSelect } from "./records.js";
 
 const TONES = { Mismatches: "", "Reviews due": "warn", "Low confidence": "warn", "Past end of support": "danger", "Support ending within a year": "warn" };
+
+const money = (amount) => Number(amount).toLocaleString();
+
+/** Amounts as bars, each with its figure in words. */
+function amounts(items) {
+  return bars(items.map((item) => ({ label: item.label, value: item.amount, text: money(item.amount) })), { empty: "No cost is recorded yet." });
+}
 
 export function dashboard(main) {
   return show(main, {
@@ -50,7 +58,12 @@ export function dashboard(main) {
           card({ title: "Data confidence" }, plain(board.confidence))),
         h("div", { class: "split" },
           card({ title: "Lifecycle" }, plain(board.lifecycle)),
-          card({ title: "Sourcing" }, plain(board.sourcing))));
+          card({ title: "Sourcing" }, plain(board.sourcing))),
+        board.costs ? h("div", { class: "split" },
+          card({ title: `What it costs a year: ${money(board.costs.total)}` },
+            h("div", { class: "stack" }, amounts(board.costs.by_category),
+              board.costs.unknown ? h("p", { class: "subtle" }, `${plural(board.costs.unknown, "application has", "applications have")} no cost recorded, and ${board.costs.unknown === 1 ? "is" : "are"} not in these figures.`) : null)),
+          card({ title: "What pays for it" }, amounts(board.costs.by_funding))) : null);
       return sizeBars(body);
     },
   });

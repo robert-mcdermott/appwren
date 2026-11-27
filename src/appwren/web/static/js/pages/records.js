@@ -165,6 +165,21 @@ const COLUMNS = {
     ["Environment", (r, v) => label(v, "environments", r.environment)],
     ["Platform", (r) => (r.platform ? recordChip(r.platform) : "")],
   ],
+  contract: [
+    ["Vendor", (r) => (r.vendor ? recordChip(r.vendor) : "")],
+    ["Covers", (r) => (r.applications.length ? h("div", { class: "chips" }, r.applications.slice(0, 2).map((a) => recordChip(a)),
+      r.applications.length > 2 ? h("span", { class: "subtle" }, `and ${r.applications.length - 2} more`) : null) : h("span", { class: "subtle" }, "Nothing yet"))],
+    ["Ends", (r) => (r.ends_on ? h("span", { class: "nowrap" }, date(r.ends_on)) : h("span", { class: "subtle" }, "Not said"))],
+    ["Notice", (r) => noticePill(r)],
+    ["Data agreement", (r, v) => agreementPill(v, r.data_agreement)],
+  ],
+  funding_source: [
+    ["Kind", (r, v) => label(v, "funding", r.kind)],
+    ["Code", (r) => r.code ?? ""],
+    ["Ends", (r) => (r.ends_on ? h("span", { class: "row-sm" }, date(r.ends_on), r.days_to_end != null && r.days_to_end >= 0 && r.days_to_end <= 365 ? h("span", { class: "pill pill-warn" }, "Within a year") : null) : h("span", { class: "subtle" }, "—"))],
+    ["Pays for", (r) => plural(r.application_count, "application")],
+    ["A year", (r) => (r.total == null ? h("span", { class: "subtle" }, "Withheld") : Number(r.total).toLocaleString())],
+  ],
   interface: [
     ["From", (r) => (r.source ? recordChip(r.source) : "")],
     ["To", (r) => (r.target ? recordChip(r.target) : "")],
@@ -184,6 +199,21 @@ const COLUMNS = {
     ["Primary", (r) => (r.primary ? recordChip(r.primary) : h("span", { class: "subtle" }, "None named"))],
   ],
 };
+
+/** When the vendor must be told, if a contract is not to renew: a date, and how near it is. */
+export function noticePill(contract) {
+  if (contract.notice_by == null) return h("span", { class: "subtle" }, "No end date");
+  const days = contract.days_to_notice;
+  if (contract.days_to_end != null && contract.days_to_end < 0) return h("span", { class: "pill" }, "Ended");
+  if (days < 0) return h("span", { class: "pill pill-danger" }, contract.auto_renews ? "Notice date passed: it renews" : "Notice date passed");
+  if (days <= 90) return h("span", { class: "pill pill-warn" }, `Notice due in ${plural(days, "day")}`);
+  return h("span", { class: "nowrap" }, `By ${date(contract.notice_by)}`);
+}
+
+export function agreementPill(vocab, key) {
+  if (!key) return h("span", { class: "subtle" }, "Not said");
+  return h("span", { class: `pill${key === "missing" ? " pill-danger" : key === "in_place" ? " pill-ok" : ""}` }, label(vocab, "agreement_states", key));
+}
 
 /** The classes of data something holds or carries, with a mark on any the receiver's record lacks. */
 export function dataClasses(vocab, keys, undeclared = []) {
@@ -213,6 +243,8 @@ export function recordList(main, type) {
       const bar = h("div", { class: "filters" }, h("div", { class: "filter-search" }, search),
         meta.kinds ? filterSelect("kind", options(vocab, meta.kinds, { blank: "Any kind" }), "Kind") : null,
         type === "technology" ? filterSelect("radar", options(vocab, "radar", { blank: "Any ring" }), "Radar") : null,
+        type === "contract" ? filterSelect("ending_within", [["", "Ending whenever"], ["90", "Ending within 90 days"], ["180", "Ending within 6 months"], ["365", "Ending within a year"]], "Ending") : null,
+        type === "contract" ? filterSelect("data_agreement", options(vocab, "agreement_states", { blank: "Any agreement" }), "Data agreement") : null,
         type === "deployment" ? filterSelect("environment", options(vocab, "environments", { blank: "Any environment" }), "Environment") : null,
         type === "interface" ? filterSelect("method", options(vocab, "interface_methods", { blank: "Any method" }), "Method") : null,
         type === "interface" ? filterSelect("data_class", options(vocab, "data_classes", { blank: "Any data" }), "Data it carries") : null,
@@ -224,7 +256,7 @@ export function recordList(main, type) {
           h("thead", {}, h("tr", {}, sortHeader(meta.label, "name", "name"), columns.map(([title]) => h("th", { scope: "col" }, title)),
             sortHeader("Status", "status", "name"))),
           h("tbody", {}, rows.map((r) => h("tr", {},
-            h("td", {}, h("a", { class: "cell-main", href: hrefOf(r.ref) }, r.name), h("div", { class: "cell-sub" }, r.ref)),
+            h("td", { class: "cell-name" }, h("a", { class: "cell-main", href: hrefOf(r.ref) }, r.name), h("div", { class: "cell-sub" }, r.ref)),
             columns.map(([, cell]) => h("td", {}, cell(r, vocab))),
             h("td", {}, statusPill(r.status)))))))
         : nothing(meta, add);
@@ -232,6 +264,8 @@ export function recordList(main, type) {
         pageHeader({ eyebrow: meta.section, title: meta.plural, lede: meta.lede,
           actions: [type === "capability" ? h("a", { class: "btn", href: "/capability-map" }, "The map") : null,
             type === "interface" ? h("a", { class: "btn", href: "/data-flows" }, "Data flows") : null,
+            type === "contract" ? h("a", { class: "btn", href: "/funding-sources" }, "Funding sources") : null,
+            type === "funding_source" ? h("a", { class: "btn", href: "/contracts" }, "Contracts") : null,
             add ? button(`Add ${meta.article}`, { kind: "btn-primary", iconName: "plus", onclick: add }) : null,
             exportLink(meta.path)] }),
         bar,

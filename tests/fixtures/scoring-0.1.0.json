@@ -1,0 +1,684 @@
+{
+ "cadence": {
+  "assessment_months": {
+   "1": 12,
+   "2": 12,
+   "3": 18,
+   "4": 24,
+   "5": 24
+  },
+  "default_months": 24
+ },
+ "dimensions": [
+  {
+   "help": "How much the organization would lose without it.",
+   "key": "business_value",
+   "label": "Business value",
+   "short": "Value"
+  },
+  {
+   "help": "How well it is built, run, and kept current.",
+   "key": "technical_health",
+   "label": "Technical health",
+   "short": "Health"
+  },
+  {
+   "help": "What it takes to keep. 5 means a light burden.",
+   "key": "cost_burden",
+   "label": "Cost and burden",
+   "short": "Cost"
+  },
+  {
+   "help": "What could go wrong while it is kept. 5 means little exposure.",
+   "key": "risk_exposure",
+   "label": "Risk exposure",
+   "short": "Risk"
+  }
+ ],
+ "flags": [
+  {
+   "key": "restricted_unsupported",
+   "severity": "danger",
+   "text": "Restricted data on unsupported technology",
+   "when": {
+    "all": [
+     {
+      "field": "sensitivity",
+      "op": "eq",
+      "value": 3
+     },
+     {
+      "field": "level.currency",
+      "op": "eq",
+      "value": 1
+     }
+    ]
+   }
+  },
+  {
+   "key": "no_accountable",
+   "severity": "danger",
+   "text": "Nobody is accountable for it",
+   "when": {
+    "field": "accountable",
+    "op": "eq",
+    "value": false
+   }
+  },
+  {
+   "key": "grant_ending",
+   "severity": "warning",
+   "text": "Its grant ends within a year, with no decision this year",
+   "when": {
+    "all": [
+     {
+      "field": "funding",
+      "op": "eq",
+      "value": "grant"
+     },
+     {
+      "field": "grant_ends_in_days",
+      "op": "lte",
+      "value": 365
+     },
+     {
+      "field": "grant_ends_in_days",
+      "op": "gte",
+      "value": 0
+     },
+     {
+      "field": "decided_within_year",
+      "op": "eq",
+      "value": false
+     }
+    ]
+   }
+  },
+  {
+   "key": "single_maintainer",
+   "severity": "warning",
+   "text": "One person keeps this",
+   "when": {
+    "all": [
+     {
+      "field": "sourcing",
+      "op": "in",
+      "value": [
+       "built_here",
+       "low_code",
+       "research_software"
+      ]
+     },
+     {
+      "field": "tier",
+      "op": "lte",
+      "value": 3
+     },
+     {
+      "field": "maintainers",
+      "op": "lte",
+      "value": 1
+     }
+    ]
+   }
+  },
+  {
+   "key": "assessment_expired",
+   "severity": "warning",
+   "text": "Its assessment has expired",
+   "when": {
+    "field": "assessment_expired",
+    "op": "eq",
+    "value": true
+   }
+  },
+  {
+   "key": "archive_before_retiring",
+   "severity": "info",
+   "text": "Its data must be archived before it goes",
+   "when": {
+    "all": [
+     {
+      "field": "records_retention",
+      "op": "eq",
+      "value": true
+     },
+     {
+      "any": [
+       {
+        "field": "recommendation",
+        "op": "in",
+        "value": [
+         "retire",
+         "replace",
+         "consolidate"
+        ]
+       },
+       {
+        "field": "decision",
+        "op": "in",
+        "value": [
+         "retire",
+         "replace",
+         "consolidate"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "by_rule": true,
+   "key": "cost_review",
+   "severity": "info",
+   "text": "Its cost should be reviewed"
+  },
+  {
+   "key": "decision_review_due",
+   "severity": "warning",
+   "text": "Its decision is due for review",
+   "when": {
+    "field": "decision_review_due",
+    "op": "eq",
+    "value": true
+   }
+  }
+ ],
+ "guardrails": [
+  {
+   "change_to": "replace",
+   "key": "protected",
+   "label": "Protected from retirement",
+   "reason": "It is mission or business critical, the only provider of a capability, or a system of record for regulated information, so it needs a successor.",
+   "when": {
+    "all": [
+     {
+      "field": "recommendation",
+      "op": "eq",
+      "value": "retire"
+     },
+     {
+      "any": [
+       {
+        "field": "tier",
+        "op": "lte",
+        "value": 2
+       },
+       {
+        "field": "sole_provider",
+        "op": "eq",
+        "value": true
+       },
+       {
+        "field": "regulated_record",
+        "op": "eq",
+        "value": true
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "profiles": [
+  {
+   "extends": "standard",
+   "key": "foundation",
+   "label": "Foundation",
+   "weights": {
+    "business_value": {
+     "dependents": 20,
+     "functional_fit": 5,
+     "reach": 20,
+     "strategic_fit": 10
+    }
+   },
+   "when": {
+    "field": "purpose",
+    "op": "eq",
+    "value": "foundation"
+   }
+  },
+  {
+   "extends": "standard",
+   "key": "research_software",
+   "label": "Research software",
+   "weights": {
+    "business_value": {
+     "functional_fit": 15,
+     "future_need": 10,
+     "reach": 5
+    },
+    "technical_health": {
+     "currency": 15,
+     "maintainability": 15,
+     "reliability": 10,
+     "sustainability": 20
+    }
+   },
+   "when": {
+    "field": "sourcing",
+    "op": "eq",
+    "value": "research_software"
+   }
+  },
+  {
+   "factors": {
+    "business_value": [
+     {
+      "fact": "tier",
+      "key": "criticality",
+      "kind": "choice",
+      "label": "Criticality",
+      "map": {
+       "1": 5,
+       "2": 4,
+       "3": 3,
+       "4": 2,
+       "5": 1
+      },
+      "weight": 25
+     },
+     {
+      "key": "strategic_fit",
+      "kind": "answer",
+      "label": "Strategic fit",
+      "question": "strategic_fit",
+      "weight": 20
+     },
+     {
+      "bands": [
+       10,
+       50,
+       250,
+       1000
+      ],
+      "direction": "rising",
+      "fact": "users",
+      "key": "reach",
+      "kind": "band",
+      "label": "Reach",
+      "unit": "people",
+      "weight": 15
+     },
+     {
+      "compute": "capability_uniqueness",
+      "key": "uniqueness",
+      "kind": "computed",
+      "label": "Capability uniqueness",
+      "weight": 15
+     },
+     {
+      "compute": "dependents",
+      "key": "dependents",
+      "kind": "computed",
+      "label": "Dependents",
+      "weight": 10
+     },
+     {
+      "key": "functional_fit",
+      "kind": "answer",
+      "label": "Functional fit",
+      "question": "functional_fit",
+      "weight": 10
+     },
+     {
+      "key": "future_need",
+      "kind": "answer",
+      "label": "Future need",
+      "question": "future_need",
+      "weight": 5
+     }
+    ],
+    "cost_burden": [
+     {
+      "bands": [
+       5000,
+       25000,
+       100000,
+       500000
+      ],
+      "direction": "falling",
+      "fact": "annual_cost",
+      "key": "annual_cost",
+      "kind": "band",
+      "label": "Annual cost",
+      "unit": "a year",
+      "weight": 40
+     },
+     {
+      "key": "support_effort",
+      "kind": "answer",
+      "label": "Support effort",
+      "question": "support_effort",
+      "weight": 30
+     },
+     {
+      "key": "change_effort",
+      "kind": "answer",
+      "label": "Change effort",
+      "question": "change_effort",
+      "weight": 30
+     }
+    ],
+    "risk_exposure": [
+     {
+      "compute": "data_exposure",
+      "key": "data_exposure",
+      "kind": "computed",
+      "label": "Data exposure",
+      "weight": 35
+     },
+     {
+      "compute": "eol_exposure",
+      "key": "eol_exposure",
+      "kind": "computed",
+      "label": "End-of-life exposure",
+      "weight": 25
+     },
+     {
+      "compute": "continuity",
+      "key": "continuity",
+      "kind": "computed",
+      "label": "Continuity",
+      "weight": 20
+     },
+     {
+      "key": "compliance",
+      "kind": "answer",
+      "label": "Compliance",
+      "question": "compliance",
+      "weight": 20
+     }
+    ],
+    "technical_health": [
+     {
+      "compute": "technology_currency",
+      "key": "currency",
+      "kind": "computed",
+      "label": "Technology currency",
+      "weight": 25
+     },
+     {
+      "fact": "sign_in",
+      "key": "security",
+      "kind": "choice",
+      "label": "Security",
+      "map": {
+       "local": 2,
+       "local_mfa": 3,
+       "shared": 1,
+       "sso": 4,
+       "sso_mfa": 5
+      },
+      "weight": 20
+     },
+     {
+      "fact": "monitoring",
+      "key": "operability",
+      "kind": "choice",
+      "label": "Operability",
+      "map": {
+       "alerting": 4,
+       "metrics": 3,
+       "none": 1,
+       "on_call": 5,
+       "uptime": 2
+      },
+      "weight": 15
+     },
+     {
+      "key": "reliability",
+      "kind": "answer",
+      "label": "Reliability",
+      "question": "reliability",
+      "weight": 15
+     },
+     {
+      "key": "maintainability",
+      "kind": "answer",
+      "label": "Maintainability",
+      "question": "maintainability",
+      "weight": 10
+     },
+     {
+      "bands": [
+       1,
+       2,
+       3,
+       5
+      ],
+      "direction": "rising",
+      "fact": "maintainers",
+      "key": "sustainability",
+      "kind": "band",
+      "label": "Sustainability",
+      "unit": "maintainers",
+      "weight": 10
+     },
+     {
+      "applies": {
+       "field": "vendor_sourced",
+       "op": "eq",
+       "value": true
+      },
+      "key": "vendor_viability",
+      "kind": "answer",
+      "label": "Vendor viability",
+      "question": "vendor_viability",
+      "weight": 5
+     }
+    ]
+   },
+   "floors": {
+    "business_value": [
+     {
+      "level": 4.0,
+      "reason": "Active studies depend on it",
+      "when": {
+       "field": "research_continuity",
+       "op": "eq",
+       "value": true
+      }
+     },
+     {
+      "level": 4.0,
+      "reason": "It is a system of record for regulated information",
+      "when": {
+       "field": "regulated_record",
+       "op": "eq",
+       "value": true
+      }
+     }
+    ]
+   },
+   "key": "standard",
+   "label": "Standard"
+  }
+ ],
+ "rules": [
+  {
+   "key": "not_in_service",
+   "label": "Not in service",
+   "recommend": null,
+   "when": {
+    "field": "lifecycle",
+    "op": "in",
+    "value": [
+     "retired",
+     "archived"
+    ]
+   }
+  },
+  {
+   "key": "new",
+   "label": "New",
+   "recommend": "incubate",
+   "when": {
+    "any": [
+     {
+      "field": "lifecycle",
+      "op": "in",
+      "value": [
+       "proposed",
+       "evaluating",
+       "phase_in"
+      ]
+     },
+     {
+      "all": [
+       {
+        "field": "pace",
+        "op": "eq",
+        "value": "experimental"
+       },
+       {
+        "field": "age_months",
+        "op": "lt",
+        "value": 12
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "key": "not_enough",
+   "label": "Not enough data",
+   "recommend": "assess",
+   "when": {
+    "field": "enough",
+    "op": "eq",
+    "value": false
+   }
+  },
+  {
+   "key": "overlap",
+   "label": "Overlap",
+   "recommend": "consolidate",
+   "when": {
+    "field": "overlap",
+    "op": "eq",
+    "value": true
+   }
+  },
+  {
+   "key": "strong",
+   "label": "Strong",
+   "then": [
+    {
+     "recommend": "invest",
+     "when": {
+      "field": "high.cost",
+      "op": "eq",
+      "value": true
+     }
+    },
+    {
+     "flag": "cost_review",
+     "recommend": "maintain"
+    }
+   ],
+   "when": {
+    "all": [
+     {
+      "field": "high.value",
+      "op": "eq",
+      "value": true
+     },
+     {
+      "field": "high.health",
+      "op": "eq",
+      "value": true
+     }
+    ]
+   }
+  },
+  {
+   "key": "valuable_but_weak",
+   "label": "Valuable but weak",
+   "then": [
+    {
+     "recommend": "replace",
+     "when": {
+      "all": [
+       {
+        "field": "vendor_sourced",
+        "op": "eq",
+        "value": true
+       },
+       {
+        "field": "level.vendor_viability",
+        "op": "lte",
+        "value": 2
+       }
+      ]
+     }
+    },
+    {
+     "recommend": "modernize"
+    }
+   ],
+   "when": {
+    "all": [
+     {
+      "field": "high.value",
+      "op": "eq",
+      "value": true
+     },
+     {
+      "field": "high.health",
+      "op": "eq",
+      "value": false
+     }
+    ]
+   }
+  },
+  {
+   "key": "sound_but_little_used",
+   "label": "Sound but little used",
+   "recommend": "tolerate",
+   "when": {
+    "all": [
+     {
+      "field": "high.value",
+      "op": "eq",
+      "value": false
+     },
+     {
+      "field": "high.health",
+      "op": "eq",
+      "value": true
+     }
+    ]
+   }
+  },
+  {
+   "key": "weak_and_little_used",
+   "label": "Weak and little used",
+   "recommend": "retire",
+   "when": {
+    "all": [
+     {
+      "field": "high.value",
+      "op": "eq",
+      "value": false
+     },
+     {
+      "field": "high.health",
+      "op": "eq",
+      "value": false
+     }
+    ]
+   }
+  }
+ ],
+ "thresholds": {
+  "confidence": 70,
+  "cost": 3.0,
+  "health": 3.0,
+  "thin": 50,
+  "value": 3.0
+ }
+}
