@@ -94,14 +94,24 @@ def create(
     kind: str,
     code: str | None = None,
     parent_id: int | None = None,
+    above: bool = False,
 ) -> OrgUnit:
+    """Add a unit within another. With ``above``, add a new top unit and put the one that was
+    the top beneath it: how a team that began alone puts its organization above itself.
+    There is always exactly one top unit."""
     _require_admin(principal)
     name, kind, code = _clean(name, kind, code)
     if code and by_code(session, code):
         raise Conflict(f"Another unit already has the code {code}.")
-    if parent_id is None:
-        if session.scalars(select(OrgUnit.id).where(OrgUnit.parent_id.is_(None))).first():
-            raise Conflict("The organization already has a top unit. Choose a parent.")
+    top = session.scalars(select(OrgUnit).where(OrgUnit.parent_id.is_(None))).first()
+    if above:
+        parent_id = None
+    elif parent_id is None:
+        if top is not None:
+            raise Conflict(
+                "The organization already has a top unit. Choose a parent, or put the new unit "
+                "above the top one."
+            )
     else:
         get(session, parent_id)
     unit = OrgUnit(
@@ -109,6 +119,9 @@ def create(
     )
     session.add(unit)
     session.flush()
+    if above and top is not None:
+        top.parent_id = unit.id  # the old top, and everything beneath it, now within the new
+        session.flush()
     return unit
 
 

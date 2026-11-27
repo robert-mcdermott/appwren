@@ -25,14 +25,14 @@ You need [uv](https://docs.astral.sh/uv/), which provides the right Python (3.12
 
 ```bash
 uv sync                   # install AppWren
-uv run appwren init       # write appwren.toml, create ./var and the database, create your administrator
+uv run appwren init       # write appwren.toml, create ./var, the database, your organization, and your administrator
 uv run appwren doctor     # check the installation
 uv run appwren serve      # run it at http://127.0.0.1:8000
 ```
 
 `init` asks for your email address, your name, and a password of at least 12 characters. Open the address `serve` prints and sign in.
 
-The administrator account sets the installation up: units, people, and appearance. To run the portfolio, give someone the manager role under Admin → People, and stewards and leaders for the units that will use it. Then bring in your applications from a spreadsheet. [Getting started](docs/getting-started.md) walks through all of it.
+The administrator account sets the installation up: units, people, and appearance. To run the portfolio, give someone the manager role under Admin → People, and stewards and leaders for the units that will use it. Then bring in your applications from a spreadsheet. [Getting started](docs/getting-started.md) walks through all of it, and [Start with one team](docs/getting-started.md#start-with-one-team) says how a single team can begin on its own and let the rest of the organization join later.
 
 ## Try the demo
 

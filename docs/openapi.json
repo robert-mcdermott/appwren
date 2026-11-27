@@ -2288,6 +2288,12 @@
       },
       "NewUnit": {
         "properties": {
+          "above": {
+            "default": false,
+            "description": "Add it as the new top unit, with the current top unit beneath it",
+            "title": "Above",
+            "type": "boolean"
+          },
           "code": {
             "anyOf": [
               {

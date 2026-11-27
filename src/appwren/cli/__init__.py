@@ -254,6 +254,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     try:
         if any(_install_program(db).values()):
             print("Program: loaded the default program")
+        _first_units(db, args)
         users.first_admin(db, config, args)
     finally:
         db.dispose()
@@ -261,6 +262,33 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"Note: {warning}")
     print("\nNext: run `appwren doctor`, then `appwren serve`.")
     return EXIT_OK
+
+
+def _first_units(db: Database, args: argparse.Namespace) -> None:
+    """The organization as its top unit and, if wished, a first unit beneath it, such as the
+    team that is starting with AppWren. Only where there are no units yet."""
+    from appwren.access.principal import Principal
+    from appwren.people import units
+
+    with db.read() as session:
+        if units.all_units(session):
+            return
+    organization, first = args.organization, args.first_unit
+    if organization is None and sys.stdin.isatty() and not args.password_stdin:
+        print("\nEvery application belongs to a unit. Start with your organization's name.")
+        organization = input("Your organization (Enter to add units later): ").strip() or None
+        if organization:
+            first = input("A first unit within it, such as your team (Enter to skip): ").strip()
+    if not organization:
+        print("Units: none yet. Add them under Admin, Units, or import them.")
+        return
+    setup = Principal.for_command("Setup")
+    with db.write(setup.actor) as session:
+        top = units.create(session, setup, name=organization, kind="organization")
+        print(f"Organization: {top.name}")
+        if first:
+            unit = units.create(session, setup, name=first, kind="team", parent_id=top.id)
+            print(f"First unit: {unit.name}, within {top.name}")
 
 
 def _port_free(host: str, port: int) -> bool:
@@ -507,8 +535,8 @@ def build_parser() -> argparse.ArgumentParser:
         "init",
         help="set up a new installation",
         description="Write a configuration file if there is none, create the data home, "
-        "create or upgrade the database, and create the first administrator if there is "
-        "none. Safe to run again.",
+        "create or upgrade the database, create the organization's top unit if there are no "
+        "units, and create the first administrator if there is none. Safe to run again.",
     )
     init.add_argument(
         "--force", action="store_true", help="overwrite an existing configuration file"
@@ -517,6 +545,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--admin-email", metavar="EMAIL", help="create the first administrator with this address"
     )
     init.add_argument("--admin-name", metavar="NAME", help="the first administrator's name")
+    init.add_argument(
+        "--organization", metavar="NAME",
+        help="the organization's name, as its top unit, if there are no units yet",
+    )  # fmt: skip
+    init.add_argument(
+        "--first-unit", metavar="NAME",
+        help="a first unit within the organization, such as the team starting with AppWren",
+    )  # fmt: skip
     init.add_argument("--password-stdin", action="store_true", help=STDIN_HELP)
     init.set_defaults(handler=cmd_init)
 

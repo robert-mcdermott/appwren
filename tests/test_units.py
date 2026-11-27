@@ -81,3 +81,32 @@ def test_only_administrators_change_units(db: Database, people: People) -> None:
     nobody = Principal(account_id=people.accounts["member"], name="Member Person")
     with db.write(nobody.actor) as session, pytest.raises(PermissionDenied):
         units.create(session, nobody, name="Mine", kind="lab", parent_id=people.units["BIH"])
+
+
+def test_a_team_that_began_alone_puts_its_organization_above_itself(db: Database) -> None:
+    """A team made itself the top unit; later the organization is put above it. There is
+    still one top unit, everything beneath the team moves with it, and the history says so."""
+    from sqlalchemy import select
+
+    from appwren.db.models import Event
+
+    with db.write(ME.actor) as session:
+        team = units.create(session, ME, name="Research Applications", kind="team")
+        lab = units.create(session, ME, name="Pilot Lab", kind="lab", parent_id=team.id)
+        team_id, lab_id = team.id, lab.id
+    with db.write(ME.actor) as session:
+        org = units.create(session, ME, name="Northwind Institute", kind="organization", above=True)
+        org_id = org.id
+    with db.read() as session:
+        tops = [unit for unit in units.all_units(session) if unit.parent_id is None]
+        assert [unit.id for unit in tops] == [org_id]
+        assert units.get(session, team_id).parent_id == org_id
+        assert units.get(session, lab_id).parent_id == team_id
+        assert units.with_descendants(session, [org_id]) == {org_id, team_id, lab_id}
+        moved = session.scalars(
+            select(Event).where(
+                Event.subject_type == "org_unit", Event.subject_id == team_id,
+                Event.action == "updated",
+            )
+        ).all()  # fmt: skip
+        assert moved and "parent_id" in (moved[-1].changes or {})

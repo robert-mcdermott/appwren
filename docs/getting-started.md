@@ -23,22 +23,24 @@ uv sync
 uv run appwren init
 ```
 
-`init` does five things:
+`init` does six things:
 
 1. Writes `appwren.toml`, the deployment settings, in the current directory.
 2. Creates the data home, `./var`, which holds everything that is not in the database.
 3. Creates the database. With no other setting, this is a SQLite file inside the data home.
-4. Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, interface methods, environments, cost categories, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.
-5. Asks for your email address, your name, and a password, and creates the first administrator.
+4. Asks for your organization's name, and a first unit within it if you wish, such as your team. Every application belongs to a unit, so this is the least you need to add one. Press Enter to skip it and add units later.
+5. Loads the default program: the vocabularies (lifecycle stages, sourcing, tiers, data classes, interface methods, environments, cost categories, and the rest), what each lifecycle stage requires of a record, which fields are sensitive, a starter capability map of 43 capabilities, a question bank of nine questions, and the scoring model with its three profiles, rules, guardrails, and flags.
+6. Asks for your email address, your name, and a password, and creates the first administrator.
 
 The password needs at least 12 characters. Length matters more than symbols: a few unrelated words make a good one.
 
-`init` is safe to run again. It leaves an existing configuration file alone, adds only what is missing from the program, and creates an administrator only if there is none.
+`init` is safe to run again. It leaves an existing configuration file alone, adds only what is missing from the program, creates units only if there are none, and creates an administrator only if there is none.
 
 To set up without being asked anything, name the administrator and pipe the password in:
 
 ```bash
 printf '%s' "$ADMIN_PASSWORD" | uv run appwren init \
+  --organization "Your Organization" --first-unit "Your Team" \
   --admin-email you@example.org --admin-name "Your Name" --password-stdin
 ```
 
@@ -109,6 +111,21 @@ Both screens take a CSV file, which is the quick way to load an organization. Ea
 ### Appearance
 
 **Admin → Appearance** sets the product's name, your organization's name, a logo, an accent color, and the default palette. See [Running the program](running-the-program.md#appearance).
+
+## Start with one team
+
+AppWren does not need the whole organization to begin. A single team that keeps a few dozen applications can use it for its own, and the rest of the organization can join later without anything being redone.
+
+1. **Make the organization the top unit, and the team a unit within it.** `init` asks for both (or pass `--organization` and `--first-unit`). The organization is only a name until others join. If you began with the team at the top, **Admin → Units → Put a unit above the top** adds the organization above it later, with everything beneath the team moving with it.
+2. **Add the departments that use your applications** as units with nobody in them, so that each application can say who uses it, and the dashboard and data quality can be read by department later.
+3. **Give the team's lead two roles** under **Admin → People**: *administrator*, and *manager* for the whole organization. A manager limited to a unit cannot take portfolio snapshots or shape the program.
+4. **Name the rest of the team** on the applications they keep, or make them stewards of the team's unit to keep all of its applications.
+5. **Bring in your applications** from a spreadsheet, as below.
+6. **Retire what does not fit** of the starter capability map: open a capability, choose **Edit**, and set its status to retired. Add your own as you need them.
+
+SQLite and the one server process `init` sets up are plenty for a team. Move to [PostgreSQL](configuration.md#use-postgresql) when more of the organization joins.
+
+One rule holds however small the team: **nobody records the decision about an application they are accountable for.** In a team of two or three, have the lead name another member accountable for the applications the lead will decide on, or give a second person the manager role to decide on the lead's own.
 
 ## Bring in your applications
 

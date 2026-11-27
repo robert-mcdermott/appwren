@@ -6,7 +6,7 @@ These guides describe AppWren 0.3.0, and are published with pictures at <https:/
 
 | | Guide | For | Covers |
 |---|---|---|---|
-| 1 | [Getting started](getting-started.md) | Whoever installs AppWren | Installing, `init`, `doctor`, `serve`, first sign-in, units and people, bringing in your applications, the demo organization |
+| 1 | [Getting started](getting-started.md) | Whoever installs AppWren | Installing, `init`, `doctor`, `serve`, first sign-in, units and people, starting with one team, bringing in your applications, the demo organization |
 | 2 | [The portfolio](the-portfolio.md) | Everyone who keeps, assesses, or reads an application | What counts as an application, the record and its stages, components and technologies, capabilities, assessment, the scores and their working, recommendations, flags, decisions, cost lines, funding, contracts, import and export |
 | 3 | [The landscape](the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches | Interfaces and data flows, the picture of how a record is connected, what breaks if an application goes, hosting platforms and deployments, overlap, the capability map and its measures, the lifecycle timeline, the radar, support dates from a file, who handles a class of data |
 | 4 | [Keeping current](keeping-current.md) | Everyone who keeps an application, and the portfolio team | Home and the bell, reminders, email, confirming a record and what a stale one costs, campaigns, tasks raised by what happens, passing on what someone holds, search and saved views, likely duplicates, contesting a score |
@@ -28,6 +28,7 @@ These two are written from the code, so they always match the version they ship 
 | Question | Where |
 |---|---|
 | How do I try it without setting anything up? | [Explore the demo organization](getting-started.md#explore-the-demo-organization) |
+| Can one team use it on its own, before the rest of the organization? | [Start with one team](getting-started.md#start-with-one-team) |
 | Is this an application, or part of one? | [What counts as an application](the-portfolio.md#what-counts-as-an-application) |
 | How do I bring in the applications I already have in a spreadsheet? | [Import applications](the-portfolio.md#import-applications) |
 | Who answers for an application, and how do I hand it on? | [People named on it](the-portfolio.md#people-named-on-it) |

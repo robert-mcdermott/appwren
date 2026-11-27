@@ -27,13 +27,15 @@ appwren [-h] [--version] [-c FILE] [-v | -q] COMMAND ...
 
 ## `appwren init`
 
-Write a configuration file if there is none, create the data home, create or upgrade the database, and create the first administrator if there is none. Safe to run again.
+Write a configuration file if there is none, create the data home, create or upgrade the database, create the organization's top unit if there are no units, and create the first administrator if there is none. Safe to run again.
 
 | Option | Meaning |
 |---|---|
 | `--force` | overwrite an existing configuration file |
 | `--admin-email` `EMAIL` | create the first administrator with this address |
 | `--admin-name` `NAME` | the first administrator's name |
+| `--organization` `NAME` | the organization's name, as its top unit, if there are no units yet |
+| `--first-unit` `NAME` | a first unit within the organization, such as the team starting with AppWren |
 | `--password-stdin` | read the password from standard input instead of asking |
 
 ## `appwren serve`

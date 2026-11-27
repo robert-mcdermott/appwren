@@ -93,6 +93,11 @@ record is stale on the day of the upgrade.
   recommendation, or flags would differ, and publishing it changes exactly those. Each change
   publishes a new version or is kept in the history.
 - **A portfolio snapshot each month,** kept by the scheduler on the first turn of the month.
+- **Starting with one team.** `appwren init` asks for the organization's name and a first
+  unit within it, such as the team starting with AppWren (`--organization` and
+  `--first-unit` when unattended), so an application can be added at once. **Admin →
+  Units → Put a unit above the top** puts a new top unit above the existing one, for a team
+  that began at the top. *Getting started* has a section on starting with one team.
 - **Guides:** a new guide, *Keeping current*; shaping the program in the app, scheduled work,
   and email in *Running the program* and *Configuration*; what a stale record costs in *The
   portfolio*; the new routes in the API guide; and pictures of the new screens.

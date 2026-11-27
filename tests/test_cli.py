@@ -333,3 +333,30 @@ def test_doctor_says_when_nothing_is_doing_the_scheduled_work(
     assert run("jobs", config=instance.path) == 0
     assert "reminders" in capsys.readouterr().out
     assert run("mail", "run", config=instance.path) == 1  # email is not set up
+
+
+@pytest.mark.sqlite_only
+def test_init_can_make_the_organization_and_a_first_team(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Every application needs a unit, so a new installation can start with its organization
+    and the team that is starting with AppWren. Run again, it adds no units."""
+    from appwren.config import load_config
+    from appwren.db.engine import Database
+    from appwren.people import units
+
+    config = tmp_path / "appwren.toml"
+    assert run("init", "--organization", "Northwind Institute", "--first-unit",
+               "Research Applications", config=config) == 0  # fmt: skip
+    out = capsys.readouterr().out
+    assert "Organization: Northwind Institute" in out
+    assert "First unit: Research Applications, within Northwind Institute" in out
+    assert run("init", "--organization", "Someone Else", config=config) == 0
+    db = Database(load_config(config).database_url)
+    try:
+        with db.read() as session:
+            found = {unit.name: unit for unit in units.all_units(session)}
+        assert set(found) == {"Northwind Institute", "Research Applications"}
+        assert found["Research Applications"].parent_id == found["Northwind Institute"].id
+    finally:
+        db.dispose()
