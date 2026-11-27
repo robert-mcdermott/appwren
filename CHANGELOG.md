@@ -14,6 +14,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **Tokens of your own, and suggestions.** Anyone may make a token under Your account that
   acts as them, reads, and proposes changes. A proposal waits on the application until
   someone who keeps it accepts it, as their own edit, or dismisses it.
+- **An optional assistant.** Off and invisible until the configuration's `[assistant]`
+  names a model server (any with the chat completions interface, including one on the same
+  machine). It answers questions about the applications a person may see, with links to the
+  records it cites, and drafts an application from a document for the person to correct
+  and add. It is never told of applications that handle data more sensitive than the
+  configuration allows, it changes nothing, and every exchange is kept.
 - **A tool server for AI assistants.** `appwren tools serve` lets an assistant that speaks
   the Model Context Protocol search and read AppWren, ask the checkpoint, see what waits on
   the person, and propose changes, through the API as that person.

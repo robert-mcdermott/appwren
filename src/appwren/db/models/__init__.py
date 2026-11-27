@@ -21,6 +21,7 @@ from appwren.db.models.insight import Report, Scenario, ScenarioChange
 from appwren.db.models.integration import (
     ApiToken,
     ApiTokenUse,
+    AssistantExchange,
     Suggestion,
     Webhook,
     WebhookCursor,
@@ -91,6 +92,7 @@ __all__ = [
     "ApplicationCapability",
     "ApplicationUnit",
     "Assessment",
+    "AssistantExchange",
     "Attestation",
     "Campaign",
     "CampaignItem",

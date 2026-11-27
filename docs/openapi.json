@@ -1867,6 +1867,21 @@
         "title": "DismissBody",
         "type": "object"
       },
+      "DraftBody": {
+        "properties": {
+          "text": {
+            "description": "A document describing the application",
+            "maxLength": 20000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "DraftBody",
+        "type": "object"
+      },
       "EndBody": {
         "properties": {
           "application": {
@@ -3098,6 +3113,21 @@
           "email_notices"
         ],
         "title": "Preferences",
+        "type": "object"
+      },
+      "QuestionBody": {
+        "properties": {
+          "question": {
+            "description": "A question about the portfolio",
+            "maxLength": 2000,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "QuestionBody",
         "type": "object"
       },
       "ReadBody": {
@@ -7508,6 +7538,117 @@
         "summary": "The portfolio as it stood on a day",
         "tags": [
           "insight"
+        ]
+      }
+    },
+    "/api/v1/assistant/ask": {
+      "post": {
+        "description": "An answer from the applications the person may see, with links to the records it\ncites. 404 if there is no assistant.",
+        "operationId": "ask_api_v1_assistant_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ask Api V1 Assistant Ask Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask a question about the portfolio",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/draft": {
+      "post": {
+        "description": "Values for the form to add an application, from the document's text. Nothing is\nsaved: the person reads, corrects, and adds it themselves. 404 if there is no\nassistant.",
+        "operationId": "draft_api_v1_assistant_draft_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Draft Api V1 Assistant Draft Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft an application from a document",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/v1/assistant/exchanges": {
+      "get": {
+        "operationId": "exchanges_api_v1_assistant_exchanges_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Exchanges Api V1 Assistant Exchanges Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "What has been asked of the assistant",
+        "tags": [
+          "assistant"
         ]
       }
     },

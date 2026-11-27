@@ -137,3 +137,23 @@ class Suggestion(Base):
     decided_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
 
     __table_args__ = (Index("ix_suggestion_application", "application_id", "status"),)
+
+
+class AssistantExchange(Base):
+    """One thing asked of the assistant and what it answered. That an exchange happened, who
+    asked, and about what, is in the history; the words themselves are kept here."""
+
+    __tablename__ = "assistant_exchange"
+    __subject__ = "assistant_exchange"
+    __audit_skip__ = frozenset({"prompt", "response"})
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    account_id: Mapped[int | None] = mapped_column(Integer)
+    asked_by_name: Mapped[str] = mapped_column(String(200))
+    purpose: Mapped[str] = mapped_column(String(24))  # draft or question
+    model: Mapped[str] = mapped_column(String(200))
+    prompt: Mapped[str] = mapped_column(Text)
+    response: Mapped[str | None] = mapped_column(Text)
+    ok: Mapped[bool] = mapped_column(Boolean, default=True)
+    error: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime)

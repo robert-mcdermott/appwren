@@ -92,6 +92,23 @@ class MailConfig:
 
 
 @dataclass(frozen=True)
+class AssistantConfig:
+    """An optional assistant that drafts records and answers questions. Off, and invisible,
+    until an address and a model are given. It may be any server that offers the chat
+    completions interface, including one running on your own machines."""
+
+    url: str = ""  # https://models.example.org/v1: /chat/completions is added to it
+    model: str = ""
+    key_env: str = "APPWREN_ASSISTANT_KEY"
+    # The most sensitive class of data an application may handle and still be described to it.
+    max_data_class: str = "internal"
+
+    @property
+    def enabled(self) -> bool:
+        return bool(self.url and self.model)
+
+
+@dataclass(frozen=True)
 class Config:
     path: Path | None = None
     server: ServerConfig = field(default_factory=ServerConfig)
@@ -99,6 +116,7 @@ class Config:
     data: DataConfig = field(default_factory=DataConfig)
     sso: SsoConfig = field(default_factory=SsoConfig)
     mail: MailConfig = field(default_factory=MailConfig)
+    assistant: AssistantConfig = field(default_factory=AssistantConfig)
     # The [branding] section, checked: an ``appwren.program.branding.FileBranding``, or None.
     branding: Any = None
 
@@ -120,6 +138,7 @@ _SECTIONS: dict[str, type] = {
     "data": DataConfig,
     "sso": SsoConfig,
     "mail": MailConfig,
+    "assistant": AssistantConfig,
 }
 
 
@@ -270,6 +289,16 @@ def _resolve_sqlite(url: str, base_dir: Path) -> str:
 
 def _validate(config: Config, raw: Mapping[str, Any]) -> list[str]:
     problems: list[str] = []
+    helper = config.assistant
+    if bool(helper.url) != bool(helper.model):
+        problems.append("[assistant] needs both url and model, or neither")
+    if helper.url and not (
+        helper.url.startswith("https://")
+        or re.match(r"^http://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(/|$)", helper.url)
+    ):
+        problems.append("[assistant] url must start with https://, unless it is on this machine")
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]*", helper.key_env):
+        problems.append("[assistant] key_env names the environment variable that holds the key")
     server = config.server
     if not server.host:
         problems.append("[server] host must not be empty")

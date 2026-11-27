@@ -40,11 +40,11 @@ None block the start. These defaults have been taken and can be changed before t
 - [x] Suggestions on a record, accepted or dismissed by someone who keeps it
 - [x] An optional tool server for AI assistants, through the API
 
-## Slice 3: Optional assistant ☐
+## Slice 3: Optional assistant ☑
 
-- [ ] Drafts an application record from a document's text
-- [ ] Answers questions with links to the records behind the answer
-- [ ] Every exchange kept; off and invisible until configured
+- [x] Drafts an application record from a document's text
+- [x] Answers questions with links to the records behind the answer
+- [x] Every exchange kept; off and invisible until configured
 
 ## Slice 4: Other governance records ☐
 
@@ -58,3 +58,4 @@ None block the start. These defaults have been taken and can be changed before t
 
 Decisions and discoveries made during the wave are logged here, newest last.
 - **A personal token is the person, cut down to reading and proposing.** It is built from their account's own roles, so an assistant sees exactly what they do; the middleware lets it make one kind of change, a proposal. A proposal of a sensitive field the person may not see is refused, since it would say what they think the value is. Accepting is a person's own edit, signed in, never a token's.
+- **The assistant is told a list, not the database.** A question is answered from a compact list of the applications in service the person may see (reference, name, summary, unit, stage, tier, decision), leaving out any that handle data more sensitive than `max_data_class`; references in the answer are linked only if they were in that list. A draft is checked field by field against the form's own choices. The model server is asked with no database session open.

@@ -14,6 +14,7 @@ from appwren.access.policy import authorize
 from appwren.api.problems import install_problem_handlers
 from appwren.api.routers import (
     assessment,
+    assistant,
     branding,
     catalog,
     connectors,
@@ -42,7 +43,7 @@ from appwren.home import DataHome
 ROUTERS = (
     system, session, sso, people, branding, inventory, assessment, decisions, reporting,
     landscape, operations, keeping, program, connectors, catalog, planning, insight,
-    integration,
+    integration, assistant,
 )  # fmt: skip
 
 
@@ -52,7 +53,9 @@ def create_app(config: Config) -> FastAPI:
     brand_rules.pin(config.branding)  # the configuration file's part of the branding
     from appwren import connectors
 
-    connectors.reserve(config.sso.client_secret_env, config.mail.password_env)
+    connectors.reserve(
+        config.sso.client_secret_env, config.mail.password_env, config.assistant.key_env
+    )
     home = DataHome(config.data.home)
 
     @asynccontextmanager

@@ -21,6 +21,7 @@ export const NAV = [
     items: [
       { href: "/applications", label: "Applications", term: "application", iconName: "application" },
       { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
+      { href: "/assistant", label: "Assistant", iconName: "search", only: "assistant" },
       { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/reviews", label: "Reviews", iconName: "list" },
       { href: "/roadmap", label: "Roadmap", iconName: "lifecycle" },
@@ -76,9 +77,12 @@ export const NAV = [
 ];
 
 export function visibleNav() {
-  return NAV.map((group) => ({ ...group, items: group.items.filter((item) => !item.when || can(item.when)) }))
+  return NAV.map((group) => ({ ...group, items: group.items.filter((item) => (!item.when || can(item.when)) && (!item.only || ON.has(item.only))) }))
     .filter((group) => group.items.length);
 }
+
+/** Optional parts that are switched on, such as the assistant: their menu entries appear. */
+export const ON = new Set();
 
 /** The menu in the organization's own words, where it has them. */
 export function nameMenu(terms = {}) {

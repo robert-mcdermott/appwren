@@ -29,7 +29,7 @@ Relative paths in the file are resolved against the file's own directory, not th
 
 ## Every section and key
 
-The file has six sections. Only the first three matter for a new installation; `[sso]`, `[mail]`, and `[branding]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
+The file has seven sections. Only the first three matter for a new installation; `[sso]`, `[mail]`, `[assistant]`, and `[branding]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
 
 ### `[server]`
 
@@ -90,6 +90,19 @@ Email is optional and off until both `host` and `from_address` are set. See [Ema
 | `digest_hour` | `7` | The hour of the day, in UTC, after which daily summaries are sent |
 
 AppWren also gives advice that does not stop it running. `serve` and `doctor` warn when several workers share one SQLite file, when `base_url` is `http://` on a host other than localhost, and when email is set up but `base_url` is empty, so messages cannot link back.
+
+### `[assistant]`
+
+Optional, and off unless both `url` and `model` are set. Without them the assistant is not mentioned anywhere in the app.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `url` | `""` | The address of a server that offers the chat completions interface, such as `"https://models.example.org/v1"` (`/chat/completions` is added to it). It must be https, unless it is on this machine, such as `"http://127.0.0.1:11434/v1"` for a model you run yourself |
+| `model` | `""` | The model's name, as that server knows it |
+| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file |
+| `max_data_class` | `"internal"` | The most sensitive class of data an application may handle and still be described to the assistant. Applications that handle anything more sensitive are left out of what it is told |
+
+What it does, and what it is never given, is in [The assistant](insight.md#the-assistant).
 
 ### `[branding]`
 
