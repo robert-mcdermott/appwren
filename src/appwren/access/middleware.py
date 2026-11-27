@@ -7,12 +7,13 @@ import re
 from collections.abc import Awaitable, Callable
 from urllib.parse import urlsplit
 
+import sqlalchemy.exc
 from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from appwren.access.principal import Principal
-from appwren.api.problems import problem
+from appwren.api.problems import problem, unavailable
 from appwren.auth import sessions
 from appwren.people import accounts
 
@@ -64,15 +65,21 @@ def _authenticate(request: Request) -> Principal | None:
         return None
     config = request.app.state.config.server
     database = request.app.state.db
-    # A session's sliding expiry is bookkeeping, not history, so no actor is needed.
-    with database.bookkeeping() as session:
-        found = sessions.load(
-            session, token, idle_hours=config.session_idle_hours, max_days=config.session_max_days
-        )
+    limits = {"idle_hours": config.session_idle_hours, "max_days": config.session_max_days}
+    # Only read: on SQLite a transaction that may write takes the write lock, and every
+    # request would then wait on whoever is writing (the soak test of 0.9.0).
+    with database.read() as session:
+        found = sessions.load(session, token, slide=False, **limits)
         if found is None:
             return None
         row, account = found
-        return accounts.principal_for(session, account, row)
+        principal = accounts.principal_for(session, account, row)
+        due = sessions.due(row)
+    if due:
+        # A session's sliding expiry is bookkeeping, not history: at most once a minute.
+        with database.bookkeeping() as session:
+            sessions.slide(session, row.id, **limits)
+    return principal
 
 
 def _prepare(request: Request) -> None:
@@ -144,4 +151,9 @@ def install_access(app: FastAPI) -> None:
             except HTTPException as exc:
                 # Answered here, inside the header middleware, so refusals carry the headers.
                 return problem(exc.status_code, str(exc.detail), instance=request.url.path)
+            except (sqlalchemy.exc.OperationalError, sqlalchemy.exc.InterfaceError,
+                    sqlalchemy.exc.TimeoutError) as exc:  # fmt: skip
+                # The database is busy or gone. Said as the routes say it, not left to become a
+                # 500 that closes the connection (the soak test of 0.9.0).
+                return unavailable(request, exc)
         return await call_next(request)

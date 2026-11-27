@@ -38,6 +38,23 @@ def problem(status: int, detail: str | None = None, **extra: Any) -> JSONRespons
     return JSONResponse(body, status_code=status, media_type=PROBLEM_JSON)
 
 
+def unavailable(request: Request, exc: Exception) -> JSONResponse:
+    """The answer when the database cannot be had: busy (every connection in use, or another
+    process holding the write lock) or gone. A busy one is worth trying again shortly."""
+    busy = isinstance(exc, sqlalchemy.exc.TimeoutError) or "locked" in str(exc).lower()
+    log.error("the database is %s on %s: %s", "busy" if busy else "unavailable",
+              request.url.path, exc)  # fmt: skip
+    if busy:
+        answer = problem(503, "AppWren is busy. Try again in a moment.", instance=request.url.path)
+        answer.headers["Retry-After"] = "5"
+        return answer
+    return problem(
+        503,
+        "The database is unavailable. An administrator can check it with `appwren doctor`.",
+        instance=request.url.path,
+    )
+
+
 def install_problem_handlers(app: FastAPI) -> None:
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
@@ -91,13 +108,9 @@ def install_problem_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(sqlalchemy.exc.OperationalError)
     @app.exception_handler(sqlalchemy.exc.InterfaceError)
+    @app.exception_handler(sqlalchemy.exc.TimeoutError)
     async def database_unreachable(request: Request, exc: Exception) -> JSONResponse:
-        log.error("the database is unavailable on %s: %s", request.url.path, exc)
-        return problem(
-            503,
-            "The database is unavailable. An administrator can check it with `appwren doctor`.",
-            instance=request.url.path,
-        )
+        return unavailable(request, exc)
 
     @app.exception_handler(Exception)
     async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:

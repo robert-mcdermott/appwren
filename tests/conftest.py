@@ -174,9 +174,14 @@ def as_role(instance: Instance, people) -> Iterator[Callable[[str | None], TestC
 
     with ExitStack() as stack:
         app = create_app(instance.config)
+        # The app starts once, as a server does, and each client is another browser talking to
+        # it. Entering a client for each would start it again each time, with a database
+        # engine of its own that nothing closes.
+        stack.enter_context(TestClient(app, base_url="http://localhost"))
 
         def make(role: str | None) -> TestClient:
-            client = stack.enter_context(TestClient(app, base_url="http://localhost"))
+            client = TestClient(app, base_url="http://localhost")
+            stack.callback(client.close)
             return sign_in(client, email_of(role)) if role else client
 
         yield make

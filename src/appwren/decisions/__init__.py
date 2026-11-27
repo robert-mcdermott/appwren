@@ -178,13 +178,17 @@ def _decision_facts(session: Session, apps: list[Application]) -> dict[int, dict
 
 
 def portfolio(
-    session: Session, principal: Principal, filters: Mapping[str, Any], *, keep: bool = False
-) -> list[dict[str, Any]]:
+    session: Session, principal: Principal, filters: Mapping[str, Any], *, keep: bool = False,
+    where: Any = None,
+) -> list[dict[str, Any]]:  # fmt: skip
     """Every application the person may see that matches the filters, with its scores,
-    recommendation, decision, and flags. Cost is given only where they may see it."""
+    recommendation, decision, and flags. Cost is given only where they may see it. ``where``
+    narrows it further, by a condition on applications."""
     from sqlalchemy import func
 
     conditions = records.conditions_for(session, principal, APPLICATION, filters)
+    if where is not None:
+        conditions.append(where)
     apps = list(
         session.scalars(
             select(Application).where(*conditions).order_by(func.lower(Application.name))

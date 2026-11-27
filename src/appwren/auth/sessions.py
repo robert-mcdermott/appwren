@@ -51,9 +51,10 @@ def create(
 
 
 def load(
-    session: Session, token: str | None, *, idle_hours: int, max_days: int
+    session: Session, token: str | None, *, idle_hours: int, max_days: int, slide: bool = True
 ) -> tuple[SessionToken, Account] | None:
-    """The live session for a token and its account, sliding the expiry; None if there is none."""
+    """The live session for a token and its account, sliding the expiry; None if there is none.
+    With ``slide`` false nothing is changed, and ``due`` says whether the expiry should slide."""
     if not token or len(token) > 200:
         return None
     found = session.execute(
@@ -67,12 +68,30 @@ def load(
     now = utc_now()
     if row.revoked_at is not None or row.expires_at <= now or account.status != "active":
         return None
-    if now - row.last_seen_at >= TOUCH_EVERY:
+    if slide and due(row):
         row.last_seen_at = now
         row.expires_at = min(
             now + timedelta(hours=idle_hours), row.created_at + timedelta(days=max_days)
         )
     return row, account
+
+
+def due(row: SessionToken) -> bool:
+    """Whether a session has been used long enough since it was last marked to mark it again:
+    at most once a minute, so that most requests only read."""
+    return utc_now() - row.last_seen_at >= TOUCH_EVERY
+
+
+def slide(session: Session, row_id: int, *, idle_hours: int, max_days: int) -> None:
+    """Mark a session used now, and move its expiry on."""
+    row = session.get(SessionToken, row_id)
+    if row is None or row.revoked_at is not None:
+        return
+    now = utc_now()
+    row.last_seen_at = now
+    row.expires_at = min(
+        now + timedelta(hours=idle_hours), row.created_at + timedelta(days=max_days)
+    )
 
 
 def revoke(session: Session, token: str | None) -> None:
