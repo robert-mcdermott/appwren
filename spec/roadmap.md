@@ -99,7 +99,7 @@ Detail: [waves/wave-3.md](waves/wave-3.md)
 
 Detail: [waves/wave-4.md](waves/wave-4.md)
 
-## Wave 5: Planning change (v0.5.0) ☐
+## Wave 5: Planning change (v0.5.0) ◐
 
 **Goal:** decisions become planned, tracked change.
 
@@ -111,6 +111,8 @@ Detail: [waves/wave-4.md](waves/wave-4.md)
 | 4 | Stage gates | Required fields enforced at each lifecycle stage | ☐ |
 | 5 | Retirement playbook | The plan, the checklist, archival of data, and savings realized | ☐ |
 | 6 | Release prep | Guides, changelog, release | ☐ |
+
+Detail: [waves/wave-5.md](waves/wave-5.md)
 
 ## Wave 6: Insight (v0.6.0) ☐
 
