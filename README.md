@@ -162,6 +162,7 @@ Start with the [guide index](docs/README.md), or go straight to the guide for yo
 | [Configuration](docs/configuration.md) | Whoever runs the server |
 | [API](docs/api.md) | Anyone connecting another system |
 | [Command reference](docs/cli.md) | Every `appwren` command and option |
+| [Compatibility](docs/compatibility.md) | Anyone building on AppWren: what 1.x keeps the same, and how something is deprecated |
 
 The design behind the product is in [`spec/`](spec/README.md): the [vision](spec/vision.md), the [engine](spec/engine.md), and the [roadmap](spec/roadmap.md).
 

@@ -14,7 +14,14 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASED = sorted((ROOT / "tests" / "fixtures").glob("openapi-*.json"))[-1]
+
+
+def _version(path: Path) -> tuple[int, ...]:
+    """openapi-0.10.0.json is newer than openapi-0.9.0.json, though it sorts before it."""
+    return tuple(int(part) for part in path.stem.removeprefix("openapi-").split("."))
+
+
+RELEASED = max((ROOT / "tests" / "fixtures").glob("openapi-*.json"), key=_version)
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -30,6 +37,12 @@ def _required(spec: dict[str, Any], operation: dict[str, Any]) -> set[str]:
     if "$ref" in schema:
         schema = spec["components"]["schemas"][schema["$ref"].rsplit("/", 1)[-1]]
     return needed | {f"body:{name}" for name in schema.get("required", [])}
+
+
+def test_the_newest_release_is_compared_by_version() -> None:
+    names = [Path(f"openapi-{v}.json") for v in ("0.9.0", "0.10.0", "1.0.0", "0.8.1")]
+    assert max(names, key=_version).name == "openapi-1.0.0.json"
+    assert max(names[:2], key=_version).name == "openapi-0.10.0.json"
 
 
 def test_nothing_released_is_taken_away() -> None:
