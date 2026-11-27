@@ -41,7 +41,8 @@ The file has six sections. Only the first three matter for a new installation; `
 | `base_url` | `""` | The public address people use to reach AppWren, such as `"https://appwren.example.org"`. Used for the single sign-on redirect address and for links in email. Set it when you use either |
 | `session_idle_hours` | `12` | A sign-in ends after this long without activity |
 | `session_max_days` | `7` | A sign-in ends after this long in any case |
-| `scheduler` | `true` | Run scheduled work (triggers, reminders, email, the monthly snapshot) inside this server. See [Scheduled work](#scheduled-work) |
+| `scheduler` | `true` | Run scheduled work (triggers, reminders, email, webhooks, the monthly snapshot) inside this server. See [Scheduled work](#scheduled-work) |
+| `trusted_proxies` | `"127.0.0.1"` | The proxies whose `X-Forwarded-For` and `X-Forwarded-Proto` are believed, separated by commas, or `"*"` for any. Leave it alone when the proxy is on the same machine. In a container the proxy is at another address: name it, or use `"*"` if only the proxy can reach AppWren. Either way, the proxy must **replace** `X-Forwarded-For` with the address it saw, not add to what the client sent: AppWren limits sign-in attempts by that address. The nginx and Caddy examples in `deploy/` do this |
 
 `host`, `port`, and `workers` can also be given to `uv run appwren serve` as `--host`, `--port`, and `--workers`, which take precedence for that run.
 
@@ -170,6 +171,7 @@ Any value can be overridden by an environment variable named `APPWREN_<SECTION>_
 | `APPWREN_SERVER_HOST` | `[server] host` |
 | `APPWREN_SERVER_PORT` | `[server] port` |
 | `APPWREN_SERVER_WORKERS` | `[server] workers` |
+| `APPWREN_SERVER_TRUSTED_PROXIES` | `[server] trusted_proxies` |
 | `APPWREN_SERVER_BASE_URL` | `[server] base_url` |
 | `APPWREN_SERVER_SESSION_IDLE_HOURS` | `[server] session_idle_hours` |
 | `APPWREN_SERVER_SESSION_MAX_DAYS` | `[server] session_max_days` |
@@ -456,6 +458,47 @@ AppWren speaks plain HTTP and expects a reverse proxy to terminate TLS in front 
 - Requests larger than 32 MB are refused.
 
 The app sets its own security headers, including a content security policy with no inline script or style and no third-party origins, so the proxy does not need to add them.
+
+## Deploy
+
+`deploy/` holds recipes for running AppWren in production. Each was tried as it is written.
+
+| File | What it is |
+|---|---|
+| `Containerfile` | An image with the application and nothing of yours: it runs as an unprivileged user, keeps everything in the volume at `/data`, and works with a read-only root and every capability dropped |
+| `compose.yaml`, `compose.env.example` | AppWren with PostgreSQL, for `docker compose` or `podman compose`. AppWren listens on `127.0.0.1:8000` of the host, for a proxy in front |
+| `entrypoint.sh` | What the image runs on every start: `init`, which creates what is missing and brings the database up to date, then `serve` |
+| `appwren.service` | A systemd unit with systemd's sandboxing switched on: no new privileges, a read-only system, only the data home writable, no capabilities |
+| `nginx.conf`, `Caddyfile` | A reverse proxy that terminates TLS and replaces `X-Forwarded-For` with the address it saw |
+
+With compose:
+
+```bash
+cp deploy/compose.env.example deploy/.env     # then fill in deploy/.env
+docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+```
+
+On the first start, `APPWREN_ADMIN_EMAIL` and `APPWREN_ADMIN_PASSWORD` create the first administrator, `APPWREN_ORGANIZATION` the organization's top unit, and `APPWREN_PROGRAM` the [starter program](getting-started.md#start-from-a-program-shaped-like-yours) to begin from; on later starts each is left alone, so remove the password once you have signed in. Back the volume up with `appwren backup` run inside the container: `docker compose -f deploy/compose.yaml exec appwren appwren backup --out /data/backup.tar.gz`, then copy the file somewhere else.
+
+### Before people depend on it
+
+```bash
+uv run appwren doctor --production
+```
+
+On top of the usual checks, `--production` looks at what matters once people rely on the installation, and fails or advises:
+
+| Check | Fails or advises when |
+|---|---|
+| Address | `[server] base_url` is not an `https://` address (fails) |
+| Demo | This is a demo organization, where anyone can sign in as anyone (fails) |
+| Database for production | It is SQLite, which suits a small team on one server |
+| Administrators | There is only one, so nobody can manage it while they are away |
+| Sign-in | People sign in with passwords kept here rather than single sign-on |
+| Email for production | Email is not set up, so nobody is told of work that waits for them |
+| Scheduled work | The scheduler is off, or nothing has run in fifteen minutes |
+| Backup | `appwren backup` has not run in two days, or ever |
+| Data home access | Other accounts on the machine can read the data home |
 
 ## The demo and the network
 

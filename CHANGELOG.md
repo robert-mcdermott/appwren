@@ -35,6 +35,13 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   assessment lapses. Failed deliveries are tried again, and every delivery is listed.
 - **The API's contract.** A test holds the API to the last release's OpenAPI document:
   nothing it offered is taken away, and no request asks for more.
+- **Deployment recipes.** `deploy/` holds a container image that runs read-only and
+  unprivileged, a compose file with PostgreSQL, a sandboxed systemd unit, and nginx and
+  Caddy examples. The image's first start can name the organization and the starter
+  program. A new `[server] trusted_proxies` setting says whose forwarded headers to believe.
+- **`appwren doctor --production`** checks what matters once people depend on an
+  installation: an https address, not a demo, PostgreSQL, two administrators, single
+  sign-on, email, scheduled work, a recent backup, and who can read the data home.
 - **Measured at size.** `scripts/perf.py` times the common pages at 5,000 applications and
   50,000 components; the figures are in the configuration guide.
 

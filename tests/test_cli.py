@@ -360,3 +360,28 @@ def test_init_can_make_the_organization_and_a_first_team(
         assert found["Research Applications"].parent_id == found["Northwind Institute"].id
     finally:
         db.dispose()
+
+
+def test_doctor_for_production(
+    instance: Instance, people: object, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:  # fmt: skip
+    """It passes a set-up installation served over https, with advice, and fails a demo."""
+    monkeypatch.setenv("APPWREN_SERVER_BASE_URL", "https://apps.example.org")
+    assert run("backup", "--out", str(tmp_path / "saved.tar.gz"), config=instance.path) == 0
+    capsys.readouterr()
+    assert run("doctor", "--production", config=instance.path) == 0
+    out = capsys.readouterr().out
+    for name in ("Address", "Database for production", "Administrators", "Backup",
+                 "Data home access"):  # fmt: skip
+        assert name in out, name
+    assert "https://apps.example.org" in out and "last made" in out
+    monkeypatch.setenv("APPWREN_SERVER_BASE_URL", "http://apps.example.org")
+    assert run("doctor", "--production", config=instance.path) == 1
+    demo = tmp_path / "demo"
+    assert run("demo", str(demo)) == 0
+    monkeypatch.delenv("APPWREN_DATABASE_URL", raising=False)
+    monkeypatch.setenv("APPWREN_SERVER_BASE_URL", "https://apps.example.org")
+    capsys.readouterr()
+    assert run("doctor", "--production", config=demo / "appwren.toml") == 1
+    assert "demo organization" in capsys.readouterr().out

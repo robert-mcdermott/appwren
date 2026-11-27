@@ -1,0 +1,59 @@
+# AppWren with PostgreSQL, for docker compose or podman compose.
+#
+#   cp deploy/compose.env.example deploy/.env     then edit deploy/.env
+#   docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
+#
+# AppWren listens on 127.0.0.1:8000 of the host. Put a reverse proxy with TLS in front of
+# it: see deploy/Caddyfile and deploy/nginx.conf.
+
+services:
+  appwren:
+    build:
+      context: ..
+      dockerfile: deploy/Containerfile
+    image: appwren:local
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APPWREN_SERVER_BASE_URL: ${APPWREN_BASE_URL:?set APPWREN_BASE_URL in deploy/.env}
+      APPWREN_SERVER_WORKERS: ${APPWREN_WORKERS:-2}
+      APPWREN_DATABASE_URL: postgresql+psycopg://appwren@db:5432/appwren
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      # Used once, on the first start: the organization, the program, and the first
+      # administrator.
+      APPWREN_ORGANIZATION: ${APPWREN_ORGANIZATION:-}
+      APPWREN_PROGRAM: ${APPWREN_PROGRAM:-}
+      APPWREN_ADMIN_EMAIL: ${APPWREN_ADMIN_EMAIL:-}
+      APPWREN_ADMIN_NAME: ${APPWREN_ADMIN_NAME:-Administrator}
+      APPWREN_ADMIN_PASSWORD: ${APPWREN_ADMIN_PASSWORD:-}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - appwren-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    image: docker.io/library/postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: appwren
+      POSTGRES_DB: appwren
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - appwren-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appwren -d appwren"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  appwren-data:
+  appwren-db:

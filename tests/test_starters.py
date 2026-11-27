@@ -69,6 +69,8 @@ def test_from_the_command_line(tmp_path: Path, capsys: pytest.CaptureFixture[str
                config=config) == 0  # fmt: skip
     out = capsys.readouterr().out
     assert "started from company" in out
+    assert run("init", "--program", "starter-company", config=config) == 0  # safe again
+    assert "already set up" in capsys.readouterr().out
     assert run("program", "starters", config=config) == 0
     assert "starter-university" in capsys.readouterr().out
     assert run("program", "import", "starter-university", "--dry-run", config=config) == 0

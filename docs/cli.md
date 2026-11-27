@@ -230,3 +230,7 @@ Send one message now to the account with this address, and say whether the mail 
 ## `appwren doctor`
 
 Check the configuration, the data home, the database and its schema, and the history. Exits with 1 if anything must be fixed.
+
+| Option | Meaning |
+|---|---|
+| `--production` | also check what matters once people depend on it: an https address, the database, administrators, sign-in, email, scheduled work, backups, and who can read the data home; a demo organization fails |

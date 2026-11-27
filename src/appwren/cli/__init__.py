@@ -67,8 +67,16 @@ def _install_program(db: Database, starter: str | None = None) -> dict[str, int]
     from appwren.events.actor import Actor
     from appwren.program import packs
 
+    from sqlalchemy import select
+
+    from appwren.db.models import Capability
+
     with db.write(Actor.command("Setup")) as session:
-        if starter:
+        if starter and session.scalar(select(Capability.id).limit(1)):
+            packs.starter(starter)  # a key that is not a starter is still an error
+            # init is run again on every start of a container: the program stays as it is.
+            print(f"Program: already set up, so {starter} was not loaded over it")
+        elif starter:
             try:
                 pack = packs.start(session, starter)
             except Invalid as exc:
@@ -375,6 +383,8 @@ def cmd_serve(args: argparse.Namespace) -> int:
         reload_dirs=[str(Path(__file__).resolve().parent.parent)] if args.reload else None,
         log_level="warning" if args.quiet else "info",
         server_header=False,
+        proxy_headers=True,
+        forwarded_allow_ips=config.server.trusted_proxies,
     )
     return EXIT_OK
 
@@ -568,7 +578,7 @@ def cmd_mail(args: argparse.Namespace) -> int:
 def cmd_doctor(args: argparse.Namespace) -> int:
     from appwren.cli import doctor
 
-    checks = doctor.run(args.config)
+    checks = doctor.run(args.config, production=args.production)
     width = max(len(check.name) for check in checks)
     for check in checks:
         print(f"{doctor.MARKS[check.status]} {check.name.ljust(width)}  {check.detail}")
@@ -957,6 +967,12 @@ def build_parser() -> argparse.ArgumentParser:
         description="Check the configuration, the data home, the database and its schema, "
         "and the history. Exits with 1 if anything must be fixed.",
     )
+    doctor.add_argument(
+        "--production", action="store_true",
+        help="also check what matters once people depend on it: an https address, the "
+        "database, administrators, sign-in, email, scheduled work, backups, and who can read "
+        "the data home; a demo organization fails",
+    )  # fmt: skip
     doctor.set_defaults(handler=cmd_doctor)
 
     parser.set_defaults(handler=lambda _args: parser.print_help() or EXIT_OK)
