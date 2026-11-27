@@ -49,7 +49,7 @@ main ──●──────────────────────
 - [ ] Private-terms check run over the whole repository
 - [ ] Roadmap and wave status updated
 
-Once the documentation site exists (after wave 2):
+For the documentation site:
 
 - [ ] Screenshots of changed screens retaken (`node scripts/capture.mjs`), and the guides checked against the changelog
 - [ ] The site's own audit passes (`node scripts/site/audit.mjs`): both themes, desk and phone widths

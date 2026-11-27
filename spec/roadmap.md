@@ -56,7 +56,7 @@ Detail: [waves/wave-1.md](waves/wave-1.md)
 | 7 | Exports for a risk analysis | Applications by data class with owners, versions, hosting, sign-in, and support status; external references; the organization-wide history | ☑ |
 | 8 | Release prep | Guides, changelog, release | ☑ |
 
-## Documentation site (between v0.2.0 and v0.3.0) ☐
+## Documentation site (between v0.2.0 and v0.3.0) ☑
 
 **Goal:** a product site that lets someone outside the project find AppWren, see it, and try it. It waits until the main screens have settled; screenshots taken during wave 1 would be stale within weeks. The Markdown in the repository stays the documentation, and the site is built from it unchanged ([ADR-0009](decisions/0009-documentation-toolchain.md)).
 

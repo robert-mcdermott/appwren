@@ -6,6 +6,15 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ## Unreleased
 
+### Added
+
+- **The documentation site.** The guides, with their pictures of the demo organization, are
+  published at <https://robert-mcdermott.github.io/appwren/>: a home page, one page for each
+  guide, the changelog, an API reference written from the OpenAPI document, search, and light
+  and dark themes. `node scripts/site/build.mjs` builds it from `docs/` with Node 22 and no
+  packages, and fails on a broken link, anchor, or picture; `node scripts/site/audit.mjs`
+  checks every page in both themes at desk and phone widths.
+
 ## 0.2.0 (2026-11-26)
 
 Wave 2, *The landscape*: each application in its surroundings. What it sends and receives
