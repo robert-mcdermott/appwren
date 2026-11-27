@@ -52,7 +52,7 @@ from appwren.inventory.registry import (
 from appwren.landscape import costs
 from appwren.oversight import attestation, campaigns, contests, views
 from appwren.people import accounts, units
-from appwren.program import branding, packs, settings
+from appwren.program import branding, catalog, packs, settings
 from appwren.reporting import exchange
 
 SETTING = "demo"
@@ -181,6 +181,9 @@ class Builder:
                 packs.install(session)
                 branding.save(session, ME, {"organization_name": c.ORGANIZATION})
                 self._units(session)
+                # Stage gates came later (0.5.0): the history before them was kept without.
+                settings.put(session, catalog.DECISION_RULES,
+                             {"owners_may_decide": False, "stage_gates": False})  # fmt: skip
             with self.db.write(ME.actor) as session:
                 self._people(session)
             with self.db.write(ME.actor) as session:
@@ -1515,6 +1518,15 @@ class Builder:
             connectors.change(session, admin, connectors.load(session, "github"),
                               {"enabled": False})  # fmt: skip
 
+    def gates(self) -> None:
+        """The portfolio team switches the stage gates on, the day they arrive."""
+        from appwren.program import editing
+
+        manager = self.principal(self.cast["portfolio"])
+        moment = self.end - timedelta(days=6, hours=3)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            editing.save_decision_rules(session, manager, {"stage_gates": True})
+
     def documents(self) -> None:
         """Where each application's documentation is: kept more often where it is in good
         health. Added when the maturity checks came, as a team would fill them in."""
@@ -1928,6 +1940,7 @@ class Builder:
         self.run()
         self.remind()
         self.sources()
+        self.gates()
         self.documents()
         self.code()
         self.signins()

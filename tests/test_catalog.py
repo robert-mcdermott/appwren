@@ -74,6 +74,15 @@ def test_a_catalog_file_comes_in_with_a_dry_run_first(
     api = component(db, people, app, "Sample Tracker API", "service")
     steward = as_role("steward")
     url = f"/api/v1/applications/{app}/catalog"
+    # A file is held to the stage gates like any other change: Active asks for much more.
+    gated = steward.post(url, content=FILE, headers=YAML)
+    assert gated.status_code == 422
+    assert gated.json()["errors"][0]["message"].startswith("Before it moves to Active, record")
+    manager = as_role("manager")
+    assert (
+        manager.put("/api/v1/program/decision-rules", json={"stage_gates": False}).status_code
+        == 200
+    )
     dry = steward.post(url, content=FILE, headers=YAML)
     assert dry.status_code == 200, dry.text
     report = dry.json()["data"]

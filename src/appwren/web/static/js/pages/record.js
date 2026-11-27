@@ -384,7 +384,7 @@ function missingCard(record, ctx) {
   return card({ title: "What its record still needs" },
     now.length ? h("div", { class: "stack-sm" }, h("p", {}, `For ${label(ctx.vocab, "lifecycle", record.lifecycle)}:`),
       h("ul", { class: "bullets" }, now.map((key) => h("li", {}, name(key))))) : h("p", { class: "muted" }, "Everything its stage requires is recorded."),
-    next.length ? h("p", { class: "subtle" }, `Before ${label(ctx.vocab, "lifecycle", nextStage)}: ${next.map(name).join(", ")}.`) : null);
+    next.length ? h("p", { class: "subtle" }, `Before it can move to ${label(ctx.vocab, "lifecycle", nextStage)}: ${next.map(name).join(", ")}.`) : null);
 }
 
 function applicationOverview(record, ctx) {

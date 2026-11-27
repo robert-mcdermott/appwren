@@ -1579,14 +1579,30 @@
       "DecisionRulesBody": {
         "properties": {
           "owners_may_decide": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "Whether an application's accountable owner may record its decision, if they are also a manager or a leader over it",
-            "title": "Owners May Decide",
-            "type": "boolean"
+            "title": "Owners May Decide"
+          },
+          "stage_gates": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether an application may move to a later stage only with what that stage requires",
+            "title": "Stage Gates"
           }
         },
-        "required": [
-          "owners_may_decide"
-        ],
         "title": "DecisionRulesBody",
         "type": "object"
       },
@@ -12642,7 +12658,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Whether owners may decide about their own",
+        "summary": "Who may decide, and whether stages are gated",
         "tags": [
           "program"
         ]

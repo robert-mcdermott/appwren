@@ -295,8 +295,8 @@ def test_owners_record_their_own_decisions_only_where_the_program_allows_and_it_
     manager = who(db, people, "manager")
     with db.write(manager.actor) as session:
         assert editing.save_decision_rules(session, manager, {"owners_may_decide": True}) == {
-            "owners_may_decide": True
-        }
+            "owners_may_decide": True, "stage_gates": True,
+        }  # fmt: skip
     row = decide(db, people, "manager", mine)
     assert row.self_recorded is True
     with db.read() as session:
@@ -307,7 +307,8 @@ def test_owners_record_their_own_decisions_only_where_the_program_allows_and_it_
         assert any(t.endswith("as its own accountable owner") for t in titles)
         listed = next(r for r in portfolio_list(session, manager, {}) if r["ref"] == mine)
         assert listed["self_decided"] is True
-        assert packs.export(session)["decision_rules"] == {"owners_may_decide": True}
+        rules = packs.export(session)["decision_rules"]
+        assert rules == {"owners_may_decide": True, "stage_gates": True}
         assert catalog.check_decision_rules({"owners_may_decide": "yes"})
     # Only the exclusion is lifted: an owner without a manager's or leader's role still cannot.
     member_app = add_app(db, people)

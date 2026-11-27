@@ -34,9 +34,18 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   adds an application in the proposed stage named for it; met by an application on record;
   or declined.
 
+- **Stage gates.** An application cannot move to a later stage without what that stage, and
+  those before it, require; the editor, the API, an import, and a catalog file are refused
+  with what is missing. Moving back, and retiring, need nothing. The gates are on by
+  default and can be switched off on Admin → Program → Decisions, where a record still shows
+  what it lacks.
+
 ### Changed
 
 - Home gives tasks, campaigns, and reviews icons of their own.
+- **Breaking:** with the gates on by default, an import or an API call that moves an
+  application to a later stage without what that stage requires is now refused. Switch the
+  gates off to keep the old behaviour.
 
 ## 0.4.0 (2026-11-26)
 

@@ -29,9 +29,15 @@ class FieldsBody(BaseModel):
 
 
 class DecisionRulesBody(BaseModel):
-    owners_may_decide: bool = Field(
+    owners_may_decide: bool | None = Field(
+        default=None,
         description="Whether an application's accountable owner may record its decision, if "
-        "they are also a manager or a leader over it"
+        "they are also a manager or a leader over it",
+    )
+    stage_gates: bool | None = Field(
+        default=None,
+        description="Whether an application may move to a later stage only with what that "
+        "stage requires",
     )
 
 
@@ -61,7 +67,7 @@ def put_fields(request: Request, body: FieldsBody) -> dict[str, Any]:
         return envelope(editing.save_fields(session, principal, body.fields, body.sensitive_fields))
 
 
-@router.put("/program/decision-rules", summary="Whether owners may decide about their own")
+@router.put("/program/decision-rules", summary="Who may decide, and whether stages are gated")
 def put_decision_rules(request: Request, body: DecisionRulesBody) -> dict[str, Any]:
     principal = current(request)
     with writing(request, principal.actor) as session:

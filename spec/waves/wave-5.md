@@ -64,12 +64,12 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** a request for a capability already served lists every application serving it; approving one adds exactly one proposed application, and ending it twice is refused.
 
-## Slice 4: Stage gates ☐
+## Slice 4: Stage gates ☑
 
 **Goal:** what each stage requires, required.
 
-- [ ] A move to a later stage refused while that stage's required fields are missing, with what is missing, in the editor, the API, and an import
-- [ ] A program switch for the gates
+- [x] A move to a later stage refused while that stage's required fields are missing, with what is missing, in the editor, the API, and an import
+- [x] A program switch for the gates
 
 **Acceptance:** a move short of the stage's requirements is refused with the list; with the gates off it is allowed and the list is still shown.
 
@@ -90,3 +90,5 @@ None block the start. These defaults have been taken and can be changed before t
 ## Notes
 
 Decisions and discoveries made during the wave are logged here, newest last.
+- **Stage gates never stop a retirement.** Stage requirements add up, stage by stage, so a move to *retired* would otherwise ask for a full record. Moving to a retired or archived stage, and moving back, need nothing.
+- **The demo's history was kept without gates.** Its two years were recorded before stage gates existed, so the builder records them with the gates off and the portfolio team switches them on six days before the build.

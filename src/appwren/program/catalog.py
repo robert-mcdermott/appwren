@@ -53,18 +53,25 @@ def definition(session: Session) -> dict[str, Any]:
 
 
 def decision_rules(session: Session) -> dict[str, bool]:
-    """Who may record a decision, beyond managers and leaders. ``owners_may_decide``: an
-    application's own accountable owner may, if they hold that authority too. Off unless the
-    program says otherwise."""
+    """Who may record a decision, beyond managers and leaders, and whether stages are gated.
+    ``owners_may_decide``: an application's own accountable owner may, if they hold that
+    authority too; off unless the program says otherwise. ``stage_gates``: an application
+    cannot move to a later stage without what that stage requires; on unless the program says
+    otherwise."""
     found = settings.get(session, DECISION_RULES, None) or {}
-    return {"owners_may_decide": bool(found.get("owners_may_decide", False))}
+    return {
+        "owners_may_decide": bool(found.get("owners_may_decide", False)),
+        "stage_gates": bool(found.get("stage_gates", True)),
+    }
 
 
 def check_decision_rules(value: Any) -> list[str]:
-    if not isinstance(value, Mapping) or set(value) - {"owners_may_decide"}:
-        return ["The decision rules say only whether owners may decide: owners_may_decide."]
-    if not isinstance(value.get("owners_may_decide", False), bool):
-        return ["owners_may_decide is true or false."]
+    if not isinstance(value, Mapping) or set(value) - {"owners_may_decide", "stage_gates"}:
+        return ["The decision rules say whether owners may decide (owners_may_decide) and "
+                "whether stages are gated (stage_gates)."]  # fmt: skip
+    for key in ("owners_may_decide", "stage_gates"):
+        if not isinstance(value.get(key, False), bool):
+            return [f"{key} is true or false."]
     return []
 
 
