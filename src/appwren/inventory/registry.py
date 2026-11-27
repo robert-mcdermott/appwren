@@ -24,6 +24,7 @@ from appwren.db.models import (
     Deployment,
     FundingSource,
     HostingPlatform,
+    Initiative,
     Interface,
     Review,
     Technology,
@@ -463,6 +464,43 @@ REVIEW = register(
         has_unit=True,
         filters=("status", "state"),
         sorts=("updated_at", "name", "ref", "status", "held_on"),
+    )
+)
+
+INITIATIVE = register(
+    RecordType(
+        "initiative",
+        Initiative,
+        "INI",
+        "initiatives",
+        "initiative",
+        "initiatives",
+        fields=(
+            F(
+                "kind",
+                "Kind",
+                "choice",
+                vocab="initiative_kinds",
+                required=True,
+                default="modernize",
+            ),
+            F(
+                "stage",
+                "Stage",
+                "choice",
+                vocab="initiative_stages",
+                required=True,
+                default="proposed",
+            ),
+            F("owner_id", "Owner", "person", help="Who sees it through."),
+            F("starts_on", "Starts", "date"),
+            F("ends_on", "Ends", "date", help="When the change should be complete."),
+            F("budget", "Budget", "int", help="What it is expected to cost, all told."),
+        ),
+        has_unit=True,
+        filters=("status", "kind", "stage", "owner_id"),
+        more_filters=("application",),
+        sorts=("updated_at", "name", "ref", "status", "starts_on", "ends_on", "stage"),
     )
 )
 

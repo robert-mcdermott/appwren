@@ -1722,6 +1722,81 @@ class Builder:
         ):
             rv.draw(session, manager, rv.load(session, manager, review_ref))
 
+    def initiatives(self) -> None:
+        """An initiative for each decision that commits to a change, started by the portfolio
+        team soon after it, at the stage its dates suggest; and one proposed with no decision
+        behind it yet."""
+        from appwren.db.models import Application, Decision
+        from appwren.inventory.registry import INITIATIVE
+        from appwren.planning import initiatives as ini
+
+        r = random.Random(self.seed * 6151 + 7)  # wave 5's own draws
+        manager = self.principal(self.cast["portfolio"])
+        kinds = {
+            "modernize": ("modernize", "changes"), "replace": ("replace", "retires"),
+            "consolidate": ("consolidate", "retires"), "retire": ("retire", "retires"),
+        }  # fmt: skip
+        with self.db.read() as session:
+            current = [
+                (row, session.get(Application, row.application_id))
+                for row in session.scalars(
+                    select(Decision).where(Decision.superseded_by.is_(None),
+                                           Decision.disposition.in_(list(kinds)))
+                    .order_by(Decision.decided_on)
+                )
+            ]  # fmt: skip
+            plans = [(d.disposition, d.decided_on, d.target_on, app.ref, app.name, app.org_unit_id,
+                      d.successor_id and session.get(Application, d.successor_id).ref,
+                      d.created_at) for d, app in current if app.status == "active"]  # fmt: skip
+        # Consolidations onto the same application are one initiative; any other is its own.
+        groups: dict[tuple[str, str], list[tuple[Any, ...]]] = {}
+        for plan_ in plans:
+            disposition, ref, successor = plan_[0], plan_[3], plan_[6]
+            key = ("onto", successor) if disposition == "consolidate" and successor else (
+                disposition, ref)  # fmt: skip
+            groups.setdefault(key, []).append(plan_)
+        names = {plan_[6]: None for plan_ in plans if plan_[6]}
+        with self.db.read() as session:
+            for successor in names:
+                names[successor] = records.load(session, ME, APPLICATION, successor).name
+        today = self.end.date()
+        for (how, _), batch in groups.items():
+            first = batch[0]
+            disposition, unit, successor = first[0], first[5], first[6]
+            kind, action = kinds[disposition]
+            begins = min(p_[1] for p_ in batch) + timedelta(days=r.randint(20, 60))
+            ends = max(p_[2] or begins + timedelta(days=r.choice([180, 270, 365]))
+                       for p_ in batch)  # fmt: skip
+            stage = "in_progress" if begins <= today else "approved"
+            if how == "onto":
+                title = (f"Move {len(batch)} applications onto {names[successor]}" if len(batch) > 1
+                         else f"Move {first[4]} onto {names[successor]}")  # fmt: skip
+            else:
+                title = f"{disposition.title()} {first[4]}"
+            moment = max(p_[7] for p_ in batch) + timedelta(days=r.randint(2, 9))
+            with (
+                clock_set_to(lambda moment=moment: moment),
+                self.db.write(manager.actor) as session,
+            ):
+                made = records.create(session, manager, INITIATIVE, {
+                    "name": title, "org_unit_id": unit, "kind": kind, "stage": stage,
+                    "owner_id": self.cast["architect"], "starts_on": begins.isoformat(),
+                    "ends_on": ends.isoformat(), "budget": r.choice([None, 15000, 40000, 90000]),
+                })  # fmt: skip
+                wanted = [{"application": p_[3], "action": action} for p_ in batch]
+                if successor:
+                    wanted.append({"application": successor, "action": "receives"})
+                ini.set_applications(session, manager, made, wanted)
+        moment = self.end - timedelta(days=4)
+        with clock_set_to(lambda: moment), self.db.write(manager.actor) as session:
+            root = self.units["IT"]
+            made = records.create(session, manager, INITIATIVE, {
+                "name": "Move the last servers to the cloud", "org_unit_id": root,
+                "kind": "migrate", "stage": "proposed", "owner_id": self.cast["architect"],
+                "starts_on": self.day(120).isoformat(), "ends_on": self.day(480).isoformat(),
+                "summary": "Proposed at the last review; waiting for the next budget round.",
+            })  # fmt: skip
+
     @staticmethod
     def _put(
         session: Session, counts: dict[str, int], record: Any, spec: Any, value: Any,
@@ -1764,6 +1839,7 @@ class Builder:
         self.signins()
         self.pushes()
         self.reviews()
+        self.initiatives()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])
             with self.db.write(manager.actor) as session:

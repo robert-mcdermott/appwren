@@ -178,6 +178,12 @@ export function applicationList(main) {
 const REVIEW_STATES = { planned: ["Planned", ""], open: ["Open", "pill-accent"], closed: ["Closed", "pill-ok"] };
 
 const COLUMNS = {
+  initiative: [
+    ["Kind", (r, v) => label(v, "initiative_kinds", r.kind)],
+    ["Stage", (r, v) => label(v, "initiative_stages", r.stage)],
+    ["Ends", (r) => (r.ends_on ? h("span", { class: "nowrap" }, date(r.ends_on)) : h("span", { class: "subtle" }, "Not said"))],
+    ["Changes", (r) => (r.applications ? plural(r.applications, "application") : h("span", { class: "subtle" }, "Nothing yet"))],
+  ],
   review: [
     ["Held on", (r) => h("span", { class: "nowrap" }, date(r.held_on))],
     ["State", (r) => h("span", { class: `pill ${REVIEW_STATES[r.state]?.[1] ?? ""}` }, REVIEW_STATES[r.state]?.[0] ?? r.state)],

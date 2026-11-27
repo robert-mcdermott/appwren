@@ -1,6 +1,9 @@
 // Recording a decision, and showing decisions and the scores they were made against.
 
-import { get, post } from "../core/api.js";
+import { get, post, put } from "../core/api.js";
+import { navigate } from "../core/router.js";
+import { can } from "../core/session.js";
+import { editRecord } from "./record-forms.js";
 import { button, h } from "../core/dom.js";
 import { date } from "../core/format.js";
 import { label, options } from "../core/lookups.js";
@@ -81,6 +84,27 @@ export async function openSnapshot(snapshotId, vocab) {
   });
 }
 
+// A decision that commits to a change, and what an initiative for it does to the application.
+const CHANGES = { modernize: ["modernize", "changes"], replace: ["replace", "retires"], consolidate: ["consolidate", "retires"],
+  retire: ["retire", "retires"] };
+
+/** An initiative for what a decision commits to, with its application (and the one its users
+ * move to) already named. */
+function startInitiative(record, decision, vocab) {
+  const [kind, action] = CHANGES[decision.disposition];
+  editRecord("initiative", {
+    fixed: false,
+    preset: { name: `${label(vocab, "dispositions", decision.disposition)} ${record.name}`, kind, stage: "approved",
+      org_unit_id: record.org_unit_id, ends_on: decision.target_on ?? null },
+    onDone: async (made) => {
+      const applications = [{ application: record.ref, action }];
+      if (decision.successor) applications.push({ application: decision.successor.ref, action: "receives" });
+      await put(`/api/v1/initiatives/${made.ref}/applications`, { applications });
+      navigate(`/initiatives/${made.ref}`);
+    },
+  });
+}
+
 export function decisionsTab(record, history, vocab, { mayDecide, onDecide }) {
   const now = history.find((d) => !d.superseded);
   const earlier = history.filter((d) => d.superseded);
@@ -95,7 +119,8 @@ export function decisionsTab(record, history, vocab, { mayDecide, onDecide }) {
       h("dt", {}, "Review"), h("dd", {}, date(d.review_on)),
       d.target_on ? [h("dt", {}, "To be done by"), h("dd", {}, date(d.target_on))] : null,
       d.successor ? [h("dt", {}, "Its users move to"), h("dd", {}, recordChip(d.successor))] : null),
-    button("The scores at the time", { kind: "btn-sm btn-ghost", onclick: () => openSnapshot(d.snapshot_id, vocab) }));
+    h("div", { class: "row-sm wrap" }, button("The scores at the time", { kind: "btn-sm btn-ghost", onclick: () => openSnapshot(d.snapshot_id, vocab) }),
+      !d.superseded && CHANGES[d.disposition] && can("keep") ? button("Start an initiative", { kind: "btn-sm", onclick: () => startInitiative(record, d, vocab) }) : null));
   return h("div", { class: "split" },
     h("div", { class: "stack-lg" }, card({ title: "The decision on record",
       actions: mayDecide ? button(now ? "Record a new decision" : "Record a decision", { kind: "btn-sm btn-primary", onclick: onDecide }) : null },

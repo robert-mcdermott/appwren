@@ -1,17 +1,18 @@
-"""Planning change: portfolio reviews and their agendas (PLN-01)."""
+"""Planning change: portfolio reviews and their agendas (PLN-01), and initiatives and the
+roadmap (PLN-02)."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field
 
 from appwren.access.policy import current
-from appwren.api.common import envelope, writing
+from appwren.api.common import envelope, reading, writing
 from appwren.inventory import records
-from appwren.inventory.registry import REVIEW
-from appwren.planning import reviews
+from appwren.inventory.registry import INITIATIVE, REVIEW
+from appwren.planning import initiatives, reviews
 
 router = APIRouter(prefix="/api/v1", tags=["planning"])
 
@@ -73,3 +74,42 @@ def close_review(request: Request, ref: str) -> dict[str, Any]:
     with writing(request, principal.actor) as session:
         review = reviews.close_review(session, principal, reviews.load(session, principal, ref))
         return _shown(session, principal, review)
+
+
+class InitiativeApplicationBody(BaseModel):
+    application: str = Field(description="The application's reference")
+    action: str = Field(default="changes", description="changes, retires, or receives")
+    note: str | None = Field(default=None, max_length=500)
+
+
+class InitiativeApplicationsBody(BaseModel):
+    applications: list[InitiativeApplicationBody]
+
+
+@router.put("/initiatives/{ref}/applications", summary="Say which applications it changes")
+def set_initiative_applications(
+    request: Request, ref: str, body: InitiativeApplicationsBody
+) -> dict[str, Any]:
+    """Replaces the applications it names, each with what it does to it. One the person may
+    not see is left as it was."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        record = records.load(session, principal, INITIATIVE, ref)
+        initiatives.set_applications(
+            session, principal, record, [item.model_dump() for item in body.applications]
+        )
+        return envelope(records.detail(session, principal, INITIATIVE, record))
+
+
+@router.get("/roadmap", summary="Initiatives on a timeline")
+def roadmap(
+    request: Request,
+    unit: int | None = Query(default=None, description="A unit, with those beneath it"),
+    kind: str | None = Query(default=None, description="From initiative_kinds"),
+    stage: str | None = Query(default=None, description="From initiative_stages"),
+    closed: bool = Query(default=False, description="Include those done or cancelled"),
+) -> dict[str, Any]:
+    principal = current(request)
+    with reading(request) as session:
+        filters = {"unit": unit, "kind": kind, "stage": stage, "closed": closed}
+        return envelope(initiatives.roadmap(session, principal, filters))

@@ -61,7 +61,7 @@ from appwren.db.models.people import (
     SessionToken,
     SignInRequest,
 )
-from appwren.db.models.planning import Review, ReviewItem
+from appwren.db.models.planning import Initiative, InitiativeApplication, Review, ReviewItem
 from appwren.db.models.program import Setting
 from appwren.db.models.system import ChainHead, Counter, Event
 
@@ -95,6 +95,8 @@ __all__ = [
     "FundingSource",
     "HostingPlatform",
     "Identity",
+    "Initiative",
+    "InitiativeApplication",
     "Interface",
     "Job",
     "JobRun",

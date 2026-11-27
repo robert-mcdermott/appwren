@@ -1,6 +1,6 @@
 // Planning change on a record's page: a review's agenda. Loaded only on the pages that need it.
 
-import { del, get, post } from "../core/api.js";
+import { del, get, post, put } from "../core/api.js";
 import { button, h, iconButton } from "../core/dom.js";
 import { date, plural } from "../core/format.js";
 import { label } from "../core/lookups.js";
@@ -114,4 +114,70 @@ export function reviewAgenda(record, ctx) {
       h("tbody", {}, rows)))]
       : emptyState({ iconName: "list", title: "Nothing on the agenda yet",
         text: may ? "Draw the agenda to add what needs deciding in its scope: decisions that differ from today's recommendation, decisions due for review, and applications with none." : "Whoever runs the review has not drawn its agenda yet." }));
+}
+
+// --- Initiatives ------------------------------------------------------------------------------
+
+const ACTIONS = [["changes", "Changes it"], ["retires", "Retires it"], ["receives", "Moves work onto it"]];
+
+function editApplications(record, reload) {
+  const rows = record.applications.map((a) => ({ ref: a.ref, name: a.name, action: a.action, note: a.note ?? "" }));
+  openOverlay({
+    title: "The applications it changes",
+    subtitle: `${record.ref} · ${record.name}`,
+    render: (body, footer, close) => {
+      const list = h("div", { class: "stack-sm" });
+      const problem = banner();
+      const draw = () => {
+        list.replaceChildren(...(rows.length ? rows.map((row, index) => h("div", { class: "owner-row" },
+          h("div", { class: "grow" }, recordChip({ ...row, type: "application" }, { link: false })),
+          h("select", { class: "select", "aria-label": `What it does to ${row.name}`, onchange: (event) => { row.action = event.target.value; } },
+            ACTIONS.map(([key, text]) => h("option", { value: key, selected: key === row.action }, text))),
+          h("input", { class: "input", value: row.note, placeholder: "A note", "aria-label": `A note on ${row.name}`, oninput: (event) => { row.note = event.target.value; } }),
+          button("Remove", { kind: "btn-ghost btn-sm", onclick: () => {
+            rows.splice(index, 1);
+            draw();
+          } }))) : [h("p", { class: "muted" }, "None yet.")]));
+      };
+      draw();
+      const finder = recordFinder("application", { exclude: (r) => rows.some((row) => row.ref === r.ref), onPick: (r) => {
+        rows.push({ ref: r.ref, name: r.name, action: "changes", note: "" });
+        draw();
+        finder.refresh();
+      } });
+      const save = button("Save", { kind: "btn-primary" });
+      save.addEventListener("click", async () => {
+        const done = await submit({ button: save, banner: problem,
+          run: () => put(`/api/v1/initiatives/${record.ref}/applications`, { applications: rows.map((row) => ({ application: row.ref, action: row.action, note: row.note || null })) }) });
+        if (done) {
+          close();
+          toast("Saved.");
+          reload();
+        }
+      });
+      body.append(h("div", { class: "stack-lg" }, problem,
+        h("p", { class: "muted" }, "Say what the initiative does to each: changes it, retires it, or moves the work of the others onto it."),
+        list, h("div", { class: "field" }, h("div", { class: "label" }, "Add an application"), finder.node)));
+      footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
+      footer.hidden = false;
+    },
+  });
+}
+
+/** An initiative's applications, what it does to each, and the decision on record for each. */
+export function initiativeApplications(record, ctx) {
+  const vocab = ctx.vocab;
+  const apps = record.applications;
+  return card({ title: apps.length ? `Changes ${plural(apps.length, "application")}` : "What it changes",
+    actions: record.may_keep ? button("Edit", { kind: "btn-sm", onclick: () => editApplications(record, ctx.reload) }) : null, flush: apps.length > 0 },
+  apps.length ? [h("div", { class: "table-wrap" }, h("table", { class: "table" },
+    h("thead", {}, h("tr", {}, ["Application", "What it does", "Decision on record"].map((text) => h("th", { scope: "col" }, text)))),
+    h("tbody", {}, apps.map((a) => h("tr", {},
+      h("td", {}, recordChip(a), h("div", { class: "cell-sub" }, label(vocab, "lifecycle", a.lifecycle))),
+      h("td", {}, a.action_label, a.note ? h("div", { class: "cell-sub" }, a.note) : null),
+      h("td", {}, a.decision ? h("div", { class: "stack-sm" }, disposition(vocab, a.decision.disposition, true),
+        h("span", { class: "cell-sub" }, `${a.decision.by}, ${date(a.decision.decided_on)}`,
+          a.decision.target_on ? `; to be done by ${date(a.decision.target_on)}` : "")) : h("span", { class: "subtle" }, "None"))))))),
+  record.hidden_applications ? h("p", { class: "card-note subtle" }, `${plural(record.hidden_applications, "other application")} it names ${record.hidden_applications === 1 ? "is" : "are"} not shown to you.`) : null]
+    : h("p", { class: "muted" }, "No application is named yet. Say which it changes, retires, or moves work onto."));
 }

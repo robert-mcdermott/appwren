@@ -185,8 +185,22 @@ class ReviewBody(RecordBody):
     tiers: list[str] | None = Field(default=None, description="Only these tiers; empty for all")
 
 
+class InitiativeBody(RecordBody):
+    """A planned change, with the unit that answers for it. Its applications are set apart,
+    at ``/initiatives/{ref}/applications``."""
+
+    org_unit_id: int | None = Field(default=None, description="The unit that answers for it")
+    kind: str | None = Field(default=None, description="From initiative_kinds")
+    stage: str | None = Field(default=None, description="From initiative_stages")
+    owner_id: int | None = None
+    starts_on: date | None = None
+    ends_on: date | None = None
+    budget: int | None = Field(default=None, ge=0)
+
+
 BODIES: dict[str, type[RecordBody]] = {
     "review": ReviewBody,
+    "initiative": InitiativeBody,
     "funding_source": FundingSourceBody,
     "contract": ContractBody,
     "hosting_platform": HostingPlatformBody,

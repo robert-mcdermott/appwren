@@ -23,6 +23,7 @@ export const NAV = [
       { href: "/portfolio", label: "Portfolio chart", iconName: "chart" },
       { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/reviews", label: "Reviews", iconName: "list" },
+      { href: "/roadmap", label: "Roadmap", iconName: "lifecycle" },
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },
       { href: "/contracts", label: "Contracts", iconName: "contract" },

@@ -17,6 +17,15 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   it closes. A closed review changes no more. A review coming up is on Home for the people
   who run it.
 
+- **Initiatives and the roadmap.** An initiative is a planned change (a modernization, a
+  migration, a consolidation, a replacement, a retirement, or another) with an owner, a
+  stage, dates, and the applications it changes, retires, or moves work onto, each shown
+  with the decision on record for it. Portfolio → Roadmap puts initiatives on a timeline by
+  unit, kind, and stage, each bar a link. An application's page lists the initiatives that
+  change it, and a decision to modernize, replace, consolidate, or retire offers to start
+  one with its applications filled in. Their kinds and stages are lists the program can
+  rename.
+
 ### Changed
 
 - Home gives tasks, campaigns, and reviews icons of their own.

@@ -70,3 +70,46 @@ class ReviewItem(Base):
         CheckConstraint(one_of("reason", AGENDA_REASONS), name="reason"),
         Index("ix_review_item_review_id", "review_id"),
     )
+
+
+INITIATIVE_ACTIONS = ("changes", "retires", "receives")
+
+
+class Initiative(RecordMixin, Base):
+    """A planned change: a modernization, a migration, a consolidation, a retirement, or
+    another, with the applications it changes, an owner, a stage, and its dates."""
+
+    __tablename__ = "initiative"
+    __subject__ = "initiative"
+
+    kind: Mapped[str] = mapped_column(String(40))
+    stage: Mapped[str] = mapped_column(String(40), default="proposed")
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey("account.id"))
+    starts_on: Mapped[date | None] = mapped_column(Date)
+    ends_on: Mapped[date | None] = mapped_column(Date)
+    budget: Mapped[int | None] = mapped_column(Integer)
+
+    __table_args__ = (
+        CheckConstraint(one_of("status", RECORD_STATUSES), name="status"),
+        Index("ix_initiative_org_unit_id", "org_unit_id"),
+    )
+
+
+class InitiativeApplication(Base):
+    """An application an initiative changes, and what it does to it: changes it, retires it,
+    or moves work onto it."""
+
+    __tablename__ = "initiative_application"
+    __audit_parent__ = ("initiative", "initiative_id")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    initiative_id: Mapped[int] = mapped_column(ForeignKey("initiative.id", ondelete="CASCADE"))
+    application_id: Mapped[int] = mapped_column(ForeignKey("application.id"))
+    action: Mapped[str] = mapped_column(String(16), default="changes")
+    note: Mapped[str | None] = mapped_column(Text)
+
+    __table_args__ = (
+        UniqueConstraint("initiative_id", "application_id"),
+        CheckConstraint(one_of("action", INITIATIVE_ACTIONS), name="action"),
+        Index("ix_initiative_application_application_id", "application_id"),
+    )

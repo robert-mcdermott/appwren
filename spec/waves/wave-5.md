@@ -43,14 +43,14 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** an agenda drawn from a scope holds exactly the applications that need deciding there; a decision recorded during the review is on its item; a closed review changes no more.
 
-## Slice 2: Initiatives and roadmap ☐
+## Slice 2: Initiatives and roadmap ☑
 
 **Goal:** what the decisions commit the organization to, with dates.
 
-- [ ] `initiative` as a record, with its kind, stage, owner, and dates, and `initiative_application` with what it does to each application
-- [ ] On the initiative: its applications with the decision on record for each; on an application: the initiatives that change it
-- [ ] The roadmap: initiatives on a timeline by unit and kind, each bar a link, with a list that says the same
-- [ ] Starting an initiative from a decision, with its application filled in
+- [x] `initiative` as a record, with its kind, stage, owner, and dates, and `initiative_application` with what it does to each application
+- [x] On the initiative: its applications with the decision on record for each; on an application: the initiatives that change it
+- [x] The roadmap: initiatives on a timeline by unit and kind, each bar a link, with a list that says the same
+- [x] Starting an initiative from a decision, with its application filled in
 
 **Acceptance:** the roadmap shows exactly the initiatives in its filters, and an application's page lists every initiative that names it.
 

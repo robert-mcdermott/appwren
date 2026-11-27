@@ -283,6 +283,15 @@ REACH: dict[tuple[str, str], set[str]] = {
     ("DELETE", "/api/v1/reviews/{ref}/items/{item_id}"): DECIDERS,
     ("POST", "/api/v1/reviews/{ref}/open"): DECIDERS,
     ("POST", "/api/v1/reviews/{ref}/close"): DECIDERS,
+    ("GET", "/api/v1/initiatives"): EVERYONE,
+    ("POST", "/api/v1/initiatives"): KEEPERS,
+    ("GET", "/api/v1/initiatives/{ref}"): EVERYONE,
+    ("PATCH", "/api/v1/initiatives/{ref}"): EVERYONE,
+    ("POST", "/api/v1/initiatives/{ref}/links"): EVERYONE,
+    ("DELETE", "/api/v1/initiatives/{ref}/links/{link_id}"): EVERYONE,
+    ("GET", "/api/v1/initiatives/{ref}/history"): EVERYONE,
+    ("PUT", "/api/v1/initiatives/{ref}/applications"): EVERYONE,
+    ("GET", "/api/v1/roadmap"): EVERYONE,
     ("GET", "/api/v1/maturity"): EVERYONE,
     ("GET", "/api/v1/maturity/{ref}"): EVERYONE,
     ("GET", "/api/v1/applications/{ref}/catalog"): EVERYONE,
@@ -527,6 +536,10 @@ def test_each_role_reaches_exactly_what_it_should(as_role: Clients, people: Peop
                 body = {"to": people.accounts["member"]}
             elif template.endswith("/roles"):
                 body = {"roles": [{"role": "admin"}] if role == "admin" else []}
+            elif (
+                template.endswith("/applications") and method == "PUT" and "initiatives" in template
+            ):
+                body = {"applications": []}
             elif template.endswith("/units") and method == "PUT":
                 body = {"unit_ids": []}
             elif template.endswith("/password"):

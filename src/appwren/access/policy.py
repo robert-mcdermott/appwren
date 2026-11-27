@@ -116,6 +116,16 @@ POLICIES: dict[tuple[str, str], Needs] = {
     ("DELETE", "/api/v1/reviews/{ref}/items/{item_id}"): Needs.DECIDE,
     ("POST", "/api/v1/reviews/{ref}/open"): Needs.DECIDE,
     ("POST", "/api/v1/reviews/{ref}/close"): Needs.DECIDE,
+    # Initiatives and the roadmap: kept by those who add applications, read by anyone
+    ("GET", "/api/v1/initiatives"): Needs.MEMBER,
+    ("POST", "/api/v1/initiatives"): Needs.KEEP,
+    ("GET", "/api/v1/initiatives/{ref}"): Needs.MEMBER,
+    ("PATCH", "/api/v1/initiatives/{ref}"): Needs.MEMBER,
+    ("POST", "/api/v1/initiatives/{ref}/links"): Needs.MEMBER,
+    ("DELETE", "/api/v1/initiatives/{ref}/links/{link_id}"): Needs.MEMBER,
+    ("GET", "/api/v1/initiatives/{ref}/history"): Needs.MEMBER,
+    ("PUT", "/api/v1/initiatives/{ref}/applications"): Needs.MEMBER,
+    ("GET", "/api/v1/roadmap"): Needs.MEMBER,
     # Engineering maturity, for anyone, of what they may see
     ("GET", "/api/v1/maturity"): Needs.MEMBER,
     ("GET", "/api/v1/maturity/{ref}"): Needs.MEMBER,

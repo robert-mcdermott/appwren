@@ -417,6 +417,8 @@ function applicationOverview(record, ctx) {
         ["Replaced by", record.successor ? recordChip(record.successor) : null],
         ["Replaces", record.replaces?.length ? h("div", { class: "chips" }, record.replaces.map((r) => recordChip(r))) : null]])) : null,
       sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
+      record.initiatives?.length ? card({ title: "Initiatives that change it" }, h("ul", { class: "plain-list" },
+        record.initiatives.map((i) => h("li", {}, recordChip(i), h("div", { class: "cell-sub" }, `${i.action_label}${i.ends_on ? `, by ${date(i.ends_on)}` : ""}`))))) : null,
       linksCard(record, ctx),
       externalCard(record, ctx)));
 }
@@ -711,7 +713,7 @@ function connectionsTab(record, ctx) {
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
   const measuring = type === "component" || (type === "application" && tab === "components");
-  const planning = ["review"].includes(type) ? import("../components/planning.js") : null;
+  const planning = ["review", "initiative"].includes(type) ? import("../components/planning.js") : null;
   const [record, vocab, unitIndex, entries, program, fromSources, measured, cards] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
     tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
@@ -897,6 +899,7 @@ function sharedOverview(type, record, ctx) {
     glance.push(["Provider", record.vendor ? recordChip(record.vendor) : "Ourselves"]);
   }
   if (type === "review") glance.push(["Chair", record.chair?.name ?? null]);
+  if (type === "initiative") main.push(ctx.planning.initiativeApplications(record, ctx));
   if (type === "interface") {
     const missing = record.undeclared ?? [];
     main.push(card({ title: "What passes" },

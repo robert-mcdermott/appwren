@@ -152,6 +152,9 @@ export const SCENES = [
   { name: "reviews", as: "portfolio", path: "/reviews" },
   { name: "review", as: "portfolio", path: first("/api/v1/reviews?state=closed", "(rows) => `/reviews/${rows[0].ref}`") },
   { name: "review-upcoming", as: "portfolio", path: first("/api/v1/reviews?state=planned", "(rows) => `/reviews/${rows[0].ref}`") },
+  { name: "roadmap", as: "portfolio", path: "/roadmap" },
+  { name: "initiative", as: "architect", path: first("/api/v1/initiatives?q=Executive", "(rows) => `/initiatives/${rows[0].ref}`") },
+  { name: "decision-start-initiative", as: "architect", path: app("Intranet", "decisions") },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

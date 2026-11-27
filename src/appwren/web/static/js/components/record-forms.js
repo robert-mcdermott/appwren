@@ -140,7 +140,7 @@ function ownInput(spec, value) {
  * Add a record of this type, or edit the one given. ``preset`` fills fields of a new record
  * (a component's application). ``only`` limits the form to some sections, for a short edit.
  */
-export async function editRecord(type, { record = null, preset = {}, only = null, onDone } = {}) {
+export async function editRecord(type, { record = null, preset = {}, only = null, onDone, fixed = true } = {}) {
   const meta = TYPES[type];
   const [program, vocab, unitIndex] = await Promise.all([catalog(), vocabularies(), loadUnits()]);
   const spec = program.types[type];
@@ -166,7 +166,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
     render: (body, footer, close) => {
       const withheld = new Set(record?.withheld ?? []);
       const named = type === "deployment"; // named for what runs and where, unless someone names it
-      const name = field("Name", { value: record?.name ?? "", required: !named, hint: named && !record ? "Leave empty to name it for what runs and where." : null });
+      const name = field("Name", { value: record?.name ?? preset.name ?? "", required: !named, hint: named && !record ? "Leave empty to name it for what runs and where." : null });
       const summary = field("Summary", { type: "textarea", rows: 3, value: record?.summary ?? "" });
       const header = [name.node, summary.node];
       const fields = { name, summary };
@@ -174,7 +174,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
       let unit = null;
       if (spec.has_unit) {
         unit = select("Unit", unitOptions(unitIndex.tree, { only: ownUnits(type), blank: record ? null : "Choose…" }),
-          { value: record?.org_unit_id ?? "", required: true, hint: "The unit that answers for it." });
+          { value: record?.org_unit_id ?? preset.org_unit_id ?? "", required: true, hint: "The unit that answers for it." });
         header.push(unit.node);
         fields.org_unit_id = unit;
         readers.org_unit_id = () => (unit.input.value ? Number(unit.input.value) : null);
@@ -188,7 +188,7 @@ export async function editRecord(type, { record = null, preset = {}, only = null
           ? { ...f, help: "The sum of its cost lines. Change them on its Cost part." } : f, value, ctx);
         if (f.name === "annual_cost" && record?.has_cost_lines && made.field) made.field.input.disabled = true;
         // What the form was opened for (a component's application, an interface's near end) is fixed.
-        if (!record && f.name in preset && made.field) made.field.input.disabled = true;
+        if (fixed && !record && f.name in preset && made.field) made.field.input.disabled = true;
         if (made.field) fields[f.name] = made.field;
         readers[f.name] = made.read;
         (bySection[f.section] ??= []).push(made.node);
