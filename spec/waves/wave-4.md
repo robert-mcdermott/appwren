@@ -2,7 +2,7 @@
 
 **Goal:** most technical facts arrive by themselves from the tools that already know them, labelled with their source, and never override a person ([ADR-0003](../decisions/0003-quiet-by-default.md)). Waves 1 to 3 made a record people can keep current. This wave lets the facts that are already known somewhere else (when code last changed and by how many people, when a release stops being supported, how many people signed in) arrive without anyone typing them, while a fresh installation still makes no connection to anything.
 
-**Branch:** `wave-4` · **Target version:** `0.4.0` · **Status:** ◐ in progress
+**Branch:** `wave-4` · **Target version:** `0.4.0` · **Status:** ☑ done
 
 Engineers come first here ([roadmap](../roadmap.md)): the code-hosting and end-of-life connectors are the ones built and polished first, because they answer the questions engineers are asked most (what is this built on, is it still supported, who keeps it).
 
@@ -106,9 +106,9 @@ Built with slice 1, as the framework's first connector: it needs no credential, 
 
 **Acceptance:** a component's level is exactly what its checks give, and the report's counts are the length of the lists behind them.
 
-## Slice 7: Release prep ☐
+## Slice 7: Release prep ☑
 
-- [ ] Guides, changelog, upgrade from 0.3.0 on both databases, audits, release, and the site republished
+- [x] Guides, changelog, upgrade from 0.3.0 on both databases, audits, release, and the site republished
 
 ## Notes
 
@@ -126,3 +126,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - **Signals come on top of a dimension's weights.** A signal factor (incidents, dependency alerts, code activity, engineering maturity, support load) counts only where a source supplies it; elsewhere it does not apply, which is not the same as unknown, so it neither lowers confidence nor moves a score. A dimension's other factors still add up to 100. The working names the source of each signal, and of a field a source fills, such as users. The default model has them; an installation running an earlier default unchanged gets them on upgrade, and one that shaped its own model keeps it.
 - **Only what is built here is measured.** Engineering maturity is measured for applications built here and for any with a repository recorded; a bought product's engineering is its vendor's, and it is shown as not measured. A check about code applies to every component that is code, so code with no repository recorded cannot pass it; a database or infrastructure is not code.
 - **The worked example stays as spec/engine.md has it.** The demo gives no signals to the worked example's application, so its scores are worked through exactly as before.
+- **The upgrade from 0.3.0 was checked on both databases.** A 0.3.0 demo built by 0.3.0, upgraded by this release: no row lost, the history verifies, every decision's snapshot digest is unchanged, the unshaped default model became version 2 with the signals and maturity levels, and not one of the 107 applications' scores, recommendations, or confidence moved.

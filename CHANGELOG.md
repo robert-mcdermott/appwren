@@ -4,7 +4,18 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.4.0 (2026-11-26)
+
+Wave 4, *Signals*: the facts other tools already know arrive by themselves, marked with
+where they came from, and never over a person. Connectors, each switched on by an
+administrator for one named source, read support dates, what the repositories know, and who
+signs in; the organization's own tools post the rest with a key that can do nothing else; a
+catalog file kept beside the code describes an application and its components. Engineering
+maturity is measured from checks rather than claims, and what sources supply joins the
+scores only where they supply it. A new installation still makes no connection to anything.
+
+Upgrade with `uv sync` and `uv run appwren db upgrade`. Every row and file is kept, no
+connector is switched on, and no score moves until a source supplies something.
 
 ### Added
 
@@ -60,8 +71,16 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   support tickets in cost and burden. Each counts only where a source supplies it, so an
   application without one scores as before, and the working names where each came from.
   An installation running an earlier default model unchanged gets them on upgrade.
+- **Facts from other systems,** a new guide, and a section on connector credentials in
+  Configuration.
 - The history names the release whose dates changed, and shows the reason given for an
   override.
+
+### Changed
+
+- A scoring model's dimension adds up to 100 without its signals; a signal comes on top.
+- The API fetches nothing an administrator has not switched on. A push key is the one
+  credential besides a session, and it only posts facts.
 
 ### Fixed
 

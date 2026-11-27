@@ -14,9 +14,9 @@ export function importCatalog(record, ctx) {
     render: (body, footer, close) => {
       const text = field("The file", { type: "textarea", rows: 12, spellcheck: "false", class: "textarea code-input",
         hint: "Paste a catalog-info.yaml kept beside the code: a System document for the application, and a Component or Resource document for each part." });
-      const chooser = h("input", { type: "file", accept: ".yaml,.yml,text/yaml", "aria-label": "Choose a catalog file" });
-      chooser.addEventListener("change", async () => {
-        const file = chooser.files?.[0];
+      const chooser = field("Or choose the file", { type: "file", accept: ".yaml,.yml,text/yaml" });
+      chooser.input.addEventListener("change", async () => {
+        const file = chooser.input.files?.[0];
         if (file) text.input.value = await file.text();
       });
       const problem = banner();
@@ -46,7 +46,7 @@ export function importCatalog(record, ctx) {
           ctx.reload();
         }
       });
-      body.append(h("div", { class: "stack" }, problem, chooser, text.node, result));
+      body.append(h("div", { class: "stack" }, problem, text.node, chooser.node, result));
       footer.replaceChildren(h("div", { class: "row" }, check, apply, button("Cancel", { kind: "btn-ghost", onclick: close })));
       footer.hidden = false;
     },

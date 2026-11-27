@@ -139,7 +139,15 @@ export const SCENES = [
   { name: "applications-maturity", as: "portfolio", path: "/applications?maturity=none" },
   { name: "application-working-signals", as: "portfolio", path: app("Freezer Watch", "scores") },
   { name: "push-key", as: "admin", path: "/admin/connectors", step: click("Issue a key") },
-  { name: "catalog-import", as: "res_steward", path: app("Specimen Tracker", "components"), step: click("Import one") },
+  { name: "catalog-import", as: "res_steward", path: app("Specimen Tracker", "components"),
+    step: `(async () => { const ref = location.pathname.split("/")[2];
+      const text = await (await fetch(\`/api/v1/applications/\${ref}/catalog\`)).text();
+      ${click("Import one")}; await new Promise((done) => setTimeout(done, 700));
+      const box = document.querySelector("[role=dialog] textarea");
+      if (!box) { window.__sceneMissed = "the catalog file box"; return; }
+      box.value = text.replace(/description: .*/, "description: Follows every specimen from collection to release.")
+        + "---\\napiVersion: appwren/v1\\nkind: Component\\nmetadata:\\n  name: specimen-labels\\n  title: Specimen Labels\\nspec:\\n  type: library\\n";
+      ${click("Check what would change")}; await new Promise((done) => setTimeout(done, 1200)); })()` },
   { name: "sourced-override", as: "architect", path: record("technologies", "Python"),
     step: `document.querySelectorAll("details").forEach((d) => { d.open = true; }); ${press("Override support ends of 3.12")}` },
 ];

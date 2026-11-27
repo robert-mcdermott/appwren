@@ -121,6 +121,7 @@ Changing the scoring model changes every application's scores at once, the next 
 - **New vocabularies** arrive with their defaults. A vocabulary you have changed is left as you have it.
 - **The scoring model.** Version 0.2.0 has a new default model: *cost and burden* is now annual cost 30, cost per user 15, license use 10, support effort 25, and change effort 20, and there are two new flags. If you are still running the previous default unchanged, the upgrade publishes the new one as a new version, and scores for cost and burden move. **If you have shaped your model, it is kept as it is.** To take the new factors, export the default from a fresh installation or copy them from [the engine](../spec/engine.md#cost-and-burden-cb) into your pack.
 - **The cadence.** Version 0.3.0 adds to the default model how often records are confirmed and what a stale one costs, when reminders go, and how far ahead tasks are raised. A model nobody has changed since 0.1.0 or 0.2.0 is replaced by the new default. A model you have shaped is kept, and uses the same values until you set them on **Admin → Program**.
+- **Signals and engineering maturity.** Version 0.4.0 adds to the default model the [signals](signals.md#signals-in-the-scores) sources supply (incidents, dependency alerts, code activity, engineering maturity, and support load), each counting only where a source supplies it, and the maturity levels beside the cadence. A model nobody has changed since an earlier release is replaced by the new default; no score moves until a source supplies something. A model you have shaped is kept, with no signals, and measures maturity by the default levels.
 - **Nothing is stale on the day of an upgrade.** A record that has never been confirmed is due one period after the upgrade, not one period after it was added.
 - Decisions already recorded keep the snapshot of the scores they were made against, whatever the model becomes.
 
@@ -174,6 +175,7 @@ AppWren does some work by itself, so that nobody has to remember to. **Admin →
 | **Triggers** | Every hour | Raises a task when a contract's notice date is near, a release nears its end of support, a grant nears its end, or an owner leaves; closes tasks whose cause is settled |
 | **Reminders** | Every hour | Reminds people of what is nearly due or late, and tells stewards and leaders what stays late; closes campaign items whose thing has been done |
 | **Email** | Every minute | Sends notices and daily summaries, where email is set up |
+| **Connectors** | Every 15 minutes | Runs each [connector](signals.md#connectors) an administrator has switched on, when it is due |
 | **Monthly snapshot** | Every six hours | Takes the month's portfolio snapshot, once |
 | **Housekeeping** | Every day | Removes records of old runs and sign-ins that were never finished |
 

@@ -70,7 +70,7 @@ function overrideForm(item, { ref, release, reload }) {
         }
       });
       body.append(h("div", { class: "stack" }, problem,
-        h("p", { class: "muted" }, `${item.source_name} last read `, h("strong", {}, sourcedValue(item, item.value)), ` ${relative(item.read_at)}.`),
+        h("p", { class: "muted" }, `${item.source_name} read `, h("strong", {}, sourcedValue(item, item.value)), `, ${relative(item.read_at)}.`),
         value.node, reason.node));
       footer.replaceChildren(h("div", { class: "row" }, save, button("Cancel", { kind: "btn-ghost", onclick: close })));
       footer.hidden = false;

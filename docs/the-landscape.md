@@ -120,7 +120,7 @@ An application all of whose technologies are supported scores better for technol
 
 ### Support dates from a file
 
-Support dates can be typed on each technology's page, or brought in from a file so that nobody types them. AppWren does not fetch the file: you bring it.
+Support dates can be typed on each technology's page, brought in from a file, or read by the [end-of-life connector](signals.md#end-of-life-data) once an administrator switches it on, so that nobody types them. For a file, AppWren fetches nothing: you bring it.
 
 1. On each technology, set its **End-of-life key**: the name the file knows it by, such as `python` or `postgresql`.
 2. Get a JSON file of end-of-life data. It is one object: each product's key, with its list of releases.

@@ -83,19 +83,19 @@ Detail: [waves/wave-2.md](waves/wave-2.md)
 
 Detail: [waves/wave-3.md](waves/wave-3.md)
 
-## Wave 4: Signals (v0.4.0) ◐
+## Wave 4: Signals (v0.4.0) ☑
 
 **Goal:** most technical facts arrive by themselves from the tools that already know them, labelled with their source, and never override a person ([ADR-0003](decisions/0003-quiet-by-default.md)).
 
 | Slice | Name | Delivers | Status |
 |---|---|---|---|
-| 1 | Connector framework | Enabling, scheduling, run records, sourced values with overrides, the operations page | ☐ |
-| 2 | Source code hosting | Languages, last change, contributors, and dependency alerts per repository | ☐ |
-| 3 | End-of-life data | Support dates for technology releases from a public dataset | ☐ |
-| 4 | Identity provider | Registered applications for discovery; sign-in counts as active users | ☐ |
-| 5 | Push and catalog files | One generic push format for any fact; software catalog files from repositories | ☐ |
-| 6 | Engineering maturity | Automated checks per component rolled up to bronze, silver, or gold | ☐ |
-| 7 | Release prep | Guides, changelog, release | ☐ |
+| 1 | Connector framework | Enabling, scheduling, run records, sourced values with overrides, Admin → Connectors | ☑ |
+| 2 | Source code hosting | Languages, last change, contributors, and dependency alerts per repository | ☑ |
+| 3 | End-of-life data | Support dates for technology releases from a public dataset | ☑ |
+| 4 | Identity provider | Registered applications not on record, to add or dismiss; sign-ins as active users | ☑ |
+| 5 | Push and catalog files | One generic push format for any fact; software catalog files from repositories | ☑ |
+| 6 | Engineering maturity | Automated checks per component rolled up to bronze, silver, or gold | ☑ |
+| 7 | Release prep | Guides, changelog, release | ☑ |
 
 Detail: [waves/wave-4.md](waves/wave-4.md)
 
