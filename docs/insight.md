@@ -1,6 +1,6 @@
 # Insight
 
-This guide is for the portfolio team and for leadership: those who ask how the portfolio is moving, where its cost and use are concentrated, and what happened over a quarter. It covers trends between snapshots, an application's scores over time, shares of the portfolio, leadership reports, and the record as it stood on a past day.
+This guide is for the portfolio team and for leadership: those who ask how the portfolio is moving, where its cost and use are concentrated, and what happened over a quarter. It covers trends between snapshots, an application's scores over time, shares of the portfolio, leadership reports, the record as it stood on a past day, and scenarios.
 
 Everything here is read from what AppWren already keeps. A portfolio snapshot keeps every scored application's scores as they were ([Portfolio snapshots](running-the-program.md#portfolio-snapshots)); a decision keeps the scores it was made on; and a leadership report, once made, keeps every figure in it. None of it is worked out again later from the records as they have since become.
 
@@ -61,6 +61,30 @@ Nothing is kept for this. Every change to a record is in its history with the va
 An application's **History** part offers **As it stood on a day**: each of its values then beside its value now, those that have changed first, the decision on record then, its scores in the snapshot of the time, and how many changes have been made since. A value someone may not see now, such as cost, is not shown for then either.
 
 ![An application as it stood half a year ago: its scores then, and each value then beside its value now, those that changed first](img/application-as-of-light.webp)
+
+## Scenarios
+
+A **scenario** asks what a set of changes would do before anyone commits to it. It is a record of its own (`SCN-0001`) under **Portfolio → Scenarios**, kept by architects and managers and read by everyone. **Edit the changes** names the applications and what would happen to each:
+
+| Change | What it means |
+|---|---|
+| **Retire it** | It goes, and nothing takes its place |
+| **Consolidate it into** another | Its users and work move onto an application that stays |
+| **Replace it with** another | An application on record, in service or proposed, takes its place |
+
+Its page then says what that would do, worked out from the records as they are each time it is opened:
+
+| Effect | Worked out from |
+|---|---|
+| **Saved a year** | The annual cost of the applications that would go, before the cost of anything that takes their place. Only for those who may see what they cost |
+| **People whose application would change** | Their counts of users |
+| **Interfaces that would stop** | Each interface between an application that would go and one that stays, other than the one its work moves into |
+| **Capabilities left with nothing** | Each capability that only the applications going serve, among those in service |
+| **The risk that would go with them** | Each one's risk exposure and the warnings and dangers flagged on it today |
+
+![A scenario: six labs' image analysis consolidated into the imaging core's pipeline, and what it would save and whom it would affect](img/scenario-light.webp)
+
+**A scenario changes nothing.** No application's record, decision, or stage moves while it is built or changed. When it is agreed, **Make an initiative of it** adds a proposed initiative ([Initiatives and the roadmap](planning-change.md#initiatives-and-the-roadmap)) named after it, retiring the applications it takes away and moving their work onto those that take their place. The scenario keeps a link to the initiative, and changes no more.
 
 ## Next
 

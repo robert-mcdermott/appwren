@@ -24,6 +24,7 @@ export const NAV = [
       { href: "/decisions", label: "Decisions", iconName: "decision" },
       { href: "/reviews", label: "Reviews", iconName: "list" },
       { href: "/roadmap", label: "Roadmap", iconName: "lifecycle" },
+      { href: "/scenarios", label: "Scenarios", iconName: "chart" },
       { href: "/requests", label: "Requests", iconName: "plus" },
       { href: "/campaigns", label: "Campaigns", iconName: "bell" },
       { href: "/components", label: "Components", iconName: "component" },

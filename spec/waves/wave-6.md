@@ -61,13 +61,13 @@ None block the start. These defaults have been taken and can be changed before t
 
 **Acceptance:** an application changed after a date shows, as of that date, the values it had then.
 
-## Slice 4: Scenarios ☐
+## Slice 4: Scenarios ☑
 
 **Goal:** what a set of changes would do, before anyone commits to it.
 
-- [ ] `scenario` with its proposed changes: retire, consolidate into, or replace
-- [ ] Its effect: cost saved, people whose application changes, interfaces that would break, capabilities left uncovered, risk taken away
-- [ ] Turning a scenario into an initiative
+- [x] `scenario` with its proposed changes: retire, consolidate into, or replace
+- [x] Its effect: cost saved, people whose application changes, interfaces that would break, capabilities left uncovered, risk taken away
+- [x] Turning a scenario into an initiative
 
 **Acceptance:** a scenario's effect is exactly what its applications' records give, and building one changes no record.
 

@@ -1952,6 +1952,31 @@ class Builder:
                     app = records.load(session, manager, APPLICATION, self.apps[app_name])
                     rt.mark(session, manager, app, key, True, notes[key].split(",")[0])
 
+    def scenarios(self) -> None:
+        """A scenario the architect is weighing: every lab's own image analysis scripts moved
+        onto the imaging core's pipeline. It changes nothing until someone acts on it."""
+        from appwren.insight import scenarios
+        from appwren.inventory.registry import SCENARIO
+
+        architect = self.principal(self.cast["architect"])
+        labs = sorted(name for name in self.apps if name.endswith("Lab Image Analysis"))
+        if not labs or "Imaging Pipeline" not in self.apps:
+            return
+        moment = self.end - timedelta(days=3)
+        with clock_set_to(lambda: moment), self.db.write(architect.actor) as session:
+            record = records.create(session, architect, SCENARIO, {
+                "name": "One imaging pipeline for the labs",
+                "summary": "Each lab keeps its own scripts for measuring microscope images. "
+                           "What if the imaging core's pipeline did it for all of them?",
+            })  # fmt: skip
+            scenarios.set_changes(session, architect, record, [
+                {"application": self.apps[name], "action": "consolidate",
+                 "into": self.apps["Imaging Pipeline"],
+                 "note": "Its measurements become a step in the core's pipeline"}
+                for name in labs
+            ])  # fmt: skip
+        self.tally("scenarios")
+
     def reports(self) -> None:
         """A leadership report for the last full quarter, made by the portfolio manager."""
         from appwren.insight import reports
@@ -2013,6 +2038,7 @@ class Builder:
         self.initiatives()
         self.requests()
         self.retirements()
+        self.scenarios()
         self.reports()
         with clock_set_to(lambda: self.end):
             manager = self.principal(self.cast["portfolio"])

@@ -25,6 +25,11 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   chosen day, with each one's stage and decision then beside now; an application's History
   part shows it as it stood on a day, value by value, with its decision and scores then.
   Both are read from the history: nothing is stored for them.
+- **Scenarios.** Portfolio → Scenarios holds proposed sets of changes (retire this,
+  consolidate that into this, replace) with what each would do: the cost saved a year, the
+  people whose application would change, the interfaces that would stop, the capabilities
+  left with nothing, and the risk that would go with them. A scenario changes nothing until
+  it is made into a proposed initiative.
 
 ### Changed
 

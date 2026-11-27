@@ -1,5 +1,6 @@
 """Insight: trends between portfolio snapshots, scores over time, and shares of the
-portfolio (RPT-04, SCR-14), leadership reports (RPT-05), and the record as of a day (RPT-06)."""
+portfolio (RPT-04, SCR-14), leadership reports (RPT-05), the record as of a day (RPT-06),
+and scenarios (PLN-04)."""
 
 from __future__ import annotations
 
@@ -10,9 +11,9 @@ from pydantic import BaseModel, Field
 
 from appwren.access.policy import current
 from appwren.api.common import envelope, reading, writing
-from appwren.insight import asof, reports, shares, trends
+from appwren.insight import asof, reports, scenarios, shares, trends
 from appwren.inventory import records
-from appwren.inventory.registry import APPLICATION
+from appwren.inventory.registry import APPLICATION, INITIATIVE, SCENARIO
 
 router = APIRouter(prefix="/api/v1", tags=["insight"])
 
@@ -100,3 +101,45 @@ def application_as_of(
     with reading(request) as session:
         app = records.load(session, principal, APPLICATION, ref)
         return envelope(asof.application(session, principal, app, asof.day(on)))
+
+
+class ScenarioChangeBody(BaseModel):
+    application: str = Field(description="The application's reference")
+    action: str = Field(description="retire, consolidate, or replace")
+    into: str | None = Field(default=None, description="What it moves into, or is replaced by")
+    note: str | None = Field(default=None, max_length=500)
+
+
+class ScenarioChangesBody(BaseModel):
+    changes: list[ScenarioChangeBody]
+
+
+class ScenarioInitiativeBody(BaseModel):
+    name: str | None = Field(default=None, max_length=200, description="The scenario's, if none")
+    org_unit_id: int | None = Field(default=None, description="The first application's, if none")
+
+
+@router.put("/scenarios/{ref}/changes", summary="Say what a scenario would change")
+def set_scenario_changes(request: Request, ref: str, body: ScenarioChangesBody) -> dict[str, Any]:
+    """Replaces the applications it names, each retired, consolidated into another, or
+    replaced by another. Its effect is worked out again. No application changes."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        record = records.load(session, principal, SCENARIO, ref)
+        scenarios.set_changes(
+            session, principal, record, [item.model_dump() for item in body.changes]
+        )
+        return envelope(records.detail(session, principal, SCENARIO, record))
+
+
+@router.post("/scenarios/{ref}/initiative", summary="Make an initiative of a scenario",
+             status_code=201)  # fmt: skip
+def scenario_to_initiative(
+    request: Request, ref: str, body: ScenarioInitiativeBody
+) -> dict[str, Any]:
+    """A proposed initiative naming the same applications. The scenario changes no more."""
+    principal = current(request)
+    with writing(request, principal.actor) as session:
+        record = records.load(session, principal, SCENARIO, ref)
+        made = scenarios.to_initiative(session, principal, record, body.model_dump())
+        return envelope(records.detail(session, principal, INITIATIVE, made))

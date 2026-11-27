@@ -567,7 +567,8 @@ function connectionsTab(record, ctx) {
 async function loadRecord(type, ref, tab) {
   const base = `/api/v1/${TYPES[type].path}/${ref}`;
   const measuring = type === "component" || (type === "application" && tab === "components");
-  const planning = ["review", "initiative", "request"].includes(type) ? import("../components/planning.js") : null;
+  const planning = ["review", "initiative", "request"].includes(type) ? import("../components/planning.js")
+    : type === "scenario" ? import("../components/scenario.js") : null;
   const [record, vocab, unitIndex, entries, program, fromSources, measured, cards] = await Promise.all([
     get(base, null, { fresh: true }), vocabularies(), units(),
     tab === "history" ? get(`${base}/history`, null, { fresh: true }) : null, catalog(),
@@ -759,6 +760,7 @@ function sharedOverview(type, record, ctx) {
     glance.push(["Provider", record.vendor ? recordChip(record.vendor) : "Ourselves"]);
   }
   if (type === "review") glance.push(["Chair", record.chair?.name ?? null]);
+  if (type === "scenario") glance.push(["Would change", record.changes.length ? plural(record.changes.length, "application") : null], ["Became", record.initiative ? recordChip(record.initiative) : null]);
   if (type === "initiative") main.push(ctx.planning.initiativeApplications(record, ctx));
   if (type === "request") main.push(...ctx.planning.requestPanel(record, ctx));
   if (type === "interface") {
@@ -777,8 +779,9 @@ function sharedOverview(type, record, ctx) {
   const split = h("div", { class: "split" }, h("div", { class: "stack-lg" }, main),
     h("div", { class: "stack-lg" }, card({ title: "At a glance" }, facts(glance)),
       sourcedCard(record.ref, ctx.sourced, { canEdit: record.can?.edit, reload: ctx.reload }),
-      ["review", "request"].includes(type) ? null : externalCard(record, ctx)));
+      ["review", "request", "scenario"].includes(type) ? null : externalCard(record, ctx)));
   // A review's agenda is the page: it takes the whole width.
+  if (type === "scenario") return h("div", { class: "stack-lg" }, split, ...ctx.planning.scenarioPanel(record, ctx));
   return type === "review" ? h("div", { class: "stack-lg" }, ctx.planning.reviewAgenda(record, ctx), split) : split;
 }
 

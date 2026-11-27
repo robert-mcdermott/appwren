@@ -278,6 +278,9 @@ See [Insight](insight.md).
 | `GET /shares` | The costliest tenth, the dearest tenth per user, the least used fifth, and the oldest fifth of the applications in service |
 | `GET` · `POST /reports` · `GET /reports/{ref}` | Leadership reports, the latest period first; make one with a `title`, `period_from`, and `period_to` (a manager); one report as it was made, with its `digest` and whether it is `intact`. Read by those who may see every record |
 | `GET /as-of` · `GET /applications/{ref}/as-of` | The portfolio `on` a day: the applications in service at its end, each with its stage, unit, tier, and decision then and now; one application on a day, each value then beside now, with its decision and scores then. Read from the history |
+| `GET` · `POST /scenarios` · `GET` · `PATCH /scenarios/{ref}` | Scenarios, as records with a `name` and `summary`, kept by architects and managers; one scenario, with its `changes` and their `effect`: `cost_saved`, `people`, `interfaces`, `capabilities`, and `risk` |
+| `PUT /scenarios/{ref}/changes` | The `changes` it would make: each an `application`, an `action` (`retire`, `consolidate`, or `replace`), the application it moves `into` or is replaced by, and a `note`. Changes no application |
+| `POST /scenarios/{ref}/initiative` | Make a proposed initiative of it, with a `name` and `org_unit_id` if not its own; the scenario then changes no more |
 
 ### The program and the installation
 
