@@ -20,7 +20,7 @@
 <a class="skip" href="#content">Skip to content</a>
 <header class="top">
   <button class="menu-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
-  <a class="brand" href="index.html"><img src="assets/wren-mark.svg" alt="" width="26" height="26"><span>AppWren</span><span class="version">v0.2.0</span></a>
+  <a class="brand" href="index.html"><img src="assets/wren-mark.svg" alt="" width="26" height="26"><span>AppWren</span><span class="version">v0.3.0</span></a>
   <div class="search" role="search">
     <input id="search" type="search" placeholder="Search the docs" aria-label="Search the docs" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="results">
     <kbd>/</kbd>
@@ -32,7 +32,7 @@
   <a class="github" href="https://github.com/robert-mcdermott/appwren" rel="noopener">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="menu" id="menu" aria-label="Documentation"><div class="menu-group"><div class="menu-title">Start</div><ul><li><a href="index.html" aria-current="page">Overview</a></li><li><a href="getting-started.html">Getting started</a></li></ul></div><div class="menu-group"><div class="menu-title">Use</div><ul><li><a href="the-portfolio.html">The portfolio</a></li><li><a href="the-landscape.html">The landscape</a></li><li><a href="running-the-program.html">Running the program</a></li></ul></div><div class="menu-group"><div class="menu-title">Run</div><ul><li><a href="configuration.html">Configuration</a></li></ul></div><div class="menu-group"><div class="menu-title">Reference</div><ul><li><a href="api.html">The API</a></li><li><a href="api-reference.html">API reference</a></li><li><a href="cli.html">Command reference</a></li><li><a href="changelog.html">Changelog</a></li></ul></div></nav>
+  <nav class="menu" id="menu" aria-label="Documentation"><div class="menu-group"><div class="menu-title">Start</div><ul><li><a href="index.html" aria-current="page">Overview</a></li><li><a href="getting-started.html">Getting started</a></li></ul></div><div class="menu-group"><div class="menu-title">Use</div><ul><li><a href="the-portfolio.html">The portfolio</a></li><li><a href="the-landscape.html">The landscape</a></li><li><a href="keeping-current.html">Keeping current</a></li><li><a href="running-the-program.html">Running the program</a></li></ul></div><div class="menu-group"><div class="menu-title">Run</div><ul><li><a href="configuration.html">Configuration</a></li></ul></div><div class="menu-group"><div class="menu-title">Reference</div><ul><li><a href="api.html">The API</a></li><li><a href="api-reference.html">API reference</a></li><li><a href="cli.html">Command reference</a></li><li><a href="changelog.html">Changelog</a></li></ul></div></nav>
   <main id="content" class="content">
 <section class="hero">
   <p class="eyebrow">Open-source application portfolio management</p>
@@ -188,9 +188,53 @@
 
 <section class="feature flip">
   <div class="feature-text">
+    <p class="eyebrow">Keeping current</p>
+    <h2 id="a-record-that-says-when-it-is-stale">A record that says when nobody has looked at it</h2>
+    <p>The people who keep an application confirm its record in one step, every six months for the most critical and every year for the rest. They are reminded before it falls due and after; if it stays late, their steward hears, then their leader.</p>
+    <p>A record past its date says so on its page, in data quality, and in its scores: its data confidence is fifteen points lower until someone confirms it, so a portfolio that goes stale cannot look as sure of itself as one that is kept.</p>
+    <p><a class="more" href="keeping-current.html#confirm-the-record">Confirm the record</a></p>
+  </div>
+  <figure class="shot"><a href="img/application-stale-light.webp" class="only-light"><img src="img/application-stale-light.webp" alt="An application whose record is past its confirmation date: the warning below its scores, with what it costs in confidence" width="1360" height="860" loading="lazy"></a><a href="img/application-stale-dark.webp" class="only-dark"><img src="img/application-stale-dark.webp" alt="An application whose record is past its confirmation date: the warning below its scores, with what it costs in confidence" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">Campaigns</p>
+    <h2 id="ask-the-owners-and-see-who-has-answered">Ask the owners, and see who has answered</h2>
+    <p>A campaign asks everyone who answers for the applications in a unit to confirm their records, or to assess them, by a date. Before it starts it says whom it would ask, and which applications have nobody to ask.</p>
+    <p>There is nothing to tick: an application is done when its record is confirmed or it is assessed. The campaign's page shows coverage by unit, least covered first, each figure the length of the list behind it.</p>
+    <p><a class="more" href="keeping-current.html#campaigns">Campaigns</a></p>
+  </div>
+  <figure class="shot"><a href="img/campaign-light.webp" class="only-light"><img src="img/campaign-light.webp" alt="A campaign under way: how much is done, coverage by unit with the least covered first, and every application" width="1360" height="860" loading="lazy"></a><a href="img/campaign-dark.webp" class="only-dark"><img src="img/campaign-dark.webp" alt="A campaign under way: how much is done, coverage by unit with the least covered first, and every application" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
+    <p class="eyebrow">Tasks</p>
+    <h2 id="what-happens-raises-a-task">What happens raises a task for whoever must act</h2>
+    <p>A contract's notice date near, a release in use nearing the end of its support, a grant ending, an owner leaving: each raises a task for the person who must act, with a date and the reason.</p>
+    <p>A cause raises one task, never two, and the task closes by itself when its cause is settled. When someone leaves, everything they held is listed, and passed on in one step.</p>
+    <p><a class="more" href="keeping-current.html#tasks">Tasks</a></p>
+  </div>
+  <figure class="shot"><a href="img/tasks-light.webp" class="only-light"><img src="img/tasks-light.webp" alt="Tasks: what needs someone to act, each with its reason, its date, and who it is for" width="1360" height="860" loading="lazy"></a><a href="img/tasks-dark.webp" class="only-dark"><img src="img/tasks-dark.webp" alt="Tasks: what needs someone to act, each with its reason, its date, and who it is for" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature">
+  <div class="feature-text">
+    <p class="eyebrow">The program</p>
+    <h2 id="see-what-a-change-would-do">See what a change would do before you make it</h2>
+    <p>The lists, the organization's own fields, the wording of the questions, and the scoring model's weights, thresholds, and cadence are shaped in the app.</p>
+    <p>A changed model is previewed first: every application whose scores, recommendation, or flags would move is listed. Publishing makes a new version and changes exactly those; every decision keeps the scores it saw.</p>
+    <p><a class="more" href="running-the-program.html#shape-it-in-the-app">Shape the program</a></p>
+  </div>
+  <figure class="shot"><a href="img/program-scoring-light.webp" class="only-light"><img src="img/program-scoring-light.webp" alt="The scoring model's thresholds, weights, and cadence, with what a change would do before it is published" width="1360" height="860" loading="lazy"></a><a href="img/program-scoring-dark.webp" class="only-dark"><img src="img/program-scoring-dark.webp" alt="The scoring model's thresholds, weights, and cadence, with what a change would do before it is published" width="1360" height="860" loading="lazy"></a></figure>
+</section>
+
+<section class="feature flip">
+  <div class="feature-text">
     <p class="eyebrow">Home</p>
     <h2 id="what-each-person-owes">One page of what each person owes</h2>
-    <p>Most people who keep an application are not portfolio specialists. Home lists what is theirs to do: an application never assessed or whose assessment has expired, a flag on one of theirs, a record that lacks what its stage requires.</p>
+    <p>Most people who keep an application are not portfolio specialists. Home lists what is theirs to do: an application to assess, a record to confirm, a task, what a campaign asks, a record that lacks what its stage requires. A bell counts what is new, and email is there if you want it.</p>
     <p>The dashboard gives the portfolio team the whole: recommendations beside decisions, flags, confidence, and what everything costs, with every figure a link to the list it counts.</p>
     <p><a class="more" href="running-the-program.html#home">Home and the dashboard</a></p>
   </div>
@@ -226,7 +270,19 @@
     </div>
     <div>
       <h3 id="snapshots">The portfolio as it stood</h3>
-      <p>A snapshot keeps every application's scores, recommendation, and decision on a day, so a review can be compared with the one before.</p>
+      <p>A snapshot keeps every application's scores, recommendation, and decision on a day, so a review can be compared with the one before. One is kept each month by itself.</p>
+    </div>
+    <div>
+      <h3 id="find-anything">Find anything</h3>
+      <p>One search across every kind of record, from the command palette. Any list's filters are kept under a name, and shared if you wish.</p>
+    </div>
+    <div>
+      <h3 id="say-a-score-is-wrong">Say a score is wrong</h3>
+      <p>An owner contests a factor with the evidence; the portfolio team accepts or answers it, and both stay on the record.</p>
+    </div>
+    <div>
+      <h3 id="no-duplicates">Written down once</h3>
+      <p>Adding an application whose name, alias, or product is close to one on record shows that one first.</p>
     </div>
     <div>
       <h3 id="in-and-out">In and out</h3>
@@ -268,8 +324,9 @@ uv run appwren --config demo/appwren.toml serve</code></pre></div>
     <a href="getting-started.html"><strong>Getting started</strong><span>Install, first sign-in, units and people, bringing in your applications, the demo</span></a>
     <a href="the-portfolio.html"><strong>The portfolio</strong><span>The record, assessment, scores and their working, recommendations, decisions, cost and contracts</span></a>
     <a href="the-landscape.html"><strong>The landscape</strong><span>Interfaces and data flows, impact, hosting, overlap, the capability map, lifecycle</span></a>
-    <a href="running-the-program.html"><strong>Running the program</strong><span>Roles, who sees what, the scoring model, the dashboard, snapshots, the history</span></a>
-    <a href="configuration.html"><strong>Configuration</strong><span>The settings file, single sign-on, PostgreSQL, upgrading, reverse proxies</span></a>
+    <a href="keeping-current.html"><strong>Keeping current</strong><span>Reminders, confirming a record, campaigns, tasks, search, contesting a score</span></a>
+    <a href="running-the-program.html"><strong>Running the program</strong><span>Roles, who sees what, shaping the program, scheduled work, snapshots, the history</span></a>
+    <a href="configuration.html"><strong>Configuration</strong><span>The settings file, email, single sign-on, PostgreSQL, upgrading, reverse proxies</span></a>
     <a href="api.html"><strong>API</strong><span>Sign-in, the CSRF token, responses, errors, and lists</span></a>
     <a href="api-reference.html"><strong>API reference</strong><span>Every route of the JSON API, from the OpenAPI document</span></a>
     <a href="cli.html"><strong>Command reference</strong><span>Every <code>appwren</code> command and option</span></a>
@@ -278,13 +335,13 @@ uv run appwren --config demo/appwren.toml serve</code></pre></div>
 
 <section class="section">
   <h2 id="where-it-stands">Where it stands</h2>
-  <p>These pages describe version 0.2.0: the portfolio and the landscape around it. It signs in with local accounts or, if you set it up, single sign-on. Nothing reminds anyone yet: notices, email, attestation, and search across every kind of record come next, then read-only connectors to the tools that already know the facts. The <a href="https://github.com/robert-mcdermott/appwren/blob/main/spec/roadmap.md" rel="noopener">roadmap</a> says what comes next and in what order, and the <a href="changelog.html">changelog</a> lists what is in each release.</p>
+  <p>These pages describe version 0.3.0: the portfolio, the landscape around it, and the means of keeping both current. It signs in with local accounts or, if you set it up, single sign-on, and sends email only if you ask it to. Every fact is still typed or imported by a person: read-only connectors to the tools that already know them come next, then review cycles, initiatives, and the retirement playbook. The <a href="https://github.com/robert-mcdermott/appwren/blob/main/spec/roadmap.md" rel="noopener">roadmap</a> says what comes next and in what order, and the <a href="changelog.html">changelog</a> lists what is in each release.</p>
 </section>
 
     <nav class="pager" aria-label="Pages"><span></span><a class="next" href="getting-started.html"><span>Next</span>Getting started</a></nav>
-    <footer class="foot">Describes AppWren 0.2.0. Apache License 2.0. Screenshots show an invented organization; every person and record in them is fictional.</footer>
+    <footer class="foot">Describes AppWren 0.3.0. Apache License 2.0. Screenshots show an invented organization; every person and record in them is fictional.</footer>
   </main>
-  <aside class="toc" aria-label="On this page"><div class="menu-title">On this page</div><ul><li class="l2"><a href="#the-reasoning-is-on-the-screen">The reasoning is on the screen</a></li><li class="l2"><a href="#people-decide">People decide</a></li><li class="l2"><a href="#unknown-is-not-zero">Unknown is not zero</a></li><li class="l2"><a href="#quiet-by-design">Quiet by design</a></li><li class="l2"><a href="#four-scores-with-their-working">Four scores, each with its working</a></li><li class="l2"><a href="#a-recommendation-and-the-rule-behind-it">A recommendation, and the rule behind it</a></li><li class="l2"><a href="#a-decision-is-a-person-s">A decision is a person's, with a reason and a date</a></li><li class="l2"><a href="#what-are-we-paying-for-twice">What are we paying for twice?</a></li><li class="l2"><a href="#what-breaks-if-this-goes">What breaks if this goes?</a></li><li class="l2"><a href="#follow-a-class-of-data">Follow a class of data from system to system</a></li><li class="l2"><a href="#what-falls-out-of-support">What falls out of support, and what runs on it</a></li><li class="l2"><a href="#what-it-costs-line-by-line">What it costs, line by line, and who pays</a></li><li class="l2"><a href="#the-capability-map-measured">The capability map, measured</a></li><li class="l2"><a href="#what-is-this-connected-to">What is this connected to?</a></li><li class="l2"><a href="#who-handles-this-class-of-data">Which applications hold health data, and how well are they kept?</a></li><li class="l2"><a href="#what-each-person-owes">One page of what each person owes</a></li><li class="l2"><a href="#also-in-it">Also in it</a></li><li class="l3"><a href="#one-definition-of-an-application">One definition of an application</a></li><li class="l3"><a href="#judged-by-the-right-rubric">Judged by the right rubric</a></li><li class="l3"><a href="#ready-for-research">Ready for research</a></li><li class="l3"><a href="#working-on-the-first-day">Working on the first day</a></li><li class="l3"><a href="#a-program-you-can-change">A program you can change</a></li><li class="l3"><a href="#a-history-that-holds">A history that holds</a></li><li class="l3"><a href="#snapshots">The portfolio as it stood</a></li><li class="l3"><a href="#in-and-out">In and out</a></li><li class="l3"><a href="#who-sees-what">Who sees what</a></li><li class="l3"><a href="#where-it-runs">Where it runs</a></li><li class="l3"><a href="#sign-in-your-way">Sign in your way</a></li><li class="l3"><a href="#open-and-yours">Open and yours</a></li><li class="l2"><a href="#try-it">Try it</a></li><li class="l2"><a href="#the-guides">The guides</a></li><li class="l2"><a href="#where-it-stands">Where it stands</a></li></ul></aside>
+  <aside class="toc" aria-label="On this page"><div class="menu-title">On this page</div><ul><li class="l2"><a href="#the-reasoning-is-on-the-screen">The reasoning is on the screen</a></li><li class="l2"><a href="#people-decide">People decide</a></li><li class="l2"><a href="#unknown-is-not-zero">Unknown is not zero</a></li><li class="l2"><a href="#quiet-by-design">Quiet by design</a></li><li class="l2"><a href="#four-scores-with-their-working">Four scores, each with its working</a></li><li class="l2"><a href="#a-recommendation-and-the-rule-behind-it">A recommendation, and the rule behind it</a></li><li class="l2"><a href="#a-decision-is-a-person-s">A decision is a person's, with a reason and a date</a></li><li class="l2"><a href="#what-are-we-paying-for-twice">What are we paying for twice?</a></li><li class="l2"><a href="#what-breaks-if-this-goes">What breaks if this goes?</a></li><li class="l2"><a href="#follow-a-class-of-data">Follow a class of data from system to system</a></li><li class="l2"><a href="#what-falls-out-of-support">What falls out of support, and what runs on it</a></li><li class="l2"><a href="#what-it-costs-line-by-line">What it costs, line by line, and who pays</a></li><li class="l2"><a href="#the-capability-map-measured">The capability map, measured</a></li><li class="l2"><a href="#what-is-this-connected-to">What is this connected to?</a></li><li class="l2"><a href="#who-handles-this-class-of-data">Which applications hold health data, and how well are they kept?</a></li><li class="l2"><a href="#a-record-that-says-when-it-is-stale">A record that says when nobody has looked at it</a></li><li class="l2"><a href="#ask-the-owners-and-see-who-has-answered">Ask the owners, and see who has answered</a></li><li class="l2"><a href="#what-happens-raises-a-task">What happens raises a task for whoever must act</a></li><li class="l2"><a href="#see-what-a-change-would-do">See what a change would do before you make it</a></li><li class="l2"><a href="#what-each-person-owes">One page of what each person owes</a></li><li class="l2"><a href="#also-in-it">Also in it</a></li><li class="l3"><a href="#one-definition-of-an-application">One definition of an application</a></li><li class="l3"><a href="#judged-by-the-right-rubric">Judged by the right rubric</a></li><li class="l3"><a href="#ready-for-research">Ready for research</a></li><li class="l3"><a href="#working-on-the-first-day">Working on the first day</a></li><li class="l3"><a href="#a-program-you-can-change">A program you can change</a></li><li class="l3"><a href="#a-history-that-holds">A history that holds</a></li><li class="l3"><a href="#snapshots">The portfolio as it stood</a></li><li class="l3"><a href="#find-anything">Find anything</a></li><li class="l3"><a href="#say-a-score-is-wrong">Say a score is wrong</a></li><li class="l3"><a href="#no-duplicates">Written down once</a></li><li class="l3"><a href="#in-and-out">In and out</a></li><li class="l3"><a href="#who-sees-what">Who sees what</a></li><li class="l3"><a href="#where-it-runs">Where it runs</a></li><li class="l3"><a href="#sign-in-your-way">Sign in your way</a></li><li class="l3"><a href="#open-and-yours">Open and yours</a></li><li class="l2"><a href="#try-it">Try it</a></li><li class="l2"><a href="#the-guides">The guides</a></li><li class="l2"><a href="#where-it-stands">Where it stands</a></li></ul></aside>
 </div>
 </body>
 </html>
