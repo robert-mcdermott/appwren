@@ -34,7 +34,7 @@ from appwren.assistant_servers import AssistantError
 from appwren.config import AssistantConfig
 from appwren.core.clock import utc_now
 from appwren.core.errors import Invalid, Limited, NotFound, PermissionDenied
-from appwren.db.models import Application, ApplicationUnit, AssistantExchange
+from appwren.db.models import Account, Application, ApplicationUnit, AssistantExchange
 from appwren.events import audit
 from appwren.inventory import access, records
 from appwren.inventory.registry import APPLICATION
@@ -68,6 +68,8 @@ class Prepared:
     purpose: str
     messages: list[dict[str, str]]
     given: set[str] = field(default_factory=set)  # the references it was told of
+    exchange_id: int | None = None  # its place, kept before the server is asked (``begin``)
+    said: str = ""  # what the server gave as its reason, if it refused
 
 
 def need(config: AssistantConfig) -> None:
@@ -105,36 +107,74 @@ def _may_ask(session: Session, principal: Principal, config: AssistantConfig, do
         raise PermissionDenied(f"The assistant {doing} a person, signed in.")
     if not may_use(config, principal):
         raise PermissionDenied("The assistant is not open to your role here.")
+
+
+def _waiting(session: Session, account_id: int, config: AssistantConfig) -> bool:
+    """Whether this person has a question the server has not yet answered. One that has
+    waited past the time allowed, as when a server process stopped, no longer counts."""
+    since = utc_now() - timedelta(seconds=config.timeout_seconds + 60)
+    return session.scalars(
+        select(AssistantExchange.id).where(
+            AssistantExchange.account_id == account_id, AssistantExchange.created_at >= since,
+            AssistantExchange.response.is_(None), AssistantExchange.error.is_(None),
+        )
+    ).first() is not None  # fmt: skip
+
+
+def begin(
+    session: Session, principal: Principal, config: AssistantConfig, prepared: Prepared
+) -> None:
+    """Keep the exchange's place before the server is asked, in a session that writes, so
+    that what is counted is what is asked. Questions asked at once wait here one behind the
+    other, each person's: so none gets past the day's limit, and nobody has more than one
+    waiting on the server, tying up the threads that answer everyone else."""
+    assert principal.account_id is not None  # _may_ask
+    session.execute(
+        select(Account.id).where(Account.id == principal.account_id).with_for_update()
+    )  # PostgreSQL holds the person's row; SQLite already holds the whole database
+    if _waiting(session, principal.account_id, config):
+        raise Limited("The assistant is still answering your last question. Ask again when it "
+                      "has answered.")  # fmt: skip
     limit = config.daily_limit
     if limit and asked_today(session, principal.account_id) >= limit:
         raise Limited(
             f"You have asked the assistant {limit:,} times today, the most allowed in a day. "
             "Ask again tomorrow."
         )
-
-
-def call(config: AssistantConfig, prepared: Prepared, ask: Ask) -> tuple[str, str | None]:
-    """Ask, with no session open. Returns the answer and, if it failed, why."""
-    try:
-        return ask(config, prepared.messages)[:MAX_ANSWER], None
-    except AssistantError as error:
-        return "", str(error)[:300]
-
-
-def _keep(
-    session: Session, principal: Principal, config: AssistantConfig, prepared: Prepared,
-    answer: str, error: str | None,
-) -> AssistantExchange:  # fmt: skip
-    """Keep what was asked and answered, whether or not it worked."""
     row = AssistantExchange(
         account_id=principal.account_id, asked_by_name=principal.name[:200],
         purpose=prepared.purpose, model=config.model[:200],
         prompt="\n\n".join(f"[{m['role']}]\n{m['content']}" for m in prepared.messages),
-        response=answer if error is None else None, ok=error is None, error=error,
-        created_at=utc_now(),
+        response=None, ok=False, error=None, created_at=utc_now(),
     )  # fmt: skip
     with audit.operation(session, f"assistant.{prepared.purpose}"):
         session.add(row)
+        session.flush()
+    prepared.exchange_id = row.id
+
+
+def call(config: AssistantConfig, prepared: Prepared, ask: Ask) -> tuple[str, str | None]:
+    """Ask, with no session open. Returns the answer and, if it failed, why, in words for the
+    person who asked; what the server itself said is kept in ``prepared.said``."""
+    try:
+        return ask(config, prepared.messages)[:MAX_ANSWER], None
+    except AssistantError as error:
+        prepared.said = error.said
+        return "", str(error)[:300]
+
+
+def _keep(
+    session: Session, prepared: Prepared, answer: str, error: str | None
+) -> AssistantExchange:
+    """Keep what was answered, or why not, with what was asked."""
+    row = session.get(AssistantExchange, prepared.exchange_id)
+    if row is None:  # removed meanwhile: there is nothing to keep it with
+        raise NotFound("The assistant's exchange is no longer kept.")
+    why = f"{error} {prepared.said}".strip() if error is not None else None
+    with audit.operation(session, f"assistant.{prepared.purpose}.answered"):
+        row.response = answer if error is None else None
+        row.ok = error is None
+        row.error = why[:300] if why else None
         session.flush()
     return row
 
@@ -199,11 +239,12 @@ def finish_draft(
     answer: str, error: str | None,
 ) -> dict[str, Any]:  # fmt: skip
     """The values the form would accept, and nothing is saved."""
-    row = _keep(session, principal, config, prepared, answer, error)
+    row = _keep(session, prepared, answer, error)
     offered = _json_in(answer) if error is None else None
     if not isinstance(offered, dict):
-        if row.ok:
-            row.ok, row.error = False, "The assistant did not give values that could be read."
+        if error is not None:
+            return {"failed": error}  # the server's own words stay with the exchange
+        row.ok, row.error = False, "The assistant did not give values that could be read."
         return {"failed": row.error}
     kept: dict[str, Any] = {}
     for item in _fields(session):
@@ -317,7 +358,7 @@ def finish_question(
     session: Session, principal: Principal, config: AssistantConfig, prepared: Prepared,
     answer: str, error: str | None,
 ) -> dict[str, Any]:  # fmt: skip
-    row = _keep(session, principal, config, prepared, answer, error)
+    row = _keep(session, prepared, answer, error)
     if error is not None:
         return {"failed": error}
     cited = [ref for ref in dict.fromkeys(REF.findall(answer)) if ref in prepared.given]

@@ -148,9 +148,11 @@ def snapshot_of(session: Session, principal: Principal, snapshot_id: int) -> dic
     app = session.get(Application, row.application_id)
     if app is None or not access.can_see(session, principal, APPLICATION, app):
         raise NotFound("There is no such snapshot.")
-    working = row.working
+    working = assessment.peer_seen(session, principal, row.working)
     if not access.sees_sensitive(session, principal, app):
-        working = assessment.redact(working, catalog.sensitive_fields(session))
+        working = assessment.redact(
+            working, catalog.sensitive_fields(session), assessment.withheld_flags(session)
+        )
     return {
         "id": row.id,
         "application": records.chip(APPLICATION, app),

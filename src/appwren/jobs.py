@@ -115,7 +115,8 @@ def _tidy(db: Database, config: Config) -> dict[str, int]:
             "old_runs_removed": runs.rowcount or 0,  # type: ignore[attr-defined]
             "unfinished_sign_ins_removed": begun.rowcount or 0,  # type: ignore[attr-defined]
         }
-    if config.assistant.enabled and config.assistant.keep_days:
+    # Whether or not the assistant is on now: what it was told before stays only so long.
+    if config.assistant.keep_days:
         from appwren import assistant
 
         # In batches, so a first tidy of a long backlog holds nobody's work up for long.

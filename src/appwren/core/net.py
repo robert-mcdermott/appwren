@@ -28,10 +28,13 @@ def read_within(answer: Any, limit: int, seconds: float) -> bytes:
     deadline = time.monotonic() + seconds
     parts: list[bytes] = []
     size = 0
+    # What has arrived, a read of the socket at a time: ``read(n)`` would wait for all n bytes,
+    # however slowly they came, and the deadline would never be looked at (review of wave 10).
+    take = getattr(answer, "read1", None) or answer.read
     while size <= limit:
         if time.monotonic() > deadline:
             raise TimeoutError("The answer took too long.")
-        part = answer.read(min(65_536, limit + 1 - size))
+        part = take(min(65_536, limit + 1 - size))
         if not part:
             break
         parts.append(part)

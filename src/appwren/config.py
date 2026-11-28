@@ -372,6 +372,16 @@ def _resolve_sqlite(url: str, base_dir: Path) -> str:
     return f"sqlite:///{_resolve(Path(database), base_dir)}"
 
 
+def _servers_own(name: str, config: Config) -> bool:
+    """Whether a variable holds something the server reads for itself: its configuration,
+    database, sign-in, mail, or AWS credentials."""
+    return (
+        name in {"APPWREN_CONFIG", "DATABASE_URL", config.sso.client_secret_env,
+                 config.mail.password_env}
+        or name.startswith(("APPWREN_", "PG", "AWS_"))
+    )  # fmt: skip
+
+
 def _validate(config: Config, raw: Mapping[str, Any]) -> list[str]:
     problems: list[str] = []
     helper = config.assistant
@@ -408,6 +418,14 @@ def _validate(config: Config, raw: Mapping[str, Any]) -> list[str]:
         problems.append("[assistant] url must start with https://, unless it is on this machine")
     if not re.fullmatch(r"[A-Z][A-Z0-9_]*", helper.key_env):
         problems.append("[assistant] key_env names the environment variable that holds the key")
+    elif _servers_own(helper.key_env, config) and not (
+        helper.key_env.startswith("APPWREN_ASSISTANT_")
+        or (helper.provider == "bedrock" and helper.key_env == "AWS_BEARER_TOKEN_BEDROCK")
+    ):
+        problems.append(
+            f"[assistant] key_env: {helper.key_env} holds one of the server's own secrets; name "
+            "a variable that holds only the model server's key, such as APPWREN_ASSISTANT_KEY"
+        )
     server = config.server
     if not server.host:
         problems.append("[server] host must not be empty")

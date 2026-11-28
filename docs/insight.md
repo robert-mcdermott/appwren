@@ -97,7 +97,7 @@ The model may be one your organization runs on its own machines, a hosted servic
 
 What the assistant is given is limited. It is told only of applications in service that you may see, and none that handle data more sensitive than the configuration allows. It changes nothing: an answer is read, and a draft is a form for you to finish. A reference it cites that it was not told of is not linked. Every exchange is kept, with what was sent and what came back, for a year unless the configuration says otherwise, and those who may see everything can read them.
 
-The configuration may open the assistant to some roles only, and limits how often each person may ask in a day (a hundred times, unless it says otherwise). Past the limit, the assistant says so and answers again the next day.
+The configuration may open the assistant to some roles only, and limits how often each person may ask in a day (a hundred times, unless it says otherwise). Past the limit, the assistant says so and answers again the next day. Each person has one question at a time waiting for an answer. When the model's server refuses a request, you are told that it did; why is kept with the exchange for an administrator.
 
 ## Next
 

@@ -44,6 +44,26 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - The assistant waits up to two minutes for an answer, not one, for models that think
   before they answer (`timeout_seconds`).
 
+### Security
+
+The code added in this wave was walked against the threat table by a reviewer who did not
+write it; the record is in `spec/reviews/`.
+
+- An application's scores no longer name a restricted primary provider it overlaps with to
+  someone who may not see it (since 0.1.0), and a scenario's risks no longer name flags
+  withheld elsewhere.
+- The AWS variables are the server's own: no connector or standing may send one.
+- Questions asked at once can no longer pass the day's limit, and each person has one
+  question at a time waiting on the model server.
+- A model server's reason for refusing is kept with the exchange for an administrator, not
+  told to the person who asked or kept in the history.
+- On PostgreSQL a session that reads sees one moment throughout, so a kept score is never a
+  mix of before and after a change.
+- Every answer read from another server is held to its own time limit however slowly it
+  comes, not only to the bound on the whole call.
+- `[assistant] key_env` may not name one of the server's own variables, and exchanges are
+  removed after `keep_days` whether or not the assistant is on.
+
 ## 0.9.0 (2026-11-27)
 
 Wave 9, *Toward 1.0*: the release 1.0 is made from. An application says who uses it:

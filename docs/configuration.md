@@ -100,15 +100,15 @@ Optional, and off until a `model` is named (and, for `openai`, a `url`). Without
 | `provider` | `"openai"` | The protocol the model's server speaks, not who runs it: `openai` (the chat completions interface), `anthropic` (the messages interface), or `bedrock` (Amazon Bedrock's Converse API). Any server that speaks one of them will do |
 | `url` | `""` | The server's address. `openai`: needed, such as `"https://models.example.org/v1"`, and `/chat/completions` is added to it. `anthropic`: the official service unless given, and `/v1/messages` is added. `bedrock`: worked out from the region unless given. It must be https, unless it is on this machine, such as `"http://127.0.0.1:11434/v1"` for a model you run yourself |
 | `model` | `""` | The model's name, as that server knows it. For `bedrock`, a model ID or an inference profile's ID or ARN |
-| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file. With no key set, none is sent |
+| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file. With no key set, none is sent. It may not be one of the server's own variables, such as the database's or single sign-on's, or an AWS credential other than `AWS_BEARER_TOKEN_BEDROCK` for `bedrock` |
 | `region` | `""` | `bedrock`: the AWS region, such as `"us-east-1"` |
 | `max_tokens` | `0` | The longest answer, in tokens. `0` sends no limit for `openai`, and 16,000 for `anthropic` and `bedrock`, which need one. A model that thinks before it answers counts its thinking against this limit |
 | `temperature` | not sent | From 0 to 2, lower being steadier. Left out, the model's own default is used. Newer models refuse any temperature, so set one only for a model that takes it, such as one you run yourself |
 | `timeout_seconds` | `120` | How long to wait for an answer, from 10 to 600 |
-| `headers` | `[]` | Extra headers sent with every request, for a gateway in front of the model, such as `["X-Team: portfolio"]`. Never a key: a header that carries a credential, or one AppWren sends itself, is refused |
+| `headers` | `[]` | Extra headers sent with every request, for a gateway in front of the model, such as `["X-Team: portfolio"]`. Never put a key in one. A header named like a credential, or one AppWren sends itself, is refused; values are not checked |
 | `roles` | `[]` | The roles that may use the assistant, such as `["manager", "architect"]`. None named: everyone who can sign in. Administrators always may |
-| `daily_limit` | `100` | How many times each person may ask in a day, counted from midnight UTC, whether or not the model answered. `0` for no limit |
-| `keep_days` | `365` | How long an exchange's words are kept. Older ones are removed by the nightly housekeeping; that each happened, who asked, and about what stays in the history. `0` keeps them |
+| `daily_limit` | `100` | How many times each person may ask in a day, counted from midnight UTC, whether or not the model answered. `0` for no limit. Whatever the limit, each person has one question at a time waiting on the server |
+| `keep_days` | `365` | How long an exchange's words are kept. Older ones are removed by the nightly housekeeping, also once the assistant is turned off; that each happened, who asked, and about what stays in the history. `0` keeps them |
 | `max_data_class` | `"internal"` | The most sensitive class of data an application may handle and still be described to the assistant. Applications that handle anything more sensitive are left out of what it is told |
 
 Some examples:

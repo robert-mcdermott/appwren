@@ -18,6 +18,7 @@ wherever it points, and keys come only from the environment.
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import urllib.error
@@ -42,7 +43,19 @@ Messages = list[dict[str, str]]
 
 
 class AssistantError(AppWrenError):
-    """The assistant could not be asked, or did not answer usefully."""
+    """The assistant could not be asked, or did not answer usefully. ``said`` is what the
+    server itself gave as the reason: kept with the exchange for an administrator, and never
+    told to the person who asked, since it may name accounts, roles, or part of a key."""
+
+    def __init__(self, message: str, said: str = "") -> None:
+        super().__init__(message)
+        self.said = said
+
+
+class _Refused(Exception):
+    def __init__(self, code: int, said: str) -> None:
+        super().__init__(code)
+        self.code, self.said = code, said
 
 
 @dataclass
@@ -192,17 +205,24 @@ def _send(config: AssistantConfig, call: Call) -> str:
     seconds = config.timeout_seconds
 
     def fetch() -> Any:
-        with net.opener().open(request, timeout=seconds) as answer:
-            return json.loads(net.read_within(answer, MAX_BYTES, seconds))
+        try:
+            with net.opener().open(request, timeout=seconds) as answer:
+                return json.loads(net.read_within(answer, MAX_BYTES, seconds))
+        except urllib.error.HTTPError as error:
+            # Its reason is read here, within the time allowed: a server that sends it a byte
+            # at a time must not hold the request up past the limit.
+            try:
+                body = net.read_within(error, 20_000, seconds)
+            except (OSError, ValueError):
+                body = b""
+            raise _Refused(error.code, _said(body)) from None
 
     try:
         found = net.within(seconds + 5, fetch)
-    except urllib.error.HTTPError as error:
-        said = _said(error)
-        raise AssistantError(
-            f"The assistant's server answered {error.code}" + (f": {said}" if said else ".")
-        ) from error
-    except (OSError, ValueError) as error:
+    except _Refused as refused:
+        message = f"The assistant's server refused the request ({refused.code})."
+        raise AssistantError(message, refused.said) from None
+    except (OSError, ValueError, http.client.HTTPException, RecursionError) as error:
         raise AssistantError("The assistant could not be reached.") from error
     try:
         return call.read(found)
@@ -211,11 +231,11 @@ def _send(config: AssistantConfig, call: Call) -> str:
         raise AssistantError(said) from error
 
 
-def _said(error: urllib.error.HTTPError) -> str:
+def _said(body: bytes) -> str:
     """What the server said was wrong, briefly, so an administrator can put it right."""
     try:
-        found = json.loads(error.read(20_000) or b"{}")
-    except (OSError, ValueError):
+        found = json.loads(body or b"{}")
+    except (ValueError, RecursionError):
         return ""
     if not isinstance(found, dict):
         return ""

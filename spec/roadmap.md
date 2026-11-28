@@ -180,7 +180,7 @@ Detail: [waves/wave-9.md](waves/wave-9.md)
 | 1 | More model servers | Chat completions, the messages interface, and Amazon Bedrock; no temperature unless set; clearer refusals | ◐ |
 | 2 | The assistant, for paid models | Who may use it, a daily limit per person, how long exchanges are kept, headers for a gateway, and checks in `appwren doctor` | ☑ |
 | 3 | Quick at its largest | Facts read sooner, scores kept between changes and checked against fresh ones, the scheduler's first run in batches | ☑ |
-| 4 | Reviewed | The wave's code walked against the threat table | ☐ |
+| 4 | Reviewed | The wave's code walked against the threat table | ☑ |
 | 5 | Release prep | Guides, changelog, upgrades, release | ☐ |
 
 Detail: [waves/wave-10.md](waves/wave-10.md)

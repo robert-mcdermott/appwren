@@ -64,7 +64,7 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 - Cost lines, and the figures worked out from cost (cost per user, license use), are withheld with annual cost. A contract is sensitive as a whole: it is visible to those who see every application's sensitive fields, to anyone who may see the sensitive fields of an application it covers, and to whoever made or owns it. Totals of cost across applications are shown only to those who see every application's cost, since a part would reveal the rest.
 - Scores and recommendations are not sensitive, so a member can see that an application is recommended for *Modernize* without seeing what it costs. Where a figure would reveal a sensitive value (the bubble size on the portfolio chart is cost), it is drawn without it.
 - A list may be narrowed by a sensitive field, whether by a column or by another filter that reads it (data classes, who uses it), only among the applications whose sensitive fields the person sees. The portfolio's rows, the data-handling report, *what breaks if this goes*, the checkpoint, and the assistant withhold a sensitive field as the record does.
-- **Flags** are not sensitive in themselves, but a flag whose condition reads a sensitive field (*restricted data on unsupported technology* reads the data classes) is not named to someone who may not see that field, and neither are the two that tell a covering contract's terms (*no data agreement*, *notice date near*). They are still counted in figures for the whole portfolio.
+- **Flags** are not sensitive in themselves, but a flag whose condition reads a sensitive field (*restricted data on unsupported technology* reads the data classes) is not named to someone who may not see that field, and neither are the two that tell a covering contract's terms (*no data agreement*, *notice date near*): not on the record, in lists, in the portfolio's rows, in a kept score, or in a scenario's risks. They are still counted in figures for the whole portfolio.
 - The stage of an application is never sensitive: every list, gate, and figure is organized by it.
 - One function decides whether a principal may see an application's sensitive fields. Single records, lists, charts, exports, and the working all call it.
 
@@ -88,6 +88,7 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 - Events are append-only in the application, and triggers in the database refuse updates and deletes on the event table. `appwren doctor` reports a missing trigger.
 - Each event is hashed together with the previous event's hash. `appwren verify` recomputes the chain, reports the first break, and prints the latest hash. Kept somewhere else, by a scheduled task of the organization's own, that hash makes even a rewrite of the whole chain detectable; AppWren does not keep or compare it itself.
 - Exports of lists that include sensitive fields are themselves events.
+- The assistant's exchanges are events when they are made, answered, and removed, but the words (what was asked, what came back, and what a server said when it refused) are kept only in the exchange itself, never in an event. Removing an exchange after `keep_days` removes the words; that it happened, who asked, and for what stays.
 
 ### Connectors (wave 4)
 
@@ -95,6 +96,7 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 - Read-only. Each connector's documentation states the least access it needs.
 - What a connector reads is treated as untrusted input: validated against the field it fills, limited in size, and never interpreted as markup or instructions.
 - A connector supplies facts, never judgments, and a person's override of a value always wins.
+- A connector, or a standing elsewhere, may never be given one of the server's own variables as its credential: its configuration, database, sign-in, and mail secrets, the assistant's key, and any AWS credential. They are sent to the host an administrator names, which could be anywhere.
 
 ### Integrations (wave 7 and later)
 
@@ -104,8 +106,18 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 - **Suggestions** change nothing until someone who keeps the application accepts one, signed in, as their own edit. A person has at most ten waiting on an application, however many tokens they use, and a value is at most 4,000 characters. Nobody proposes a field withheld from them.
 - **The checkpoint** answers about an application only to someone who may see it; a restricted one is answered as if there were none. It withholds what the record withholds.
 - **The tool server** runs beside an assistant, on the person's machine, with their own token. It follows no redirect and quotes every reference it puts in an address.
-- **The assistant** is off until configured. It is told only the applications the person asking may see, leaving out any that handle data above `max_data_class` and any field withheld from them; what it is told is sent to the configured model server. Every exchange is kept, readable only by those who read everything.
+- **The assistant** is off until configured. It is told only the applications the person asking may see, leaving out any that handle data above `max_data_class` and any field withheld from them; what it is told is sent to the configured model server.
+  - **Its server** speaks one of three protocols (chat completions, messages, Bedrock's Converse API) over https, or plain http only on the same machine, and no redirect is followed. Its key comes only from the environment, from a variable that may not be one of the server's own secrets. On Bedrock it is an Amazon Bedrock API key, or the AWS access keys in the environment sign each request; the secret is never sent. Extra headers for a gateway are refused when they are named like a credential or are ones AppWren sends itself; that check is by name, so the configuration's author is trusted not to put a key in a value.
+  - **Who may ask, and how often.** The configuration may open it to some roles only; administrators always may, and a token never may. Each person may ask `daily_limit` times a day, and may have one question waiting on the server at a time, so nobody can tie up the threads that answer everyone else: a place for each question is kept, and counted, before the server is asked.
+  - **What it says back.** When the server refuses, the person is told only that it did, and its status. What the server gave as its reason (which may name an account, a role, or part of a key) is kept with the exchange for those who read everything, and shown by `appwren doctor --assistant`.
+  - **How long.** Exchanges are kept for `keep_days` (a year unless set), whether or not the assistant is on now, and are readable only by those who read everything.
 - **Standings** are read only from an address an administrator sets, with a key from an environment variable the server does not use for itself; an identifier that would climb the address's path is not used.
+
+### Kept scores (0.10.0)
+
+- Each server process keeps the day's scores between changes, for each database. What is kept never depends on who asked: scores are worked out without a person, and what a person may not see (a sensitive field in the working, a withheld flag, a primary provider they may not see) is taken out as each answer is made, from a copy, every time.
+- They are good only as long as a counter stands still, which every write to a table a score could read bumps in the same transaction (`appwren.db.changes`), so a write that is rolled back takes its bump back. Only the history, references, and a restore into an empty database write around the session, and none of them writes a table scores read; any new code that did would be caught by the check the test suite runs under, which works every reused score out again. A new day and a new scoring model are part of the key.
+- Scores are kept only from a session that reads. On PostgreSQL such a session sees one moment of the database throughout (repeatable read), as SQLite's do, so what is kept is never a mix of before and after a change.
 
 ### Operations
 
@@ -121,6 +133,8 @@ Some fields are useful to everyone who keeps the portfolio and should not be rea
 **The catalog is open.** Applications, capabilities, technologies, and vendors are visible to everyone signed in, apart from their sensitive fields. A portfolio is useful in proportion to how many people can find what already exists: a researcher looking for an approved tool, an engineer checking who else uses a database, a team about to buy something another department already has. An application can be marked **restricted**, which limits even its existence to the people named on it, whoever added it, stewards and leaders of its unit, architects and managers in scope, auditors, and administrators. An import of applications looks only among those the importer may see.
 
 A record that joins applications, such as an interface, is visible only to those who may see every application it joins: a restricted application's interfaces are hidden with it, even from someone who keeps the other end.
+
+An application's scores name the primary provider it overlaps with only to someone who may see that provider; to anyone else it is *an application you may not see*.
 
 One function per record type decides what a principal may see. Single records, lists, counts, charts, searches, and exports all call it, so they always agree.
 
@@ -163,5 +177,6 @@ One function per record type decides what a principal may see. Single records, l
 - **Each wave:** the role-by-route matrix, the sensitive-field tests, the web safety tests (no inline script or style, no third-party origins, no HTML parsing of data), and dependency review are part of the definition of done.
 - **Wave 7:** a full review against the OWASP Application Security Verification Standard, level 1, with findings and their resolution recorded in `spec/reviews/`.
 - **Before 1.0:** the review is repeated, and a second reviewer who did not write the code walks the threat table above. Done for 0.9.0; recorded in `spec/reviews/`.
+- **Wave 10:** the code added for 0.10.0 walked against this table by a reviewer who did not write it; recorded in `spec/reviews/`.
 
 Vulnerabilities are reported privately as described in `SECURITY.md`.

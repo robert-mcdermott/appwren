@@ -147,13 +147,14 @@ def test_converse_without_credentials_says_what_to_set(server: Server) -> None:
     assert not server.requests
 
 
-def test_a_refusal_from_the_server_says_what_it_said(server: Server) -> None:
+def test_a_refusal_keeps_what_the_server_said_apart(server: Server) -> None:
     config = AssistantConfig(provider="anthropic", model="m")
     server.status = 400
     server.answer = {"type": "error", "error": {"type": "invalid_request_error",
                      "message": "temperature is not supported   for this model"}}  # fmt: skip
-    with pytest.raises(AssistantError, match="answered 400: temperature is not supported for"):
+    with pytest.raises(AssistantError, match=r"refused the request \(400\)\.$") as caught:
         ask(config, ASKED, env={})
+    assert caught.value.said == "temperature is not supported for this model"
 
 
 def test_an_unreadable_answer_is_explained(server: Server) -> None:

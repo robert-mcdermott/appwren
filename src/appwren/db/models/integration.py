@@ -145,7 +145,7 @@ class AssistantExchange(Base):
 
     __tablename__ = "assistant_exchange"
     __subject__ = "assistant_exchange"
-    __audit_skip__ = frozenset({"prompt", "response"})
+    __audit_skip__ = frozenset({"prompt", "response", "error"})  # the words stay here only
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     account_id: Mapped[int | None] = mapped_column(Integer)

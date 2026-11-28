@@ -55,9 +55,9 @@ None block the start. These defaults have been taken and can be changed at the r
 - [x] `scripts/perf.py` times each scoring page just after a change, and again with `--again` as its budget
 - [x] The configuration guide's figures measured again on both databases
 
-## Slice 4: Reviewed ☐
+## Slice 4: Reviewed ☑
 
-- [ ] The code added in this wave walked against the threat table: the assistant's credentials, what a server's refusal may say back, the kept scores, the batched tasks; each finding fixed with a test, and `security.md` brought up to date
+- [x] The code added in this wave walked against the threat table by a reviewer who did not write it: eight findings in the wave's code (five low, three informational) and two in older code (one medium, one low), each fixed with a test in `tests/test_review_wave10.py` that failed before its fix, and `security.md` brought up to date
 
 ## Slice 5: Release prep ☐
 
@@ -80,3 +80,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - Kept scores take about 80 MB in each server process at 5,000 applications, 16 kB each. Packing them smaller was tried: unpacking took longer than working them out.
 - The triggers job raised 1,350 tasks on its first run over the demo grown to 5,000, in one transaction of 1.1 s. It now writes eight, the longest 0.46 s (the last turn, which works out what is due again as every hourly run does).
 - The exit criterion first set a second for the first opening after a change. Measured at the end of the slice: 1.2 to 1.3 s on SQLite and 1.4 to 1.5 s on PostgreSQL, from 1.5 to 2.0 s in 0.9.0. What is left is reading the facts (0.6 s, most of it the database handing back 55,000 rows of technologies) and the engine (0.3 s); either could be made quicker only by working out less, or by working out only what a change touched, which the criterion of identical results rules out for this wave. The criterion is restated as measured: half a second when opened again, and sooner than 0.9.0 after a change.
+- The review found that a restricted application, when it was the primary provider for a capability, was named, with its value, in the scores of every application that overlaps it, to anyone who could see those. It had been so since 0.1.0; kept scores did not cause it but made it visible to the reviewer, since what is kept must never depend on who asks. Peers are now taken out as each answer is made.
+- Each question to the assistant now keeps its place (and is counted) in a short write before the server is asked, and is answered in a second. So an exchange is two events, made and answered.

@@ -582,9 +582,26 @@ def redact(
     return out
 
 
+UNSEEN_PEER = {"ref": None, "name": "an application you may not see", "bv": None}
+
+
+def peer_seen(session: Session, principal: Principal, result: dict[str, Any]) -> dict[str, Any]:
+    """The result, with the primary provider it overlaps with named only to someone who may
+    see that application: a restricted one is not given away by another's scores (review of
+    wave 10, finding A). The result itself is never changed: it may be kept."""
+    peer = result.get("overlap_with")
+    if not peer or not peer.get("ref"):
+        return result
+    app = session.scalars(select(Application).where(Application.ref == peer["ref"])).first()
+    if app is not None and access.sees_application(session, principal, app):
+        return result
+    return {**result, "overlap_with": dict(UNSEEN_PEER)}
+
+
 def shown(
     session: Session, principal: Principal, app: Application, result: dict[str, Any]
 ) -> dict[str, Any]:
+    result = peer_seen(session, principal, result)
     if access.sees_sensitive(session, principal, app):
         return result
     return redact(result, catalog.sensitive_fields(session), withheld_flags(session))

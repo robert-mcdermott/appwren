@@ -89,6 +89,37 @@ Left as it is, on purpose:
 
 The walk also found places where `security.md` no longer said what the code does: when the session cookie is `Secure`, how the identity provider's roles behave, that the history records the person and not the role, which files are public, what `doctor --production` checks, who sees a restricted application, two rows of the permissions table, and nothing at all about what 0.8.0 and 0.9.0 added. The document now says what the code does, including those additions.
 
+### Wave 10: the code added for 0.10.0
+
+A reviewer who had taken no part in writing it walked everything added between 0.9.0 and 0.10.0 against `spec/security.md`: the assistant's three protocols and the Bedrock signer, who may ask and how often, how long exchanges are kept, the gateway headers, `doctor --assistant`, kept scores and the counter they stand on, the column-only reads, and the batched tasks. Each finding was confirmed by running it, and each test is now in `tests/test_review_wave10.py`, where it failed before its fix. Finding 3 is about PostgreSQL alone, and was confirmed there.
+
+| # | Finding | Severity | Fix |
+|---|---|---|---|
+| 1 | The AWS variables the Bedrock signer reads were not kept from connectors and standings: an administrator's session could send the server's AWS secret to a host of its choosing as a connector's credential | Low | Any `AWS_` variable is one of the server's own, refused as a connector's or a standing's credential |
+| 2 | The daily limit was counted from exchanges kept after the server answered, so questions asked at once all passed it, and one person could tie up every thread that answers requests while a slow model worked | Low | A place for each question is kept, and counted, before the server is asked, one person at a time; each person has one question waiting at once |
+| 3 | On PostgreSQL, a page that had read an application before someone changed it could keep its score under the counter after the change, and every later page would show it until the next change | Low | A session that reads sees one moment of the database throughout (repeatable read) |
+| 4 | A refusal's reason was read outside the time allowed, so a server sending it a byte at a time held the request, or `doctor`, without end. The same way of reading meant that, for every answer AppWren reads from another server, the deadline was not looked at while a slow answer trickled in, and only the outer bound on the whole call held | Low | The reason is read within the time allowed, and every answer is read as it arrives, with the deadline looked at between reads |
+| 5 | Exchanges stopped being removed after `keep_days` once the assistant was turned off, and stayed readable | Low | They are removed whether or not it is on |
+| 6 | What the server gave as its reason for refusing (a masked key, an AWS account and role) was told to the person who asked, and kept in the history for ever | Informational | The person is told that it refused, and its status; the reason is kept with the exchange, never in an event |
+| 7 | A server that did not speak HTTP, or sent JSON nested deeply enough, made the request fail with a 500, and nothing was kept or counted | Informational | Every such failure is a failed exchange |
+| 8 | `key_env` could name one of the server's own variables, such as the database's address, which would then be sent to the model server as its key | Informational | It may not; nor may it be an AWS credential, except an Amazon Bedrock API key for `bedrock` |
+
+Two more were found while tracing what kept scores carry, in code older than this wave:
+
+| # | Finding | Severity | Fix |
+|---|---|---|---|
+| A | An application's scores named the primary provider it overlaps with, its reference, name, and value, even to someone who may not see that provider because it is restricted. Present since 0.1.0 | Medium | Named only to someone who may see it; to anyone else, *an application you may not see*, in the scores and in kept snapshots |
+| B | A scenario's risks named the flags withheld everywhere else, such as *no data agreement*, to someone who may not see the contract behind them. Finding 4 of the wave 9 review was incomplete | Low | A scenario names only the flags the reader may be told of. A kept snapshot's working withholds them too |
+
+Left as it is, on purpose:
+
+- **Gateway headers are checked by name.** A value is never read, so an administrator could put a key in one; the guide says not to. The configuration's author is trusted, as with every other setting.
+- **What the assistant is told is sent to the model server.** That is what it is for; `max_data_class` and what the person may see limit it.
+
+Found sound: the signer (the secret is never sent, the host is signed, the session token goes only where it belongs, no redirect is followed); keys only from the environment and never in a prompt or the exchange log; `doctor` naming variables, not values; `roles` on both routes, a token never asking; the day counted from midnight UTC on both routes; deleting exchanges through the history, the words left out; kept scores never depending on who asks, with every reader's withholding made afresh from a copy; every bulk statement on a table no score reads; `fact_value`, outside the history, written only through the session; a rolled-back write taking its bump back; write sessions neither keeping nor reusing; the column-only reads keeping the same rows, values, and checks; and the batched tasks, which a unique key keeps from being raised twice however a run stops.
+
+The walk also found that `security.md` said nothing of what 0.10.0 added (the three protocols and their credentials, who may ask and how often, the server's reason, how long exchanges are kept, and kept scores) and that it said every exchange is kept. It now says what the code does.
+
 ## Accessibility
 
 ### How it was done

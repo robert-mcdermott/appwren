@@ -113,8 +113,8 @@ def test_old_exchanges_are_removed_and_the_history_kept(
                 select(Event).where(Event.subject_type == "assistant_exchange").order_by(Event.id)
             )
         )
-    assert [e.action for e in told] == ["created", "created", "deleted"]
-    assert all("prompt" not in e.changes and "response" not in e.changes for e in told)
+    assert [e.action for e in told] == ["created", "updated", "created", "updated", "deleted"]
+    assert all(not {"prompt", "response", "error"} & set(e.changes) for e in told)
     kept_forever = replace(config, assistant=replace(config.assistant, keep_days=0))
     assert "old_assistant_exchanges_removed" not in jobs._tidy(instance.db, kept_forever)
 
@@ -210,4 +210,4 @@ def test_doctor_can_ask_the_server(
     server.status = 401
     server.answer = {"error": {"message": "bad key"}}
     check = doctor._assistant(doctor.load_config(str(instance.path)), ask=True)
-    assert check.status == "fail" and "401: bad key" in check.detail, check
+    assert check.status == "fail" and "refused the request (401). bad key" in check.detail, check

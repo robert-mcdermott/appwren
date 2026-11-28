@@ -244,7 +244,7 @@ def _assistant(config: Config, *, ask: bool) -> Check:
             {"role": "user", "content": "Are you there?"},
         ])  # fmt: skip
     except assistant_servers.AssistantError as exc:
-        return Check("Assistant", FAIL, f"{where}: {exc}")
+        return Check("Assistant", FAIL, f"{where}: {exc}" + (f" {exc.said}" if exc.said else ""))
     words = " ".join(said.split())[:40] or "(an empty answer)"
     return Check("Assistant", OK, f"{where}, {how}, answered “{words}”")
 

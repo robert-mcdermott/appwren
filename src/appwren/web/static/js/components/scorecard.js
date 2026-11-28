@@ -104,7 +104,8 @@ export function recommendationWorking(result, vocab) {
     ["Rule", result.rule ? result.rule.label : "None"],
   ];
   if (result.guardrail) rows.push(["Guardrail", `${result.guardrail.label}: ${label(vocab, "dispositions", result.guardrail.from)} became ${label(vocab, "dispositions", result.guardrail.to)}. ${result.guardrail.reason ?? ""}`]);
-  if (result.overlap_with) rows.push(["Overlaps with", `${result.overlap_with.name} (${result.overlap_with.ref}), the primary provider, whose value is ${result.overlap_with.bv?.toFixed(1)}`]);
+  if (result.overlap_with?.ref) rows.push(["Overlaps with", `${result.overlap_with.name} (${result.overlap_with.ref}), the primary provider, whose value is ${result.overlap_with.bv?.toFixed(1)}`]);
+  else if (result.overlap_with) rows.push(["Overlaps with", `The primary provider, ${result.overlap_with.name}, whose value is higher`]);
   return h("dl", { class: "dl" }, rows.map(([term, value]) => [h("dt", {}, term), h("dd", {}, value)]));
 }
 
