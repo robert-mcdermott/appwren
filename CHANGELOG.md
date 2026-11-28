@@ -4,7 +4,7 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.10.1 (2026-11-28)
 
 The documentation reviewed against the code, guide by guide, and a new organization's setup
 walked from a fresh install; what blocked it is fixed.
