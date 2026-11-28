@@ -594,7 +594,7 @@ def cmd_mail(args: argparse.Namespace) -> int:
 def cmd_doctor(args: argparse.Namespace) -> int:
     from appwren.cli import doctor
 
-    checks = doctor.run(args.config, production=args.production)
+    checks = doctor.run(args.config, production=args.production, ask_assistant=args.assistant)
     width = max(len(check.name) for check in checks)
     for check in checks:
         print(f"{doctor.MARKS[check.status]} {check.name.ljust(width)}  {check.detail}")
@@ -1007,6 +1007,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="also check what matters once people depend on it: an https address, the "
         "database, administrators, sign-in, email, scheduled work, backups, and who can read "
         "the data home; a demo organization fails",
+    )  # fmt: skip
+    doctor.add_argument(
+        "--assistant", action="store_true",
+        help="also ask the assistant's model server one small question, where an assistant is "
+        "set up",
     )  # fmt: skip
     doctor.set_defaults(handler=cmd_doctor)
 

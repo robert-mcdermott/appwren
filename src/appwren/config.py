@@ -6,10 +6,12 @@ product's appearance live in the database and are edited in the app (ADR-0010).
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import tomllib
 import types
+import typing
 from collections.abc import Mapping
 from dataclasses import dataclass, field, fields, replace
 from importlib import resources
@@ -93,6 +95,34 @@ class MailConfig:
 
 
 ASSISTANT_PROVIDERS = ("openai", "anthropic", "bedrock")
+_HEADER = re.compile(r"([A-Za-z0-9!#$%&'*+.^_`|~-]+):[ \t]*(\S(?:.*\S)?)[ \t]*")
+# Headers AppWren sends itself, and those that carry a credential, which belongs in the
+# environment.
+_OWN_HEADERS = {"authorization", "proxy-authorization", "x-api-key", "cookie", "host",
+                "content-type", "content-length", "accept", "user-agent"}  # fmt: skip
+_CREDENTIAL = re.compile(r"key|token|secret|password|auth|session|signature", re.IGNORECASE)
+
+
+def split_header(header: str) -> tuple[str, str]:
+    """A ``"Name: value"`` setting as (name, value)."""
+    found = _HEADER.fullmatch(header)
+    if found is None:
+        raise ValueError(f"{header!r} is not a header")
+    return found.group(1), found.group(2)
+
+
+def header_problem(header: str) -> str | None:
+    """Why an extra header for a gateway may not be sent, if it may not."""
+    try:
+        name, _ = split_header(header)
+    except ValueError:
+        return f'{header[:60]!r} should be written "Name: value"'
+    if name.lower() in _OWN_HEADERS or _CREDENTIAL.search(name):
+        return (
+            f"{name} may not be set here: a key belongs in the environment variable that "
+            "key_env names, and AppWren sends its own headers"
+        )
+    return None
 
 
 @dataclass(frozen=True)
@@ -112,6 +142,10 @@ class AssistantConfig:
     max_tokens: int = 0  # the longest answer; 0: 16,000 for anthropic and bedrock, else unsent
     temperature: float | None = None  # unsent unless given: newer models refuse one
     timeout_seconds: int = 120
+    headers: tuple[str, ...] = ()  # "Name: value" for a gateway; never a key
+    roles: tuple[str, ...] = ()  # who may use it; none named: everyone. Administrators may
+    daily_limit: int = 100  # requests to the model per person per day (UTC); 0: no limit
+    keep_days: int = 365  # an exchange older than this is removed; 0: kept
     # The most sensitive class of data an application may handle and still be described to it.
     max_data_class: str = "internal"
 
@@ -275,6 +309,20 @@ def _convert(value: Any, kind: Any, *, from_env: bool) -> Any:
             return None  # an empty variable unsets it
         (inner,) = [k for k in kind.__args__ if k is not type(None)]
         return _convert(value, inner, from_env=from_env)
+    if typing.get_origin(kind) is tuple:
+        if from_env and isinstance(value, str):
+            text = value.strip()
+            if text.startswith("["):
+                try:
+                    value = json.loads(text)
+                except ValueError as exc:
+                    said = "must be a JSON list of text, or text split by commas"
+                    raise ValueError(said) from exc
+            else:
+                value = [part for part in text.split(",") if part.strip()]
+        if isinstance(value, list) and all(isinstance(item, str) for item in value):
+            return tuple(item.strip() for item in value)
+        raise ValueError("must be a list of text in quotes")
     if kind is float:
         if isinstance(value, int | float) and not isinstance(value, bool):
             return float(value)
@@ -341,6 +389,18 @@ def _validate(config: Config, raw: Mapping[str, Any]) -> list[str]:
         problems.append("[assistant] temperature must be between 0 and 2")
     if not 10 <= helper.timeout_seconds <= 600:
         problems.append("[assistant] timeout_seconds must be between 10 and 600")
+    if not 0 <= helper.daily_limit <= 100_000:
+        problems.append("[assistant] daily_limit must be between 0 (no limit) and 100000")
+    if not 0 <= helper.keep_days <= 3650:
+        problems.append("[assistant] keep_days must be between 0 (kept) and 3650")
+    from appwren.access.roles import ROLES
+
+    for role in helper.roles:
+        if role not in ROLES:
+            problems.append(f"[assistant] roles: {role!r} is not a role; use {', '.join(ROLES)}")
+    for header in helper.headers:
+        if problem := header_problem(header):
+            problems.append(f"[assistant] headers: {problem}")
     if helper.url and not (
         helper.url.startswith("https://")
         or re.match(r"^http://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(/|$)", helper.url)

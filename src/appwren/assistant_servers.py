@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import quote, urlsplit
 
-from appwren.config import AssistantConfig
+from appwren.config import AssistantConfig, split_header
 from appwren.core import net
 from appwren.core.errors import AppWrenError
 from appwren.core.sigv4 import sign
@@ -182,8 +182,10 @@ def _bedrock_words(found: Any) -> str:
 
 def _send(config: AssistantConfig, call: Call) -> str:
     data = json.dumps(call.body).encode()
+    # A gateway's own headers go with every request, and are signed with it on Bedrock.
+    gateway = dict(split_header(header) for header in config.headers)
     headers = {"content-type": "application/json", "accept": "application/json",
-               "user-agent": "AppWren", **call.headers}  # fmt: skip
+               "user-agent": "AppWren", **gateway, **call.headers}  # fmt: skip
     if call.sign:
         headers = call.sign(call.url, headers, data)
     request = urllib.request.Request(call.url, data=data, headers=headers, method="POST")  # noqa: S310

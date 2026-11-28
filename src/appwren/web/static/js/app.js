@@ -51,14 +51,14 @@ async function boot() {
   setSession(me);
   if (window.location.pathname === "/sign-in") history.replaceState({}, "", "/");
 
-  if (meta.assistant) ON.add("assistant");
+  if (me.assistant) ON.add("assistant");  // set up, and open to this person
   const { main, redrawBrand } = mountShell(root, meta);
   const page = (file, name, ...extra) => async (params) => (await import(`./pages/${file}.js`))[name](main, ...extra, params);
 
   route("/", page("home", "home", meta));
   route("/account", page("account", "account"));
   route("/account/tokens", page("admin-integration", "myTokens"));
-  if (meta.assistant) route("/assistant", page("assistant", "assistantPage"));
+  if (me.assistant) route("/assistant", page("assistant", "assistantPage"));
   route("/notices", page("notices", "noticeList"));
   route("/search", page("find", "searchPage"));
   route("/applications", page("records", "applicationList"));

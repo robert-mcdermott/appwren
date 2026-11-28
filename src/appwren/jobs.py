@@ -93,17 +93,30 @@ def _standings(db: Database, config: Config) -> dict[str, int]:
     return standings.run_once(db, config)
 
 
-def _tidy(db: Database, _config: Config) -> dict[str, int]:
+def _tidy(db: Database, config: Config) -> dict[str, int]:
     now = utc_now()
     with db.bookkeeping() as session:
         runs = session.execute(delete(JobRun).where(JobRun.finished_at < now - KEEP_RUNS))
         begun = session.execute(
             delete(SignInRequest).where(SignInRequest.created_at < now - timedelta(hours=1))
         )
-        return {
+        counts = {
             "old_runs_removed": runs.rowcount or 0,  # type: ignore[attr-defined]
             "unfinished_sign_ins_removed": begun.rowcount or 0,  # type: ignore[attr-defined]
         }
+    if config.assistant.enabled and config.assistant.keep_days:
+        from appwren import assistant
+
+        # In batches, so a first tidy of a long backlog holds nobody's work up for long.
+        forgotten = 0
+        while True:
+            with db.write(SCHEDULER, action="job.tidy") as session:
+                gone = assistant.forget_old(session, config.assistant.keep_days)
+            forgotten += gone
+            if gone < assistant.FORGET_BATCH:
+                break
+        counts["old_assistant_exchanges_removed"] = forgotten
+    return counts
 
 
 JOBS: dict[str, JobSpec] = {
@@ -137,7 +150,8 @@ JOBS: dict[str, JobSpec] = {
                 "Keeps the portfolio's scores as they stand, once a month",
                 timedelta(hours=6), _snapshots),
         JobSpec("tidy", "Housekeeping",
-                "Removes run records older than ninety days and sign-ins that were never finished",
+                "Removes run records older than ninety days, sign-ins that were never finished, "
+                "and the assistant's exchanges older than the configuration keeps them",
                 timedelta(days=1), _tidy),
     )
 }  # fmt: skip

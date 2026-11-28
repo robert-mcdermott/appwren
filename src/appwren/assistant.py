@@ -22,9 +22,10 @@ import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from appwren import assistant_servers
@@ -32,7 +33,7 @@ from appwren.access.principal import Principal
 from appwren.assistant_servers import AssistantError
 from appwren.config import AssistantConfig
 from appwren.core.clock import utc_now
-from appwren.core.errors import Invalid, NotFound, PermissionDenied
+from appwren.core.errors import Invalid, Limited, NotFound, PermissionDenied
 from appwren.db.models import Application, ApplicationUnit, AssistantExchange
 from appwren.events import audit
 from appwren.inventory import access, records
@@ -72,6 +73,44 @@ class Prepared:
 def need(config: AssistantConfig) -> None:
     if not config.enabled:
         raise NotFound("There is no assistant here.")
+
+
+def may_use(config: AssistantConfig, principal: Principal) -> bool:
+    """Whether this person may ask the assistant: anyone, unless the configuration names the
+    roles that may. Administrators always may."""
+    if not config.enabled:
+        return False
+    if not config.roles or principal.is_admin:
+        return True
+    return any(principal.has(role) for role in config.roles)
+
+
+def asked_today(session: Session, account_id: int) -> int:
+    """How many times this person has asked the assistant since midnight, UTC: every request,
+    answered or not."""
+    midnight = datetime.combine(utc_now().date(), time.min, tzinfo=UTC)
+    return (
+        session.scalar(
+            select(func.count(AssistantExchange.id)).where(
+                AssistantExchange.account_id == account_id, AssistantExchange.created_at >= midnight
+            )
+        )
+        or 0
+    )
+
+
+def _may_ask(session: Session, principal: Principal, config: AssistantConfig, doing: str) -> None:
+    need(config)
+    if principal.account_id is None or principal.token_id is not None:
+        raise PermissionDenied(f"The assistant {doing} a person, signed in.")
+    if not may_use(config, principal):
+        raise PermissionDenied("The assistant is not open to your role here.")
+    limit = config.daily_limit
+    if limit and asked_today(session, principal.account_id) >= limit:
+        raise Limited(
+            f"You have asked the assistant {limit:,} times today, the most allowed in a day. "
+            "Ask again tomorrow."
+        )
 
 
 def call(config: AssistantConfig, prepared: Prepared, ask: Ask) -> tuple[str, str | None]:
@@ -133,9 +172,7 @@ def _fields(session: Session) -> list[dict[str, Any]]:
 def prepare_draft(
     session: Session, principal: Principal, config: AssistantConfig, text: str
 ) -> Prepared:
-    need(config)
-    if principal.account_id is None or principal.token_id is not None:
-        raise PermissionDenied("The assistant drafts for a person, signed in.")
+    _may_ask(session, principal, config, "drafts for")
     text = (text or "").strip()
     if len(text) < 40:
         said = "Paste a description of the application, a paragraph at least."
@@ -255,9 +292,7 @@ def _used_by(
 def prepare_question(
     session: Session, principal: Principal, config: AssistantConfig, question: str
 ) -> Prepared:
-    need(config)
-    if principal.account_id is None or principal.token_id is not None:
-        raise PermissionDenied("The assistant answers a person, signed in.")
+    _may_ask(session, principal, config, "answers")
     question = (question or "").strip()
     if len(question) < 5 or len(question) > 1000:
         raise Invalid("Ask a question.", {"question": "Ask in a sentence, up to 1,000 characters."})
@@ -312,3 +347,24 @@ def exchanges(session: Session, principal: Principal, limit: int = 100) -> list[
     return [{"id": row.id, "asked_by": row.asked_by_name, "purpose": row.purpose,
              "model": row.model, "ok": row.ok, "error": row.error, "created_at": row.created_at,
              "prompt": row.prompt, "response": row.response} for row in rows]  # fmt: skip
+
+
+FORGET_BATCH = 500
+
+
+def forget_old(session: Session, keep_days: int, *, batch: int = FORGET_BATCH) -> int:
+    """Remove up to ``batch`` exchanges older than ``keep_days``, the words with them. That
+    each happened, who asked, and about what stays in the history. Returns how many went."""
+    if keep_days <= 0:
+        return 0
+    before = utc_now() - timedelta(days=keep_days)
+    rows = list(session.scalars(
+        select(AssistantExchange).where(AssistantExchange.created_at < before)
+        .order_by(AssistantExchange.id).limit(batch)
+    ))  # fmt: skip
+    if rows:
+        with audit.operation(session, "assistant.forget", older_than_days=keep_days):
+            for row in rows:
+                session.delete(row)
+            session.flush()
+    return len(rows)

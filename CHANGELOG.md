@@ -16,11 +16,21 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   `timeout_seconds`. A server's own reason for refusing a request is now shown, and an
   answer cut off at the limit, or declined by the model, says so.
 
+- **Limits for paid models.** `[assistant] roles` opens the assistant to some roles only
+  (administrators always may), `daily_limit` caps how often each person asks in a day (100
+  unless set), and `keep_days` removes exchanges' words after a year unless set, while the
+  history keeps that each happened. `headers` sends a gateway its own headers, never a key.
+- **`appwren doctor` checks the assistant** where one is set up: what the provider still
+  needs in the environment, and with `--assistant`, whether its server answers.
+
 ### Changed
 
 - **No temperature is sent unless one is set.** The assistant used to send 0.2, which newer
   models refuse. Set `[assistant] temperature = 0.2` to keep a model of your own as steady
   as before.
+- **Exchanges with the assistant are kept for a year**, not for ever, unless `[assistant]
+  keep_days` says otherwise, and each person may ask a hundred times a day unless
+  `daily_limit` says otherwise.
 - The assistant waits up to two minutes for an answer, not one, for models that think
   before they answer (`timeout_seconds`).
 

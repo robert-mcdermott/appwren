@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 from dataclasses import dataclass
@@ -35,8 +36,11 @@ class Check:
     detail: str
 
 
-def run(config_path: str | None = None, *, production: bool = False) -> list[Check]:
-    """Every check. ``production`` adds what matters once people depend on the installation."""
+def run(
+    config_path: str | None = None, *, production: bool = False, ask_assistant: bool = False
+) -> list[Check]:
+    """Every check. ``production`` adds what matters once people depend on the installation;
+    ``ask_assistant`` asks the assistant's server one small question."""
     checks = [_python()]
     try:
         config = load_config(config_path)
@@ -58,6 +62,9 @@ def run(config_path: str | None = None, *, production: bool = False) -> list[Che
     # Email is optional as well. Without it, notices and reminders are read in the app.
     checks.append(_mail(config) if config.mail.enabled else Check("Email", OK, "not set up"))
     checks.append(_jobs(config))
+    # The assistant is optional, and nothing is said of it unless it is set up.
+    if config.assistant.enabled:
+        checks.append(_assistant(config, ask=ask_assistant))
     if production and not any(check.status == FAIL for check in checks):
         checks += for_production(config, home)
     return checks
@@ -198,6 +205,48 @@ def for_production(config: Config, home: DataHome) -> list[Check]:
     else:
         checks.append(Check("Data home access", OK, "only the account that runs AppWren"))
     return checks
+
+
+def _assistant(config: Config, *, ask: bool) -> Check:
+    """Is what the configured provider needs in the environment? With ``ask``, does its
+    server answer?"""
+    import os
+
+    from appwren import assistant_servers
+
+    helper = config.assistant
+    where = f"{helper.provider}, {helper.model} at {helper.endpoint}"
+    key = os.environ.get(helper.key_env, "").strip()
+    local = re.match(r"^http://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(/|$)", helper.endpoint)
+    if helper.provider == "bedrock":
+        token = key or os.environ.get(assistant_servers.BEDROCK_TOKEN, "").strip()
+        signed = os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY")
+        if not (token or signed):
+            return Check("Assistant", FAIL, f"{where}: set {assistant_servers.BEDROCK_TOKEN} (an "
+                         "Amazon Bedrock API key), or AWS_ACCESS_KEY_ID and "
+                         "AWS_SECRET_ACCESS_KEY, in the server's environment")  # fmt: skip
+        how = "with an Amazon Bedrock API key" if token else "signed with AWS access keys"
+    elif key:
+        how = f"with the key in {helper.key_env}"
+    elif local:
+        how = "with no key, on this machine"
+    elif helper.provider == "anthropic" and not helper.url:
+        return Check("Assistant", FAIL, f"{where}: the official service needs a key; put it "
+                     f"in {helper.key_env}")  # fmt: skip
+    else:
+        return Check("Assistant", WARN, f"{where}: {helper.key_env} is not set, so no key is "
+                     "sent; most hosted servers need one")  # fmt: skip
+    if not ask:
+        return Check("Assistant", OK, f"{where}, {how}. `--assistant` asks it a question")
+    try:
+        said = assistant_servers.ask(helper, [
+            {"role": "system", "content": "Reply with the single word: ready"},
+            {"role": "user", "content": "Are you there?"},
+        ])  # fmt: skip
+    except assistant_servers.AssistantError as exc:
+        return Check("Assistant", FAIL, f"{where}: {exc}")
+    words = " ".join(said.split())[:40] or "(an empty answer)"
+    return Check("Assistant", OK, f"{where}, {how}, answered “{words}”")
 
 
 def _mail(config: Config) -> Check:

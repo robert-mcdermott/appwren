@@ -105,6 +105,10 @@ Optional, and off until a `model` is named (and, for `openai`, a `url`). Without
 | `max_tokens` | `0` | The longest answer, in tokens. `0` sends no limit for `openai`, and 16,000 for `anthropic` and `bedrock`, which need one. A model that thinks before it answers counts its thinking against this limit |
 | `temperature` | not sent | From 0 to 2, lower being steadier. Left out, the model's own default is used. Newer models refuse any temperature, so set one only for a model that takes it, such as one you run yourself |
 | `timeout_seconds` | `120` | How long to wait for an answer, from 10 to 600 |
+| `headers` | `[]` | Extra headers sent with every request, for a gateway in front of the model, such as `["X-Team: portfolio"]`. Never a key: a header that carries a credential, or one AppWren sends itself, is refused |
+| `roles` | `[]` | The roles that may use the assistant, such as `["manager", "architect"]`. None named: everyone who can sign in. Administrators always may |
+| `daily_limit` | `100` | How many times each person may ask in a day, counted from midnight UTC, whether or not the model answered. `0` for no limit |
+| `keep_days` | `365` | How long an exchange's words are kept. Older ones are removed by the nightly housekeeping; that each happened, who asked, and about what stays in the history. `0` keeps them |
 | `max_data_class` | `"internal"` | The most sensitive class of data an application may handle and still be described to the assistant. Applications that handle anything more sensitive are left out of what it is told |
 
 Some examples:
@@ -129,6 +133,8 @@ model = "a-model-or-inference-profile-id"  # as the Bedrock console lists it
 ```
 
 For `bedrock`, AppWren uses an Amazon Bedrock API key if there is one, in the variable `key_env` names or in `AWS_BEARER_TOKEN_BEDROCK`. Otherwise it signs each request with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` when there is one. Credentials kept in a shared AWS profile or from single sign-on are not read directly: `aws configure export-credentials --format env` puts them in the environment. The identity needs permission to call the model, such as `bedrock:InvokeModel`. Bedrock also serves the messages interface on its `bedrock-mantle` endpoint, with an API key: use `provider = "anthropic"` and `url = "https://bedrock-mantle.us-east-1.api.aws/anthropic"`.
+
+`appwren doctor` says what the configured provider still needs, and `appwren doctor --assistant` asks its server one small question.
 
 A server that needs anything more, such as Google Cloud's short-lived sign-in tokens, can be reached through a gateway on this machine that speaks one of the three protocols.
 

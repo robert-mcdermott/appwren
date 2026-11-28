@@ -243,3 +243,4 @@ Check the configuration, the data home, the database and its schema, and the his
 | Option | Meaning |
 |---|---|
 | `--production` | also check what matters once people depend on it: an https address, the database, administrators, sign-in, email, scheduled work, backups, and who can read the data home; a demo organization fails |
+| `--assistant` | also ask the assistant's model server one small question, where an assistant is set up |

@@ -38,13 +38,13 @@ None block the start. These defaults have been taken and can be changed at the r
 - [x] Chat completions and the messages interface checked against a model server on this machine
 - [ ] Bedrock checked against a real account, with the maintainer's credentials
 
-## Slice 2: The assistant, for paid models ☐
+## Slice 2: The assistant, for paid models ☑
 
-- [ ] `daily_limit`: requests to the model per person per day, counted from the exchanges kept, with a clear answer when it is reached
-- [ ] `roles`: the roles that may use the assistant; the page, the menu entry, and the routes follow it
-- [ ] `keep_days`: exchanges older than this removed by the scheduler's tidying job
-- [ ] `headers`: extra `"Name: value"` headers for a gateway, never a key or an `Authorization` header
-- [ ] `appwren doctor`: what is missing for the configured provider (a key, AWS credentials, a region), and `--assistant` to ask the server one small question
+- [x] `daily_limit`: requests to the model per person per day, from midnight UTC, counted from the exchanges kept, answered or not; past it, 429 with a plain answer
+- [x] `roles`: the roles that may use the assistant, administrators always; the session says whether it is open to the person, and the page, the menu entry, and the routes follow it
+- [x] `keep_days`: exchanges older than this removed by the nightly housekeeping, in batches, through the history, which keeps that each happened but never the words
+- [x] `headers`: extra `"Name: value"` headers for a gateway, signed with the request on Bedrock; one that carries a credential, or one AppWren sends itself, is refused
+- [x] `appwren doctor`: what is missing for the configured provider (a key, AWS credentials), and `--assistant` to ask the server one small question
 
 ## Slice 3: Quick at its largest ☐
 
@@ -71,3 +71,5 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - The assistant of 0.8.0 and 0.9.0 always sent a temperature of 0.2. Newer models refuse any temperature with a 400, so through the messages interface's compatibility layer it could not have answered with a current model. The temperature is now sent only when set.
 - AppWren's assistant asks one question and reads one whole answer, so it needs no streaming and gives the model no tools. Bedrock is spoken to through `/converse`, which answers in plain JSON, so no decoder of AWS's event stream is needed.
 - Measured at the start of the wave with `scripts/perf.py` on SQLite: at 1,000 applications every page answers within a second. At 5,000, the dashboard, data quality, overlap, the portfolio list, and Home for someone over the whole portfolio each take about 1.5 s; every other page takes a fifth of a second or less, apart from the engineering maturity page (0.9 s) and the capability map (0.1 to 0.5 s). Of the 1.5 s, scoring every application in service takes 1.2 s: 0.8 s reading the facts, much of it loading whole technology and release rows for 50,000 components where six columns are used, and 0.3 s in the engine. One run measured data quality at 6.9 s; two more runs gave 1.5 s.
+- The daily limit counts every exchange kept, answered or not, so a server that keeps failing cannot be asked without end either. Today's count is never touched by `keep_days`, which is at least a day.
+- Lists in the configuration (`roles`, `headers`) may come from the environment as text split by commas, or as a JSON list where a value holds a comma.
