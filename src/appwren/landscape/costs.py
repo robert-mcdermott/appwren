@@ -573,16 +573,22 @@ def breakdown(
     who see every application's cost: a part of it would say what the rest costs."""
     if cost_is_sensitive(session) and not access.sees_all_sensitive(principal):
         return None
-    apps = session.scalars(select(Application).where(Application.id.in_(application_ids))).all()
+    # Only the columns used: these are read for every application in the portfolio.
+    apps = session.execute(
+        select(Application.id, Application.annual_cost, Application.funding)
+        .where(Application.id.in_(application_ids))
+    ).all()  # fmt: skip
     categories = vocab.labels(session, "cost_categories")
     funding = vocab.labels(session, "funding")
     by_category: dict[str, int] = defaultdict(int)
     by_source: dict[str, int] = defaultdict(int)
     with_lines: set[int] = set()
     sources = {row.id: row for row in session.scalars(select(FundingSource))}
-    for line in session.scalars(
-        select(CostLine).where(CostLine.application_id.in_(application_ids))
-    ):
+    for line in session.execute(
+        select(CostLine.application_id, CostLine.category, CostLine.amount,
+               CostLine.funding_source_id)
+        .where(CostLine.application_id.in_(application_ids))
+    ):  # fmt: skip
         with_lines.add(line.application_id)
         by_category[categories.get(line.category, line.category)] += line.amount
         source = sources.get(line.funding_source_id)

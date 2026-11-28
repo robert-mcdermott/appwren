@@ -23,6 +23,13 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **`appwren doctor` checks the assistant** where one is set up: what the provider still
   needs in the environment, and with `--assistant`, whether its server answers.
 
+- **The pages that score the whole portfolio are quick at its largest.** Home for a
+  manager, the portfolio list, the dashboard, data quality, and overlap keep each day's scores
+  between changes, in each server process: at 5,000 applications they answer in about a fifth
+  of a second when opened again, and their first opening after a change is quicker too. Every
+  score, flag, and working is exactly as before; any change to what a score is worked out from
+  makes the next page work them out again.
+
 ### Changed
 
 - **No temperature is sent unless one is set.** The assistant used to send 0.2, which newer
@@ -31,6 +38,9 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 - **Exchanges with the assistant are kept for a year**, not for ever, unless `[assistant]
   keep_days` says otherwise, and each person may ask a hundred times a day unless
   `daily_limit` says otherwise.
+- **The scheduler raises tasks in batches.** A first run on a large installation that finds
+  a thousand tasks to raise writes them two hundred at a time, each batch committed, so no one
+  else's change waits for all of them. The same tasks are raised.
 - The assistant waits up to two minutes for an answer, not one, for models that think
   before they answer (`timeout_seconds`).
 

@@ -464,20 +464,21 @@ Each process runs up to forty requests at once and may open as many connections 
 
 ## How large it runs
 
-AppWren is measured with the demo organization copied up to **5,029 applications and 52,029 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
+AppWren is measured with the demo organization copied up to **5,014 applications and 50,922 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
 
 | Request | SQLite | PostgreSQL |
 |---|---|---|
-| A page of applications, searched, filtered, or sorted | 19–55 ms | 52–92 ms |
-| One application, its history, its scores over time | 3–10 ms | 7–29 ms |
-| A page of components | 48 ms | 19 ms |
-| Search everything | 157 ms | 124 ms |
-| The capability map, the lifecycle | 90–116 ms | 56–165 ms |
-| Shares of the portfolio | 110 ms | 106 ms |
-| Engineering maturity | 1.1 s | 1.1 s |
-| Home, the portfolio list, the dashboard, data quality, overlap | 1.7–1.9 s | 1.7–2.0 s |
+| A page of applications, searched, filtered, or sorted | 13–23 ms | 19–28 ms |
+| One application, its history, its scores over time | 3–8 ms | 6–24 ms |
+| A page of components | 47 ms | 20 ms |
+| Search everything | 142 ms | 111 ms |
+| The capability map, the lifecycle | 83–197 ms | 57–135 ms |
+| Shares of the portfolio | 89 ms | 114 ms |
+| Engineering maturity | 1.0 s | 1.1 s |
+| Home, the portfolio list, the dashboard, data quality, overlap | 0.17–0.30 s | 0.20–0.39 s |
+| The same, the first time after a change | 1.2–1.3 s | 1.4–1.5 s |
 
-The pages in the last row score every application in service each time they are opened, so their time grows with the portfolio: at 500 applications each takes about a fifth of a second. Home does so only for a manager over the whole organization, as measured here; for anyone else it scores the applications they are named on and those of the units they keep or decide for. Everything that opens one record, or a page of a list, stays fast at any size.
+The pages in the last two rows score every application in service. Each server process keeps the day's scores until something a score is worked out from changes: an application, an assessment, a component, a cost, a source's facts, the scoring model, or the like. The first of those pages opened after such a change works them all out again; the rest, and every opening after, use what is kept. At 500 applications even the first takes no more than about a fifth of a second. Kept scores take about 80 MB in each process at 5,000 applications. Home scores the whole portfolio only for a manager over the whole organization, as measured here; for anyone else it scores the applications they are named on and those of the units they keep or decide for. Everything that opens one record, or a page of a list, stays fast at any size.
 
 `scripts/soak.py` keeps a server at that size busy with twenty people at once for ten minutes and reports failures, timings, and memory, if you want to see how it holds up on your hardware. Measured so on the laptop above with SQLite and one server process, it answered all 6,874 requests in ten minutes with no failures, half of them within 33 ms and 95 in 100 within a fifth of a second, Home within 1.6 seconds for 95 in 100, with memory level at about 530 MB.
 
@@ -488,7 +489,7 @@ uv run python scripts/perf.py                                     # 5,000 applic
 uv run python scripts/perf.py --applications 1000 --components 10000
 ```
 
-To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. The script exits with 1 if a median is over its budget, which is two and a half seconds unless you give `--budget`.
+To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. The script exits with 1 if a median is over its budget, which is two and a half seconds unless you give `--budget`, or a page that scores the whole portfolio takes longer than half a second when opened again (`--again`).
 
 ## Upgrade
 

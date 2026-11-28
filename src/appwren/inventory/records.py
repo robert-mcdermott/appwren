@@ -560,20 +560,23 @@ def owners_of(
     if not ids or not record_type.has_people:
         return found
     order = {key: position for position, key in enumerate(vocab.keys(session, "application_roles"))}
+    # Only the columns used: whole rows, for every application, are most of the cost of the
+    # pages that list the whole portfolio.
     rows = session.execute(
-        select(RecordOwner, Account)
+        select(RecordOwner.record_id, RecordOwner.kind, Account.id, Account.display_name,
+               Account.email, Account.status)
         .join(Account, Account.id == RecordOwner.account_id)
         .where(RecordOwner.record_type == record_type.key, among(RecordOwner.record_id, ids))
         .order_by(Account.display_name)
-    )
-    for owner, account in rows:
-        found[owner.record_id].append(
+    )  # fmt: skip
+    for record_id, kind, account_id, name, email, status in rows:
+        found[record_id].append(
             {
-                "account_id": account.id,
-                "name": account.display_name,
-                "email": account.email,
-                "kind": owner.kind,
-                "active": account.status != "disabled",
+                "account_id": account_id,
+                "name": name,
+                "email": email,
+                "kind": kind,
+                "active": status != "disabled",
             }
         )
     for people in found.values():

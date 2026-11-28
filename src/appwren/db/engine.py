@@ -12,6 +12,7 @@ from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
 
 from appwren.core.errors import StoreError
+from appwren.db import changes  # noqa: F401  (counts every change a score could read)
 from appwren.events.actor import Actor
 from appwren.events.audit import AuditedSession
 

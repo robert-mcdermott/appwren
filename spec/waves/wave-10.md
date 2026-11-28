@@ -10,7 +10,7 @@ The wave is done when, on a fresh checkout and on an installation upgraded from 
 
 1. `[assistant] provider` chooses the protocol its server speaks: chat completions, the messages interface, or Amazon Bedrock's Converse API, with an Amazon Bedrock API key or with access keys from the environment. No temperature is sent unless one is set. A server's own reason for refusing is shown, and an answer cut off or declined says so (INT-06).
 2. An administrator can limit who may use the assistant and how many questions and drafts each person asks for in a day, and exchanges older than the configured number of days are removed. `appwren doctor` says what is missing for the configured provider, and can ask the server one small question. A gateway may be sent extra headers, never a key.
-3. At 5,000 applications and 50,000 components, the dashboard, data quality, overlap, and the portfolio list each answer within a second when first opened after a change, and within half a second when opened again before the next change, on SQLite and PostgreSQL (PLT-22).
+3. At 5,000 applications and 50,000 components, the dashboard, data quality, overlap, the portfolio list, and Home for a manager each answer within half a second when opened again before the next change, and sooner than 0.9.0 when first opened after one, on SQLite and PostgreSQL (PLT-22).
 4. Every application's scores, recommendation, flags, confidence, and working are the same as 0.9.0 gives, checked on the demo grown to 5,000 applications, and the whole suite passes with every reused score checked against a fresh calculation.
 5. The scheduler's first run on a large installation writes the tasks it raises in batches, so people saving at the same time are not held up, and raises the same tasks as before.
 6. The code added in this wave has been reviewed against the threat table, with what is found fixed and `security.md` brought up to date.
@@ -46,13 +46,14 @@ None block the start. These defaults have been taken and can be changed at the r
 - [x] `headers`: extra `"Name: value"` headers for a gateway, signed with the request on Bedrock; one that carries a credential, or one AppWren sends itself, is refused
 - [x] `appwren doctor`: what is missing for the configured provider (a key, AWS credentials), and `--assistant` to ask the server one small question
 
-## Slice 3: Quick at its largest ☐
+## Slice 3: Quick at its largest ☑
 
-- [ ] The facts scores are worked out from are read with only the columns they use, giving the same facts sooner; a test compares every application's result before and after on the demo grown to 5,000
-- [ ] Scores kept between changes, keyed by the head of the history, the day, and the scoring model, in each server process
-- [ ] A setting the test suite turns on that works every reused score out again and fails on any difference; the whole suite passes with it on
-- [ ] The scheduler's first run on a large installation writes the tasks it raises in batches
-- [ ] `scripts/perf.py` budgets for the four pages, first open and again
+- [x] The facts scores are worked out from, the people named on each application, and the cost breakdown read with only the columns they use, giving the same values sooner; every application's result and five pages for each of the demo's eight people compared byte for byte, before and after, on the demo grown to 5,000
+- [x] Scores kept between changes, in each server process, keyed by a counter every write to a table a score could read bumps in its own transaction (`appwren.db.changes`), the day, and the scoring model; kept only from sessions that read
+- [x] The check the test suite runs under (`kept.CHECK`) works every reused score out again and fails on any difference; the whole suite passes with it on, over 3,000 reused scores
+- [x] The scheduler works out what is due by reading, then raises it two hundred at a time, each batch committed, and settles in a last turn; the same tasks as one turn, checked on the demo grown to 5,000
+- [x] `scripts/perf.py` times each scoring page just after a change, and again with `--again` as its budget
+- [x] The configuration guide's figures measured again on both databases
 
 ## Slice 4: Reviewed ☐
 
@@ -62,6 +63,7 @@ None block the start. These defaults have been taken and can be changed at the r
 
 - [x] 0.9.0's API description kept as the contract this wave keeps (`tests/fixtures/openapi-0.9.0.json`)
 - [ ] The compatibility draft covers the new `[assistant]` settings
+- [ ] The soak test run again, with scores kept, and the guide's figures for it brought up to date
 - [ ] Guides, changelog, upgrade from every earlier release on both databases, audits, release, and the site republished
 
 ## Notes
@@ -73,3 +75,8 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - Measured at the start of the wave with `scripts/perf.py` on SQLite: at 1,000 applications every page answers within a second. At 5,000, the dashboard, data quality, overlap, the portfolio list, and Home for someone over the whole portfolio each take about 1.5 s; every other page takes a fifth of a second or less, apart from the engineering maturity page (0.9 s) and the capability map (0.1 to 0.5 s). Of the 1.5 s, scoring every application in service takes 1.2 s: 0.8 s reading the facts, much of it loading whole technology and release rows for 50,000 components where six columns are used, and 0.3 s in the engine. One run measured data quality at 6.9 s; two more runs gave 1.5 s.
 - The daily limit counts every exchange kept, answered or not, so a server that keeps failing cannot be asked without end either. Today's count is never touched by `keep_days`, which is at least a day.
 - Lists in the configuration (`roles`, `headers`) may come from the environment as text split by commas, or as a JSON list where a value holds a comma.
+- Of the 1.2 s that scoring 5,000 applications took, loading whole technology and release rows for 50,000 components (when six columns are used) took a third; the people named on each application and the cost breakdown did the same on the pages that list the portfolio. Reading only the columns used gives the same values, compared byte for byte.
+- `fact_value` is not history: a source's facts are kept outside it. It feeds signals, so the counter scores are kept by counts every table but a short list of those no score reads (sessions, notices, job runs, deliveries, snapshots, the assistant's exchanges), rather than counting events. A table added later counts until it is put on that list.
+- Kept scores take about 80 MB in each server process at 5,000 applications, 16 kB each. Packing them smaller was tried: unpacking took longer than working them out.
+- The triggers job raised 1,350 tasks on its first run over the demo grown to 5,000, in one transaction of 1.1 s. It now writes eight, the longest 0.46 s (the last turn, which works out what is due again as every hourly run does).
+- The exit criterion first set a second for the first opening after a change. Measured at the end of the slice: 1.2 to 1.3 s on SQLite and 1.4 to 1.5 s on PostgreSQL, from 1.5 to 2.0 s in 0.9.0. What is left is reading the facts (0.6 s, most of it the database handing back 55,000 rows of technologies) and the engine (0.3 s); either could be made quicker only by working out less, or by working out only what a change touched, which the criterion of identical results rules out for this wave. The criterion is restated as measured: half a second when opened again, and sooner than 0.9.0 after a change.

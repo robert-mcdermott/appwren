@@ -19,6 +19,7 @@ from appwren.inventory import parts, records
 from appwren.inventory.registry import APPLICATION, COMPONENT, CONTRACT, TECHNOLOGY, VENDOR
 from appwren.oversight import handover, tasks
 from appwren.people import accounts
+from tests.conftest import Instance
 from tests.people import ME, People
 from tests.test_decisions import decide, who
 
@@ -217,3 +218,29 @@ def test_everything_a_person_holds_passes_on_in_one_step(
     with db.read() as session:
         told = session.scalars(select(Notice.text).where(Notice.account_id == to)).all()
     assert "You now hold 4 things that Member Person held" in told
+
+
+def test_the_scheduler_raises_many_in_batches_each_committed(
+    instance: Instance, db: Database, people: People, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A first run on a large installation writes what it raises a batch at a time, so no
+    one else's change waits for all of it, and raises just what one turn would."""
+    from appwren import jobs
+
+    for n in range(5):
+        contract(db, people, name=f"Licenses {n}")
+    monkeypatch.setattr(tasks, "BATCH", 2)
+    commits: list[int] = []
+    real = db.write
+
+    def counting(*args: Any, **kwargs: Any) -> Any:
+        commits.append(1)
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(db, "write", counting)
+    with frozen_at(at("2026-10-01")):
+        counts = jobs._triggers(db, instance.config)
+    assert counts == {"tasks_raised": 5, "tasks_settled": 0}
+    assert len(commits) == 4  # three batches of at most two, and the turn that settles
+    assert len(open_tasks(db)) == 5
+    assert turn(db, "2026-10-01") == {"tasks_raised": 0, "tasks_settled": 0}  # nothing twice

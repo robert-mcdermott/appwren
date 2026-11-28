@@ -264,20 +264,32 @@ SETTLED = {
 }
 
 
-def run(session: Session, *, on: date | None = None) -> dict[str, int]:
-    """Raise what is due and settle what is no longer. Safe to run at any time."""
+BATCH = 200  # the most tasks the scheduler raises in one transaction
+
+
+def due(session: Session, *, on: date | None = None) -> dict[str, dict[str, Any]]:
+    """Every task that is due, by the key of its cause, raised before or not."""
     on = on or today()
     days = windows(session)
-    wanted: dict[str, dict[str, Any]] = {
+    return {
         **_contracts(session, on, days["contract_notice_days"]),
         **_end_of_support(session, on, days["end_of_support_days"]),
         **_grants(session, on, days["grant_end_days"]),
         **_departures(session, on),
     }
-    raised = settled = 0
-    for key, values in wanted.items():
-        if raise_task(session, key=key, **values) is not None:
-            raised += 1
+
+
+def raise_due(session: Session, wanted: Mapping[str, Mapping[str, Any]]) -> int:
+    """Raise those of these that have not been raised before. Returns how many were."""
+    return sum(1 for key, values in wanted.items()
+               if raise_task(session, key=key, **values) is not None)  # fmt: skip
+
+
+def run(session: Session, *, on: date | None = None) -> dict[str, int]:
+    """Raise what is due and settle what is no longer. Safe to run at any time."""
+    wanted = due(session, on=on)
+    raised = raise_due(session, wanted)
+    settled = 0
     for task in session.scalars(select(Task).where(Task.status == "open")):
         if task.kind == "grant_end" and task.application_id and _decided_since(session, task):
             settle(session, task, "A decision on it was recorded.")

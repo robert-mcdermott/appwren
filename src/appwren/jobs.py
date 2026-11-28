@@ -64,8 +64,19 @@ def _reminders(db: Database, _config: Config) -> dict[str, int]:
 def _triggers(db: Database, _config: Config) -> dict[str, int]:
     from appwren.oversight import tasks
 
+    # What is due is worked out by reading, then raised in batches, each committed, so a first
+    # run that finds a thousand tasks holds nobody's changes up while it writes them all. The
+    # last turn works it out again, raises anything due since, and settles what is not.
+    with db.read() as session:
+        wanted = list(tasks.due(session).items())
+    raised = 0
+    for start in range(0, len(wanted), tasks.BATCH):
+        with db.write(SCHEDULER, action="job.triggers") as session:
+            raised += tasks.raise_due(session, dict(wanted[start : start + tasks.BATCH]))
     with db.write(SCHEDULER, action="job.triggers") as session:
-        return tasks.run(session)
+        counts = tasks.run(session)
+    counts["tasks_raised"] += raised
+    return counts
 
 
 def _connectors(db: Database, _config: Config) -> dict[str, int]:

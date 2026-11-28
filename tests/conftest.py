@@ -16,6 +16,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
 from appwren.api.app import create_app
+from appwren.assessment import kept
 from appwren.config import Config, example_config_text, load_config
 from appwren.db import migrate
 from appwren.db.base import Base
@@ -23,6 +24,10 @@ from appwren.db.engine import Database
 from appwren.events.actor import Actor
 from appwren.home import DataHome
 from tests import models
+
+# Every score reused between changes is worked out again and compared: a write that slips
+# past the counter, or a caller that changes a result it was given, fails the test it is in.
+kept.CHECK = True
 
 POSTGRES = os.environ.get("APPWREN_TEST_DATABASE", "").lower() == "postgres"
 POSTGRES_URL = os.environ.get("APPWREN_TEST_POSTGRES_URL", "")
