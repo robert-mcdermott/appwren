@@ -2,7 +2,7 @@
 
 AppWren ships in **waves**. Each wave is a release (wave 1 → v0.1.0, wave 2 → v0.2.0, …) and is split into **slices**: coherent chunks of related work. The last slice of every wave prepares the release. See [process.md](process.md) for how this works day to day.
 
-The order follows how a portfolio practice grows. Wave 1 proves the core loop: know what you run and who answers for it, assess it, see an explainable recommendation, and record a decision. Wave 2 adds the landscape around each application: what it connects to, where it runs, what it costs, and what breaks if it goes. Wave 3 keeps all of it current without a central team chasing. Wave 4 lets facts arrive from the tools that already know them. Wave 5 turns decisions into planned change. Wave 6 answers leadership's questions over time. Waves 7 and 8 make it something another organization can adopt and connect. Wave 9 is the release 1.0 is made from, and 1.0 follows the maintainer's review of it. Every wave ends with something that can be demonstrated on the demo organization.
+The order follows how a portfolio practice grows. Wave 1 proves the core loop: know what you run and who answers for it, assess it, see an explainable recommendation, and record a decision. Wave 2 adds the landscape around each application: what it connects to, where it runs, what it costs, and what breaks if it goes. Wave 3 keeps all of it current without a central team chasing. Wave 4 lets facts arrive from the tools that already know them. Wave 5 turns decisions into planned change. Wave 6 answers leadership's questions over time. Waves 7 and 8 make it something another organization can adopt and connect. Wave 9 is the release 1.0 is made from. Wave 10 makes the assistant ready for the models organizations pay for and the largest portfolios quick, and 1.0 follows the maintainer's review. Every wave ends with something that can be demonstrated on the demo organization.
 
 **Whose work comes first.** The first adopters are product, application, and software engineering teams and the IT leaders they report to (see [vision.md](vision.md)). Within every wave, what an owner of a few applications and a portfolio manager use is built first and polished most: registering an application, the home page, the scorecard and its working, and the decision in wave 1; dependencies, technology lifecycle, and cost in wave 2; attestation and triggers in wave 3; the code-hosting and end-of-life connectors in wave 4. The order of the waves is unchanged.
 
@@ -18,6 +18,7 @@ The order follows how a portfolio practice grows. Wave 1 proves the core loop: k
 | 7 | v0.7.0 | **Adoption** | Another organization installs, brands, and runs AppWren in production, with starter programs, tokens and webhooks, deployment recipes, and a security review |
 | 8 | v0.8.0 | **Connected** | Other processes check an application's standing; assistants read and draft; links to other governance records; all optional |
 | 9 | v0.9.0 | **Toward 1.0** | Who uses each application, upgrades from every release checked by script, the compatibility promise written down, and the server hardened |
+| 10 | v0.10.0 | **The assistant, ready** | The assistant speaks to the official services and to Amazon Bedrock as well as to a model of one's own, with limits on who uses it, how much, and how long exchanges are kept; the pages that score the whole portfolio answer quickly at 5,000 applications |
 | — | v1.0.0 | **Stable** | After the maintainer's review of 0.9.0: its changes, and the promise in force |
 
 Status key: ☐ planned · ◐ in progress · ☑ done
@@ -170,6 +171,20 @@ Detail: [waves/wave-6.md](waves/wave-6.md)
 
 Detail: [waves/wave-9.md](waves/wave-9.md)
 
+## Wave 10: The assistant, ready (v0.10.0) ◐
+
+**Goal:** the optional assistant ready for the models organizations pay for, and the pages that score the whole portfolio quick at its largest, with every result as before.
+
+| Slice | Name | Delivers | Status |
+|---|---|---|---|
+| 1 | More model servers | Chat completions, the messages interface, and Amazon Bedrock; no temperature unless set; clearer refusals | ◐ |
+| 2 | The assistant, for paid models | Who may use it, a daily limit per person, how long exchanges are kept, headers for a gateway, and checks in `appwren doctor` | ☐ |
+| 3 | Quick at its largest | Facts read sooner, scores kept between changes and checked against fresh ones, the scheduler's first run in batches | ☐ |
+| 4 | Reviewed | The wave's code walked against the threat table | ☐ |
+| 5 | Release prep | Guides, changelog, upgrades, release | ☐ |
+
+Detail: [waves/wave-10.md](waves/wave-10.md)
+
 ## Stable (v1.0.0) ☐
 
 **Goal:** something an organization can build on. The maintainer reviews 0.9.0; 1.0.0 makes the changes that review asks for and puts the compatibility promise in force.
@@ -184,6 +199,7 @@ Ideas deliberately not scheduled. Each needs evidence from adopters before it ea
 - **Procurement and accounts-payable import** for contracts and spend.
 - **A standard technology cost taxonomy** for cost roll-ups.
 - **Localization** of the interface.
+- **Several portfolios (PLT-21).** Units run their own portfolio views with delegated administration, rolled up to the organization's. Parked at 0.10.0 by the maintainer: not to be started until they ask for it.
 - **Several organizations in one installation**, for consortia and shared service centers.
 - **A shared pack library** where organizations publish and reuse capability maps and programs.
 

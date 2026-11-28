@@ -158,7 +158,7 @@ How the applications fit together.
 | PLT-18 | S | Brand kit | A full custom palette, sign-in page message, email header, footer links, and the organization's own words for key terms | 7 |
 | PLT-19 | S | Starter programs | Program packs for a research institute, an academic medical center, a university, a general nonprofit, and a company | 7 |
 | PLT-20 | S | Security review | A review against a published application security verification standard, with findings and their resolution recorded | 7 |
-| PLT-21 | S | Several portfolios | Units run their own portfolio views with delegated administration, and roll up to the organization's | 7 |
+| PLT-21 | S | Several portfolios | Units run their own portfolio views with delegated administration, and roll up to the organization's | Later |
 | PLT-22 | S | Performance | Measured at 5,000 applications and 50,000 components with many people at once | 7 |
 | PLT-23 | C | Other languages | The interface in languages other than English | — |
 
