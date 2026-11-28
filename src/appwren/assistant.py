@@ -12,36 +12,34 @@ the configuration. When it is on, it stays in its place:
 - Its answers are checked like anything typed: a value that is not one of a field's choices
   is dropped, and a reference it cites that it was not given is not linked.
 
-The server may be any that offers the chat completions interface, including one on the
-organization's own machines.
+The server may speak the chat completions interface, the messages interface, or Amazon
+Bedrock's Converse API (``assistant_servers``), and may run on the organization's own machines.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import re
-import urllib.error
-import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from appwren import assistant_servers
 from appwren.access.principal import Principal
+from appwren.assistant_servers import AssistantError
 from appwren.config import AssistantConfig
-from appwren.core import net
 from appwren.core.clock import utc_now
-from appwren.core.errors import AppWrenError, Invalid, NotFound, PermissionDenied
-from appwren.db.models import Application, ApplicationUnit, AssistantExchange
+from appwren.core.errors import Invalid, Limited, NotFound, PermissionDenied
+from appwren.db.models import Account, Application, ApplicationUnit, AssistantExchange
 from appwren.events import audit
 from appwren.inventory import access, records
 from appwren.inventory.registry import APPLICATION
 from appwren.program import vocab
 
-TIMEOUT = 60
 MAX_PROMPT = 24_000
 MAX_ANSWER = 8_000
 MAX_DOCUMENT = 12_000
@@ -57,34 +55,9 @@ DRAFTED = ("name", "summary", "sourcing", "purpose", "pace", "domain", "tier", "
 Ask = Callable[[AssistantConfig, list[dict[str, str]]], str]
 
 
-class AssistantError(AppWrenError):
-    """The assistant could not be asked, or did not answer usefully."""
-
-
 def ask_server(config: AssistantConfig, messages: list[dict[str, str]]) -> str:
-    """One question to the configured server, by the chat completions interface."""
-    headers = {"Content-Type": "application/json", "User-Agent": "AppWren"}
-    key = os.environ.get(config.key_env, "")
-    if key:
-        headers["Authorization"] = f"Bearer {key}"
-    body = json.dumps({"model": config.model, "messages": messages, "temperature": 0.2})
-    request = urllib.request.Request(  # noqa: S310
-        config.url.rstrip("/") + "/chat/completions", data=body.encode(), headers=headers,
-        method="POST",
-    )  # fmt: skip
-
-    def fetch() -> Any:
-        # A redirect is not followed: it would carry the key to wherever it points.
-        with net.opener().open(request, timeout=TIMEOUT) as answer:
-            return json.loads(net.read_within(answer, 2_000_000, TIMEOUT))
-
-    try:
-        found = net.within(TIMEOUT + 5, fetch)
-        return str(found["choices"][0]["message"]["content"])
-    except urllib.error.HTTPError as error:
-        raise AssistantError(f"The assistant's server answered {error.code}.") from error
-    except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
-        raise AssistantError("The assistant could not be reached.") from error
+    """One question to the configured server, in the protocol it speaks."""
+    return assistant_servers.ask(config, messages)
 
 
 @dataclass
@@ -95,6 +68,8 @@ class Prepared:
     purpose: str
     messages: list[dict[str, str]]
     given: set[str] = field(default_factory=set)  # the references it was told of
+    exchange_id: int | None = None  # its place, kept before the server is asked (``begin``)
+    said: str = ""  # what the server gave as its reason, if it refused
 
 
 def need(config: AssistantConfig) -> None:
@@ -102,28 +77,104 @@ def need(config: AssistantConfig) -> None:
         raise NotFound("There is no assistant here.")
 
 
-def call(config: AssistantConfig, prepared: Prepared, ask: Ask) -> tuple[str, str | None]:
-    """Ask, with no session open. Returns the answer and, if it failed, why."""
-    try:
-        return ask(config, prepared.messages)[:MAX_ANSWER], None
-    except AssistantError as error:
-        return "", str(error)[:300]
+def may_use(config: AssistantConfig, principal: Principal) -> bool:
+    """Whether this person may ask the assistant: anyone, unless the configuration names the
+    roles that may. Administrators always may."""
+    if not config.enabled:
+        return False
+    if not config.roles or principal.is_admin:
+        return True
+    return any(principal.has(role) for role in config.roles)
 
 
-def _keep(
-    session: Session, principal: Principal, config: AssistantConfig, prepared: Prepared,
-    answer: str, error: str | None,
-) -> AssistantExchange:  # fmt: skip
-    """Keep what was asked and answered, whether or not it worked."""
+def asked_today(session: Session, account_id: int) -> int:
+    """How many times this person has asked the assistant since midnight, UTC: every request,
+    answered or not."""
+    midnight = datetime.combine(utc_now().date(), time.min, tzinfo=UTC)
+    return (
+        session.scalar(
+            select(func.count(AssistantExchange.id)).where(
+                AssistantExchange.account_id == account_id, AssistantExchange.created_at >= midnight
+            )
+        )
+        or 0
+    )
+
+
+def _may_ask(session: Session, principal: Principal, config: AssistantConfig, doing: str) -> None:
+    need(config)
+    if principal.account_id is None or principal.token_id is not None:
+        raise PermissionDenied(f"The assistant {doing} a person, signed in.")
+    if not may_use(config, principal):
+        raise PermissionDenied("The assistant is not open to your role here.")
+
+
+def _waiting(session: Session, account_id: int, config: AssistantConfig) -> bool:
+    """Whether this person has a question the server has not yet answered. One that has
+    waited past the time allowed, as when a server process stopped, no longer counts."""
+    since = utc_now() - timedelta(seconds=config.timeout_seconds + 60)
+    return session.scalars(
+        select(AssistantExchange.id).where(
+            AssistantExchange.account_id == account_id, AssistantExchange.created_at >= since,
+            AssistantExchange.response.is_(None), AssistantExchange.error.is_(None),
+        )
+    ).first() is not None  # fmt: skip
+
+
+def begin(
+    session: Session, principal: Principal, config: AssistantConfig, prepared: Prepared
+) -> None:
+    """Keep the exchange's place before the server is asked, in a session that writes, so
+    that what is counted is what is asked. Questions asked at once wait here one behind the
+    other, each person's: so none gets past the day's limit, and nobody has more than one
+    waiting on the server, tying up the threads that answer everyone else."""
+    assert principal.account_id is not None  # _may_ask
+    session.execute(
+        select(Account.id).where(Account.id == principal.account_id).with_for_update()
+    )  # PostgreSQL holds the person's row; SQLite already holds the whole database
+    if _waiting(session, principal.account_id, config):
+        raise Limited("The assistant is still answering your last question. Ask again when it "
+                      "has answered.")  # fmt: skip
+    limit = config.daily_limit
+    if limit and asked_today(session, principal.account_id) >= limit:
+        raise Limited(
+            f"You have asked the assistant {limit:,} times today, the most allowed in a day. "
+            "Ask again tomorrow."
+        )
     row = AssistantExchange(
         account_id=principal.account_id, asked_by_name=principal.name[:200],
         purpose=prepared.purpose, model=config.model[:200],
         prompt="\n\n".join(f"[{m['role']}]\n{m['content']}" for m in prepared.messages),
-        response=answer if error is None else None, ok=error is None, error=error,
-        created_at=utc_now(),
+        response=None, ok=False, error=None, created_at=utc_now(),
     )  # fmt: skip
     with audit.operation(session, f"assistant.{prepared.purpose}"):
         session.add(row)
+        session.flush()
+    prepared.exchange_id = row.id
+
+
+def call(config: AssistantConfig, prepared: Prepared, ask: Ask) -> tuple[str, str | None]:
+    """Ask, with no session open. Returns the answer and, if it failed, why, in words for the
+    person who asked; what the server itself said is kept in ``prepared.said``."""
+    try:
+        return ask(config, prepared.messages)[:MAX_ANSWER], None
+    except AssistantError as error:
+        prepared.said = error.said
+        return "", str(error)[:300]
+
+
+def _keep(
+    session: Session, prepared: Prepared, answer: str, error: str | None
+) -> AssistantExchange:
+    """Keep what was answered, or why not, with what was asked."""
+    row = session.get(AssistantExchange, prepared.exchange_id)
+    if row is None:  # removed meanwhile: there is nothing to keep it with
+        raise NotFound("The assistant's exchange is no longer kept.")
+    why = f"{error} {prepared.said}".strip() if error is not None else None
+    with audit.operation(session, f"assistant.{prepared.purpose}.answered"):
+        row.response = answer if error is None else None
+        row.ok = error is None
+        row.error = why[:300] if why else None
         session.flush()
     return row
 
@@ -161,9 +212,7 @@ def _fields(session: Session) -> list[dict[str, Any]]:
 def prepare_draft(
     session: Session, principal: Principal, config: AssistantConfig, text: str
 ) -> Prepared:
-    need(config)
-    if principal.account_id is None or principal.token_id is not None:
-        raise PermissionDenied("The assistant drafts for a person, signed in.")
+    _may_ask(session, principal, config, "drafts for")
     text = (text or "").strip()
     if len(text) < 40:
         said = "Paste a description of the application, a paragraph at least."
@@ -190,11 +239,12 @@ def finish_draft(
     answer: str, error: str | None,
 ) -> dict[str, Any]:  # fmt: skip
     """The values the form would accept, and nothing is saved."""
-    row = _keep(session, principal, config, prepared, answer, error)
+    row = _keep(session, prepared, answer, error)
     offered = _json_in(answer) if error is None else None
     if not isinstance(offered, dict):
-        if row.ok:
-            row.ok, row.error = False, "The assistant did not give values that could be read."
+        if error is not None:
+            return {"failed": error}  # the server's own words stay with the exchange
+        row.ok, row.error = False, "The assistant did not give values that could be read."
         return {"failed": row.error}
     kept: dict[str, Any] = {}
     for item in _fields(session):
@@ -283,9 +333,7 @@ def _used_by(
 def prepare_question(
     session: Session, principal: Principal, config: AssistantConfig, question: str
 ) -> Prepared:
-    need(config)
-    if principal.account_id is None or principal.token_id is not None:
-        raise PermissionDenied("The assistant answers a person, signed in.")
+    _may_ask(session, principal, config, "answers")
     question = (question or "").strip()
     if len(question) < 5 or len(question) > 1000:
         raise Invalid("Ask a question.", {"question": "Ask in a sentence, up to 1,000 characters."})
@@ -310,7 +358,7 @@ def finish_question(
     session: Session, principal: Principal, config: AssistantConfig, prepared: Prepared,
     answer: str, error: str | None,
 ) -> dict[str, Any]:  # fmt: skip
-    row = _keep(session, principal, config, prepared, answer, error)
+    row = _keep(session, prepared, answer, error)
     if error is not None:
         return {"failed": error}
     cited = [ref for ref in dict.fromkeys(REF.findall(answer)) if ref in prepared.given]
@@ -340,3 +388,24 @@ def exchanges(session: Session, principal: Principal, limit: int = 100) -> list[
     return [{"id": row.id, "asked_by": row.asked_by_name, "purpose": row.purpose,
              "model": row.model, "ok": row.ok, "error": row.error, "created_at": row.created_at,
              "prompt": row.prompt, "response": row.response} for row in rows]  # fmt: skip
+
+
+FORGET_BATCH = 500
+
+
+def forget_old(session: Session, keep_days: int, *, batch: int = FORGET_BATCH) -> int:
+    """Remove up to ``batch`` exchanges older than ``keep_days``, the words with them. That
+    each happened, who asked, and about what stays in the history. Returns how many went."""
+    if keep_days <= 0:
+        return 0
+    before = utc_now() - timedelta(days=keep_days)
+    rows = list(session.scalars(
+        select(AssistantExchange).where(AssistantExchange.created_at < before)
+        .order_by(AssistantExchange.id).limit(batch)
+    ))  # fmt: skip
+    if rows:
+        with audit.operation(session, "assistant.forget", older_than_days=keep_days):
+            for row in rows:
+                session.delete(row)
+            session.flush()
+    return len(rows)

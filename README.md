@@ -62,9 +62,16 @@ A demo listens only on the machine it runs on. See [Configuration](docs/configur
 
 ## What is in this release
 
-Version 0.9.0 is the release 1.0 is made from: who uses each application, upgrades from every release checked, and the compatibility promise written down for review.
+Version 0.10.0 makes the optional assistant ready for the models organizations pay for, and the pages that score the whole portfolio quick at its largest. 1.0 follows the maintainer's review.
 
-**Toward 1.0, new in 0.9.0**
+**The assistant, ready, new in 0.10.0**
+
+- **More model servers:** the chat completions interface (a model of your own, or a hosted service), the messages interface, or Amazon Bedrock, with a Bedrock API key or signed with AWS access keys.
+- **Limits for paid models:** the roles that may use it, how often each person may ask in a day, and how long exchanges are kept; `appwren doctor --assistant` asks the model server one question.
+- **Quick at its largest:** at five thousand applications, the portfolio list, the dashboard, data quality, overlap, and a manager's Home answer in under half a second when opened again, with every score exactly as before.
+- **Reviewed:** the wave's code walked against the threat table by a reviewer who did not write it, and every finding fixed.
+
+**Toward 1.0, from 0.9.0**
 
 - **Who uses it:** everyone in the organization, or the units and the kinds of people who use an application wherever they work, such as managers and supervisors, or hourly employees and contractors; with filters for what a kind of people or everyone in a unit uses.
 - **Upgrades checked from every release:** a demo built by each release from 0.1.0 on is upgraded to this one, on SQLite and PostgreSQL, keeping every row and file.
@@ -75,7 +82,7 @@ Version 0.9.0 is the release 1.0 is made from: who uses each application, upgrad
 - **The checkpoint:** another process asks whether an application is approved for new use, or for a class of data, and is told every reason.
 - **Tokens of your own, and suggestions:** a token that acts as you, reads, and proposes changes that wait on the record until someone who keeps it accepts them.
 - **A tool server for AI assistants** that speak the Model Context Protocol, reading and proposing through the API as the person.
-- **An optional assistant,** off until configured, with any compatible model server including one on your own machine: answers with links to the records behind them, and applications drafted from documents.
+- **An optional assistant,** off until configured: answers with links to the records behind them, and applications drafted from documents.
 - **Standings elsewhere:** a record linked in another system of record shows how it stands there.
 
 **Adoption, from 0.7.0**

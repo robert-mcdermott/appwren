@@ -183,9 +183,21 @@ def stage_of(due: Due, on: date, plan: dict[str, int]) -> str | None:
     return "overdue"
 
 
-def send(session: Session, *, on: date | None = None) -> dict[str, int]:
+BATCH = 200  # the most things a scheduled run reminds people of in one transaction
+
+
+def due(session: Session, *, on: date | None = None) -> list[Due]:
+    """Everything with a date close enough to be reminded of, said before or not."""
+    on = on or today()
+    return due_items(session, on, on + timedelta(days=schedule(session)["soon_days"]))
+
+
+def send(
+    session: Session, *, on: date | None = None, items: Iterable[Due] | None = None
+) -> dict[str, int]:
     """Send every reminder that is due and has not been sent. Safe to run at any time: what
-    has been said for a date is not said again."""
+    has been said for a date is not said again. ``items``, from ``due``, sends only those:
+    the scheduler sends a large first run a batch at a time."""
     on = on or today()
     plan = schedule(session)
     horizon = on + timedelta(days=plan["soon_days"])
@@ -198,7 +210,7 @@ def send(session: Session, *, on: date | None = None) -> dict[str, int]:
     def tell(people: Iterable[int | None], kind: str, text: str, href: str) -> int:
         return notices.tell_all(session, people, kind, text, href)
 
-    for due in due_items(session, on, horizon):
+    for due in items if items is not None else due_items(session, on, horizon):
         stage = stage_of(due, on, plan)
         if stage is None or (due.kind, due.id, due.due_on, stage) in already:
             continue

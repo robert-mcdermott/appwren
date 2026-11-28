@@ -41,6 +41,10 @@ class Conflict(AppWrenError):
     """The request is valid but cannot be applied to the record as it now stands."""
 
 
+class Limited(AppWrenError):
+    """The acting person has done this as often as is allowed for now."""
+
+
 class Invalid(AppWrenError):
     """The input is wrong. ``errors`` maps field names to what is wrong with each."""
 

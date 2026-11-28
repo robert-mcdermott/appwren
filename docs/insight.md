@@ -90,10 +90,14 @@ Its page then says what that would do, worked out from the records as they are e
 
 If your organization has set one up ([`[assistant]`](configuration.md#assistant)), **Portfolio → Assistant** offers two things. Otherwise neither the page nor the menu entry is there.
 
+The model may be one your organization runs on its own machines, a hosted service, or one on Amazon Bedrock: any server that speaks the chat completions interface, the messages interface, or Bedrock's Converse API.
+
 - **Ask about the portfolio.** A question in your own words, such as *which applications handle participant consent, and what was decided about them?* The answer cites the applications it relies on, each a link to its record.
 - **Draft an application from a document.** Paste a description (from a vendor's page, a proposal, or a design document) and the assistant fills in what it says: the name, a summary, sourcing, who uses it, how many, the data it handles, sign-in, and the like. Read and correct each value, choose the unit that answers for it, and add it yourself. A value the form would not take is left out, and named.
 
-What the assistant is given is limited. It is told only of applications in service that you may see, and none that handle data more sensitive than the configuration allows. It changes nothing: an answer is read, and a draft is a form for you to finish. A reference it cites that it was not told of is not linked. Every exchange is kept, with what was sent and what came back, and those who may see everything can read them.
+What the assistant is given is limited. It is told only of applications in service that you may see, and none that handle data more sensitive than the configuration allows. It changes nothing: an answer is read, and a draft is a form for you to finish. A reference it cites that it was not told of is not linked. Every exchange is kept, with what was sent and what came back, for a year unless the configuration says otherwise, and those who may see everything can read them.
+
+The configuration may open the assistant to some roles only, and limits how often each person may ask in a day (a hundred times, unless it says otherwise). Past the limit, the assistant says so and answers again the next day. Each person has one question at a time waiting for an answer. When the model's server refuses a request, you are told that it did; why is kept with the exchange for an administrator.
 
 ## Next
 

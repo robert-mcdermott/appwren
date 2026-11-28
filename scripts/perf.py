@@ -6,7 +6,10 @@ capabilities, components, technologies, assessments, and cost lines) until there
 as asked for, then copies components until there are as many of those as asked for, each
 copy with its entry in the history. Then it times the requests behind the pages people open
 most, signed in as the portfolio manager, and prints the median and the slowest of five
-calls for each. It exits with 1 if a median is over the budget.
+calls for each. The pages that score every application keep their scores between changes, so
+each is also timed once just after a change. It exits with 1 if a median is over the budget,
+a scoring page takes longer than the budget just after a change, or longer than ``--again``
+when opened again.
 
     uv run python scripts/perf.py                          5,000 applications, 50,000 components
     uv run python scripts/perf.py --applications 1000 --components 10000
@@ -48,6 +51,9 @@ WITH_COMPONENTS: dict[str, tuple[dict[str, str | None], str | None]] = {
     "component_technology": ({"id": None, "component_id": None}, None),
 }
 KINDS = {"application", "component"}
+# The pages that score every application the person may see. Scores are kept between
+# changes, so each is timed just after a change, and again before the next.
+SCORING = {"Home", "The portfolio list", "Dashboard", "Data quality", "Overlap"}
 REQUESTS = [
     ("Home", "/api/v1/home"),
     ("Applications, first page", "/api/v1/applications?limit=50"),
@@ -188,6 +194,10 @@ def main() -> int:
     parser.add_argument(
         "--budget", type=int, default=2500, help="the slowest median allowed, in ms"
     )
+    parser.add_argument(
+        "--again", type=int, default=500,
+        help="the slowest a scoring page may be when opened again before a change, in ms",
+    )  # fmt: skip
     args = parser.parse_args()
     os.environ["APPWREN_SERVER_SCHEDULER"] = "false"
 
@@ -215,9 +225,24 @@ def main() -> int:
             if signed.status_code != 200:
                 print(f"Could not sign in: {signed.status_code} {signed.text}", file=sys.stderr)
                 return 1
+            from appwren.db.models import Application
+            from appwren.events.actor import Actor
+
+            def change() -> None:
+                """A change a score reads, as a person editing an application makes."""
+                with app.state.db.write(Actor.command("Performance check")) as session:
+                    row = session.scalars(select(Application).order_by(Application.id)).first()
+                    row.users = (row.users or 0) + 1
+
             slow, failed = [], []
-            print(f"{'Request':36}{'median':>9}{'slowest':>9}")
+            print(f"{'Request':36}{'median':>9}{'slowest':>9}{'after a change':>16}")
             for label, path in REQUESTS:
+                after = None
+                if label in SCORING:
+                    change()
+                    began = time.perf_counter()
+                    client.get(path)
+                    after = (time.perf_counter() - began) * 1000
                 times = []
                 for _ in range(5):
                     began = time.perf_counter()
@@ -230,17 +255,24 @@ def main() -> int:
                     failed.append(label)
                     continue
                 median = statistics.median(times)
-                flag = "  over budget" if median > args.budget else ""
-                print(f"{label:36}{median:8.0f}ms{max(times):7.0f}ms{flag}")
+                over = median > (args.again if after is not None else args.budget)
+                if after is not None and after > args.budget:
+                    over = True
+                flag = "  over budget" if over else ""
+                then = f"{after:14.0f}ms" if after is not None else ""
+                print(f"{label:36}{median:8.0f}ms{max(times):7.0f}ms{then}{flag}")
                 if flag:
                     slow.append(label)
         if failed:
             print(f"\nFailed: {', '.join(failed)}", file=sys.stderr)
         if slow:
-            print(f"\nOver {args.budget} ms: {', '.join(slow)}", file=sys.stderr)
+            print(f"\nOver budget: {', '.join(slow)}", file=sys.stderr)
         if failed or slow:
             return 1
-        print(f"\nEvery median is within {args.budget} ms.")
+        print(
+            f"\nEvery median is within {args.budget} ms, and every scoring page within "
+            f"{args.again} ms when opened again."
+        )
         return 0
 
 

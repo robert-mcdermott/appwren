@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from appwren.access.principal import Principal
+from appwren.assessment import kept
 from appwren.core.clock import add_months, utc_now
 from appwren.core.clock import today as today_
 from appwren.core.errors import Invalid, PermissionDenied
@@ -276,18 +277,20 @@ def gather(
     ):
         components[app_id] += 1
     technologies: dict[int, list[dict[str, Any]]] = defaultdict(list)
-    for app_id, tech, release in session.execute(
-        select(Component.application_id, Technology, TechnologyRelease)
+    # Only the columns used: whole rows, one for every component, cost more than the rest of
+    # the facts together at 50,000 components. With no release, the release's are null.
+    for app_id, name, ref, radar, cycle, support_ends, extended_ends in session.execute(
+        select(Component.application_id, Technology.name, Technology.ref, Technology.radar,
+               TechnologyRelease.cycle, TechnologyRelease.support_ends,
+               TechnologyRelease.extended_ends)
         .join(ComponentTechnology, ComponentTechnology.component_id == Component.id)
         .join(Technology, Technology.id == ComponentTechnology.technology_id)
         .outerjoin(TechnologyRelease, TechnologyRelease.id == ComponentTechnology.release_id)
         .where(Component.application_id.in_(ids), Component.status == "active")
-    ):
+    ):  # fmt: skip
         technologies[app_id].append(
-            {"name": tech.name, "ref": tech.ref, "radar": tech.radar,
-             "release": release.cycle if release else None,
-             "support_ends": release.support_ends if release else None,
-             "extended_ends": release.extended_ends if release else None}
+            {"name": name, "ref": ref, "radar": radar, "release": cycle,
+             "support_ends": support_ends, "extended_ends": extended_ends}
         )  # fmt: skip
     links = session.execute(
         select(ApplicationCapability.application_id, ApplicationCapability.capability_id,
@@ -414,11 +417,33 @@ def score_all(
 ) -> dict[int, dict[str, Any]]:
     """Each application's scores, recommendation, flags, and working. The primary providers
     an application overlaps with are scored too, since consolidation compares with them.
-    ``definition`` scores them under a model that is not (yet) the current one."""
+    ``definition`` scores them under a model that is not (yet) the current one.
+
+    Today's scores under the current model are kept between changes (``kept``): each one is
+    the same whichever others it is worked out with."""
+    today = today_()
+    if definition is not None or (on is not None and on != today):
+        return _score_all(session, apps, on=on or today, definition=definition)
+    by_id = {app.id: app for app in apps}
+    model_row = current_model(session)
+    return kept.scores(
+        session,
+        list(by_id),
+        (today, model_row.id),
+        lambda ids: _score_all(session, [by_id[i] for i in ids], on=today, definition=None),
+    )
+
+
+def _score_all(
+    session: Session,
+    apps: list[Application],
+    *,
+    on: date,
+    definition: Mapping[str, Any] | None,
+) -> dict[int, dict[str, Any]]:
     import appwren.connectors.signals
     import appwren.decisions  # noqa: F401  (the decision on record is a fact too)
 
-    on = on or today_()
     model_row = current_model(session)
     model = definition if definition is not None else model_row.definition
     facts = gather(session, apps, model, on)
@@ -557,9 +582,26 @@ def redact(
     return out
 
 
+UNSEEN_PEER = {"ref": None, "name": "an application you may not see", "bv": None}
+
+
+def peer_seen(session: Session, principal: Principal, result: dict[str, Any]) -> dict[str, Any]:
+    """The result, with the primary provider it overlaps with named only to someone who may
+    see that application: a restricted one is not given away by another's scores (review of
+    wave 10, finding A). The result itself is never changed: it may be kept."""
+    peer = result.get("overlap_with")
+    if not peer or not peer.get("ref"):
+        return result
+    app = session.scalars(select(Application).where(Application.ref == peer["ref"])).first()
+    if app is not None and access.sees_application(session, principal, app):
+        return result
+    return {**result, "overlap_with": dict(UNSEEN_PEER)}
+
+
 def shown(
     session: Session, principal: Principal, app: Application, result: dict[str, Any]
 ) -> dict[str, Any]:
+    result = peer_seen(session, principal, result)
     if access.sees_sensitive(session, principal, app):
         return result
     return redact(result, catalog.sensitive_fields(session), withheld_flags(session))

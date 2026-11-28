@@ -93,14 +93,50 @@ AppWren also gives advice that does not stop it running. `serve` and `doctor` wa
 
 ### `[assistant]`
 
-Optional, and off unless both `url` and `model` are set. Without them the assistant is not mentioned anywhere in the app.
+Optional, and off until a `model` is named (and, for `openai`, a `url`). Without one the assistant is not mentioned anywhere in the app.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `url` | `""` | The address of a server that offers the chat completions interface, such as `"https://models.example.org/v1"` (`/chat/completions` is added to it). It must be https, unless it is on this machine, such as `"http://127.0.0.1:11434/v1"` for a model you run yourself |
-| `model` | `""` | The model's name, as that server knows it |
-| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file |
+| `provider` | `"openai"` | The protocol the model's server speaks, not who runs it: `openai` (the chat completions interface), `anthropic` (the messages interface), or `bedrock` (Amazon Bedrock's Converse API). Any server that speaks one of them will do |
+| `url` | `""` | The server's address. `openai`: needed, such as `"https://models.example.org/v1"`, and `/chat/completions` is added to it. `anthropic`: the official service unless given, and `/v1/messages` is added. `bedrock`: worked out from the region unless given. It must be https, unless it is on this machine, such as `"http://127.0.0.1:11434/v1"` for a model you run yourself |
+| `model` | `""` | The model's name, as that server knows it. For `bedrock`, a model ID or an inference profile's ID or ARN |
+| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file. With no key set, none is sent. It may not be one of the server's own variables, such as the database's or single sign-on's, or an AWS credential other than `AWS_BEARER_TOKEN_BEDROCK` for `bedrock` |
+| `region` | `""` | `bedrock`: the AWS region, such as `"us-east-1"` |
+| `max_tokens` | `0` | The longest answer, in tokens. `0` sends no limit for `openai`, and 16,000 for `anthropic` and `bedrock`, which need one. A model that thinks before it answers counts its thinking against this limit |
+| `temperature` | not sent | From 0 to 2, lower being steadier. Left out, the model's own default is used. Newer models refuse any temperature, so set one only for a model that takes it, such as one you run yourself |
+| `timeout_seconds` | `120` | How long to wait for an answer, from 10 to 600 |
+| `headers` | `[]` | Extra headers sent with every request, for a gateway in front of the model, such as `["X-Team: portfolio"]`. Never put a key in one. A header named like a credential, or one AppWren sends itself, is refused; values are not checked |
+| `roles` | `[]` | The roles that may use the assistant, such as `["manager", "architect"]`. None named: everyone who can sign in. Administrators always may |
+| `daily_limit` | `100` | How many times each person may ask in a day, counted from midnight UTC, whether or not the model answered. `0` for no limit. Whatever the limit, each person has one question at a time waiting on the server |
+| `keep_days` | `365` | How long an exchange's words are kept. Older ones are removed by the nightly housekeeping, also once the assistant is turned off; that each happened, who asked, and about what stays in the history. `0` keeps them |
 | `max_data_class` | `"internal"` | The most sensitive class of data an application may handle and still be described to the assistant. Applications that handle anything more sensitive are left out of what it is told |
+
+Some examples:
+
+```toml
+# A model you run yourself
+[assistant]
+url = "http://127.0.0.1:11434/v1"
+model = "a-local-model"
+temperature = 0.2
+
+# The messages interface, with the key in APPWREN_ASSISTANT_KEY
+[assistant]
+provider = "anthropic"
+model = "claude-opus-5-5"
+
+# Amazon Bedrock
+[assistant]
+provider = "bedrock"
+region = "us-east-1"
+model = "a-model-or-inference-profile-id"  # as the Bedrock console lists it
+```
+
+For `bedrock`, AppWren uses an Amazon Bedrock API key if there is one, in the variable `key_env` names or in `AWS_BEARER_TOKEN_BEDROCK`. Otherwise it signs each request with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` when there is one. Credentials kept in a shared AWS profile or from single sign-on are not read directly: `aws configure export-credentials --format env` puts them in the environment. The identity needs permission to call the model, such as `bedrock:InvokeModel`. Bedrock also serves the messages interface on its `bedrock-mantle` endpoint, with an API key: use `provider = "anthropic"` and `url = "https://bedrock-mantle.us-east-1.api.aws/anthropic"`.
+
+`appwren doctor` says what the configured provider still needs, and `appwren doctor --assistant` asks its server one small question.
+
+A server that needs anything more, such as Google Cloud's short-lived sign-in tokens, can be reached through a gateway on this machine that speaks one of the three protocols.
 
 What it does, and what it is never given, is in [The assistant](insight.md#the-assistant).
 
@@ -428,22 +464,23 @@ Each process runs up to forty requests at once and may open as many connections 
 
 ## How large it runs
 
-AppWren is measured with the demo organization copied up to **5,029 applications and 52,029 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
+AppWren is measured with the demo organization copied up to **5,014 applications and 50,922 components**, with their owners, units, capabilities, technologies, assessments, cost lines, and about 60,000 events of history. Each figure is the median of five requests, signed in as a portfolio manager who sees everything, on one server process on a laptop (Apple M4, 32 GB) with the database on the same machine:
 
 | Request | SQLite | PostgreSQL |
 |---|---|---|
-| A page of applications, searched, filtered, or sorted | 19–55 ms | 52–92 ms |
-| One application, its history, its scores over time | 3–10 ms | 7–29 ms |
-| A page of components | 48 ms | 19 ms |
-| Search everything | 157 ms | 124 ms |
-| The capability map, the lifecycle | 90–116 ms | 56–165 ms |
-| Shares of the portfolio | 110 ms | 106 ms |
-| Engineering maturity | 1.1 s | 1.1 s |
-| Home, the portfolio list, the dashboard, data quality, overlap | 1.7–1.9 s | 1.7–2.0 s |
+| A page of applications, searched, filtered, or sorted | 13–23 ms | 19–28 ms |
+| One application, its history, its scores over time | 3–8 ms | 6–24 ms |
+| A page of components | 47 ms | 20 ms |
+| Search everything | 142 ms | 111 ms |
+| The capability map, the lifecycle | 83–197 ms | 57–135 ms |
+| Shares of the portfolio | 89 ms | 114 ms |
+| Engineering maturity | 1.0 s | 1.1 s |
+| Home, the portfolio list, the dashboard, data quality, overlap | 0.17–0.30 s | 0.20–0.39 s |
+| The same, the first time after a change | 1.2–1.3 s | 1.4–1.5 s |
 
-The pages in the last row score every application in service each time they are opened, so their time grows with the portfolio: at 500 applications each takes about a fifth of a second. Home does so only for a manager over the whole organization, as measured here; for anyone else it scores the applications they are named on and those of the units they keep or decide for. Everything that opens one record, or a page of a list, stays fast at any size.
+The pages in the last two rows score every application in service. Each server process keeps the day's scores until something a score is worked out from changes: an application, an assessment, a component, a cost, a source's facts, the scoring model, or the like. The first of those pages opened after such a change works them all out again; the rest, and every opening after, use what is kept. At 500 applications even the first takes no more than about a fifth of a second. Kept scores take about 80 MB in each process at 5,000 applications. Home scores the whole portfolio only for a manager over the whole organization, as measured here; for anyone else it scores the applications they are named on and those of the units they keep or decide for. Everything that opens one record, or a page of a list, stays fast at any size.
 
-`scripts/soak.py` keeps a server at that size busy with twenty people at once for ten minutes and reports failures, timings, and memory, if you want to see how it holds up on your hardware. Measured so on the laptop above with SQLite and one server process, it answered all 6,874 requests in ten minutes with no failures, half of them within 33 ms and 95 in 100 within a fifth of a second, Home within 1.6 seconds for 95 in 100, with memory level at about 530 MB.
+`scripts/soak.py` keeps a server at that size busy with twenty people at once for ten minutes and reports failures, timings, and memory, if you want to see how it holds up on your hardware. Measured so on the laptop above with SQLite, it answered all 6,688 requests in ten minutes with no failures, half of them within 36 ms and 95 in 100 within a sixth of a second, Home within a second for 95 in 100, with the memory of its two processes level at about 580 MB, scores kept included. The scheduler's first run, which at that size raises over a thousand tasks and tells thousands of reminders, ran during it and held nobody up for more than a second and a half.
 
 You can repeat the measurement on your own hardware. It builds a throwaway installation in a temporary directory and touches nothing else:
 
@@ -452,7 +489,7 @@ uv run python scripts/perf.py                                     # 5,000 applic
 uv run python scripts/perf.py --applications 1000 --components 10000
 ```
 
-To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. The script exits with 1 if a median is over its budget, which is two and a half seconds unless you give `--budget`.
+To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. The script exits with 1 if a median is over its budget, which is two and a half seconds unless you give `--budget`, or a page that scores the whole portfolio takes longer than half a second when opened again (`--again`).
 
 ## Upgrade
 

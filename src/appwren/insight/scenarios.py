@@ -194,6 +194,7 @@ def effect(session: Session, principal: Principal, record: Scenario) -> dict[str
                     uncovered.append({**records.chip(CAPABILITY, capability), "served_by": by})
     # Risk: what the applications leaving carry today.
     scored = assessment.score_all(session, [leaving[i] for i in sorted(seen)]) if seen else {}
+    withheld = assessment.withheld_flags(session) if seen else frozenset()
     risks = []
     flags: Counter[str] = Counter()
     texts: dict[str, str] = {}
@@ -201,7 +202,10 @@ def effect(session: Session, principal: Principal, record: Scenario) -> dict[str
         found = scored.get(app_id)
         if found is None:
             continue
-        raised = [flag for flag in found["flags"] if flag["severity"] in ("danger", "warn")]
+        # Only the flags this person may be told of (review of wave 10, finding B).
+        sees = access.sees_sensitive(session, principal, leaving[app_id])
+        raised = [flag for flag in assessment.shown_flags(found["flags"], sees, withheld)
+                  if flag["severity"] in ("danger", "warn")]  # fmt: skip
         for flag in raised:
             flags[flag["key"]] += 1
             texts[flag["key"]] = flag["text"]

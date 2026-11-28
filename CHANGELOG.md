@@ -4,6 +4,83 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.10.0 (2026-11-27)
+
+Wave 10, *The assistant, ready*. The optional assistant speaks to the official services and
+to Amazon Bedrock as well as to a model of an organization's own, with limits on who uses it,
+how often, and how long what it was told is kept. The pages that score the whole portfolio
+keep each day's scores between changes, and at five thousand applications answer in under
+half a second when opened again, with every score exactly as before. A reviewer who did not
+write it walked the wave's code against the threat table, and what that found is fixed.
+The assistant has been checked against a model server on the same machine; it has not yet
+been run against a real Amazon Bedrock account. 1.0.0 still follows the maintainer's review.
+
+### Added
+
+- **More model servers for the assistant.** `[assistant] provider` names the protocol the
+  model's server speaks: `openai` (the chat completions interface, as before), `anthropic`
+  (the messages interface, the official service by default), or `bedrock` (Amazon Bedrock's
+  Converse API, with an Amazon Bedrock API key or signed with access keys from the
+  environment). New settings: `region`, `max_tokens`, `temperature`, and
+  `timeout_seconds`. A server's own reason for refusing a request is kept with the exchange
+  for an administrator, and an answer cut off at the limit, or declined by the model, says
+  so.
+- **Limits for paid models.** `[assistant] roles` opens the assistant to some roles only
+  (administrators always may), `daily_limit` caps how often each person asks in a day (100
+  unless set), and `keep_days` removes exchanges' words after a year unless set, while the
+  history keeps that each happened. `headers` sends a gateway its own headers; one named
+  like a credential is refused.
+- **`appwren doctor` checks the assistant** where one is set up: what the provider still
+  needs in the environment, and with `--assistant`, whether its server answers.
+- **The pages that score the whole portfolio are quick at its largest.** Home for a
+  manager, the portfolio list, the dashboard, data quality, and overlap keep each day's scores
+  between changes, in each server process: at 5,000 applications they answer in about a fifth
+  of a second when opened again, and their first opening after a change is quicker too. Every
+  score, flag, and working is exactly as before; any change to what a score is worked out from
+  makes the next page work them out again.
+
+### Changed
+
+- **The scheduler's first run on a large installation holds nobody up.** Tasks and reminders
+  are worked out by reading, then written two hundred at a time, each batch committed; the
+  monthly snapshot is scored by reading and written at once. At five thousand applications
+  the longest any of them holds the database is half a second for tasks and reminders, from
+  1.1 and 3.5 s, and 1.5 s for the snapshot, from 2.7 s. The same tasks, reminders, and
+  snapshots are written.
+- The assistant waits up to two minutes for an answer, not one, for models that think
+  before they answer (`timeout_seconds`).
+
+### Security
+
+The code added in this wave was walked against the threat table by a reviewer who did not
+write it; the record is in `spec/reviews/`.
+
+- An application's scores no longer name a restricted primary provider it overlaps with to
+  someone who may not see it (since 0.1.0), and a scenario's risks no longer name flags
+  withheld elsewhere.
+- The AWS variables are the server's own: no connector or standing may send one.
+- Questions asked at once can no longer pass the day's limit, and each person has one
+  question at a time waiting on the model server.
+- A model server's reason for refusing is kept with the exchange for an administrator, not
+  told to the person who asked or kept in the history.
+- On PostgreSQL a session that reads sees one moment throughout, so a kept score is never a
+  mix of before and after a change.
+- Every answer read from another server is held to its own time limit however slowly it
+  comes, not only to the bound on the whole call.
+- `[assistant] key_env` may not name one of the server's own variables, and exchanges are
+  removed after `keep_days` whether or not the assistant is on.
+
+### Breaking
+
+- **Exchanges with the assistant are removed after a year** by the nightly housekeeping,
+  where they were kept for ever. Set `[assistant] keep_days = 0` to keep them.
+- **Each person may ask the assistant a hundred times a day,** with one question waiting at a
+  time; past either, its routes answer 429. Set `[assistant] daily_limit = 0` for no daily
+  limit.
+- **No temperature is sent to the model server** unless `[assistant] temperature` is set. It
+  used to send 0.2, which newer models refuse; set `temperature = 0.2` to keep a model of
+  your own as steady as before.
+
 ## 0.9.0 (2026-11-27)
 
 Wave 9, *Toward 1.0*: the release 1.0 is made from. An application says who uses it:

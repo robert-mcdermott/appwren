@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from appwren import mail, reminders
 from appwren.config import Config
-from appwren.core.clock import utc_now
+from appwren.core.clock import today, utc_now
 from appwren.core.errors import NotFound
 from appwren.db.engine import Database
 from appwren.db.models import Job, JobRun, SignInRequest
@@ -54,9 +54,19 @@ def _reminders(db: Database, _config: Config) -> dict[str, int]:
 
     with db.write(SCHEDULER, action="job.reminders") as session:
         closed = campaigns.refresh_all(session)
-    # Reminders are notices, which are not history, so no actor writes them.
-    with db.bookkeeping() as session:
-        counts = reminders.send(session)
+    # Reminders are notices, which are not history, so no actor writes them. What is due is
+    # worked out by reading, then told a batch at a time, each committed, so a first run that
+    # finds thousands to tell holds nobody's changes up while it writes them all. Each batch
+    # reads what has been said, so nothing is said twice.
+    on = today()
+    with db.read() as session:
+        items = reminders.due(session, on=on)
+    counts = {"reminders": 0, "overdue": 0, "escalated": 0}
+    for start in range(0, max(len(items), 1), reminders.BATCH):
+        with db.bookkeeping() as session:
+            found = reminders.send(session, on=on, items=items[start : start + reminders.BATCH])
+        for key in counts:
+            counts[key] += found[key]
     counts["campaign_items_done"] = closed
     return counts
 
@@ -64,8 +74,19 @@ def _reminders(db: Database, _config: Config) -> dict[str, int]:
 def _triggers(db: Database, _config: Config) -> dict[str, int]:
     from appwren.oversight import tasks
 
+    # What is due is worked out by reading, then raised in batches, each committed, so a first
+    # run that finds a thousand tasks holds nobody's changes up while it writes them all. The
+    # last turn works it out again, raises anything due since, and settles what is not.
+    with db.read() as session:
+        wanted = list(tasks.due(session).items())
+    raised = 0
+    for start in range(0, len(wanted), tasks.BATCH):
+        with db.write(SCHEDULER, action="job.triggers") as session:
+            raised += tasks.raise_due(session, dict(wanted[start : start + tasks.BATCH]))
     with db.write(SCHEDULER, action="job.triggers") as session:
-        return tasks.run(session)
+        counts = tasks.run(session)
+    counts["tasks_raised"] += raised
+    return counts
 
 
 def _connectors(db: Database, _config: Config) -> dict[str, int]:
@@ -77,8 +98,12 @@ def _connectors(db: Database, _config: Config) -> dict[str, int]:
 def _snapshots(db: Database, _config: Config) -> dict[str, int]:
     from appwren import decisions
 
+    # The scores are worked out by reading, from those kept where they can be, and written in
+    # one transaction: a snapshot is the portfolio at one moment, all of it or none.
+    with db.read() as session:
+        scored = decisions.monthly_scores(session)
     with db.write(SCHEDULER, action="job.snapshots") as session:
-        return {"monthly_snapshots_taken": decisions.take_monthly(session)}
+        return {"monthly_snapshots_taken": decisions.take_monthly(session, scored=scored)}
 
 
 def _webhooks(db: Database, config: Config) -> dict[str, int]:
@@ -93,17 +118,31 @@ def _standings(db: Database, config: Config) -> dict[str, int]:
     return standings.run_once(db, config)
 
 
-def _tidy(db: Database, _config: Config) -> dict[str, int]:
+def _tidy(db: Database, config: Config) -> dict[str, int]:
     now = utc_now()
     with db.bookkeeping() as session:
         runs = session.execute(delete(JobRun).where(JobRun.finished_at < now - KEEP_RUNS))
         begun = session.execute(
             delete(SignInRequest).where(SignInRequest.created_at < now - timedelta(hours=1))
         )
-        return {
+        counts = {
             "old_runs_removed": runs.rowcount or 0,  # type: ignore[attr-defined]
             "unfinished_sign_ins_removed": begun.rowcount or 0,  # type: ignore[attr-defined]
         }
+    # Whether or not the assistant is on now: what it was told before stays only so long.
+    if config.assistant.keep_days:
+        from appwren import assistant
+
+        # In batches, so a first tidy of a long backlog holds nobody's work up for long.
+        forgotten = 0
+        while True:
+            with db.write(SCHEDULER, action="job.tidy") as session:
+                gone = assistant.forget_old(session, config.assistant.keep_days)
+            forgotten += gone
+            if gone < assistant.FORGET_BATCH:
+                break
+        counts["old_assistant_exchanges_removed"] = forgotten
+    return counts
 
 
 JOBS: dict[str, JobSpec] = {
@@ -137,7 +176,8 @@ JOBS: dict[str, JobSpec] = {
                 "Keeps the portfolio's scores as they stand, once a month",
                 timedelta(hours=6), _snapshots),
         JobSpec("tidy", "Housekeeping",
-                "Removes run records older than ninety days and sign-ins that were never finished",
+                "Removes run records older than ninety days, sign-ins that were never finished, "
+                "and the assistant's exchanges older than the configuration keeps them",
                 timedelta(days=1), _tidy),
     )
 }  # fmt: skip

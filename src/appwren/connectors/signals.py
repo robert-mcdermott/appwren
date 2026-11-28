@@ -30,13 +30,18 @@ APPLICATION_SIGNALS = {"incidents_90d", "tickets_90d"}
 COLUMNS = {"users", "maintainers"}  # the application's own fields that sources fill
 
 
-def _who(row: FactValue) -> str:
+# What a fact holds and who said so: all ``_holds`` and ``_who`` read of a row.
+HELD = (FactValue.record_id, FactValue.field, FactValue.value, FactValue.source_name,
+        FactValue.overridden, FactValue.override_value, FactValue.override_by_name)  # fmt: skip
+
+
+def _who(row: Any) -> str:
     if row.overridden:
         return f"{row.override_by_name or 'a change by hand'}, over {row.source_name}"
     return row.source_name
 
 
-def _holds(row: FactValue) -> Any:
+def _holds(row: Any) -> Any:
     return row.override_value if row.overridden else row.value
 
 
@@ -46,10 +51,8 @@ def gather(session: Session, apps: list[Application]) -> dict[int, dict[str, Any
         return {}
     signals: dict[int, dict[str, dict[str, Any]]] = defaultdict(dict)
     sources: dict[int, dict[str, str]] = defaultdict(dict)
-    for row in session.scalars(
-        select(FactValue).where(
-            FactValue.record_type == "application", among(FactValue.record_id, ids)
-        )
+    for row in session.execute(
+        select(*HELD).where(FactValue.record_type == "application", among(FactValue.record_id, ids))
     ):
         if row.field in APPLICATION_SIGNALS and _holds(row) is not None:
             signals[row.record_id][row.field] = {"value": _holds(row), "from": _who(row)}
@@ -64,8 +67,8 @@ def gather(session: Session, apps: list[Application]) -> dict[int, dict[str, Any
     alerts: dict[int, list[tuple[int, str]]] = defaultdict(list)
     changed: dict[int, list[tuple[date, str]]] = defaultdict(list)
     if owner:
-        for row in session.scalars(
-            select(FactValue).where(
+        for row in session.execute(
+            select(*HELD).where(
                 FactValue.record_type == "component",
                 among(FactValue.record_id, owner),
                 FactValue.field.in_(("dependency_alerts", "last_change")),

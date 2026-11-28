@@ -12,6 +12,7 @@ from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
 
 from appwren.core.errors import StoreError
+from appwren.db import changes  # noqa: F401  (counts every change a score could read)
 from appwren.events.actor import Actor
 from appwren.events.audit import AuditedSession
 
@@ -87,7 +88,14 @@ class Database:
 
     def __init__(self, url: str, *, echo: bool = False) -> None:
         self.engine = make_engine(url, echo=echo)
-        self._read = sessionmaker(self.engine, class_=AuditedSession, expire_on_commit=False)
+        # A session that reads sees one moment of the database throughout, as SQLite gives it:
+        # a page, or a score kept for the next page, never mixes what was there before a
+        # change with what came after (review of wave 10, finding 3). Reading alone, it can
+        # never fail for having seen an older moment.
+        reads = self.engine
+        if self.engine.dialect.name == "postgresql":
+            reads = self.engine.execution_options(isolation_level="REPEATABLE READ")
+        self._read = sessionmaker(reads, class_=AuditedSession, expire_on_commit=False)
         self._write = sessionmaker(
             self.engine.execution_options(appwren_write=True),
             class_=AuditedSession,

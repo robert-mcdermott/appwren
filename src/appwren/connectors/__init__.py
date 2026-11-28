@@ -46,9 +46,18 @@ ENV = re.compile(r"[A-Z][A-Z0-9_]{1,79}")
 # Variables the server reads for itself. A connector sends its credential to the host an
 # administrator names, so it may never be given one of these: that would send the server's
 # own secrets wherever the address points.
-SERVER_PREFIXES = ("APPWREN_SERVER_", "APPWREN_DATABASE_", "APPWREN_DATA_", "APPWREN_SSO_",
-                   "APPWREN_MAIL_", "APPWREN_ADMIN_", "APPWREN_TEST_", "APPWREN_ASSISTANT_",
-                   "PG")  # fmt: skip
+SERVER_PREFIXES = (
+    "APPWREN_SERVER_",
+    "APPWREN_DATABASE_",
+    "APPWREN_DATA_",
+    "APPWREN_SSO_",
+    "APPWREN_MAIL_",
+    "APPWREN_ADMIN_",
+    "APPWREN_TEST_",
+    "APPWREN_ASSISTANT_",
+    "PG",
+    "AWS_",
+)  # fmt: skip  (the AWS keys sign the assistant's requests)
 SERVER_NAMES = {"APPWREN_CONFIG", "DATABASE_URL"}
 RESERVED: set[str] = set()  # those the configuration names, added when the server starts
 

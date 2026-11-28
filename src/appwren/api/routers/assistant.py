@@ -35,6 +35,8 @@ def draft(request: Request, body: DraftBody) -> dict[str, Any]:
     config = request.app.state.config.assistant
     with reading(request) as session:
         prepared = assistant.prepare_draft(session, principal, config, body.text)
+    with writing(request, principal.actor) as session:
+        assistant.begin(session, principal, config, prepared)  # counted before it is asked
     answer, error = assistant.call(config, prepared, _ask(request))  # no session open
     with writing(request, principal.actor) as session:
         return envelope(assistant.finish_draft(session, principal, config, prepared, answer,
@@ -49,6 +51,8 @@ def ask(request: Request, body: QuestionBody) -> dict[str, Any]:
     config = request.app.state.config.assistant
     with reading(request) as session:
         prepared = assistant.prepare_question(session, principal, config, body.question)
+    with writing(request, principal.actor) as session:
+        assistant.begin(session, principal, config, prepared)  # counted before it is asked
     answer, error = assistant.call(config, prepared, _ask(request))  # no session open
     with writing(request, principal.actor) as session:
         return envelope(assistant.finish_question(session, principal, config, prepared, answer,

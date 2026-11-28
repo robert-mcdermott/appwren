@@ -17,6 +17,7 @@ from appwren.core.errors import (
     AuditError,
     Conflict,
     Invalid,
+    Limited,
     NotFound,
     PermissionDenied,
     StoreError,
@@ -83,6 +84,10 @@ def install_problem_handlers(app: FastAPI) -> None:
     @app.exception_handler(Conflict)
     async def conflict(request: Request, exc: Conflict) -> JSONResponse:
         return problem(409, str(exc), instance=request.url.path)
+
+    @app.exception_handler(Limited)
+    async def limited(request: Request, exc: Limited) -> JSONResponse:
+        return problem(429, str(exc), instance=request.url.path)
 
     @app.exception_handler(Invalid)
     async def invalid(request: Request, exc: Invalid) -> JSONResponse:
