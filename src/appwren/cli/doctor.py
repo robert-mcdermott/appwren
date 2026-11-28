@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from sqlalchemy import text
 
 from appwren.config import Config, config_warnings, load_config
-from appwren.core.errors import AppWrenError
+from appwren.core.errors import AppWrenError, ConfigError
 from appwren.db import migrate
 from appwren.db.engine import Database
 from appwren.events import chain
@@ -44,6 +44,11 @@ def run(
     checks = [_python()]
     try:
         config = load_config(config_path)
+    except ConfigError as exc:
+        # Every problem the file has, one to a line, as `load_config` found them.
+        found = [Check("Configuration", FAIL, str(exc).splitlines()[0])]
+        found += [Check("Configuration", FAIL, problem) for problem in exc.problems]
+        return [*checks, *found]
     except AppWrenError as exc:
         return [*checks, Check("Configuration", FAIL, str(exc).splitlines()[0])]
     checks.append(Check("Configuration", OK, str(config.path)))

@@ -50,13 +50,14 @@ def _held(
             if access.sees_application(session, principal, app)}  # fmt: skip
 
 
-def _figures(held: list[dict[str, Any]]) -> dict[str, Any]:
-    """The figures a set of scored applications gives: how many, by recommendation, with low
-    confidence, with each flag, and each score's average."""
+def _figures(held: list[dict[str, Any]], low: float = LOW) -> dict[str, Any]:
+    """The figures a set of scored applications gives: how many, by recommendation, with
+    confidence below ``low`` (the scoring model's threshold, as on the dashboard), with each
+    flag, and each score's average."""
     scored = len(held)
     out: dict[str, Any] = {
         "scored": scored,
-        "low_confidence": sum(1 for item in held if item["confidence"] < LOW),
+        "low_confidence": sum(1 for item in held if item["confidence"] < low),
         "recommendations": dict(
             Counter(item["recommendation"] for item in held if item["recommendation"])
         ),
@@ -103,9 +104,10 @@ def compare(
 ) -> dict[str, Any]:
     """Two snapshots side by side, the later one ``after_ref`` (or today's scores, if none):
     the figures each held, and what moved between them."""
-    from appwren.assessment import shown_flags, withheld_flags
+    from appwren.assessment import current_model, shown_flags, withheld_flags
 
     withheld = withheld_flags(session)
+    low = current_model(session).definition["thresholds"]["confidence"]
     before = _snapshot(session, before_ref)
     then = _held(session, principal, before)
     if after_ref:
@@ -118,11 +120,11 @@ def compare(
         label = {"ref": after.ref, "name": after.name, "taken_at": after.taken_at}
     else:
         from appwren.assessment import score_all
-        from appwren.insight.shares import IN_SERVICE
 
+        # The same applications a snapshot keeps: every one on record, whatever its stage, so
+        # that a snapshot compared with today straight away shows nothing added or gone.
         apps = [app for app in session.scalars(
-            select(Application).where(Application.status == "active",
-                                      Application.lifecycle.in_(IN_SERVICE))
+            select(Application).where(Application.status == "active")
         ) if access.sees_application(session, principal, app)]  # fmt: skip
         found = score_all(session, apps) if apps else {}
         later = {
@@ -158,8 +160,8 @@ def compare(
             moved["flags"].append({**chip, "raised": came, "cleared": went})
     return {
         "before": {"ref": before.ref, "name": before.name, "taken_at": before.taken_at,
-                   "figures": _figures([item for item, _ in earlier.values()])},
-        "after": {**label, "figures": _figures([item for item, _ in later.values()])},
+                   "figures": _figures([item for item, _ in earlier.values()], low)},
+        "after": {**label, "figures": _figures([item for item, _ in later.values()], low)},
         "moved": moved,
         "added": [records.chip(APPLICATION, app) for app_id, (_, app) in later.items()
                   if app_id not in earlier],

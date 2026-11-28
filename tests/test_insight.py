@@ -174,3 +174,16 @@ def test_an_application_and_the_portfolio_as_they_stood(
     assert whole["since"]["added"] == 1
     tomorrow = (now + timedelta(days=1)).date().isoformat()
     assert member.get("/api/v1/as-of", params={"on": tomorrow}).status_code == 422
+
+
+def test_a_snapshot_compared_with_today_at_once_shows_nothing_added_or_gone(
+    as_role: Clients, db: Database, people: People
+) -> None:
+    """A snapshot keeps every application on record, whatever its stage, and today's figures
+    counted only those in service: one that was proposed was shown as gone (0.10.1)."""
+    add_app(db, people, name="In service")
+    add_app(db, people, name="Not yet", lifecycle="proposed")
+    first = snapshot(db, people, "Now")
+    found = as_role("manager").get("/api/v1/trends", params={"before": first}).json()["data"]
+    assert found["added"] == [] and found["gone"] == []
+    assert found["before"]["figures"]["scored"] == found["after"]["figures"]["scored"] == 2

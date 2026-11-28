@@ -6,6 +6,7 @@ import { button, h, icon } from "../core/dom.js";
 import { date, dateTime, plural, relative } from "../core/format.js";
 import { catalog, label, units, vocabularies } from "../core/lookups.js";
 import { query } from "../core/router.js";
+import { can } from "../core/session.js";
 import { banner, field, select, submit } from "../components/form.js";
 import { confirmAction, openOverlay } from "../components/overlay.js";
 import { peoplePicker } from "../components/people-picker.js";
@@ -467,7 +468,7 @@ function componentsTab(record, ctx) {
     editRecord("component", { preset: { application_id: record.ref }, onDone: () => ctx.reload() }) }) : null;
   const catalogActions = h("div", { class: "row-sm" },
     h("a", { class: "btn btn-sm", href: `/api/v1/applications/${record.ref}/catalog`, download: "" }, "Export a catalog file"),
-    record.can?.edit ? button("Import one", { kind: "btn-sm", onclick: async () => (await import("../components/catalog-file.js")).importCatalog(record, ctx) }) : null);
+    record.can?.edit && can("keep") ? button("Import one", { kind: "btn-sm", onclick: async () => (await import("../components/catalog-file.js")).importCatalog(record, ctx) }) : null);
   const code = Object.fromEntries((ctx.sourced?.components ?? []).map((c) => [c.ref, Object.fromEntries(c.values.map((v) => [v.field, v]))]));
   const anyCode = Object.keys(code).length > 0;
   const alerts = (v) => {
