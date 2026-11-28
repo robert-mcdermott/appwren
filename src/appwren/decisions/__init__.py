@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
-from datetime import timedelta
+from dataclasses import dataclass
+from datetime import date, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -22,6 +23,7 @@ from appwren.access.principal import Principal
 from appwren.core.clock import add_months, utc_now
 from appwren.core.clock import today as today_
 from appwren.core.errors import Invalid, NotFound, PermissionDenied
+from appwren.db import changes
 from appwren.db.models import Application, Decision, PortfolioSnapshot, ScoreSnapshot
 from appwren.db.refs import next_ref
 from appwren.events import audit
@@ -246,15 +248,40 @@ def portfolio(
     return rows
 
 
-def take_portfolio_snapshot(session: Session, principal: Principal, name: str) -> PortfolioSnapshot:
-    """Keep every active application's scores together, for a review or a period's end."""
+@dataclass(frozen=True)
+class Scored:
+    """Every active application's scores, worked out by reading before a snapshot is taken,
+    with what they were worked out from: the day and the counter of changes."""
+
+    day: date
+    generation: int
+    results: dict[int, dict[str, Any]]
+
+
+def scores_now(session: Session) -> Scored:
+    apps = list(session.scalars(select(Application).where(Application.status == "active")))
+    return Scored(today_(), changes.generation(session), assessment.score_all(session, apps))
+
+
+def take_portfolio_snapshot(
+    session: Session, principal: Principal, name: str, *, scored: Scored | None = None
+) -> PortfolioSnapshot:
+    """Keep every active application's scores together, for a review or a period's end.
+    ``scored``, from ``scores_now`` in a session that read, is used only if nothing a score
+    reads has changed since, and it is the same day: then it is exactly what this session
+    would work out, without holding everyone else's changes up while it does."""
     if not principal.manages:
         raise PermissionDenied("Only a manager takes a portfolio snapshot.")
     name = (name or "").strip()
     if not name or len(name) > 200:
         raise Invalid("The snapshot was not taken.", {"name": "Give it a name, such as 2026 Q4."})
     apps = list(session.scalars(select(Application).where(Application.status == "active")))
-    scored = assessment.score_all(session, apps)
+    fresh = (
+        scored is not None and scored.day == today_()
+        and scored.generation == changes.generation(session)
+        and set(scored.results) == {app.id for app in apps}
+    )  # fmt: skip
+    scored_apps = scored.results if fresh and scored else assessment.score_all(session, apps)
     model = assessment.current_model(session)
     digest = hashlib.sha256()
     with audit.operation(session, "portfolio.snapshot"):
@@ -271,7 +298,11 @@ def take_portfolio_snapshot(session: Session, principal: Principal, name: str) -
         session.flush()
         for app in apps:
             kept = assessment.take_snapshot(
-                session, app, scored[app.id], reason="portfolio", portfolio_snapshot_id=row.id
+                session,
+                app,
+                scored_apps[app.id],
+                reason="portfolio",
+                portfolio_snapshot_id=row.id,
             )
             digest.update(kept.digest.encode())
         audit.record(
@@ -280,11 +311,26 @@ def take_portfolio_snapshot(session: Session, principal: Principal, name: str) -
     return row
 
 
-def take_monthly(session: Session) -> int:
+def _monthly_name() -> str:
+    return f"{today_():%B %Y}, monthly"
+
+
+def monthly_scores(session: Session) -> Scored | None:
+    """The scores for this month's snapshot, if it is still to be taken and there is
+    anything in service to take it of."""
+    taken = session.scalars(
+        select(PortfolioSnapshot.id).where(PortfolioSnapshot.name == _monthly_name())
+    ).first()
+    active = session.scalars(select(Application.id).where(Application.status == "active"))
+    if taken or active.first() is None:
+        return None
+    return scores_now(session)
+
+
+def take_monthly(session: Session, *, scored: Scored | None = None) -> int:
     """The portfolio as it stood this month, kept by the scheduler once a month: on the first
     turn after the month begins. Returns how many it took: none, or one."""
-    on = today_()
-    name = f"{on:%B %Y}, monthly"
+    name = _monthly_name()
     if session.scalars(select(PortfolioSnapshot.id).where(PortfolioSnapshot.name == name)).first():
         return 0
     if (
@@ -292,7 +338,7 @@ def take_monthly(session: Session) -> int:
         is None
     ):
         return 0
-    take_portfolio_snapshot(session, Principal.for_command("Scheduler"), name)
+    take_portfolio_snapshot(session, Principal.for_command("Scheduler"), name, scored=scored)
     return 1
 
 

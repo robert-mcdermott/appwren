@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from appwren import mail, reminders
 from appwren.config import Config
-from appwren.core.clock import utc_now
+from appwren.core.clock import today, utc_now
 from appwren.core.errors import NotFound
 from appwren.db.engine import Database
 from appwren.db.models import Job, JobRun, SignInRequest
@@ -54,9 +54,19 @@ def _reminders(db: Database, _config: Config) -> dict[str, int]:
 
     with db.write(SCHEDULER, action="job.reminders") as session:
         closed = campaigns.refresh_all(session)
-    # Reminders are notices, which are not history, so no actor writes them.
-    with db.bookkeeping() as session:
-        counts = reminders.send(session)
+    # Reminders are notices, which are not history, so no actor writes them. What is due is
+    # worked out by reading, then told a batch at a time, each committed, so a first run that
+    # finds thousands to tell holds nobody's changes up while it writes them all. Each batch
+    # reads what has been said, so nothing is said twice.
+    on = today()
+    with db.read() as session:
+        items = reminders.due(session, on=on)
+    counts = {"reminders": 0, "overdue": 0, "escalated": 0}
+    for start in range(0, max(len(items), 1), reminders.BATCH):
+        with db.bookkeeping() as session:
+            found = reminders.send(session, on=on, items=items[start : start + reminders.BATCH])
+        for key in counts:
+            counts[key] += found[key]
     counts["campaign_items_done"] = closed
     return counts
 
@@ -88,8 +98,12 @@ def _connectors(db: Database, _config: Config) -> dict[str, int]:
 def _snapshots(db: Database, _config: Config) -> dict[str, int]:
     from appwren import decisions
 
+    # The scores are worked out by reading, from those kept where they can be, and written in
+    # one transaction: a snapshot is the portfolio at one moment, all of it or none.
+    with db.read() as session:
+        scored = decisions.monthly_scores(session)
     with db.write(SCHEDULER, action="job.snapshots") as session:
-        return {"monthly_snapshots_taken": decisions.take_monthly(session)}
+        return {"monthly_snapshots_taken": decisions.take_monthly(session, scored=scored)}
 
 
 def _webhooks(db: Database, config: Config) -> dict[str, int]:
