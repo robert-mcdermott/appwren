@@ -4,7 +4,16 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
-## Unreleased
+## 0.10.0 (2026-11-27)
+
+Wave 10, *The assistant, ready*. The optional assistant speaks to the official services and
+to Amazon Bedrock as well as to a model of an organization's own, with limits on who uses it,
+how often, and how long what it was told is kept. The pages that score the whole portfolio
+keep each day's scores between changes, and at five thousand applications answer in under
+half a second when opened again, with every score exactly as before. A reviewer who did not
+write it walked the wave's code against the threat table, and what that found is fixed.
+The assistant has been checked against a model server on the same machine; it has not yet
+been run against a real Amazon Bedrock account. 1.0.0 still follows the maintainer's review.
 
 ### Added
 
@@ -13,16 +22,16 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
   (the messages interface, the official service by default), or `bedrock` (Amazon Bedrock's
   Converse API, with an Amazon Bedrock API key or signed with access keys from the
   environment). New settings: `region`, `max_tokens`, `temperature`, and
-  `timeout_seconds`. A server's own reason for refusing a request is now shown, and an
-  answer cut off at the limit, or declined by the model, says so.
-
+  `timeout_seconds`. A server's own reason for refusing a request is kept with the exchange
+  for an administrator, and an answer cut off at the limit, or declined by the model, says
+  so.
 - **Limits for paid models.** `[assistant] roles` opens the assistant to some roles only
   (administrators always may), `daily_limit` caps how often each person asks in a day (100
   unless set), and `keep_days` removes exchanges' words after a year unless set, while the
-  history keeps that each happened. `headers` sends a gateway its own headers, never a key.
+  history keeps that each happened. `headers` sends a gateway its own headers; one named
+  like a credential is refused.
 - **`appwren doctor` checks the assistant** where one is set up: what the provider still
   needs in the environment, and with `--assistant`, whether its server answers.
-
 - **The pages that score the whole portfolio are quick at its largest.** Home for a
   manager, the portfolio list, the dashboard, data quality, and overlap keep each day's scores
   between changes, in each server process: at 5,000 applications they answer in about a fifth
@@ -32,15 +41,12 @@ release. Before 1.0, a release may contain breaking changes; they are listed und
 
 ### Changed
 
-- **No temperature is sent unless one is set.** The assistant used to send 0.2, which newer
-  models refuse. Set `[assistant] temperature = 0.2` to keep a model of your own as steady
-  as before.
-- **Exchanges with the assistant are kept for a year**, not for ever, unless `[assistant]
-  keep_days` says otherwise, and each person may ask a hundred times a day unless
-  `daily_limit` says otherwise.
-- **The scheduler raises tasks in batches.** A first run on a large installation that finds
-  a thousand tasks to raise writes them two hundred at a time, each batch committed, so no one
-  else's change waits for all of them. The same tasks are raised.
+- **The scheduler's first run on a large installation holds nobody up.** Tasks and reminders
+  are worked out by reading, then written two hundred at a time, each batch committed; the
+  monthly snapshot is scored by reading and written at once. At five thousand applications
+  the longest any of them holds the database is half a second for tasks and reminders, from
+  1.1 and 3.5 s, and 1.5 s for the snapshot, from 2.7 s. The same tasks, reminders, and
+  snapshots are written.
 - The assistant waits up to two minutes for an answer, not one, for models that think
   before they answer (`timeout_seconds`).
 
@@ -63,6 +69,17 @@ write it; the record is in `spec/reviews/`.
   comes, not only to the bound on the whole call.
 - `[assistant] key_env` may not name one of the server's own variables, and exchanges are
   removed after `keep_days` whether or not the assistant is on.
+
+### Breaking
+
+- **Exchanges with the assistant are removed after a year** by the nightly housekeeping,
+  where they were kept for ever. Set `[assistant] keep_days = 0` to keep them.
+- **Each person may ask the assistant a hundred times a day,** with one question waiting at a
+  time; past either, its routes answer 429. Set `[assistant] daily_limit = 0` for no daily
+  limit.
+- **No temperature is sent to the model server** unless `[assistant] temperature` is set. It
+  used to send 0.2, which newer models refuse; set `temperature = 0.2` to keep a model of
+  your own as steady as before.
 
 ## 0.9.0 (2026-11-27)
 

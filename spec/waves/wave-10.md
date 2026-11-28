@@ -2,7 +2,7 @@
 
 **Goal:** the optional assistant ready for the models organizations pay for, and the pages that score the whole portfolio quick at its largest. The assistant speaks to the official services and to Amazon Bedrock as well as to a model of one's own, with limits on who uses it, how much, and how long what it was told is kept. The dashboard, data quality, overlap, and the portfolio list answer quickly at 5,000 applications, with every figure, score, flag, and working exactly as before. 1.0.0 still follows the maintainer's review.
 
-**Branch:** `wave-10` · **Target version:** `0.10.0` · **Status:** ◐ in progress
+**Branch:** `wave-10` · **Target version:** `0.10.0` · **Status:** ☑ done
 
 ## Exit criteria
 
@@ -30,13 +30,13 @@ None block the start. These defaults have been taken and can be changed at the r
 
 ---
 
-## Slice 1: More model servers ◐
+## Slice 1: More model servers ☑
 
 - [x] `[assistant] provider`: chat completions, the messages interface (the official service unless a `url` is given, including Bedrock's `bedrock-mantle` endpoint), or Bedrock's Converse API
 - [x] Bedrock with an Amazon Bedrock API key, or signed with Signature Version 4 from the standard library, checked against AWS's published test vectors
 - [x] `region`, `max_tokens`, `temperature`, and `timeout_seconds`; no temperature unless set; the server's reason for a refusal shown; an answer cut off or declined says so
 - [x] Chat completions and the messages interface checked against a model server on this machine
-- [ ] Bedrock checked against a real account, with the maintainer's credentials
+- [ ] Bedrock checked against a real account, with the maintainer's credentials: left to the maintainer, with `appwren doctor --assistant`; the release notes say it has not been
 
 ## Slice 2: The assistant, for paid models ☑
 
@@ -59,12 +59,12 @@ None block the start. These defaults have been taken and can be changed at the r
 
 - [x] The code added in this wave walked against the threat table by a reviewer who did not write it: eight findings in the wave's code (five low, three informational) and two in older code (one medium, one low), each fixed with a test in `tests/test_review_wave10.py` that failed before its fix, and `security.md` brought up to date
 
-## Slice 5: Release prep ☐
+## Slice 5: Release prep ☑
 
 - [x] 0.9.0's API description kept as the contract this wave keeps (`tests/fixtures/openapi-0.9.0.json`)
-- [ ] The compatibility draft covers the new `[assistant]` settings
-- [ ] The soak test run again, with scores kept, and the guide's figures for it brought up to date
-- [ ] Guides, changelog, upgrade from every earlier release on both databases, audits, release, and the site republished
+- [x] The compatibility draft covers the new `[assistant]` settings, and says the words AppWren puts to a model are not promised
+- [x] The soak test run again, with scores kept, and the guide's figures for it brought up to date: 6,688 requests in ten minutes, none failed, sign-in within 2.7 s and Home within 1 s for 95 in 100, memory level at about 580 MB
+- [x] Guides, changelog, upgrade from every earlier release on both databases (all 18 pass), audits (no findings in 142 scenes; keyboard check; 17 site pages), release, and the site republished
 
 ## Notes
 
@@ -82,3 +82,4 @@ Decisions and discoveries made during the wave are logged here, newest last.
 - The exit criterion first set a second for the first opening after a change. Measured at the end of the slice: 1.2 to 1.3 s on SQLite and 1.4 to 1.5 s on PostgreSQL, from 1.5 to 2.0 s in 0.9.0. What is left is reading the facts (0.6 s, most of it the database handing back 55,000 rows of technologies) and the engine (0.3 s); either could be made quicker only by working out less, or by working out only what a change touched, which the criterion of identical results rules out for this wave. The criterion is restated as measured: half a second when opened again, and sooner than 0.9.0 after a change.
 - The review found that a restricted application, when it was the primary provider for a capability, was named, with its value, in the scores of every application that overlaps it, to anyone who could see those. It had been so since 0.1.0; kept scores did not cause it but made it visible to the reviewer, since what is kept must never depend on who asks. Peers are now taken out as each answer is made.
 - Each question to the assistant now keeps its place (and is counted) in a short write before the server is asked, and is answered in a second. So an exchange is two events, made and answered.
+- The soak test at release found sign-in's 95th percentile at 6.7 s, over its budget of 5. The scheduler's first run over the demo grown to 5,000 held SQLite's write lock for 3.5 s while it told 3,105 escalations in one transaction, and for 2.7 s while the monthly snapshot scored every application inside its write; back to back, nobody could sign in. Reminders are now worked out by reading and told two hundred at a time (the longest write 0.34 s), and the snapshot is scored by reading and used if nothing changed before its write (1.5 s, the writing of 5,000 rows). What the three jobs write was compared row for row, before and after: 18,073 reminders, 5,127 notices, and 5,376 score snapshots, the same, and the same digest.

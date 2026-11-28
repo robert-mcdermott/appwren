@@ -37,7 +37,7 @@ Security fixes are the one exception. If keeping something the same would leave 
 - **The database's tables.** The schema changes in minor releases, through migrations. Read the portfolio through the API, an export, or a backup, never by querying its tables, and let nothing but AppWren write to them.
 - **The pages.** Screens, their layout, and their wording change as they improve. Only the addresses of records are kept.
 - **AppWren's Python code.** AppWren is an application, not a library, so importing its modules is not supported.
-- **What the assistant says.** Its answers come from a model AppWren does not control.
+- **What the assistant says, and what it sends.** Its answers come from a model AppWren does not control, and the words AppWren puts to the model (what it is told, and how it is asked) may change in any release. The protocols it speaks (`openai`, `anthropic`, `bedrock`) and its settings are kept like any other part of the configuration file.
 - **The demo organization.** Its people, records, and figures change from release to release.
 
 ## Deprecation
