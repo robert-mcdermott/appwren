@@ -9,7 +9,7 @@ AppWren keeps two kinds of settings apart.
 | Kind | Where it lives | Examples |
 |---|---|---|
 | How the server runs | `appwren.toml` and the environment | Address, port, database, data home |
-| The program and the product's look | The database, set in the app or by a program pack | Vocabularies, fields, what each stage requires, the questions, the scoring model, name, logo, colors |
+| The program and the product's look | The database, set in the app or by a program pack. The look can instead be fixed in this file, under [`[branding]`](#branding) | Vocabularies, fields, what each stage requires, the questions, the scoring model, name, logo, colors |
 
 This guide is about the first. For the second, see [Running the program](running-the-program.md).
 
@@ -29,7 +29,7 @@ Relative paths in the file are resolved against the file's own directory, not th
 
 ## Every section and key
 
-The file has seven sections. Only the first three matter for a new installation; `[sso]`, `[mail]`, `[assistant]`, and `[branding]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every problem in the file is reported together.
+The file has seven sections. Only the first three matter for a new installation; `[sso]`, `[mail]`, `[assistant]`, and `[branding]` are optional. A section or key that AppWren does not know is an error, not something it ignores. Every command reports every problem in the file at once, one to a line, and so does `appwren doctor`.
 
 ### `[server]`
 
@@ -38,11 +38,11 @@ The file has seven sections. Only the first three matter for a new installation;
 | `host` | `"127.0.0.1"` | The address the web server listens on. Keep `127.0.0.1` when a reverse proxy on the same machine terminates TLS. Use `0.0.0.0` only behind one |
 | `port` | `8000` | The port |
 | `workers` | `1` | How many server processes to run. One is enough for SQLite and small teams |
-| `base_url` | `""` | The public address people use to reach AppWren, such as `"https://appwren.example.org"`. Used for the single sign-on redirect address and for links in email. Set it when you use either |
+| `base_url` | `""` | The public address people use to reach AppWren, such as `"https://appwren.example.org"`. Used for the single sign-on redirect address and for links in email. Set it when you use either: left empty, email goes without links, and single sign-on works out its address from each request |
 | `session_idle_hours` | `12` | A sign-in ends after this long without activity |
 | `session_max_days` | `7` | A sign-in ends after this long in any case |
 | `scheduler` | `true` | Run scheduled work (triggers, reminders, email, webhooks, the monthly snapshot) inside this server. See [Scheduled work](#scheduled-work) |
-| `trusted_proxies` | `"127.0.0.1"` | The proxies whose `X-Forwarded-For` and `X-Forwarded-Proto` are believed, separated by commas, or `"*"` for any. Leave it alone when the proxy is on the same machine. In a container the proxy is at another address: name it, or use `"*"` if only the proxy can reach AppWren. Either way, the proxy must **replace** `X-Forwarded-For` with the address it saw, not add to what the client sent: AppWren limits sign-in attempts by that address. The nginx and Caddy examples in `deploy/` do this |
+| `trusted_proxies` | `"127.0.0.1"` | The proxies whose `X-Forwarded-For` and `X-Forwarded-Proto` are believed, separated by commas, or `"*"` for any. Leave it alone when the proxy is on the same machine. In a container the proxy is at another address: name it, or use `"*"` if nothing but the proxy can open a connection to AppWren's port. A port published on the host's `127.0.0.1`, as `deploy/compose.yaml` does, is open to every account on that machine, so it meets this only where nobody else can sign in to the machine; see [Deploy](#deploy). Either way, the proxy must **replace** `X-Forwarded-For` with the address it saw, not add to what the client sent: AppWren limits sign-in attempts by that address. The nginx and Caddy examples in `deploy/` do this |
 
 `host`, `port`, and `workers` can also be given to `uv run appwren serve` as `--host`, `--port`, and `--workers`, which take precedence for that run.
 
@@ -108,7 +108,7 @@ Optional, and off until a `model` is named (and, for `openai`, a `url`). Without
 | `headers` | `[]` | Extra headers sent with every request, for a gateway in front of the model, such as `["X-Team: portfolio"]`. Never put a key in one. A header named like a credential, or one AppWren sends itself, is refused; values are not checked |
 | `roles` | `[]` | The roles that may use the assistant, such as `["manager", "architect"]`. None named: everyone who can sign in. Administrators always may |
 | `daily_limit` | `100` | How many times each person may ask in a day, counted from midnight UTC, whether or not the model answered. `0` for no limit. Whatever the limit, each person has one question at a time waiting on the server |
-| `keep_days` | `365` | How long an exchange's words are kept. Older ones are removed by the nightly housekeeping, also once the assistant is turned off; that each happened, who asked, and about what stays in the history. `0` keeps them |
+| `keep_days` | `365` | How long an exchange's words are kept. Older ones are removed by the housekeeping job, which runs once a day, counted from its first run (not at a set hour), also once the assistant is turned off; that each happened, who asked, and about what stays in the history. `0` keeps them |
 | `max_data_class` | `"internal"` | The most sensitive class of data an application may handle and still be described to the assistant. Applications that handle anything more sensitive are left out of what it is told |
 
 Some examples:
@@ -213,7 +213,7 @@ on_accent = "#0f1a24"
 
 ## Environment overrides
 
-Any value can be overridden by an environment variable named `APPWREN_<SECTION>_<KEY>`, in capitals. The environment wins over the file.
+Any value in `[server]`, `[database]`, `[data]`, `[sso]`, `[mail]`, and `[assistant]` can be overridden by an environment variable named `APPWREN_<SECTION>_<KEY>`, in capitals. The environment wins over the file. `[branding]` cannot be set from the environment: it is read from the file only.
 
 | Variable | Overrides |
 |---|---|
@@ -227,11 +227,18 @@ Any value can be overridden by an environment variable named `APPWREN_<SECTION>_
 | `APPWREN_SERVER_SCHEDULER` | `[server] scheduler` |
 | `APPWREN_DATABASE_URL` | `[database] url` |
 | `APPWREN_DATA_HOME` | `[data] home` |
+| `APPWREN_SSO_ISSUER`, `APPWREN_SSO_CLIENT_ID`, and so on | `[sso]` and its keys |
 | `APPWREN_MAIL_HOST`, `APPWREN_MAIL_PORT`, and so on | `[mail]` and its keys |
+| `APPWREN_ASSISTANT_MODEL`, `APPWREN_ASSISTANT_URL`, and so on | `[assistant]` and its keys |
 
 ```bash
 APPWREN_SERVER_PORT=8080 uv run appwren serve
 ```
+
+- A setting that is true or false takes `true`, `false`, `yes`, `no`, `on`, `off`, `1`, or `0`. A list, such as `[assistant] headers` or `roles`, takes a JSON list (`'["manager", "architect"]'`) or text split by commas (`manager,architect`). An empty `APPWREN_ASSISTANT_TEMPERATURE` sends no temperature.
+- A value in the environment is checked as one in the file is, and a wrong one stops AppWren with the variable's name.
+- **A misspelled variable is ignored without a word.** The file is strict and the environment is not: AppWren reads the variables it knows and looks at no others, so `APPWREN_SERVER_PROT` changes nothing and nothing says so. Check each name against the keys above.
+- The variables that hold secrets, such as `APPWREN_SSO_CLIENT_SECRET`, `APPWREN_MAIL_PASSWORD`, and `APPWREN_ASSISTANT_KEY`, are not overrides. They are the variables that `client_secret_env`, `password_env`, and `key_env` name.
 
 `APPWREN_CONFIG` is separate: it names the file itself.
 
@@ -258,18 +265,19 @@ The data home is created by `init`. With the default settings it is `./var`.
 - Do not edit its contents by hand.
 - It must be writable by the account that runs the server.
 - Request bodies and tokens are never written to the log.
+- Keep it from other accounts on the machine. `init` creates it with the permissions the account's umask gives: under the usual umask of `022`, anyone on the machine can read the directory (755) and the SQLite file in it (644), and `doctor --production` warns. Run `chmod 700` on the data home once it is made, or run `init` under `umask 077`. The systemd unit in `deploy/` does both.
 
 ## Scheduled work
 
 The server runs AppWren's scheduled work by itself while it is up: it raises tasks, sends reminders and email, takes the monthly snapshot, and tidies up. **Admin → Scheduled work** shows how it is going; see [Running the program](running-the-program.md#scheduled-work-and-email).
 
-Each job is claimed by one process before it runs, so any number of workers or servers on one database run it once between them. If you would rather run it from a scheduled task (cron, a systemd timer, a Kubernetes CronJob), set `scheduler = false` and run every few minutes:
+Each job is claimed by one process before it runs, so any number of workers or servers on one database run it once between them. Email and webhooks are sent every minute, connectors are run every fifteen minutes, and the other jobs every hour to once a day. If you would rather run it from a scheduled task (cron, a systemd timer, a Kubernetes CronJob), set `scheduler = false` and run it every minute, or at least every few minutes, knowing that email and webhooks then wait for the next run:
 
 ```bash
 uv run appwren jobs run
 ```
 
-`uv run appwren jobs` lists the jobs, when each last ran, and what it did; `uv run appwren jobs run reminders` runs one now. `doctor` warns when the scheduler is off and nothing has run for two days.
+`uv run appwren jobs` lists the jobs, how each last run went and what it did, and when each runs next; `uv run appwren jobs run reminders` runs one now. `doctor` warns when the scheduler is off and nothing has run for two days, `doctor --production` warns whenever the scheduler is off, and, when it is on, once nothing has run for fifteen minutes.
 
 ## Connectors and push keys
 
@@ -277,6 +285,8 @@ Connectors are set up in the app, on **Admin → Connectors**, not in this file;
 
 - **Credentials live in the environment.** A connector that needs one names an environment variable, such as `APPWREN_GITHUB_TOKEN` or `APPWREN_ENTRA_SECRET`. Set it where the server runs (and where `appwren jobs run` runs, if you use that) and restart. The value is read when the connector runs and is never written to the database, the history, or this file.
 - **The server reaches out only for a connector that is on**, over HTTPS, to the address on the connector. If it must go through a proxy, set `HTTPS_PROXY` in its environment.
+
+`HTTPS_PROXY` is not only for connectors. Webhook deliveries, the assistant's model server, and the single sign-on provider are reached through it as well, and addresses listed in `NO_PROXY` are reached directly. A webhook's receiver is checked before each delivery, on the machine AppWren runs on: its name must resolve there to addresses on the public internet only, even when the proxy is the one that will connect to it.
 
 A push key is issued on the same page and held by the tool that posts with it. AppWren keeps only its hash.
 
@@ -295,6 +305,8 @@ To send notices by email as well:
 uv run appwren doctor
 uv run appwren mail test you@example.org
 ```
+
+`mail test` sends to an account that already exists here, named by its email address, and refuses any other address.
 
 Each person then chooses, under **Your account**, to have each notice as it happens, one summary a day, or none. Messages wait in the database and are sent from there, so a restart loses nothing and a mail server that is down is tried again, up to six times. Nothing written before email was set up is ever sent.
 
@@ -402,7 +414,7 @@ SQLite is the default and needs no setup. Use PostgreSQL when many people will u
 
 2. Create an empty database and a role that owns it, with your usual PostgreSQL tools.
 
-3. Set the address in `appwren.toml`, without the password:
+3. Set the address in `appwren.toml`, without the password. If there is no `appwren.toml` yet, copy `appwren.example.toml` to it first: `init`, in the next step, uses a file that is there and writes one only where there is none, and a file it writes would point at SQLite.
 
    ```toml
    [database]
@@ -427,14 +439,21 @@ uv run appwren backup --out appwren-backup.tar.gz
 
 A backup is one gzipped file: every table, as lines of JSON, every file in the data home's `brand/` and `files/`, and a manifest that says which version and migration made it and how many rows each table held. It can be made while the server is running: the tables are read in one transaction, so they agree with each other. The file does not depend on the kind of database, so a backup of SQLite restores into PostgreSQL and the other way round. It holds everything, password hashes included, and is written readable by its owner only: keep it as carefully as the database.
 
-To restore, set up an installation whose database is empty (a new `appwren.toml` and data home, or a new PostgreSQL database), then:
+A backup holds the database and the data home's files, and nothing else. Keep these as well, since a new installation needs them and no backup has them:
+
+- `appwren.toml` itself;
+- the image files `[branding]` names, kept beside the configuration file;
+- the secrets: the environment file or wherever the database's password, the mail password, and the other secrets are kept;
+- the logs in the data home's `logs/`, if you need them.
+
+To restore into a new installation, **do not run `appwren init` first.** `init` loads the default program, which writes history, and a restore then refuses the database. Put only the configuration file in place, pointing at an empty database (for SQLite, a data home that does not exist yet; for PostgreSQL, a new, empty database), then:
 
 ```bash
 uv run appwren restore appwren-backup.tar.gz
 uv run appwren db upgrade     # if the backup came from an earlier version
 ```
 
-A restore refuses a database that has accounts or history: nothing is ever overwritten. It checks that every table loaded whole, and verifies the history once it is in, so a damaged backup is found at once and not months later.
+`restore` creates the data home and the database's tables itself. A restore refuses a database that has accounts or history: nothing is ever overwritten. It checks that every table loaded whole, and verifies the history once it is in, so a damaged backup is found at once and not months later.
 
 ## Move to another database
 
@@ -480,7 +499,7 @@ AppWren is measured with the demo organization copied up to **5,014 applications
 
 The pages in the last two rows score every application in service. Each server process keeps the day's scores until something a score is worked out from changes: an application, an assessment, a component, a cost, a source's facts, the scoring model, or the like. The first of those pages opened after such a change works them all out again; the rest, and every opening after, use what is kept. At 500 applications even the first takes no more than about a fifth of a second. Kept scores take about 80 MB in each process at 5,000 applications. Home scores the whole portfolio only for a manager over the whole organization, as measured here; for anyone else it scores the applications they are named on and those of the units they keep or decide for. Everything that opens one record, or a page of a list, stays fast at any size.
 
-`scripts/soak.py` keeps a server at that size busy with twenty people at once for ten minutes and reports failures, timings, and memory, if you want to see how it holds up on your hardware. Measured so on the laptop above with SQLite, it answered all 6,688 requests in ten minutes with no failures, half of them within 36 ms and 95 in 100 within a sixth of a second, Home within a second for 95 in 100, with the memory of its two processes level at about 580 MB, scores kept included. The scheduler's first run, which at that size raises over a thousand tasks and tells thousands of reminders, ran during it and held nobody up for more than a second and a half.
+`scripts/soak.py` keeps a server at that size busy with twenty people at once for ten minutes and reports failures, timings, and memory, if you want to see how it holds up on your hardware. Measured so on the laptop above with SQLite and one server process, the script's default (`--workers` gives more), it answered all 6,688 requests in ten minutes with no failures, half of them within 36 ms and 95 in 100 within a sixth of a second, Home within a second for 95 in 100. The memory of the two processes it counts, the server and the `uv` that started it, stayed level at about 580 MB, scores kept included. The scheduler's first run, which at that size raises over a thousand tasks and tells thousands of reminders, ran during it and held nobody up for more than a second and a half.
 
 You can repeat the measurement on your own hardware. It builds a throwaway installation in a temporary directory and touches nothing else:
 
@@ -493,14 +512,16 @@ To measure PostgreSQL, set `APPWREN_DATABASE_URL` to an empty database first. Th
 
 ## Upgrade
 
-After updating the code:
+Before you update the code, read the *Breaking* section of each release in the [changelog](../CHANGELOG.md) between yours and the new one, and back up, with `uv run appwren backup`: an upgrade cannot be undone except by restoring. Then, after updating the code:
 
 ```bash
-uv sync
+uv sync --no-dev --extra postgres   # leave out --extra postgres on SQLite
 uv run appwren db upgrade
 ```
 
-`db upgrade` applies any migrations the database has not had and adds anything new in the default program without overwriting what you have shaped. Coming from 0.2.0, that is the tables for scheduled work, notices, email, confirmations, campaigns, tasks, saved views, and contests, and a new version of the default scoring model, with its cadence, for installations still running a previous default (coming from 0.1.0, the tables of 0.2.0 as well); see [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program). Back up first, with `uv run appwren backup`: an upgrade cannot be undone except by restoring. `serve` refuses to start on a schema that is behind, and so does each server process, however it was started; `uv run appwren db current` shows where the database is. What an upgrade keeps is set out in [Compatibility](compatibility.md).
+`uv sync` makes the environment exactly what it is told, so a `uv sync` without `--extra postgres` removes the PostgreSQL driver from an installation that uses it, and AppWren then cannot open its database. Give the same options every time, as the systemd unit in `deploy/` does.
+
+`db upgrade` applies, in order, every migration the database has not had, and adds whatever is new in the default program without overwriting what you have shaped. What that means for the program, such as a new version of the default scoring model, is set out in [What an upgrade does to the program](running-the-program.md#what-an-upgrade-does-to-the-program), and each release's changelog says what it adds. `serve` refuses to start on a schema that is behind, and so does each server process, however it was started; `uv run appwren db current` shows where the database is. What an upgrade keeps is set out in [Compatibility](compatibility.md).
 
 ## Run behind a reverse proxy
 
@@ -515,7 +536,7 @@ The app sets its own security headers, including a content security policy with 
 
 ## Deploy
 
-`deploy/` holds recipes for running AppWren in production. Each was tried as it is written.
+`deploy/` holds recipes for running AppWren in production. Each was tried as it is written, except two steps added in 0.10.1 that have not yet been run on a Linux host: the service unit's first run of `init` with `systemd-run`, and restoring a backup into the compose installation before its first start.
 
 | File | What it is |
 |---|---|
@@ -532,7 +553,40 @@ cp deploy/compose.env.example deploy/.env     # then fill in deploy/.env
 docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
 ```
 
-On the first start, `APPWREN_ADMIN_EMAIL` and `APPWREN_ADMIN_PASSWORD` create the first administrator, `APPWREN_ORGANIZATION` the organization's top unit, and `APPWREN_PROGRAM` the [starter program](getting-started.md#start-from-a-program-shaped-like-yours) to begin from; on later starts each is left alone, so remove the password once you have signed in. Back the volume up with `appwren backup` run inside the container: `docker compose -f deploy/compose.yaml exec appwren appwren backup --out /data/backup.tar.gz`, then copy the file somewhere else.
+On the first start, `APPWREN_ADMIN_EMAIL`, `APPWREN_ADMIN_NAME`, and `APPWREN_ADMIN_PASSWORD` create the first administrator, `APPWREN_ORGANIZATION` the organization's top unit, and `APPWREN_PROGRAM` the [starter program](getting-started.md#start-from-a-program-shaped-like-yours) to begin from. Later starts leave each alone: an administrator, units, or a program already there is kept. Remove the three `APPWREN_ADMIN_` lines from `deploy/.env` once you have signed in, as its comments say.
+
+Back the volume up with `appwren backup` run inside the container, then copy the file off the machine:
+
+```bash
+docker compose -f deploy/compose.yaml --env-file deploy/.env exec appwren \
+  appwren backup --out /data/backup.tar.gz
+```
+
+**To restore into containers, restore before the first start.** The image runs `init` every time it starts, and `init` loads the default program into an empty database, after which a restore refuses it. So, with a new `deploy/.env` and no volumes yet, run the restore in place of the first start, then start as usual. `init` then finds the administrator and the units the backup brought, and only brings the database up to date, as `db upgrade` would:
+
+```bash
+docker compose -f deploy/compose.yaml --env-file deploy/.env run --rm \
+  -v "$PWD/appwren-backup.tar.gz:/backup.tar.gz:ro" appwren appwren restore /backup.tar.gz
+docker compose -f deploy/compose.yaml --env-file deploy/.env up -d
+```
+
+The container runs as user 10001, which must be able to read the backup; a backup is written readable by its owner only, so give it to that user first (`sudo chown 10001 appwren-backup.tar.gz` with Docker).
+
+Two more things about the compose file:
+
+- **The published port is open to every account on the host.** `127.0.0.1:8000` keeps AppWren off the network, but anyone who can sign in to the host can connect to it. The container's configuration sets `trusted_proxies = "*"`, so such a person can send their own `X-Forwarded-For` and get around the limit on sign-in attempts from one address. Where others can sign in to the host, run the proxy as a container on the compose network, publish only the proxy's port, not AppWren's, and name the proxy's address or network in `APPWREN_SERVER_TRUSTED_PROXIES`.
+- **The health check asks port 8000.** The `HEALTHCHECK` in the `Containerfile` is written for that port. If you change `APPWREN_SERVER_PORT`, change the check to match, or the container is reported unhealthy.
+
+With systemd, the comments at the top of `deploy/appwren.service` give every step. Its `ExecStartPre` runs `db upgrade`, which needs a data home that `init` has made, and `serve` refuses to start with no administrator, so the first `init` is run by hand, as the service's user and with the unit's configuration and secrets. So is every other command, such as `backup` or `users`, with `init` below replaced by it:
+
+```bash
+sudo systemd-run --pty --collect --uid=appwren --gid=appwren -p UMask=0077 \
+  -p EnvironmentFile=/etc/appwren/secrets.env -E APPWREN_CONFIG=/etc/appwren/appwren.toml \
+  --working-directory=/var/lib/appwren /opt/appwren/.venv/bin/appwren init
+```
+
+- The unit sets `ProtectHome=yes`, which hides `/home` and `/root` from the service. A Python that uv installed under someone's home directory cannot be reached, and the service fails to start: build `/opt/appwren/.venv` with a system Python of 3.12 or later, or set `UV_PYTHON_INSTALL_DIR` to a directory outside `/home` and `/root`, such as `/opt/uv-python`, before `uv sync`.
+- The log goes to the journal (`journalctl -u appwren`) and to `logs/` in the data home.
 
 ### Before people depend on it
 
@@ -553,6 +607,9 @@ On top of the usual checks, `--production` looks at what matters once people rel
 | Scheduled work | The scheduler is off, or nothing has run in fifteen minutes |
 | Backup | `appwren backup` has not run in two days, or ever |
 | Data home access | Other accounts on the machine can read the data home |
+
+- **These checks run only when the usual ones pass.** If any usual check fails, such as the configuration, the database, or single sign-on, `--production` adds nothing until that is fixed.
+- **The Backup check reads a note, not the backup.** Each `appwren backup` writes the time it ran to `last-backup.json` in the data home, and so does `appwren db move`, which makes one on the way. The check reads only that note: it does not look for the file, and cannot tell whether it was copied off the machine. Backups made some other way, such as of the PostgreSQL database by your own tools, leave no note, so the check advises even when they are made.
 
 ## The demo and the network
 

@@ -26,11 +26,11 @@ You need [uv](https://docs.astral.sh/uv/), which provides the right Python (3.12
 ```bash
 uv sync                   # install AppWren
 uv run appwren init       # write appwren.toml, create ./var, the database, your organization, and your administrator
-uv run appwren doctor     # check the installation
+uv run appwren doctor     # check the installation, listing every problem it finds
 uv run appwren serve      # run it at http://127.0.0.1:8000
 ```
 
-`init` asks for your email address, your name, and a password of at least 12 characters. Open the address `serve` prints and sign in.
+`init` asks for your organization's name and, if you wish, a first unit within it, then for the first administrator's email address, name, and a password of at least 12 characters. To begin from a starter program shaped like your organization, name it at that first `init`, as in `uv run appwren init --program starter-university` (`uv run appwren program starters` lists them): a later `init` does not load one over the program already there, and `appwren program import` changes it afterwards. Open the address `serve` prints and sign in.
 
 The administrator account sets the installation up: units, people, and appearance. To run the portfolio, give someone the manager role under Admin → People, and stewards and leaders for the units that will use it. Then bring in your applications from a spreadsheet. [Getting started](docs/getting-started.md) walks through all of it, and [Start with one team](docs/getting-started.md#start-with-one-team) says how a single team can begin on its own and let the rest of the organization join later.
 
@@ -43,7 +43,7 @@ uv run appwren demo                                 # builds ./demo
 uv run appwren --config demo/appwren.toml serve     # runs it at http://127.0.0.1:8020
 ```
 
-The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 107 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 88 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, four quarterly portfolio snapshots, two campaigns, tasks raised by what happened, three portfolio reviews, ten initiatives on a roadmap, five requests for something new, and three retirements. Nothing in it is real.
+The demo is the Bramblewood Institute for Health Research, a fictional research institute with a clinic and two years of history: 57 units, about 180 people, 109 applications (about forty of them research tools kept by labs), about 120 components, 24 technologies, 24 interfaces, 89 deployments on six hosting platforms, 22 contracts, about 140 assessments, 65 decisions, four quarterly portfolio snapshots, two campaigns, tasks raised by what happened, three portfolio reviews, twelve initiatives on a roadmap (one proposed, the rest in progress), five requests for something new, and three retirements. Nothing in it is real.
 
 ![The portfolio chart in the demo: each application placed by business value and technical health, sized by cost, and colored by risk exposure](docs/img/portfolio-chart-light.webp)
 
@@ -150,11 +150,11 @@ Version 0.10.0 makes the optional assistant ready for the models organizations p
 - **The portfolio chart, the dashboard, data quality, and Home,** where every figure is a link to the list it counts.
 - **Import from a spreadsheet** with a dry run that reports every problem by row, and **export** of every list as CSV or JSON.
 - **Sensitive fields and restricted applications,** withheld everywhere at once: records, lists, filters, charts, exports, and the working.
-- **Roles and units:** seven roles, four of them limited to a unit and everything beneath it, and a hierarchy of any depth. Optional **single sign-on** through OpenID Connect, beside local accounts.
+- **Roles and units:** seven roles (leaders and stewards are always held over a unit and everything beneath it; managers and architects may be), and a hierarchy of any depth. Optional **single sign-on** through OpenID Connect, beside local accounts.
 - **An append-only history** chained by hash, checked with `appwren verify`.
 - **Branding and themes,** a JSON API under `/api/v1`, a command line for setup and recovery, and the program as a file.
 
-Upgrading from 0.1.0 or 0.2.0 is `uv sync` and `uv run appwren db upgrade`; see [Upgrade](docs/configuration.md#upgrade). The [roadmap](spec/roadmap.md) says what is next, and the [changelog](CHANGELOG.md) lists everything in each release.
+Upgrading from any earlier release is `uv sync` and `uv run appwren db upgrade`; see [Upgrade](docs/configuration.md#upgrade). The [roadmap](spec/roadmap.md) says what is next, and the [changelog](CHANGELOG.md) lists everything in each release.
 
 ## Documentation
 

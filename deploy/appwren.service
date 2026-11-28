@@ -1,14 +1,38 @@
 # AppWren as a systemd service, with the sandboxing systemd offers switched on.
 #
+# This expects the code at /opt/appwren, with `uv sync --no-dev --extra postgres` run there
+# (and the same options at every upgrade: a plain `uv sync` removes the PostgreSQL driver).
+# ProtectHome=yes below hides /home and /root from the service, so the Python that
+# /opt/appwren/.venv uses must not live there: use a system Python of 3.12 or later
+# (uv sync --python /usr/bin/python3.12 ...), or set UV_PYTHON_INSTALL_DIR to a directory
+# such as /opt/uv-python before running uv sync.
+#
+# Set up, once:
+#
 #   sudo useradd --system --home-dir /var/lib/appwren --shell /usr/sbin/nologin appwren
 #   sudo install -d -o appwren -g appwren -m 700 /var/lib/appwren
-#   sudo install -d -m 755 /etc/appwren                    # appwren.toml goes here
+#   sudo install -d -m 755 /etc/appwren
+#   sudo install -m 644 /opt/appwren/appwren.example.toml /etc/appwren/appwren.toml
+#       then edit it: [data] home = "/var/lib/appwren", [database] url, [server] base_url
 #   sudo install -m 600 /dev/null /etc/appwren/secrets.env  # PGPASSWORD=... and the like
+#
+# Run every command as the service's user, with its configuration and secrets, as below.
+# First `init`, which makes the data home and the database and asks for the first
+# administrator; ExecStartPre's `db upgrade` fails on a data home `init` has not made, and
+# `serve` refuses to start with no administrator:
+#
+#   sudo systemd-run --pty --collect --uid=appwren --gid=appwren -p UMask=0077 \
+#       -p EnvironmentFile=/etc/appwren/secrets.env -E APPWREN_CONFIG=/etc/appwren/appwren.toml \
+#       --working-directory=/var/lib/appwren /opt/appwren/.venv/bin/appwren init
+#
+# The same line with `init` replaced by `doctor --production`, by
+# `backup --out /var/lib/appwren/backup.tar.gz` (then copy the file off the machine), or by
+# `users ...` runs those. Then start the service:
+#
 #   sudo cp deploy/appwren.service /etc/systemd/system/
 #   sudo systemctl daemon-reload && sudo systemctl enable --now appwren
 #
-# This expects the code at /opt/appwren with `uv sync --no-dev --extra postgres` run there,
-# and [data] home = "/var/lib/appwren" in /etc/appwren/appwren.toml.
+# The log goes to the journal (journalctl -u appwren) and to logs/ in the data home.
 
 [Unit]
 Description=AppWren

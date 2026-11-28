@@ -349,8 +349,8 @@ def test_init_can_make_the_organization_and_a_first_team(
     assert run("init", "--organization", "Northwind Institute", "--first-unit",
                "Research Applications", config=config) == 0  # fmt: skip
     out = capsys.readouterr().out
-    assert "Organization: Northwind Institute" in out
-    assert "First unit: Research Applications, within Northwind Institute" in out
+    assert "Organization: Northwind Institute (code NI)" in out
+    assert "First unit: Research Applications (code RA), within Northwind Institute" in out
     assert run("init", "--organization", "Someone Else", config=config) == 0
     db = Database(load_config(config).database_url)
     try:
@@ -358,6 +358,11 @@ def test_init_can_make_the_organization_and_a_first_team(
             found = {unit.name: unit for unit in units.all_units(session)}
         assert set(found) == {"Northwind Institute", "Research Applications"}
         assert found["Research Applications"].parent_id == found["Northwind Institute"].id
+        # Codes, since imports of units and people name units by them.
+        assert (found["Northwind Institute"].code, found["Research Applications"].code) == (
+            "NI",
+            "RA",
+        )
     finally:
         db.dispose()
 
@@ -385,3 +390,13 @@ def test_doctor_for_production(
     capsys.readouterr()
     assert run("doctor", "--production", config=demo / "appwren.toml") == 1
     assert "demo organization" in capsys.readouterr().out
+
+
+def test_doctor_lists_every_problem_in_the_file(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    config = tmp_path / "appwren.toml"
+    config.write_text("[server]\nport = 0\nworkers = 99\n", encoding="utf-8")
+    assert run("doctor", config=config) == 1
+    out = capsys.readouterr().out
+    assert "port must be between" in out and "workers must be between" in out

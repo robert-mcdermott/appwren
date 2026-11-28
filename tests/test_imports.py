@@ -162,3 +162,23 @@ def test_importing_through_the_api(
     )
     assert admin.post("/api/v1/imports/people", content=b"\xff\xfe\x00").status_code == 422
     assert admin.post("/api/v1/imports/people", content="name\nX\n").status_code == 422
+
+
+def test_a_file_describes_the_organization_already_here_without_a_code(db: Database) -> None:
+    """`appwren init` made the organization with no code before 0.10.1, so a file that, like
+    the import dialog's sample, names the organization on its top row was refused: only one
+    unit may have no parent. Its one top row is now the organization already here."""
+    with db.write(ME.actor) as session:
+        top = units.create(session, ME, name="Example Institute", kind="organization")
+        top_id = top.id
+    text = (
+        "code,name,kind,parent_code\nEI,Example Institute,organization,\n"
+        "RC,Research Computing,team,EI\n"
+    )
+    with db.write(ME.actor) as session:
+        report = imports.import_units(session, ME, text, dry_run=False)
+    assert report.problems == [] and (report.created, report.updated) == (1, 1)
+    with db.read() as session:
+        assert {unit.code: unit.id for unit in units.all_units(session)}["EI"] == top_id
+        child = units.by_code(session, "RC")
+        assert child is not None and child.parent_id == top_id

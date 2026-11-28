@@ -4,6 +4,38 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## 0.10.1 (2026-11-28)
+
+The documentation reviewed against the code, guide by guide, and a new organization's setup
+walked from a fresh install; what blocked it is fixed.
+
+### Fixed
+
+- **A new organization's first units import no longer fails.** `appwren init` gives the
+  organization and first unit it makes a code from their initials, and a units file's one
+  top row is taken as an organization already there without a code, as the import dialog's
+  own sample has it.
+- **`appwren doctor` lists every problem in the configuration file**, as other commands do,
+  not only the first line.
+- **Trends compare today with the same applications a snapshot keeps**, so a snapshot
+  compared with today at once shows nothing added or gone; their low-confidence count uses
+  the scoring model's threshold, as the dashboard does.
+- **A catalog file's Import one** shows only to those who may import it.
+
+### Documentation
+
+- **Getting started** is now one path from installing to a working portfolio: choosing a
+  starter program first, units, people and how they get in, roles, vendors, what each
+  import file must hold, what the scores need before they recommend, telling people, the
+  first decisions, and what to do before others sign in.
+- Every guide checked against the code, and corrected where it had drifted: the
+  applications list and the portfolio list, the import, flags as the screen words them,
+  who may decide, snapshot, report, and see sensitive fields, what is in the history and
+  what is not, the stage gate, restoring into a new installation, upgrading on PostgreSQL,
+  the service unit's first run, the API's status codes and list parameters, webhooks for a
+  receiver, and more. What 0.8.0 to 0.10.0 added (proposed changes, the checkpoint,
+  standings, the assistant's limits) is described where a reader looks for it.
+
 ## 0.10.0 (2026-11-27)
 
 Wave 10, *The assistant, ready*. The optional assistant speaks to the official services and

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import re
 import socket
 import sys
 from collections.abc import Callable, Sequence
@@ -320,11 +321,27 @@ def _first_units(db: Database, args: argparse.Namespace) -> None:
         return
     setup = Principal.for_command("Setup")
     with db.write(setup.actor) as session:
-        top = units.create(session, setup, name=organization, kind="organization")
-        print(f"Organization: {top.name}")
+        # Each with a code, since imports of units and people name units by their codes.
+        top_code = _unit_code(organization, taken=set())
+        top = units.create(session, setup, name=organization, kind="organization", code=top_code)
+        print(f"Organization: {top.name} (code {top_code})")
         if first:
-            unit = units.create(session, setup, name=first, kind="team", parent_id=top.id)
-            print(f"First unit: {unit.name}, within {top.name}")
+            code = _unit_code(first, taken={top_code})
+            unit = units.create(session, setup, name=first, kind="team", parent_id=top.id,
+                                code=code)  # fmt: skip
+            print(f"First unit: {unit.name} (code {code}), within {top.name}")
+
+
+def _unit_code(name: str, *, taken: set[str]) -> str:
+    """A short code for a unit, from the initials of its name: Research Computing is RC. An
+    administrator can change it under Admin, Units."""
+    words = re.findall(r"[A-Za-z0-9]+", name)
+    base = ("".join(w[0] for w in words) if len(words) > 1 else "".join(words)[:6]).upper()
+    base = base[:12] or "UNIT"
+    code, n = base, 2
+    while code in taken:
+        code, n = f"{base}{n}", n + 1
+    return code
 
 
 def _port_free(host: str, port: int) -> bool:

@@ -22,7 +22,7 @@ Security fixes are the one exception. If keeping something the same would leave 
 | **Webhooks** | Topics keep their names, payloads keep their fields, and the signature keeps its scheme: HMAC-SHA256 over the `X-AppWren-Timestamp` header, a dot, and the body, sent in `X-AppWren-Signature`. Topics and fields may be added |
 | **Tokens and keys** | An API token, a token of one's own, or a push key issued by one release keeps working after an upgrade, until it is revoked or it expires |
 | **The configuration file** | Every section and key that 1.0 reads is still read, with the same meaning and default, and so is its environment variable, `APPWREN_<SECTION>_<KEY>`. A key that is replaced keeps working, and `appwren doctor` says what replaced it |
-| **The command line** | Every command and option keeps working, and exits 0 when it succeeded and 1 when it did not. What a command prints for a person to read may change, so nothing should parse it |
+| **The command line** | Every command and option keeps working, and keeps its exit status: 0 when it succeeded, 1 when it failed, and 2 when it was used wrongly, such as with an option it does not know. A command stopped with Ctrl-C exits 130. What a command prints for a person to read may change, so nothing should parse it |
 | **Program packs** | A pack exported by any 1.x imports into any later 1.x. AppWren never changes or removes the key of a value in a list it ships, only its label, and a value an organization retires stays retired |
 | **Catalog files and pushes** | A catalog file, or a push from another system, that one 1.x accepts, every later 1.x accepts |
 | **Backups** | A backup made by any 1.x restores into the same release or any later 1.x, on either database |

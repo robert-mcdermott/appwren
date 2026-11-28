@@ -83,8 +83,15 @@ def import_units(session: Session, principal: Principal, text: str, *, dry_run: 
     report = Report("units", dry_run)
     rows = _rows(text, ("code", "name", "kind"), UNIT_COLUMNS)
     report.rows = len(rows)
-    existing = {unit.code: unit for unit in units.all_units(session) if unit.code}
-    has_root = any(unit.parent_id is None for unit in units.all_units(session))
+    everything = units.all_units(session)
+    existing = {unit.code: unit for unit in everything if unit.code}
+    has_root = any(unit.parent_id is None for unit in everything)
+    # The organization may already be here with no code, as `appwren init` made it before
+    # 0.10.1: a file whose one top row is new is taken to describe it, and gives it its code.
+    uncoded_root = next((u for u in everything if u.parent_id is None and not u.code), None)
+    tops = [row for row in rows if not row.get("parent_code") and row["code"]]
+    if uncoded_root is not None and len(tops) == 1 and tops[0]["code"] not in existing:
+        existing[tops[0]["code"]] = uncoded_root
     seen: dict[str, int] = {}
     for number, row in enumerate(rows, start=2):
         code = row["code"]
@@ -142,14 +149,15 @@ def import_units(session: Session, principal: Principal, text: str, *, dry_run: 
                             by_code[row["code"]] = _Planned(parent_id)  # type: ignore[assignment]
                         report.created += 1
                     else:
-                        same = (unit.name, unit.kind, unit.parent_id) == (
-                            row["name"], row["kind"].lower(), parent_id,
+                        same = (unit.name, unit.kind, unit.parent_id, unit.code) == (
+                            row["name"], row["kind"].lower(), parent_id, row["code"],
                         )  # fmt: skip
                         if isinstance(unit, _Planned) or same:
                             report.unchanged += 1
                         else:
                             if not dry_run:
-                                changes: dict[str, Any] = {"name": row["name"], "kind": row["kind"]}
+                                changes: dict[str, Any] = {"name": row["name"], "kind": row["kind"],
+                                                           "code": row["code"]}  # fmt: skip
                                 if parent_id is not None:
                                     changes["parent_id"] = parent_id
                                 units.update(session, principal, unit, changes)
