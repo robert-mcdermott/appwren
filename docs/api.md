@@ -2,7 +2,12 @@
 
 Everything the web app does, it does through a JSON API under `/api/v1`. This guide covers how to sign in, how answers and errors are shaped, how lists page, and what routes there are. The exact shape of every request and answer is in the OpenAPI document: [openapi.json](openapi.json) in this directory, or `/api/openapi.json` on a running server.
 
-A program signs in as an account, with that account's password, and holds a session as a browser does. The one exception is posting facts: a tool holding a **push key** an administrator issued posts to `POST /api/v1/facts` with the key and no session, and can do nothing else with it (see [Facts from other systems](signals.md#push-sources)).
+A program reaches the API in one of four ways:
+
+- **As an account, with a session.** It signs in with the account's email address and password and holds the session cookie, as a browser does. See [Sign in](#sign-in).
+- **With an API token** an administrator issued for one role, sent with each request and no session. See [Sign in as another system](#sign-in-as-another-system).
+- **With a token of a person's own**, which acts as that person, reads, and proposes changes. See [A token of your own](#a-token-of-your-own).
+- **With a push key**, which only posts facts to `POST /api/v1/facts` and can do nothing else (see [Facts from other systems](signals.md#push-sources)).
 
 Until 1.0, routes may change between releases. Changes are listed in the [changelog](../CHANGELOG.md).
 
@@ -46,21 +51,21 @@ curl -s -b cookies.txt -H 'Content-Type: application/json' \
   http://127.0.0.1:8000/api/v1/applications
 ```
 
-Without it the answer is 403. If the request carries an `Origin` header, it must match the host, or the request is refused.
+Without it the answer is 403. A change is also refused with 403, whether or not anyone is signed in, when the request comes from another site: when it carries `Sec-Fetch-Site: cross-site`, or an `Origin` header that does not match the host.
 
 ## Sign in as another system
 
-A script or another system signs in with an **API token** instead of a session. An administrator issues one under **Admin → API tokens**: for one role (any but administrator), for one unit and those beneath it if the role has a unit, for reading only unless they say otherwise, and until a day at most a year away. The token is shown once; only its SHA-256 is kept. Send it with each request:
+A script or another system signs in with an **API token** instead of a session. An administrator issues one under **Admin → API tokens**, or with `POST /admin/tokens`: for one role (any but administrator), for one unit and those beneath it if the role has a unit, for reading only unless they say otherwise, and until a day at most a year away, 90 days from now if no day is given. At most 50 issued tokens are live at once. The answer, `201 Created`, holds the token itself, `token`, shown this once, and its `prefix`, the first ten characters, by which lists and the history name it; only its SHA-256 is kept. Send it with each request:
 
 ```bash
 curl -s -H 'Authorization: Bearer awt_…' http://127.0.0.1:8000/api/v1/applications
 ```
 
-A token sees and may do what its role may, and nothing more. A reading token is refused any change with 403. A change made with a token is recorded in the history against the token's name. A token needs no CSRF token, since no browser is involved, and never signs in to the web app. One that is revoked or has expired is refused with 401 at once.
+A token sees and may do what its role may, and nothing more. A reading token is refused any change with 403. A change made with a token is recorded in the history against the token's name and prefix, such as `Nightly sync (token awt_x7Kp2q)`. A token stands for a role, not a person, so `mine` means nothing to it: a list given `mine=true` is not narrowed. A token needs no CSRF token, since no browser is involved, and never signs in to the web app. One that is revoked or has expired is refused with 401 at once.
 
 ### A token of your own
 
-Anyone may make a token of their own under **Your account → Your API tokens**. It acts as them, so it sees exactly what they see; it reads, and it proposes changes, and it changes nothing itself. A proposal is a **suggestion** on an application: a value for one field, with a note saying why. It waits on the application's page until someone who keeps the application accepts it, which is their own edit, checked by the usual rules and kept in the history under their name, or dismisses it.
+Anyone may make a token of their own under **Your account → Your API tokens**, or with `POST /tokens` while signed in: at most ten live at once, each for 90 days unless they give another day up to a year away, its `token` and `prefix` in the answer this once. It acts as them, so it sees exactly what they see; it reads, and it proposes changes, and it changes nothing itself. A proposal is a **suggestion** on an application: a value for one field, with a note saying why. It waits on the application's page until someone who keeps the application accepts it, which is their own edit, checked by the usual rules and kept in the history under their name, or dismisses it.
 
 ```bash
 curl -s -H 'Authorization: Bearer awt_…' -H 'Content-Type: application/json' \
@@ -68,7 +73,7 @@ curl -s -H 'Authorization: Bearer awt_…' -H 'Content-Type: application/json' \
   http://127.0.0.1:8000/api/v1/applications/APP-0024/suggestions
 ```
 
-A personal token stops working when its owner's password changes or their account is disabled. Whatever its owner's roles, it never administers.
+A personal token is revoked when its owner's password changes or their account is disabled. Whatever its owner's roles, it never administers. What it proposes is recorded under its owner's name and its prefix, such as `Your Name (token awt_x7Kp2q)`.
 
 ## Let an AI assistant read AppWren
 
@@ -103,7 +108,7 @@ curl -s -H 'Authorization: Bearer awt_…' \
             {"check": "data_class", "ok": true, "text": "Its record says it handles identifiable research data"}]}}
 ```
 
-`approved` is true when the application is in service and open to new use (phase in or active), its decision on record does not take it away (retire, replace, or consolidate), and nothing it is known to run on is past its end of support. With `data_class`, `allowed` is also true only if its record says it handles that class. Every reason is given, so the process asking can weigh them itself. A restricted application the asker may not see is answered 404, as if there were none.
+`approved` is true when the application is in service and open to new use (phase in or active), its decision on record does not take it away (retire, replace, or consolidate), and nothing it is known to run on is past its end of support. With `data_class`, `allowed` is true only when the application is `approved` and its record says it handles that class; it is `null` when what data the application handles is not shown to the asker. Every reason is given, so the process asking can weigh them itself. A restricted application the asker may not see is answered 404, as if there were none.
 
 ## Be told when something happens
 
@@ -116,7 +121,7 @@ An administrator registers **webhooks** under **Admin → Webhooks**: an `https:
 | `confirmation.lapsed` | An application's record goes past the date it was to be confirmed by |
 | `assessment.lapsed` | An application's assessment goes past the date it was due again |
 
-Each message is a small JSON document that says what changed, never what a record holds; ask the API for more. A restricted application's name is left out.
+Each message is a small JSON document that says what changed, never what a record holds; ask the API for more. A restricted application's `name` is sent as `null`.
 
 ```json
 {"topic": "decision.recorded", "event": 4127, "at": "2026-11-27T10:15:02Z",
@@ -124,6 +129,19 @@ Each message is a small JSON document that says what changed, never what a recor
           "disposition": "modernize", "recommendation": "modernize",
           "decided_on": "2026-11-27", "review_on": "2027-11-27"}}
 ```
+
+The message about a lapse comes from a reminder, not from the history, so its `event` is `null`, and its `data` holds the application's `ref`, `name`, and `tier` and the `due_on` date that passed. **Send test** sends a made-up message with the topic `test`, once and not tried again.
+
+Each request carries these headers:
+
+| Header | Holds |
+|---|---|
+| `X-AppWren-Topic` | The topic, as in the body |
+| `X-AppWren-Delivery` | The delivery's id. A delivery that is tried again keeps its id |
+| `X-AppWren-Timestamp` | When this attempt was signed, in seconds since 1970 (Unix time) |
+| `X-AppWren-Signature` | `sha256=` and the signature, in hex |
+
+**A message may arrive more than once.** Delivery is at least once: a receiver that took a message but whose answer was lost is sent it again. Keep the delivery ids you have handled, and do nothing for one you have seen.
 
 Every message is signed with the webhook's secret, shown once when it is added. To check one, compute HMAC-SHA256 over the `X-AppWren-Timestamp` header, a dot, and the body exactly as received, and compare it with `X-AppWren-Signature`:
 
@@ -138,11 +156,11 @@ def genuine(secret: str, headers: dict, body: bytes) -> bool:
     return hmac.compare_digest(f"sha256={mac}", headers["X-AppWren-Signature"])
 ```
 
-Reject a message whose timestamp is more than a few minutes old. Answer with any 2xx status; anything else, or no answer within ten seconds, is tried again after 2, 4, 8, 16, and 32 minutes. A webhook that fails twenty times in a row is paused until an administrator switches it on again. Redirects are never followed.
+Reject a message whose timestamp is more than a few minutes old. Answer with any 2xx status; anything else, or no answer within ten seconds, is tried again after 2, 4, 8, 16, and 32 minutes. A webhook that fails twenty times in a row is paused until an administrator switches it on again. Redirects are never followed. Before each delivery, the receiver's name is looked up on the machine AppWren runs on, and the message goes only if every address it resolves to is on the public internet; that holds when `HTTPS_PROXY` sends it through a proxy as well.
 
 ### Editing a record someone else is editing
 
-Records carry a `version`. Send the version you read with a `PATCH`, and if someone else has changed the record since, the answer is 409 and nothing is saved. Read it again and decide what to do.
+Records carry a `version`. Send the version you read with every `PATCH` of a record, and with `PUT /applications/{ref}/use`, and if someone else has changed the record since, the answer is 409 and nothing is saved. Read it again and decide what to do. The OpenAPI document marks `version` as optional, but a change sent without it is always answered 409: no version matches none.
 
 ## Answers
 
@@ -163,7 +181,7 @@ Errors are problem documents (`application/problem+json`):
 ```json
 {
   "type": "about:blank",
-  "title": "Unprocessable Entity",
+  "title": "Unprocessable Content",
   "status": 422,
   "detail": "The decision was not recorded.",
   "errors": [
@@ -173,32 +191,46 @@ Errors are problem documents (`application/problem+json`):
 }
 ```
 
+Read `status`, and `errors` where there are any. `title` is the standard phrase for the status, taken from the Python AppWren runs on, and differs between versions (422 is "Unprocessable Entity" before Python 3.13 and "Unprocessable Content" from it), so do not compare it. `detail` is written for a person and may change.
+
+A 422 comes in two shapes. The one above is AppWren's own: a value was read and refused, `detail` says what was not done, and each `location` is the field's name alone. When the request itself does not fit the route, such as a value of the wrong type or a number out of range, `detail` is "The request is not valid." and each `location` starts with where the value was, `body`, `query`, or `path`:
+
+```json
+{"type": "about:blank", "title": "Unprocessable Content", "status": 422,
+ "detail": "The request is not valid.",
+ "errors": [{"location": ["query", "limit"], "message": "Input should be greater than or equal to 1"}],
+ "instance": "/api/v1/applications"}
+```
+
 | Status | Meaning |
 |---|---|
 | 400 | The request could not be carried out as asked |
-| 401 | Nobody is signed in, or the email address and password do not match |
-| 403 | You are signed in but may not do this, or the CSRF token is missing. `detail` says which |
+| 401 | Nobody is signed in, the email address and password do not match, or the token is not valid, has expired, or was revoked |
+| 403 | You may not do this: your role does not allow it, the CSRF token is missing, the request came from another site (`Sec-Fetch-Site: cross-site`, or an `Origin` that is not this host), the token may only read, or password sign-in is kept for administrators (`[sso] local_sign_in = false`). `detail` says which |
 | 404 | No such thing, or none that you may see. The two are not told apart |
 | 409 | A conflict: the record changed since you read it, or the thing is already so |
 | 413 | The request is larger than 32 MB |
 | 422 | A value is missing or not allowed. `errors` names each field |
-| 429 | Too many failed sign-ins. Wait a few minutes |
-| 503 | The database is unavailable |
+| 429 | Too many failed sign-ins, or too many wrong current passwords at `POST /session/password`: wait a few minutes. From the assistant: the day's limit of questions is used up, or your last question is still being answered |
+| 500 | Something went wrong in AppWren itself. `detail` says only that; the server's log has the rest |
+| 503 | The database is busy, with `Retry-After: 5`, so try again in a few seconds; or it is unavailable |
 
 ## Lists
 
-Every list route takes the same parameters:
+The lists of records (`GET /{records}`, and the reviews, initiatives, and requests of [planning change](#planning-change)) take these parameters. Not every list takes every one:
 
-| Parameter | Meaning |
-|---|---|
-| `q` | Words to look for in the name, reference, or summary, or in what the record is called in another system |
-| `unit` | A unit's id. Includes every unit beneath it |
-| `sort` | A field name. Start with `-` for descending. The default is `-updated_at` |
-| `limit` | How many to return: 50 by default, 200 at most |
-| `cursor` | Where to continue from: `next_cursor` or `prev_cursor` from the last answer |
-| `owner` | An account's id: only the records that person is named on |
-| `technology`, `release`, `version` | Applications and components built on a technology's reference; with `release`, one of its releases by cycle (`none` for those that name none); with `version`, an exact version or its start. An application counts when any of its components does |
-| `mine` | `true` for only the records you are named on |
+| Parameter | Taken by | Meaning |
+|---|---|---|
+| `q` | Every list | Words to look for in the name, reference, or summary, or in what the record is called in another system |
+| `sort` | Every list | A field name. Start with `-` for descending. The default is `-updated_at` |
+| `limit` | Every list | How many to return: 50 by default, 200 at most |
+| `cursor` | Every list | Where to continue from: `next_cursor` or `prev_cursor` from the last answer |
+| `unit` | Applications, components, reviews, initiatives, requests | A unit's id. Includes every unit beneath it |
+| `owner` | Applications | An account's id: only the records that person is named on |
+| `mine` | Applications | `true` for only the records you are named on |
+| `technology`, `release`, `version` | Applications, components | Those built on a technology's reference; with `release`, one of its releases by cycle (`none` for those that name none); with `version`, an exact version or its start. An application counts when any of its components does |
+
+**A parameter a route does not take is ignored, not refused.** `GET /vendors?unit=4` lists every vendor, and so does a misspelled parameter on any route, so check a filter against the OpenAPI document, which lists each route's parameters.
 
 Each kind of record adds its own filters, such as `lifecycle`, `sourcing`, `tier`, `domain`, `data_class`, and `capability` for applications; `application` and `data_class` for interfaces; `platform_id` and `environment` for deployments; and `ending_within` (days) for contracts. The OpenAPI document lists them.
 
@@ -268,7 +300,7 @@ Every route requires a signed-in account except those marked public. What a rout
 | `GET /applications/{ref}/scores` | Its scores, coverage, confidence, recommendation, flags, and the working of each |
 | `POST /applications/{ref}/score-preview` | The scores some answers would give, from the same engine. Nothing is saved |
 | `GET` · `POST /applications/{ref}/assessments` | Its assessments; record a new one |
-| `GET` · `POST /applications/{ref}/decisions` | Its decisions; record a new one (a manager, or a leader of its unit, who is not its accountable owner) |
+| `GET` · `POST /applications/{ref}/decisions` | Its decisions; record a new one (a manager, or a leader of its unit, who is not its accountable owner, unless the program lets owners decide: see `PUT /program/decision-rules`) |
 | `GET /score-snapshots/{id}` | The scores a decision was made against, as they were |
 | `GET` · `POST /portfolio-snapshots` · `GET /portfolio-snapshots/{ref}` | Portfolio snapshots; take one (manager); one with every application as it was |
 
@@ -402,6 +434,6 @@ See [Insight](insight.md).
 - It never takes a token as an administrator. Tokens are for other systems, with a role.
 - It never takes away within 0.x what a release offered: every route of the last release is still there, and no request asks for more than it did. A test holds it to the last release's OpenAPI document.
 - It never edits an assessment or a decision. Each is superseded by a new one.
-- It never lets a person record a decision about an application they are accountable for.
+- It never lets a person record a decision about an application they are accountable for, unless the program lets owners decide (`owners_may_decide` under `PUT /program/decision-rules`), and then the decision says so.
 - It never takes a score. Scores are worked out from the record and the answers; a contest says one is wrong, and moves nothing.
 - It never changes the history. There is no route that does.

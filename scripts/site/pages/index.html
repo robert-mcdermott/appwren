@@ -25,7 +25,7 @@
   </div>
   <div>
     <h2 id="quiet-by-design">Quiet by design</h2>
-    <p>No scanners, collectors, or agents, and no access to anything else on the network. It records what people know and decide.</p>
+    <p>No scanners, collectors, or agents. It records what people know and decide, and reaches nothing else on the network until an administrator turns on a connector, a webhook, standings from another system of record, or the assistant.</p>
   </div>
 </section>
 
@@ -306,7 +306,7 @@
 
 <section class="section">
   <h2 id="try-it">Try it</h2>
-  <p>You need <a href="https://docs.astral.sh/uv/" rel="noopener">uv</a>, which provides the right Python. Clone the repository and build the demo organization: a fictional research institute with a clinic, two years of history, 107 applications, three survey tools doing one job, a grant about to end, a database release reaching the end of its support, and a decision that differs from its recommendation.</p>
+  <p>You need <a href="https://docs.astral.sh/uv/" rel="noopener">uv</a>, which provides the right Python. Clone the repository and build the demo organization: a fictional research institute with a clinic, two years of history, 109 applications, three survey tools doing one job, a grant about to end, a database release reaching the end of its support, and a decision that differs from its recommendation.</p>
   <div class="code"><pre><code class="language-bash">git clone https://github.com/robert-mcdermott/appwren.git
 cd appwren
 uv sync
@@ -318,21 +318,25 @@ uv run appwren --config demo/appwren.toml serve</code></pre></div>
 <section class="section">
   <h2 id="the-guides">The guides</h2>
   <div class="cards">
+    <a href="adopting.html"><strong>Adopting AppWren</strong><span>Who it suits, what to settle first, a path to a running program in a quarter, connecting other systems</span></a>
     <a href="getting-started.html"><strong>Getting started</strong><span>Install, first sign-in, units and people, bringing in your applications, the demo</span></a>
     <a href="the-portfolio.html"><strong>The portfolio</strong><span>The record, assessment, scores and their working, recommendations, decisions, cost and contracts</span></a>
     <a href="the-landscape.html"><strong>The landscape</strong><span>Interfaces and data flows, impact, hosting, overlap, the capability map, lifecycle</span></a>
     <a href="keeping-current.html"><strong>Keeping current</strong><span>Reminders, confirming a record, campaigns, tasks, search, contesting a score</span></a>
     <a href="planning-change.html"><strong>Planning change</strong><span>Reviews, initiatives and the roadmap, requests, stage gates, retirements</span></a>
+    <a href="insight.html"><strong>Insight</strong><span>Trends between snapshots, shares of the portfolio, leadership reports, the record as of a day, scenarios, the assistant</span></a>
+    <a href="handbook.html"><strong>The program handbook</strong><span>The first decisions, the roles in a program, the first ninety days, the yearly rhythm, measures, what goes wrong</span></a>
     <a href="signals.html"><strong>Facts from other systems</strong><span>Connectors, values and overrides, applications not on record, push keys, catalog files, engineering maturity</span></a>
     <a href="running-the-program.html"><strong>Running the program</strong><span>Roles, who sees what, shaping the program, scheduled work, snapshots, the history</span></a>
     <a href="configuration.html"><strong>Configuration</strong><span>The settings file, connector credentials, email, single sign-on, PostgreSQL, upgrading, reverse proxies</span></a>
     <a href="api.html"><strong>API</strong><span>Sign-in, the CSRF token, responses, errors, and lists</span></a>
-    <a href="api-reference.html"><strong>API reference</strong><span>Every route of the JSON API, from the OpenAPI document</span></a>
     <a href="cli.html"><strong>Command reference</strong><span>Every <code>appwren</code> command and option</span></a>
+    <a href="api-reference.html"><strong>API reference</strong><span>Every route of the JSON API, from the OpenAPI document</span></a>
+    <a href="compatibility.html"><strong>Compatibility</strong><span>What 1.x keeps the same, what it does not promise, and how something is deprecated</span></a>
   </div>
 </section>
 
 <section class="section">
   <h2 id="where-it-stands">Where it stands</h2>
-  <p>These pages describe version {{version}}: the portfolio, the landscape around it, and the means of keeping both current. It signs in with local accounts or, if you set it up, single sign-on, and sends email only if you ask it to. Every fact is still typed or imported by a person: read-only connectors to the tools that already know them come next, then review cycles, initiatives, and the retirement playbook. The <a href="https://github.com/robert-mcdermott/appwren/blob/main/spec/roadmap.md" rel="noopener">roadmap</a> says what comes next and in what order, and the <a href="changelog.html">changelog</a> lists what is in each release.</p>
+  <p>These pages describe version {{version}}: the portfolio, the landscape around it, and the means of keeping both current; facts from other systems, through connectors an administrator turns on; portfolio reviews, initiatives and the roadmap, requests for something new, stage gates, and the retirement playbook; trends, leadership reports, and scenarios; tokens, webhooks, and the checkpoint for other systems; and an optional assistant, off until it is configured. It signs in with local accounts or, if you set it up, single sign-on, and sends email only if you ask it to. Version 1.0.0 follows the maintainer's review of 0.9 and 0.10, and from then the <a href="compatibility.html">compatibility statement</a> is in force. The <a href="changelog.html">changelog</a> lists what is in each release.</p>
 </section>

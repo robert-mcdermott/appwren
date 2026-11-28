@@ -4,7 +4,13 @@ This guide is for everyone who keeps an application, and for the portfolio team.
 
 ## What is waiting on you
 
-**Home** lists what is yours to do, most urgent first: an application not assessed or whose assessment has expired, a record due to be confirmed, a task, what a campaign asks of you, a flag on one of your applications, what a record lacks for its stage, and a [portfolio review](planning-change.md#portfolio-reviews) you run that is coming up.
+**Home** lists what is yours to do under **Waiting on you**, most urgent first: an application you are named on that is not assessed or whose assessment has expired, a record due to be confirmed, a task, what a campaign asks of you, a flag on one of your applications, what a record lacks for its stage, and a [portfolio review](planning-change.md#portfolio-reviews) you run that is coming up. Some roles see more there:
+
+- Stewards and managers see the applications in their scope that nobody is accountable for.
+- Managers and architects see [contests](#contest-a-score) waiting for their answer.
+- Leaders and managers also have a card, **Waiting for a decision**, of the applications in their units whose decision is due for review, whose decision differs from today's recommendation, or that have no decision yet.
+
+[Proposed changes](the-portfolio.md#proposed-changes) to an application are not on Home, and no notice is sent for them: they are shown only on the application's Overview part.
 
 The **bell** in the top bar counts what is new for you. It opens **Notices**: each reminder, task, campaign, and answer, newest first, with a link to where to act.
 
@@ -56,7 +62,7 @@ A record that has never been confirmed is due one period after it was added, or 
 
 A **campaign** asks the people who answer for the applications in a unit to confirm their records, or to assess their applications, by a date. Managers and stewards run them over the units they hold their role for: under **Portfolio → Campaigns**, choose **Start a campaign**.
 
-- Choose what to ask, the unit (everything beneath it is included), and, if you wish, only certain tiers or stages, a date, and a note.
+- Choose **What to ask**, give it a **Name** and a **Due by** date after today (both are required), and choose **The applications of** a unit (everything beneath it is included; a manager for the whole organization may choose the whole organization). If you wish, tick **Only these tiers** or **Only these stages**, and add a note to those asked.
 - Before you start it, it says how many people it would ask about how many applications, and names any application with nobody to ask.
 - Each application goes to whoever is accountable for it, or to a steward of its unit if they have gone. Each person is told once, with a count, and finds what is asked of them on Home.
 
@@ -87,7 +93,7 @@ A cause raises one task, never two. A task closes by itself when its cause is se
 
 Disabling an account does not move anything by itself: each application they were accountable for shows that nobody is, and a steward is given a task to name someone.
 
-Every person has a page of **what they hold**: the records they are named on and in what role, the contracts and interfaces they own, their open tasks, and what campaigns still ask of them. Open it from **Admin → People**, or from a notice. An administrator or a manager can **Pass it all on** to one person in one step; that person is told. Assessments and decisions are not passed on: each stays the statement of whoever made it.
+Every person has a page of **what they hold**: the records they are named on and in what role, the contracts and interfaces they own, their open tasks, and what campaigns still ask of them. It opens only for an administrator, a manager for the whole organization, or the person themselves. An administrator opens it from **Admin → People** (shown to administrators only): choose the person, then **What they hold**. An administrator or a manager for the whole organization can **Pass it all on** to one person in one step; that person is told, and their notice links to their own page of what they now hold. Assessments and decisions are not passed on: each stays the statement of whoever made it.
 
 ![What a person who has left still holds, with the means to pass it all on](img/holdings-light.webp)
 
@@ -103,7 +109,7 @@ Filter any list as you want it, then save it under a name from its **Views** but
 
 ### Likely duplicates
 
-While an application is added or renamed, AppWren shows any already on record whose name or alias is close to the new name, or that are the same product from the same vendor. If it is the same application, add to that record instead.
+While an application is added or renamed in its form, AppWren shows any already on record whose name or alias is close to the new name, or that are the same product from the same vendor. If it is the same application, add to that record instead. The check is made only in the form. An [import](the-portfolio.md#import-applications) refuses only a new row whose name is already on record in the same unit, and the assistant's draft is not checked at all, so search before you add that way.
 
 ![Adding an application whose name is close to one already on record](img/add-duplicate-light.webp)
 

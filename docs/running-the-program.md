@@ -6,7 +6,7 @@ This guide is for the portfolio team and for administrators. It covers who may d
 
 AppWren keeps judgment and administration apart.
 
-- **Managers** run the portfolio. They keep any application, record decisions, take snapshots, and shape the program: the vocabularies, the fields, the questions, and the scoring model.
+- **Managers** run the portfolio. They keep the applications in their scope and record decisions about them. A manager for the whole organization also takes portfolio snapshots, makes leadership reports, and shapes the program: the vocabularies, the fields, the questions, and the scoring model.
 - **Administrators** run the installation: accounts, units, sign-in, and appearance. Administration does not by itself let anyone keep applications or record decisions. An administrator who also does that work holds a second role, and the history shows which they acted under.
 
 ## Roles and scope
@@ -17,11 +17,11 @@ Everyone who can sign in is a **member**. The other six roles are given under **
 |---|---|---|
 | **Member** | Their own applications | Read the catalog, scores, recommendations, and decisions; keep, assess, and confirm the applications they are named on, and contest their scores |
 | **Steward** | A unit and everything beneath it | Add, edit, import, assess, and confirm its applications, and hand on who is accountable; record their interfaces, deployments, and cost lines; add contracts; run campaigns over it |
-| **Leader** | A unit and everything beneath it | See it, read its sensitive fields, cost lines, and contracts, and record decisions for its applications |
+| **Leader** | A unit and everything beneath it | See it, read its sensitive fields, cost lines, and contracts, record decisions for its applications, and run [portfolio reviews](planning-change.md#portfolio-reviews) of it |
 | **Architect** | The whole organization, or a unit | Keep capabilities, technologies and their releases, vendors, hosting platforms, and funding sources; import support dates; add, edit, import, and assess applications in scope; answer contests of their scores |
-| **Manager** | The whole organization, or a unit | Everything a steward and an architect may do, in scope; record decisions; take portfolio snapshots; for the whole organization, shape the program and pass on what someone holds |
+| **Manager** | The whole organization, or a unit | Everything a steward and an architect may do, in scope; record decisions and run portfolio reviews; for the whole organization, take portfolio snapshots, make leadership reports, shape the program, and pass on what someone holds |
 | **Auditor** | The whole organization | Read everything, including every sensitive field, contract, and restricted application, and the whole history; change nothing |
-| **Admin** | The installation | Accounts, roles, units, sign-in, appearance, scheduled work and email; shape the program; pass on what someone holds |
+| **Admin** | The installation | Accounts, roles, units, sign-in, appearance, scheduled work and email; [connectors and push keys](signals.md); [API tokens](api.md#sign-in-as-another-system) and [webhooks](api.md#be-told-when-something-happens); shape the program; pass on what someone holds |
 
 "In scope" means the application's unit is the role's unit or beneath it. A person may hold several roles, each with its own unit.
 
@@ -36,7 +36,9 @@ Two rules hold whatever the role:
 
 Two things narrow that.
 
-**Sensitive fields.** By default annual cost, the sign-in method, backup, and the last restore test are sensitive. They are visible to the people named on the application, to stewards, leaders, and architects in scope, and to managers, auditors, and administrators. To everyone else they are **withheld**: left out of the record, its list columns, its filters, and its exports, and out of the working of any score that would reveal them. The record says that something is withheld. A person who may not see a sensitive field may not filter or sort by it, nor send a value for it, and its changes appear in the history as withheld.
+**Sensitive fields.** By default annual cost, the sign-in method, backup, and the last restore test are sensitive. They are visible to the people named on the application, to stewards, leaders, architects, and managers in scope (a manager of a unit sees them only within it), and to managers of the whole organization, auditors, and administrators. To everyone else they are **withheld**: left out of the record, its list columns, its filters, and its exports, and out of the working of any score that would reveal them. The record says that something is withheld. A person who may not see a sensitive field may not send a value for it, and its changes appear in the history as withheld.
+
+Only someone who sees every application's sensitive fields may filter or sort a list by one: a manager or an architect for the whole organization, an auditor, or an administrator. Anyone else is refused, even a steward who sees the field on every application in their unit.
 
 Scores are not sensitive: a member can see that an application is recommended for *Modernize* without seeing what it costs. On the portfolio chart, where bubble size would reveal cost, the bubbles are drawn the same size.
 
@@ -56,14 +58,15 @@ The **program** is everything the portfolio team configures, kept in the databas
 
 | Part | What it holds |
 |---|---|
-| **Vocabularies** | Lifecycle stages, sourcing, purpose, pace, domains, tiers, hosting, sign-in methods, monitoring, backup, funding, data classes and their sensitivity, kinds of component, vendor, technology, platform, and unit, the radar's rings, the roles people hold on an application, link kinds, interface methods and frequencies, environments, cost categories, the states of a data agreement, other systems, and the dispositions |
+| **Vocabularies** | Lifecycle stages, sourcing, purpose, pace, domains, tiers, hosting, sign-in methods, monitoring, backup, funding, data classes and their sensitivity, kinds of component, vendor, technology, platform, and unit, the radar's rings, the roles people hold on an application, the kinds of people who use an application (`audiences`), link kinds, interface methods and frequencies, environments, cost categories, the states of a data agreement, other systems, the kinds and stages of an initiative, and the dispositions |
 | **Fields** | The organization's own fields, each in a section of the application's form |
 | **What each stage requires** | The fields and records an application needs at each lifecycle stage |
 | **Sensitive fields** | Which fields are withheld from people without a part in the application |
+| **Decision rules** | Whether an application's accountable owner may record its decision, and whether the [stage gates](planning-change.md#stage-gates) are on |
 | **The definition** | What counts as an application, with examples of what does and does not |
 | **The capability map** | The capabilities, in areas |
 | **The question bank** | The questions, their five levels and the definition of each, and which applications each is asked of |
-| **The scoring model** | Its profiles, their factors, weights, bands, and floors; the thresholds; the rules, guardrails, and flags; and the cadence: how long an assessment stays current and how often a record is confirmed, for each tier, what a stale record costs, when reminders go, and how far ahead tasks are raised |
+| **The scoring model** | Its profiles, their factors, weights, bands, and floors; the thresholds; the rules, guardrails, and flags; the cadence: how long an assessment stays current and how often a record is confirmed, for each tier, what a stale record costs, when reminders go, and how far ahead tasks are raised; and the [engineering maturity](signals.md#engineering-maturity) levels and their checks |
 
 The default program described in [The portfolio](the-portfolio.md) is a reasonable start for most organizations. [The engine](../spec/engine.md) sets out every factor, weight, band, rule, and flag in it.
 
@@ -72,9 +75,9 @@ The default program described in [The portfolio](the-portfolio.md) is a reasonab
 **Admin → Program** is for managers of the whole organization and for administrators. Every change is checked by the same rules a pack is, and kept in the history.
 
 - **Lists.** Rename a value, describe it, put the values in another order, add one, or retire one. A value in use is retired rather than removed: records keep it, and it is no longer offered. The lists AppWren's own rules read by key, such as the lifecycle stages, the tiers, sourcing, and the dispositions, can be renamed, described, and reordered, but not added to or retired.
-- **Fields.** Add a field of your own to the application's form, in the section it belongs to, or change its label, help, section, and choices; say which fields are sensitive. A field that holds values is never removed.
+- **Fields.** Add a field of your own to the application's form, in the section it belongs to, or change its label, help, section, and choices; say whether it is sensitive. A field that holds values is never removed. Only the organization's own fields are marked sensitive here: whether a built-in field (annual cost, the sign-in method, backup, the last restore test, or another) is sensitive is changed with a pack or through `PUT /api/v1/program/fields`.
 - **Questions.** Reword a question, its help, and its five levels. Publishing makes a new version of the question bank; every assessment keeps the version it answered.
-- **Decisions.** Whether an application's accountable owner may record its decision, where they are also a manager or a leader over it. Off unless you turn it on; meant for a team too small for anyone else to decide.
+- **Decisions.** Whether an application's accountable owner may record its decision, where they are also a manager or a leader over it: off unless you turn it on, and meant for a team too small for anyone else to decide. And whether an application moves to a later stage only with what that stage requires (the [stage gates](planning-change.md#stage-gates)): on unless you turn it off.
 - **Scoring and cadence.** Change the thresholds, the weights of every profile (each dimension's must add up to 100), and the cadence. Choose **See what it would change**: every application in service whose scores, confidence, recommendation, or flags would differ is listed, with what would move. Nothing changes until you choose **Publish**, which makes a new version of the model and changes exactly the applications listed.
 
 ![Admin, Program: the scoring model's thresholds, weights, and cadence, with what a change would do before it is published](img/program-scoring-light.webp)
@@ -108,11 +111,11 @@ An application can carry its identifier in another system: a configuration item,
 {"key": "repository", "label": "Repository", "url": "https://code.example.org/{id}"}
 ```
 
-A pattern must begin `https://`. A pack with any other pattern is refused.
+A pattern must begin `https://`. A pack with any other pattern is refused. The **Lists** tab changes only a value's label, description, order, and whether it is retired; a `url` pattern is set in a pack or through `PUT /api/v1/program/vocabularies/external_systems`.
 
 #### How a record stands elsewhere
 
-An application's record in another system of record (an AI-use review, a risk register entry, a security assessment) has a standing there: approved, open, closed. Where that system answers in JSON, give it a `standing_url`, and AppWren reads each linked record's standing every six hours and shows it beside the link:
+An application's record in another system of record (an AI-use review, a risk register entry, a security assessment) has a standing there: approved, open, closed. Where that system answers in JSON, give it a `standing_url`, and AppWren reads linked records' standings every six hours and shows each beside its link:
 
 ```json
 {"key": "governance_record", "label": "AI-use review",
@@ -121,7 +124,7 @@ An application's record in another system of record (an AI-use review, a risk re
  "standing_field": "review.state", "key_env": "APPWREN_REVIEWS_TOKEN"}
 ```
 
-`standing_field` says where in the answer to look, as a dotted path (`status` if left out). `key_env` names an environment variable holding a key, sent as a bearer token; it may not be one of the server's own variables. A change of standing is kept in the application's history, under *Standings*; a read that fails says why beside the link, and changes nothing else. Nothing is read until a system has a `standing_url`. Only an administrator sets `standing_url`, `standing_field`, and `key_env`, in a pack or in the app, since they make AppWren reach out to another system with a key.
+`standing_field` says where in the answer to look, as a dotted path (`status` if left out). `key_env` names an environment variable holding a key, sent as a bearer token; it may not be one of the server's own variables. A change of standing is kept in the application's history, under *Standings*; a read that fails says why beside the link, and changes nothing else. A run reads at most 500 linked records, those never read first and then those read longest ago, so with more than 500 each is read less often than every six hours. Nothing is read until a system has a `standing_url`. Only an administrator sets `standing_url`, `standing_field`, and `key_env`, in a pack or through `PUT /api/v1/program/vocabularies/external_systems`, since they make AppWren reach out to another system with a key. The **Lists** tab does not show them.
 
 ### Versions
 
@@ -142,6 +145,7 @@ Changing the scoring model changes every application's scores at once, the next 
 - **Adoption.** Version 0.7.0 adds API tokens and webhooks, both off until an administrator issues or registers one, and the brand kit, which keeps your appearance as it is until you change it. Nothing already recorded changes. A starter program is only for a new installation, or loaded by choice with `program import`.
 - **Connected.** Version 0.8.0 adds the checkpoint, tokens of your own and suggestions, the tool server, the optional assistant, and standings elsewhere. Each is off, or does nothing, until someone uses it: the assistant until `[assistant]` is configured, and standings until a system is given a `standing_url`.
 - **Who uses it.** Version 0.9.0 adds the kinds of people who use an application, as a new list with its defaults, and whether everyone in the organization does. Both are empty after the upgrade, and the units already recorded as using an application stay as they are. Nothing already recorded changes.
+- **The assistant, ready.** Version 0.10.0 limits the [assistant](insight.md#the-assistant). The first housekeeping run after the upgrade removes the words of every exchange older than a year, unless `[assistant] keep_days` is set to keep them longer, or to `0` to keep them all; that each happened stays in the history. Each person may ask a hundred times a day unless `daily_limit` says otherwise, and has one question at a time waiting; past either, the API answers `429`. The lifecycle stage can no longer be marked sensitive: a program that had marked it shows it again. See [`[assistant]`](configuration.md#assistant).
 - **Nothing is stale on the day of an upgrade.** A record that has never been confirmed is due one period after the upgrade, not one period after it was added.
 - Decisions already recorded keep the snapshot of the scores they were made against, whatever the model becomes.
 
@@ -151,7 +155,7 @@ Changing the scoring model changes every application's scores at once, the next 
 
 ![The dashboard: applications by recommendation and decision, lifecycle, sourcing, flags, and confidence](img/dashboard-light.webp)
 
-- **The headline:** applications in service, how many have a decision, mismatches between decision and recommendation, reviews that are due, low confidence, and what runs on technology past or near its end of support.
+- **The headline:** applications in service, how many have a decision, mismatches between decision and recommendation, decisions due for review, low confidence, and what runs on technology past or near its end of support.
 - **Recommendations and decisions:** how many of each disposition, side by side, and how many have no decision yet.
 - **Lifecycle and sourcing:** where the portfolio is in its life, and where its software comes from.
 - **Flags:** how many applications carry each.
@@ -178,7 +182,7 @@ A portfolio's recommendations are only as good as its records, and this page is 
 
 ## Portfolio snapshots
 
-A **portfolio snapshot** keeps every application's scores, recommendation, and working as they were on a day, under a name such as *2026 Q4*. Managers take them from **Portfolio → Decisions → Snapshots** with **Take a snapshot**, typically before each portfolio review and before changing the scoring model. The scheduler also takes one each month by itself, named for the month, so there is always a record of how the portfolio stood.
+A **portfolio snapshot** keeps every application's scores, recommendation, and working as they were on a day, under a name such as *2026 Q4*. Managers for the whole organization take them from **Portfolio → Decisions → Snapshots** with **Take a snapshot**, typically before each portfolio review and before changing the scoring model. The scheduler also takes one each month by itself, named for the month, so there is always a record of how the portfolio stood.
 
 A snapshot reopens unchanged after the applications or the program have changed. Its digest is recorded in the history, so a snapshot altered afterwards is detectable.
 
@@ -199,13 +203,13 @@ AppWren does some work by itself, so that nobody has to remember to. **Admin →
 | **Webhooks** | Every minute | Tells each [webhook](api.md#be-told-when-something-happens) an administrator has registered of what it asked for, signed, and tries a failed delivery again later |
 | **Connectors** | Every 15 minutes | Runs each [connector](signals.md#connectors) an administrator has switched on, when it is due |
 | **Monthly snapshot** | Every six hours | Takes the month's portfolio snapshot, once |
-| **Housekeeping** | Every day | Removes records of old runs and sign-ins that were never finished |
+| **Housekeeping** | Every day | Removes records of runs older than 90 days, sign-ins that were never finished, and the words of the assistant's exchanges older than `[assistant] keep_days` (a year, unless set) |
 
 ![Admin, Scheduled work: each job, when it last ran and what it did, when reminders go, and whether email is set up](img/scheduled-work-light.webp)
 
 Each job is claimed by one process before it runs, so several servers on one database, or `appwren jobs run` from a scheduled task, run it once between them. What is due is worked out from the database and the clock, so a restart catches up. To run the jobs from a scheduled task instead of inside the server, see [Configuration](configuration.md#scheduled-work).
 
-**Email is optional.** Without it, notices are read under the bell and nothing is sent. With a mail server named in [the configuration file](configuration.md#email), each person chooses under **Your account** to have each notice as it happens, one summary a day, or none. Nothing written before email was set up is ever sent. The same page shows how email is doing and sends you a test message.
+**Email is optional.** Without it, notices are read under the bell and nothing is sent. With a mail server named in [the configuration file](configuration.md#email), each person chooses under **Your account** to have each notice as it happens, one summary a day, or none. Nothing written before email was set up is ever sent. The **Email** card on **Admin → Scheduled work**, for administrators, shows how email is doing (what is waiting, sent, and given up on, and the most recent problem) and has **Send me a test message**.
 
 ## The history
 
@@ -230,6 +234,7 @@ Assessments and decisions are never edited. A new one supersedes the last, and a
 - the default palette (Wren, Slate, or Garnet) and an accent color, which is adjusted for dark mode and refused if text on it could not be read;
 - how scores are colored: an **ordinal** ramp in one hue from pale to deep, which keeps scores apart from the colors of flags, or a **signal** ramp from red through amber to green;
 - an accent for dark mode, if the one worked out from your accent is not your brand's;
+- whether to **Show “Powered by AppWren”**, a small link at the foot of the sidebar when you use your own product name;
 - a message and a picture on the sign-in page, up to five links at the foot of the sidebar and the sign-in page (your policy, your help desk), and a last line for every email, which also opens with your product's name in your accent;
 - **your own words**: if your organization says *department* where AppWren says *unit*, or *solution* where it says *application*, the menu, page titles, and the kinds of record use your word. Words can be set for application, component, capability, technology, vendor, and unit.
 

@@ -14,14 +14,14 @@ A **review** is a meeting about a unit's applications, and the record of what it
 |---|---|
 | The decision on record differs from today's recommendation | Its decision and its scores no longer agree ([Mismatches](the-portfolio.md#mismatches)) |
 | Its decision is due for review | Its decision's review date falls on or before the review |
-| No decision is on record | It is in service and nobody has said what to do with it |
+| No decision is on record | It is in service, it has a recommendation, and nobody has said what to do with it. One with no recommendation yet is not drawn |
 | Added by hand | Someone put it there, with a note of what to decide |
 
 Drawing again adds only what is new; anything can be added or taken off until the review closes. Each item shows what was recommended and what was decided before.
 
 ![A closed review: its agenda, why each application was on it, what was recommended and decided before, and what the review decided](img/review-light.webp)
 
-**Open the review** when it starts. From then until it closes, a decision recorded for an application on the agenda, from the review's page or anywhere else, is shown on its item. A review does not change what a decision is, or who may record one ([Decisions](the-portfolio.md#decisions)). **Close the review** when it ends: each item keeps the decision taken on it, and a closed review changes no more. A review coming up within two weeks is on **Home** for the people who run it.
+**Open the review** when it starts. From then until it closes, a decision recorded for an application on the agenda, from the review's page or anywhere else, is shown on its item. A review does not change what a decision is, or who may record one ([Decisions](the-portfolio.md#decisions)). **Close the review** when it ends: each item keeps the decision taken on it, and a closed review changes no more. **Home** shows the people who run a review each one coming up within two weeks (*Hold the review on …*), and each one whose date has passed and that is not yet closed (*Close the review on …*).
 
 ## Initiatives and the roadmap
 
@@ -49,9 +49,11 @@ A steward of the unit, an architect, or a manager weighs the **ways to meet it**
 
 ## Stage gates
 
-Each lifecycle stage requires some of the record ([What each stage requires](the-portfolio.md#what-each-stage-requires)). **An application cannot move to a later stage without what that stage, and those before it, require.** The editor, the API, an import, and a catalog file are all refused, and say what is missing:
+Each lifecycle stage requires some of the record ([What each stage requires](the-portfolio.md#what-each-stage-requires)). **An application cannot move to a later stage without what that stage, and those before it, require.** A move made in the editor, the API, an import, or a catalog file is refused, and says what is missing:
 
 > Before it moves to Active, record sign-in, monitoring, backup, a current assessment.
+
+The gate applies only when an application on record moves. One added at a later stage, through the form, the API, or a new row of an import, is not checked: it is added, and shows under [Data quality](running-the-program.md#data-quality) as *Missing what its stage requires* until its record is complete.
 
 Moving back needs nothing. Neither does retiring: what is retired is not kept up, so a retirement is never stopped for want of a full record. The gates are on by default, and the portfolio team can switch them off on **Admin → Program → Decisions**; a record then still shows what it lacks, but may move anyway.
 
@@ -68,7 +70,7 @@ On an application's **Retirement** part, whoever keeps it starts a **retirement 
 | Access to it removed | Accounts and groups taken away |
 | Its infrastructure torn down | What was switched off or recycled |
 
-Each step is marked done by a named person on a date, with a note, and can be undone until the plan is complete. When every step is done, **Complete the retirement** retires the application and keeps its annual cost then (the sum of its cost lines, where it has any) as the **savings**. A completed plan changes no more; an open one can be cancelled.
+Each step is marked done with a note, and is recorded as done by whoever marks it, on the day they mark it. A step can be undone until the plan is complete. When every step is done, **Complete the retirement** retires the application and keeps its annual cost then (the sum of its cost lines, where it has any) as the **savings**. A completed plan changes no more; an open one can be cancelled.
 
 ![A retirement under way and past its date: four of six steps done, each by whom and when](img/retirement-light.webp)
 

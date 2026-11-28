@@ -1,12 +1,14 @@
 # AppWren deployment settings.
 #
 # This file describes how the server runs. Everything about the portfolio program itself
-# (vocabularies, fields, questions, the scoring model) and the product's appearance (name,
-# logo, colors) is set in the app, under Admin, and is stored in the database.
+# (vocabularies, fields, questions, the scoring model) is set in the app, under Admin, and is
+# stored in the database. So is the product's appearance (name, logo, colors), unless the
+# optional [branding] section at the end of this file fixes it.
 #
 # Any value here can be overridden by an environment variable named APPWREN_<SECTION>_<KEY>,
-# for example APPWREN_SERVER_PORT=8080. Secrets are never written in this file: where one is
-# needed, the file names the environment variable that holds it.
+# for example APPWREN_SERVER_PORT=8080; [branding] is read from this file only. A misspelled
+# variable is ignored without a word, so check its name. Secrets are never written in this
+# file: where one is needed, the file names the environment variable that holds it.
 #
 # Relative paths are resolved against this file's own directory.
 
@@ -19,17 +21,23 @@ port = 8000
 # How many server processes to run. One is enough for SQLite and small teams.
 workers = 1
 
-# The public address people use to reach AppWren, such as "https://appwren.example.org".
-# Used in links in email. Leave empty to use the address of each request.
+# The public address people use to reach AppWren, such as "https://appwren.example.org",
+# with no path. Used for links in email and for single sign-on's redirect address. Left
+# empty, email goes without links, and single sign-on uses the address of each request.
 base_url = ""
 
 # A sign-in ends after this long without activity, and after this long in any case.
 session_idle_hours = 12
 session_max_days = 7
 
-# Run scheduled work (what is due, reminders, email) inside this server. Leave it on unless
-# you run `appwren jobs run` from a scheduled task instead.
+# Run scheduled work (what is due, reminders, email, webhooks) inside this server. Leave it
+# on unless you run `appwren jobs run` from a scheduled task instead.
 scheduler = true
+
+# The proxies whose X-Forwarded-For and X-Forwarded-Proto are believed, separated by commas,
+# or "*" for any. Leave it as it is when the proxy is on this machine. The proxy must replace
+# X-Forwarded-For with the address it saw: sign-in attempts are limited by that address.
+trusted_proxies = "127.0.0.1"
 
 [database]
 # Leave empty to use SQLite, in a single file inside the data home.
@@ -39,7 +47,8 @@ scheduler = true
 url = ""
 
 [data]
-# The data home: uploaded logos, attachments, exports, logs, and the SQLite database.
+# The data home: uploaded logos, attachments, exports, logs, and the SQLite database. Keep
+# it from other accounts on the machine: chmod 700 it once `appwren init` has made it.
 home = "var"
 
 [sso]
@@ -103,3 +112,26 @@ from_name = ""
 
 # The hour of the day, in UTC, after which daily summaries are sent.
 digest_hour = 7
+
+# [assistant]
+# An assistant that drafts records and answers questions is optional, and off until a model
+# is named. Without one it is not mentioned anywhere in the app. The key, if the model's
+# server needs one, goes in the environment variable key_env names, never in this file.
+#
+# provider = "openai"                     # the protocol: openai, anthropic, or bedrock
+# url = "https://models.example.org/v1"   # needed for openai; https unless on this machine
+# model = "a-model-name"
+# key_env = "APPWREN_ASSISTANT_KEY"
+# roles = ["manager", "architect"]        # who may use it; none named: everyone
+# daily_limit = 100                       # questions per person per day; 0: no limit
+# keep_days = 365                         # how long an exchange's words are kept; 0: kept
+# max_data_class = "internal"             # the most sensitive data it may be told about
+
+# [branding]
+# Optional. Fixes the product's look here instead of under Admin, Appearance; what is set
+# here wins over the app. Image paths are relative to this file's folder. Every key, and
+# exact colors by day and after dark, are in docs/configuration.md.
+#
+# product_name = "Lantern"
+# organization_name = "Example Institute"
+# logo_light = "brand/logo.svg"

@@ -10,12 +10,12 @@ A few decisions shape everything after them. Make them on paper first; each take
 
 | Decision | Why it matters | Where it lives |
 |---|---|---|
-| **What counts as an application** | Everything is counted in applications. A definition people can apply the same way keeps the count meaningful | Admin → Program, the definition; [What counts as an application](the-portfolio.md#what-counts-as-an-application) |
+| **What counts as an application** | Everything is counted in applications. A definition people can apply the same way keeps the count meaningful | The definition, with its examples, in a program pack: `appwren program export`, then `appwren program import`. Admin → Program does not edit it. See [What counts as an application](the-portfolio.md#what-counts-as-an-application) |
 | **The units** | Every application belongs to one unit, which answers for it. Units are how work is shared out, how scope is set, and how leaders see their part | Admin → Units |
-| **Who decides** | A decision is taken by a manager, or a leader over the application's unit, and never by the person accountable for it. Decide who those people are | Admin → People, roles |
+| **Who decides** | A decision is taken by a manager or a leader over the application's unit (a manager for the whole organization decides anywhere), and by default not by the person accountable for it. A team too small for anyone else to decide can let an accountable owner who also holds one of those roles decide for their own application; each such decision is marked as the owner's own. Decide who those people are | Admin → People, roles; Admin → Program, decisions |
 | **Who keeps records** | Stewards keep a unit's applications complete and current. One per unit is enough to begin | Admin → People, roles |
-| **The tiers** | How critical an application is sets how often its record is confirmed and its assessment renewed, and weighs in its business value | Admin → Program, lists |
-| **What is sensitive** | Cost, sign-in, and backup are withheld from people without a part in an application by default. Add or remove fields | Admin → Program, fields |
+| **The tiers** | How critical an application is sets how often its record is confirmed and its assessment renewed, and weighs in its business value | Admin → Program, lists for the tiers, and scoring and cadence for how often |
+| **What is sensitive** | Annual cost, sign-in, backup, and the last restore test are withheld by default from people without a part in an application. Mark which of the organization's own fields are sensitive as well. The built-in fields change only with a program pack | Admin → Program, fields, for the organization's own fields; a program pack for the built-in ones |
 
 If your organization is a university, an academic medical center, a nonprofit, a company, or a research institute, begin from that [starter program](getting-started.md#start-from-a-program-shaped-like-yours): it makes most of the list-shaped decisions for you, and every one can be changed.
 
@@ -28,7 +28,7 @@ If your organization is a university, an academic medical center, a nonprofit, a
 | **Steward** | Keeps a unit's applications complete, chases what is missing, and runs campaigns for the unit |
 | **Leader** | Sees a unit and everything beneath it, decides for it, and runs its portfolio reviews |
 | **Architect** | Keeps the shared records (capabilities, technologies, vendors) and weighs scenarios |
-| **Manager** | Runs the portfolio: decides anywhere, shapes the program, makes leadership reports |
+| **Manager** | Runs the portfolio: decides for the units the role is held over, makes leadership reports, and, when held for the whole organization, decides anywhere and shapes the program |
 | **Auditor** | Reads everything, including the full history, and changes nothing |
 | **Administrator** | Runs the installation: people, sign-in, appearance, connectors, tokens, webhooks |
 
@@ -40,6 +40,8 @@ Keep the portfolio team small: one or two managers, an architect, and a steward 
 
 Bring in the applications you already know from a spreadsheet ([Import applications](the-portfolio.md#import-applications)). Do not chase completeness: name, unit, accountable owner, lifecycle stage, and sourcing are enough to begin. **Portfolio → Applications** and **Reports → Data quality** show what each record lacks.
 
+Capabilities cannot be set from the spreadsheet. They are mapped application by application, on each record's **Capabilities** tab, and until an application is mapped, whether it overlaps with another and how unique it is to the organization are unknown: it is missing from **Landscape → Overlap**, and its business value lacks the uniqueness factor. Map the applications of the pilot units first, in these weeks or alongside the first campaign.
+
 Then turn on what other systems already know ([Facts from other systems](signals.md)): the identity provider lists applications people sign in to that are not on record (**Portfolio → Not on record**), and support dates arrive by themselves.
 
 ### Weeks 3 to 6: the first confirmation campaign
@@ -48,7 +50,7 @@ Start a **campaign** for one unit, asking each owner to confirm their records by
 
 ### Weeks 6 to 10: assessment
 
-Ask the owners of tier 1 and tier 2 applications to **assess** them: nine questions, each with five described levels. With an assessment, an application's scores and recommendation mean something. **Reports → Dashboard** shows what is recommended across the portfolio, and how confident each recommendation is.
+Ask the owners of tier 1 and tier 2 applications to **assess** them: nine questions, each with five described levels. An assessment alone rarely gives a recommendation. Data confidence is how much of each of the four scores' weight is known, averaged. While it is below the model's threshold (70 by default), or business value or technical health is less than half known, the rule *Not enough data* recommends *Assess*. The answers carry only part of that weight. The rest comes from the record: the tier and how many people use it, and the capabilities it serves (business value); how people sign in, its monitoring, how many people maintain it, and the technology releases its components are built on (technical health); its annual cost (cost and burden); and the classes of data it handles and its backup (risk exposure). For example, an application with the minimum to begin, a tier, its users, and a full assessment had a confidence of 48 and was recommended *Assess*; with its data classes, annual cost, sign-in, backup, monitoring, and maintainers filled in as well, 96, and *Invest*. Expect most recommendations in the first ninety days to be *Assess* until owners fill in their records, and treat each one as a list of what to fill in: the working names the missing facts that would raise confidence most. **Reports → Dashboard** shows what is recommended across the portfolio, and how confident each recommendation is.
 
 ### Weeks 10 to 13: the first review and the first decisions
 
@@ -67,8 +69,8 @@ Once running, the program keeps a rhythm. Most of it AppWren runs by itself; peo
 | Every month | A portfolio snapshot keeps every application's scores | AppWren | Reports → Trends |
 | Every quarter | Each unit's portfolio review decides what is due, and initiatives are updated | Leaders, managers | Portfolio → Reviews, Roadmap |
 | Every quarter | A leadership report: where the portfolio stood, how it moved, what was decided, retired, and saved | Managers | Reports → Leadership reports |
-| Twice a year | A confirmation campaign across every unit, to catch what slipped | Stewards | Portfolio → Campaigns |
-| Every year | Review the program itself: the definition, the lists, the questions, the weights and bands, and the cadence. Preview any change to the scoring model before publishing it | Managers | Admin → Program |
+| Twice a year | A confirmation campaign across every unit, to catch what slipped. A steward runs one only over their own units; one across the whole organization needs a manager for all of it | A manager for the whole organization, or each unit's steward | Portfolio → Campaigns |
+| Every year | Review the program itself. In the app: the lists, the organization's own fields, the wording of the questions, and, under Scoring and cadence, each factor's weight in each profile, the thresholds, and how often records are confirmed, assessments renewed, reminders sent, and tasks raised. In a program pack: the definition of an application, the built-in sensitive fields, and the rules, guardrails, and flags. Preview any change to the scoring model before publishing it | A manager for the whole organization | Admin → Program; `appwren program export` and `import` |
 | Every year | Look at the shares of the portfolio (the costliest tenth, the least used fifth) and weigh scenarios for the next year's initiatives | Managers, architects | Reports → Shares of the portfolio, Portfolio → Scenarios |
 
 ### Running a quarterly review well

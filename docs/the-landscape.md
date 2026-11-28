@@ -22,7 +22,7 @@ An interface is seen by whoever may see both of its applications. If either is r
 
 ### A consumer depends on its source
 
-An application that receives data depends on the one that sends it, just as a recorded *depends on* link says. Both count, once each, toward the source's **dependents**, which is part of its business value. Recording what a system feeds can therefore raise its score, and its working says how many depend on it.
+An application that receives data depends on the one that sends it, just as a recorded *depends on* link says. Each active application that depends on the source counts once toward its **dependents**, which is part of its business value, however many links and interfaces join the two. Recording what a system feeds can therefore raise its score, and its working says how many depend on it.
 
 ### Follow a class of data
 
@@ -40,8 +40,8 @@ Every application, component, capability, technology, vendor, interface, hosting
 
 - The record is in the middle, with its neighbors in groups: what it depends on and what depends on it, where its data goes and comes from, the capabilities it serves, its components, what they are built on, its vendor, where it runs, and the contracts and funding behind it.
 - The **+** on a neighbor shows what lies beyond it. Choosing a neighbor puts it in the middle.
-- **Tab** moves through the records; **Enter** on a record puts it in the middle, and on its button opens it.
-- A list beside the picture says everything the picture does, and is drawn from the same answer.
+- **Tab** moves through the records; **Enter** on a record puts it in the middle, and **Enter** on its **+** button shows what lies beyond it.
+- **The same, as a list**, beside the picture, says everything the picture does, and is drawn from the same answer. Open a record from its chip there; **Expand** shows what lies beyond it, and **Center** puts it in the middle.
 - Records you may not see are counted, never named.
 
 ### What breaks if this goes
@@ -66,7 +66,7 @@ A platform's page lists everything on it, by environment: what would stop if the
 
 ![A hosting platform: the applications that run on it, by environment](img/hosting-platform-light.webp)
 
-What a vendor hosts has no deployment of yours: the application's *Hosting* field says so.
+An application a vendor runs for you needs no deployment: its **Hosting** field, set to *The vendor's service*, says so. Record a deployment on a platform of the kind *A vendor's service* only where you want that service on the hosting list, so that its page shows everything the organization uses on it.
 
 ## Overlap
 

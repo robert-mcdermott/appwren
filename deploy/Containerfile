@@ -25,6 +25,7 @@ USER appwren
 WORKDIR /data
 VOLUME /data
 EXPOSE 8000
+# The check asks port 8000. If you set APPWREN_SERVER_PORT to another, change it here too.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=4).status == 200 else 1)"]
 # Create what is missing, bring the database up to date, then serve. On the first start,

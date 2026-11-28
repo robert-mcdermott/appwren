@@ -4,7 +4,17 @@
 #   docker compose -f deploy/compose.yaml --env-file deploy/.env up -d --build
 #
 # AppWren listens on 127.0.0.1:8000 of the host. Put a reverse proxy with TLS in front of
-# it: see deploy/Caddyfile and deploy/nginx.conf.
+# it: see deploy/Caddyfile and deploy/nginx.conf. Every account on the host can reach that
+# port too, and the image trusts X-Forwarded-For from anyone (trusted_proxies = "*"), so a
+# local account could get around the limit on sign-in attempts. Where others can sign in to
+# the host, run the proxy as a container on this network, publish only its port, and set
+# APPWREN_SERVER_TRUSTED_PROXIES to its address or network.
+#
+# Every start runs `appwren init`. To restore a backup, do it before the first start, with
+# no volumes yet, then start as usual (the file must be readable by user 10001):
+#
+#   docker compose -f deploy/compose.yaml --env-file deploy/.env run --rm \
+#     -v "$PWD/appwren-backup.tar.gz:/backup.tar.gz:ro" appwren appwren restore /backup.tar.gz
 
 services:
   appwren:

@@ -27,7 +27,7 @@ Sign in as any of its sample people from the sign-in page. Spend an hour as the 
 |---|---|
 | **Who owns the program** | One named person, usually in IT strategy, enterprise architecture, or the CIO's office, who will hold the quarterly reviews and make the leadership reports |
 | **What the units are** | Every application belongs to a unit. Take them from the organization chart, two or three levels deep, not deeper |
-| **Who decides** | Managers decide anywhere; leaders decide for their units. Nobody decides about an application they answer for |
+| **Who decides** | A manager for the whole organization decides anywhere; a manager or a leader held over a unit decides for it and the units beneath it. By default nobody decides about an application they answer for. For a team too small for anyone else to, Admin → Program → Decisions can let an accountable owner who is also its manager or leader decide, and each such decision is marked as the owner's own |
 | **Where it will run** | A server you look after, a container platform, or a virtual machine; PostgreSQL if more than a few dozen people will use it at once. See [Deploy](configuration.md#deploy) |
 | **How people will sign in** | Single sign-on with your identity provider is better than passwords: leavers lose access with their account. See [Single sign-on](configuration.md#single-sign-on) |
 | **What you already know** | The spreadsheet of applications that every organization has somewhere. It is the first import |
@@ -41,7 +41,7 @@ Sign in as any of its sample people from the sign-in page. Spend an hour as the 
 
 ## Weeks 2 to 4: make the program yours
 
-Read [Shape the program](running-the-program.md#shape-the-program), then change only what you are sure of: the definition's examples in your organization's words, the tiers' descriptions, the domains, and the fields you will really fill in. Leave the scoring model as it is until you have seen it score your own applications; every factor and weight is described in [the engine](../spec/engine.md), and a change is previewed before it is published.
+Read [Shape the program](running-the-program.md#shape-the-program), then change only what you are sure of: under Admin → Program, the tiers' descriptions, the domains, and the fields you will really fill in. The definition of an application, with its examples in your organization's words, is changed in a program pack: `appwren program export`, edit the file, then `appwren program import`, with `--dry-run` first to see what would change. Leave the scoring model as it is until you have seen it score your own applications; every factor and weight is described in [the engine](../spec/engine.md), and a change is previewed before it is published.
 
 ## Weeks 4 to 6: a pilot with one or two units
 

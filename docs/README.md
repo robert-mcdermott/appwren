@@ -7,7 +7,7 @@ These guides describe AppWren 0.10.0, and are published with pictures at <https:
 | | Guide | For | Covers |
 |---|---|---|---|
 | 1 | [Adopting AppWren](adopting.md) | An organization deciding whether, and how, to take it up | Who it suits, trying the demo, what to settle first, a path from nothing to a running program in a quarter, connecting other systems, what has been checked |
-| 2 | [Getting started](getting-started.md) | Whoever installs AppWren | Installing, `init`, `doctor`, `serve`, first sign-in, units and people, starting with one team, bringing in your applications, the demo organization |
+| 2 | [Getting started](getting-started.md) | Whoever installs AppWren and sets it up | Choosing a starter program, installing, `init`, `doctor`, `serve`, first sign-in; then, in order: units, people and how they get in, roles, vendors, bringing in your applications from a spreadsheet and what each file must hold, what the scores need, telling people, the first decisions, and seeing that it works; starting with one team; putting it in front of other people; the demo organization |
 | 3 | [The portfolio](the-portfolio.md) | Everyone who keeps, assesses, or reads an application | What counts as an application, the record and its stages, components and technologies, capabilities, assessment, the scores and their working, recommendations, flags, decisions, cost lines, funding, contracts, import and export |
 | 4 | [The landscape](the-landscape.md) | Architects, the portfolio team, and anyone asking what an application touches | Interfaces and data flows, the picture of how a record is connected, what breaks if an application goes, hosting platforms and deployments, overlap, the capability map and its measures, the lifecycle timeline, the radar, support dates from a file, who handles a class of data |
 | 5 | [Keeping current](keeping-current.md) | Everyone who keeps an application, and the portfolio team | Home and the bell, reminders, email, confirming a record and what a stale one costs, campaigns, tasks raised by what happens, passing on what someone holds, search and saved views, likely duplicates, contesting a score |
@@ -34,6 +34,11 @@ The first two are written from the code, so they always match the version they s
 | Question | Where |
 |---|---|
 | How do I try it without setting anything up? | [Explore the demo organization](getting-started.md#explore-the-demo-organization) |
+| In what order do I set an organization up? | [Set up the organization](getting-started.md#set-up-the-organization) |
+| What must my spreadsheet of units, people, or applications hold? | [Units](getting-started.md#1-units), [People and roles](getting-started.md#2-people-and-roles), [Bring in your applications](getting-started.md#5-bring-in-your-applications) |
+| I have added people. How do they sign in? | [How people get in](getting-started.md#2-people-and-roles) |
+| Why does every application say *Assess*? | [Fill in what the scores need](getting-started.md#6-fill-in-what-the-scores-need) |
+| What do I do before other people sign in? | [Put it in front of other people](getting-started.md#put-it-in-front-of-other-people) |
 | Can one team use it on its own, before the rest of the organization? | [Start with one team](getting-started.md#start-with-one-team) |
 | Is this an application, or part of one? | [What counts as an application](the-portfolio.md#what-counts-as-an-application) |
 | How do I bring in the applications I already have in a spreadsheet? | [Import applications](the-portfolio.md#import-applications) |
@@ -92,7 +97,7 @@ The first two are written from the code, so they always match the version they s
 
 ## What this release does not do yet
 
-Version 0.3.0 is the portfolio, the landscape around it, and the means of keeping both current. Every fact in it is still typed or imported by a person. Read-only connectors to the tools that already know the facts (code hosting, public end-of-life data, the identity provider, and catalog files kept in repositories) come next, each turned on by an administrator, with each fact's source shown beside it, so that fewer are typed. After that come review cycles, initiatives, intake of new requests, and the retirement playbook. The [roadmap](../spec/roadmap.md) says what comes next and in what order, and the [changelog](../CHANGELOG.md) lists what is in each release.
+Version 0.10.0 holds the portfolio, the landscape around it, keeping both current, facts from other systems, planning change, insight over time, the means of adopting and connecting it, and an optional assistant. 1.0.0 follows the maintainer's review, with the [compatibility promise](compatibility.md) in force. Some things are deliberately not scheduled until adopters ask for them: several portfolios run by units within one installation, several organizations in one installation, cloud cost and procurement imports, monitoring checks, and the interface in other languages. The [roadmap](../spec/roadmap.md) says what comes next, and the [changelog](../CHANGELOG.md) lists what is in each release.
 
 ## More
 
