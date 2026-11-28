@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import re
 import tomllib
+import types
 from collections.abc import Mapping
 from dataclasses import dataclass, field, fields, replace
 from importlib import resources
@@ -91,21 +92,43 @@ class MailConfig:
         return bool(self.host and self.from_address)
 
 
+ASSISTANT_PROVIDERS = ("openai", "anthropic", "bedrock")
+
+
 @dataclass(frozen=True)
 class AssistantConfig:
     """An optional assistant that drafts records and answers questions. Off, and invisible,
-    until an address and a model are given. It may be any server that offers the chat
-    completions interface, including one running on your own machines."""
+    until a model is named. ``provider`` names the protocol its server speaks, not a vendor:
+    ``openai`` (chat completions), ``anthropic`` (messages), or ``bedrock`` (Amazon Bedrock's
+    Converse API), so a server of one's own that speaks one of them serves as well."""
 
-    url: str = ""  # https://models.example.org/v1: /chat/completions is added to it
+    provider: str = "openai"
+    # openai: https://models.example.org/v1, and /chat/completions is added to it. anthropic:
+    # the official service unless given, and /v1/messages is added. bedrock: from the region.
+    url: str = ""
     model: str = ""
     key_env: str = "APPWREN_ASSISTANT_KEY"
+    region: str = ""  # bedrock: the AWS region, such as us-east-1
+    max_tokens: int = 0  # the longest answer; 0: 16,000 for anthropic and bedrock, else unsent
+    temperature: float | None = None  # unsent unless given: newer models refuse one
+    timeout_seconds: int = 120
     # The most sensitive class of data an application may handle and still be described to it.
     max_data_class: str = "internal"
 
     @property
+    def endpoint(self) -> str:
+        """The server's root, with any default filled in."""
+        if self.url:
+            return self.url.rstrip("/")
+        if self.provider == "anthropic":
+            return "https://api.anthropic.com"
+        if self.provider == "bedrock" and self.region:
+            return f"https://bedrock-runtime.{self.region}.amazonaws.com"
+        return ""
+
+    @property
     def enabled(self) -> bool:
-        return bool(self.url and self.model)
+        return bool(self.model and self.endpoint)
 
 
 @dataclass(frozen=True)
@@ -247,6 +270,20 @@ def _build(
 
 
 def _convert(value: Any, kind: Any, *, from_env: bool) -> Any:
+    if isinstance(kind, types.UnionType) and type(None) in kind.__args__:
+        if from_env and not str(value).strip():
+            return None  # an empty variable unsets it
+        (inner,) = [k for k in kind.__args__ if k is not type(None)]
+        return _convert(value, inner, from_env=from_env)
+    if kind is float:
+        if isinstance(value, int | float) and not isinstance(value, bool):
+            return float(value)
+        if from_env:
+            try:
+                return float(str(value).strip())
+            except ValueError:
+                pass
+        raise ValueError("must be a number")
     if kind is bool:
         if isinstance(value, bool):
             return value
@@ -290,8 +327,20 @@ def _resolve_sqlite(url: str, base_dir: Path) -> str:
 def _validate(config: Config, raw: Mapping[str, Any]) -> list[str]:
     problems: list[str] = []
     helper = config.assistant
-    if bool(helper.url) != bool(helper.model):
+    if helper.provider not in ASSISTANT_PROVIDERS:
+        problems.append(f"[assistant] provider must be one of: {', '.join(ASSISTANT_PROVIDERS)}")
+    elif helper.provider == "openai" and bool(helper.url) != bool(helper.model):
         problems.append("[assistant] needs both url and model, or neither")
+    elif helper.provider != "openai" and not helper.model:
+        problems.append(f"[assistant] provider {helper.provider} needs a model")
+    if helper.provider == "bedrock" and not re.fullmatch(r"[a-z]{2}(-[a-z]+)+-\d+", helper.region):
+        problems.append("[assistant] region is needed for bedrock, such as us-east-1")
+    if not 0 <= helper.max_tokens <= 128_000:
+        problems.append("[assistant] max_tokens must be between 0 and 128000")
+    if helper.temperature is not None and not 0 <= helper.temperature <= 2:
+        problems.append("[assistant] temperature must be between 0 and 2")
+    if not 10 <= helper.timeout_seconds <= 600:
+        problems.append("[assistant] timeout_seconds must be between 10 and 600")
     if helper.url and not (
         helper.url.startswith("https://")
         or re.match(r"^http://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(/|$)", helper.url)

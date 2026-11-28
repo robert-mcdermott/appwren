@@ -93,14 +93,44 @@ AppWren also gives advice that does not stop it running. `serve` and `doctor` wa
 
 ### `[assistant]`
 
-Optional, and off unless both `url` and `model` are set. Without them the assistant is not mentioned anywhere in the app.
+Optional, and off until a `model` is named (and, for `openai`, a `url`). Without one the assistant is not mentioned anywhere in the app.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `url` | `""` | The address of a server that offers the chat completions interface, such as `"https://models.example.org/v1"` (`/chat/completions` is added to it). It must be https, unless it is on this machine, such as `"http://127.0.0.1:11434/v1"` for a model you run yourself |
-| `model` | `""` | The model's name, as that server knows it |
-| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file |
+| `provider` | `"openai"` | The protocol the model's server speaks, not who runs it: `openai` (the chat completions interface), `anthropic` (the messages interface), or `bedrock` (Amazon Bedrock's Converse API). Any server that speaks one of them will do |
+| `url` | `""` | The server's address. `openai`: needed, such as `"https://models.example.org/v1"`, and `/chat/completions` is added to it. `anthropic`: the official service unless given, and `/v1/messages` is added. `bedrock`: worked out from the region unless given. It must be https, unless it is on this machine, such as `"http://127.0.0.1:11434/v1"` for a model you run yourself |
+| `model` | `""` | The model's name, as that server knows it. For `bedrock`, a model ID or an inference profile's ID or ARN |
+| `key_env` | `"APPWREN_ASSISTANT_KEY"` | The name of the environment variable that holds the server's key, if it needs one. The key itself never goes in this file. With no key set, none is sent |
+| `region` | `""` | `bedrock`: the AWS region, such as `"us-east-1"` |
+| `max_tokens` | `0` | The longest answer, in tokens. `0` sends no limit for `openai`, and 16,000 for `anthropic` and `bedrock`, which need one. A model that thinks before it answers counts its thinking against this limit |
+| `temperature` | not sent | From 0 to 2, lower being steadier. Left out, the model's own default is used. Newer models refuse any temperature, so set one only for a model that takes it, such as one you run yourself |
+| `timeout_seconds` | `120` | How long to wait for an answer, from 10 to 600 |
 | `max_data_class` | `"internal"` | The most sensitive class of data an application may handle and still be described to the assistant. Applications that handle anything more sensitive are left out of what it is told |
+
+Some examples:
+
+```toml
+# A model you run yourself
+[assistant]
+url = "http://127.0.0.1:11434/v1"
+model = "a-local-model"
+temperature = 0.2
+
+# The messages interface, with the key in APPWREN_ASSISTANT_KEY
+[assistant]
+provider = "anthropic"
+model = "claude-opus-5-5"
+
+# Amazon Bedrock
+[assistant]
+provider = "bedrock"
+region = "us-east-1"
+model = "a-model-or-inference-profile-id"  # as the Bedrock console lists it
+```
+
+For `bedrock`, AppWren uses an Amazon Bedrock API key if there is one, in the variable `key_env` names or in `AWS_BEARER_TOKEN_BEDROCK`. Otherwise it signs each request with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` when there is one. Credentials kept in a shared AWS profile or from single sign-on are not read directly: `aws configure export-credentials --format env` puts them in the environment. The identity needs permission to call the model, such as `bedrock:InvokeModel`. Bedrock also serves the messages interface on its `bedrock-mantle` endpoint, with an API key: use `provider = "anthropic"` and `url = "https://bedrock-mantle.us-east-1.api.aws/anthropic"`.
+
+A server that needs anything more, such as Google Cloud's short-lived sign-in tokens, can be reached through a gateway on this machine that speaks one of the three protocols.
 
 What it does, and what it is never given, is in [The assistant](insight.md#the-assistant).
 

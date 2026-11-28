@@ -4,6 +4,26 @@ AppWren follows semantic versioning. Each wave of the [roadmap](spec/roadmap.md)
 release. Before 1.0, a release may contain breaking changes; they are listed under
 **Breaking**.
 
+## Unreleased
+
+### Added
+
+- **More model servers for the assistant.** `[assistant] provider` names the protocol the
+  model's server speaks: `openai` (the chat completions interface, as before), `anthropic`
+  (the messages interface, the official service by default), or `bedrock` (Amazon Bedrock's
+  Converse API, with an Amazon Bedrock API key or signed with access keys from the
+  environment). New settings: `region`, `max_tokens`, `temperature`, and
+  `timeout_seconds`. A server's own reason for refusing a request is now shown, and an
+  answer cut off at the limit, or declined by the model, says so.
+
+### Changed
+
+- **No temperature is sent unless one is set.** The assistant used to send 0.2, which newer
+  models refuse. Set `[assistant] temperature = 0.2` to keep a model of your own as steady
+  as before.
+- The assistant waits up to two minutes for an answer, not one, for models that think
+  before they answer (`timeout_seconds`).
+
 ## 0.9.0 (2026-11-27)
 
 Wave 9, *Toward 1.0*: the release 1.0 is made from. An application says who uses it:

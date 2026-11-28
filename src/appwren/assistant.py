@@ -12,17 +12,14 @@ the configuration. When it is on, it stays in its place:
 - Its answers are checked like anything typed: a value that is not one of a field's choices
   is dropped, and a reference it cites that it was not given is not linked.
 
-The server may be any that offers the chat completions interface, including one on the
-organization's own machines.
+The server may speak the chat completions interface, the messages interface, or Amazon
+Bedrock's Converse API (``assistant_servers``), and may run on the organization's own machines.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import re
-import urllib.error
-import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -30,18 +27,18 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from appwren import assistant_servers
 from appwren.access.principal import Principal
+from appwren.assistant_servers import AssistantError
 from appwren.config import AssistantConfig
-from appwren.core import net
 from appwren.core.clock import utc_now
-from appwren.core.errors import AppWrenError, Invalid, NotFound, PermissionDenied
+from appwren.core.errors import Invalid, NotFound, PermissionDenied
 from appwren.db.models import Application, ApplicationUnit, AssistantExchange
 from appwren.events import audit
 from appwren.inventory import access, records
 from appwren.inventory.registry import APPLICATION
 from appwren.program import vocab
 
-TIMEOUT = 60
 MAX_PROMPT = 24_000
 MAX_ANSWER = 8_000
 MAX_DOCUMENT = 12_000
@@ -57,34 +54,9 @@ DRAFTED = ("name", "summary", "sourcing", "purpose", "pace", "domain", "tier", "
 Ask = Callable[[AssistantConfig, list[dict[str, str]]], str]
 
 
-class AssistantError(AppWrenError):
-    """The assistant could not be asked, or did not answer usefully."""
-
-
 def ask_server(config: AssistantConfig, messages: list[dict[str, str]]) -> str:
-    """One question to the configured server, by the chat completions interface."""
-    headers = {"Content-Type": "application/json", "User-Agent": "AppWren"}
-    key = os.environ.get(config.key_env, "")
-    if key:
-        headers["Authorization"] = f"Bearer {key}"
-    body = json.dumps({"model": config.model, "messages": messages, "temperature": 0.2})
-    request = urllib.request.Request(  # noqa: S310
-        config.url.rstrip("/") + "/chat/completions", data=body.encode(), headers=headers,
-        method="POST",
-    )  # fmt: skip
-
-    def fetch() -> Any:
-        # A redirect is not followed: it would carry the key to wherever it points.
-        with net.opener().open(request, timeout=TIMEOUT) as answer:
-            return json.loads(net.read_within(answer, 2_000_000, TIMEOUT))
-
-    try:
-        found = net.within(TIMEOUT + 5, fetch)
-        return str(found["choices"][0]["message"]["content"])
-    except urllib.error.HTTPError as error:
-        raise AssistantError(f"The assistant's server answered {error.code}.") from error
-    except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
-        raise AssistantError("The assistant could not be reached.") from error
+    """One question to the configured server, in the protocol it speaks."""
+    return assistant_servers.ask(config, messages)
 
 
 @dataclass

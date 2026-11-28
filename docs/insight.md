@@ -90,6 +90,8 @@ Its page then says what that would do, worked out from the records as they are e
 
 If your organization has set one up ([`[assistant]`](configuration.md#assistant)), **Portfolio → Assistant** offers two things. Otherwise neither the page nor the menu entry is there.
 
+The model may be one your organization runs on its own machines, a hosted service, or one on Amazon Bedrock: any server that speaks the chat completions interface, the messages interface, or Bedrock's Converse API.
+
 - **Ask about the portfolio.** A question in your own words, such as *which applications handle participant consent, and what was decided about them?* The answer cites the applications it relies on, each a link to its record.
 - **Draft an application from a document.** Paste a description (from a vendor's page, a proposal, or a design document) and the assistant fills in what it says: the name, a summary, sourcing, who uses it, how many, the data it handles, sign-in, and the like. Read and correct each value, choose the unit that answers for it, and add it yourself. A value the form would not take is left out, and named.
 
